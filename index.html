@@ -239,7 +239,7 @@
 
 <script>
 /* ---------- API-Endpoint ---------- */
-const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev"; // Worker-URL
+const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
 
 /* ------------ Utilities ------------ */
 const byId = id => document.getElementById(id);
@@ -261,7 +261,7 @@ function show(name){
   byId(views.history).classList.toggle('hidden', name!=='history');
 }
 byId('navInput').onclick = ()=>show('input');
-byId('navResult').onclick = ()=>show('result');
+byId('navResult').onclick = () => { window.renderResult(); show('result'); };
 byId('navHistory').onclick = ()=>{ loadHistory(); show('history'); };
 
 /* ------------ Rows ------------ */
@@ -467,6 +467,7 @@ function loadEntryIntoForm(e){
   (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
   if((e.rowsRaw||[]).length===0) addRow();
   recalcSums(); updateWeightSumPill();
+  window.renderResult(); // sofort aktualisierte Ergebnisdaten/Links
 }
 async function loadHistory(){
   const list = await apiList();
