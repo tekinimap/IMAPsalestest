@@ -84,5 +84,68 @@
       }
     ],
     "id": "90465592-ac45-4bb8-98f6-9de24f51f8b8"
+  },
+  {
+    "ts": 1759417943972,
+    "input": {
+      "client": "Stadt Köln",
+      "project": "Leitlinienprozess",
+      "assessor": "Bülent Arslan",
+      "weights": {
+        "cs": 50,
+        "kz": 30,
+        "pi": 20
+      }
+    },
+    "activeWeightsPct": {
+      "cs": 50,
+      "kz": 30,
+      "pi": 20
+    },
+    "people": [
+      {
+        "name": "Bülent Arslan",
+        "pct": 50
+      },
+      {
+        "name": "Merlin Klein",
+        "pct": 30
+      },
+      {
+        "name": "Sara Kaufmann",
+        "pct": 10
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "pct": 10
+      }
+    ],
+    "rowsRaw": [
+      {
+        "name": "Bülent Arslan",
+        "cs": 100,
+        "kz": 0,
+        "pi": 0
+      },
+      {
+        "name": "Merlin Klein",
+        "cs": 0,
+        "kz": 100,
+        "pi": 0
+      },
+      {
+        "name": "Sara Kaufmann",
+        "cs": 0,
+        "kz": 0,
+        "pi": 50
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "cs": 0,
+        "kz": 0,
+        "pi": 50
+      }
+    ],
+    "id": "b1d3d140-c92b-4f8f-8859-168fb26a56f6"
   }
 ]
