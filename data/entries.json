@@ -1,9 +1,9 @@
 [
   {
-    "ts": 1759401202190,
+    "ts": 1759403921536,
     "input": {
-      "client": "DRV bund",
-      "project": "Los 4",
+      "client": "Deutsche Rentenversicherung Bund",
+      "project": "Führungskräfteentwicklung",
       "assessor": "Abdi Tekin",
       "weights": {
         "cs": 50,
@@ -18,43 +18,43 @@
     },
     "people": [
       {
-        "name": "Abdi",
+        "name": "Abdi Tekin",
         "pct": 58
       },
       {
-        "name": "Merlin",
+        "name": "Merlin Klein",
         "pct": 9
       },
       {
-        "name": "Christopher",
+        "name": "Christopher van den Hövel",
         "pct": 3
       },
       {
-        "name": "Jens",
+        "name": "Jens Maaßen",
         "pct": 30
       }
     ],
     "rowsRaw": [
       {
-        "name": "Abdi",
+        "name": "Abdi Tekin",
         "cs": 100,
         "kz": 20,
         "pi": 10
       },
       {
-        "name": "Merlin",
+        "name": "Merlin Klein",
         "cs": 0,
         "kz": 30,
         "pi": 0
       },
       {
-        "name": "Christopher",
+        "name": "Christopher van den Hövel",
         "cs": 0,
         "kz": 10,
         "pi": 0
       },
       {
-        "name": "Jens",
+        "name": "Jens Maaßen",
         "cs": 0,
         "kz": 40,
         "pi": 90
