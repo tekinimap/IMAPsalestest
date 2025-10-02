@@ -46,35 +46,25 @@
   .tag.bad{border-color:#ff9e9e; color:#ffbebe; background:rgba(255,107,107,.08)}
   .row{display:flex; gap:var(--gap); flex-wrap:wrap; align-items:end}
   .field{display:flex; flex-direction:column; gap:6px; min-width:220px}
-  input[type="text"]{
+  input[type="text"], input[type="number"]{
     width:100%; padding:12px 12px; background:#0f141a; border:1px solid var(--border); color:var(--text);
     border-radius:10px; outline:none; transition:border .15s ease, box-shadow .15s ease;
   }
-  input[type="text"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(25,182,255,.15)}
+  input[type="number"]{text-align:right}
   table{width:100%; border-collapse:separate; border-spacing:0; margin-top:var(--gap); overflow:hidden; border-radius:12px; border:1px solid var(--border)}
-  thead th{background:#10161d; color:#dbe6f2; position:sticky; top:0; z-index:1; text-align:left}
-  thead th.right{text-align:right}
+ thead th {background:#10161d; color:#dbe6f2; position:sticky; top:0; z-index:1; text-align:left;}
+  thead th.right {text-align:right;  /* Aktion-Spalte bleibt rechts */}
+
   th, td{padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle}
   tfoot td{background:#10161d; font-weight:700}
   .right{text-align:right}
   .hidden{display:none !important}
   .error{color:#ffcccc; background:rgba(255,107,107,.08); border:1px solid #ff9e9e; padding:10px 12px; border-radius:10px}
+  .ok{color:var(--ok)}
   .spacer{flex:1}
   .divider{height:1px; background:var(--border); margin:10px 0}
-
-  /* Range-Slider */
-  .range { width:100%; appearance:none; height:6px; border-radius:999px; background:#0f141a; border:1px solid var(--border); }
-  .range:focus { outline:none; box-shadow:0 0 0 3px rgba(25,182,255,.15); }
-  .range::-webkit-slider-thumb { appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); border:none; }
-  .range::-moz-range-thumb { width:16px; height:16px; border:none; border-radius:50%; background:var(--accent); }
-
-  /* Range + Zahlfeld je Zelle */
-  .range-num{display:flex; align-items:center; gap:10px}
-  .range-num input[type="number"]{
-    width:64px; padding:8px 10px; background:#0f141a; border:1px solid var(--border);
-    color:var(--text); border-radius:8px; text-align:right;
-  }
-  .range-num input[type="number"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(25,182,255,.15)}
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .linklike{color:var(--accent); cursor:pointer; text-decoration:underline}
 </style>
 </head>
 <body>
@@ -90,7 +80,7 @@
     <section id="view-input" class="grid">
       <div class="card">
         <h1>Eingabe</h1>
-        <div class="muted small">Punkte je Person/Kategorie: 0–100. Wird eine Kategorie genutzt, muss ihre Summe = 100 sein. Gewichtssumme = 100.</div>
+        <div class="muted small">Punkte je Person/Kategorie: 0–100. Wenn eine Kategorie genutzt wird, muss ihre Summe = 100 sein. Gewichtssumme = 100.</div>
 
         <h2>Rahmendaten</h2>
         <div class="row">
@@ -110,31 +100,22 @@
 
         <h2>Gewichtungen (Summe = 100)</h2>
         <div class="row">
-          <label class="field" style="width:260px">
+          <label class="field" style="width:220px">
             <span>Consultative Selling – %</span>
-            <div class="range-num">
-              <input class="range weight" type="range" id="w_cs" min="0" max="100" step="1" value="50">
-              <input type="number" id="w_cs_num" min="0" max="100" step="1" value="50">
-            </div>
+            <input type="number" id="w_cs" min="0" max="100" step="1" value="50" />
           </label>
-          <label class="field" style="width:260px">
+          <label class="field" style="width:220px">
             <span>Konzepterstellung – %</span>
-            <div class="range-num">
-              <input class="range weight" type="range" id="w_kz" min="0" max="100" step="1" value="30">
-              <input type="number" id="w_kz_num" min="0" max="100" step="1" value="30">
-            </div>
+            <input type="number" id="w_kz" min="0" max="100" step="1" value="30" />
           </label>
-          <label class="field" style="width:260px">
+          <label class="field" style="width:220px">
             <span>Pitch – %</span>
-            <div class="range-num">
-              <input class="range weight" type="range" id="w_pi" min="0" max="100" step="1" value="20">
-              <input type="number" id="w_pi_num" min="0" max="100" step="1" value="20">
-            </div>
+            <input type="number" id="w_pi" min="0" max="100" step="1" value="20" />
           </label>
           <div class="field" style="min-width:220px">
             <span class="muted small">Summe Gewichte</span>
             <div id="w_pill" class="tag"><span>∑</span><span id="w_sum">100</span><span>%</span></div>
-            <div class="muted small">Gewichte werden intern normalisiert.</div>
+            <div class="muted small">Berechnung nutzt nur aktive Kategorien; Gewichte werden intern skaliert.</div>
           </div>
         </div>
 
@@ -217,9 +198,7 @@
         <div class="divider"></div>
 
         <h2>Weitergabe</h2>
-        <div class="muted small" style="margin-bottom:12px">
-          Du kannst die berechnete relative Beteiligung der Personen per BU-Button weiterleiten.
-        </div>
+        <div class="muted small" style="margin-bottom:12px">Du kannst die berechnete relative Beteiligung der Personen durch anklicken des zugehörigen BUs direkt an die zuständige Person weiterleiten.</div>
         <div class="toolbar">
           <button class="btn" id="copyMsg">Nachricht kopieren</button>
           <div class="spacer"></div>
@@ -263,228 +242,136 @@
   </div>
 
 <script>
+/* ---------- API-Endpoint ---------- */
 const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
 
-/* ========= Utilities ========= */
+/* ------------ Utilities ------------ */
 const byId = id => document.getElementById(id);
 const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
+const clampInt = v => { if (v===''||v===null||Number.isNaN(+v)) return ''; const n=Math.max(0,Math.min(100,Math.trunc(+v))); return String(n); };
+const uid = () => 'e' + Math.random().toString(36).slice(2) + Date.now().toString(36);
 const z2 = n => String(n).padStart(2,'0');
-function formatTs(ts){ const d=new Date(ts); return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`; }
-
-/* Nur Ziffern zulassen */
-function blockNonDigits(el){
-  el.setAttribute('inputmode','numeric');
-  el.setAttribute('pattern','[0-9]*');
-  el.addEventListener('keydown', e=>{
-    if (e.ctrlKey||e.metaKey||e.altKey) return;
-    const ok = (
-      (e.key >= '0' && e.key <= '9') ||
-      ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'].includes(e.key)
-    );
-    if(!ok) e.preventDefault();
-  });
+function formatTs(ts){
+  const d = new Date(ts);
+  return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`;
 }
 
-/* clamp helpers */
-function clamp01(n){ n = Math.floor(Number(n)||0); return n<0?0:(n>100?100:n); }
-function setRangeNumber(range, number, v){
-  const mx = Math.min(100, Math.floor(Number(range.max)||100));
-  const n  = Math.max(0, Math.min(mx, Math.floor(Number(v)||0)));
-  range.value = n; number.value = n; return n;
-}
+/* ------------ DOM refs ------------ */
+const views = { input:'view-input', result:'view-result', history:'view-history' };
+const clientEl = byId('client'), projectEl = byId('project'), assessorEl = byId('assessor');
+const wCs = byId('w_cs'), wKz = byId('w_kz'), wPi = byId('w_pi'), wSum = byId('w_sum'), wPill = byId('w_pill');
+const tbody = byId('tbody'); const sumCs = byId('sum_cs'), sumKz = byId('sum_kz'), sumPi = byId('sum_pi');
+const errors = byId('errors'); const btnGo = byId('goResult');
 
-/* Bind Range<->Number (mit Clamp) */
-function bindRangeNumber(range, number, onChange){
-  blockNonDigits(number);
-  const sync = (val)=>{ setRangeNumber(range, number, val); onChange && onChange(); };
-  range.addEventListener('input',  ()=> sync(range.value));
-  number.addEventListener('input', ()=> sync(number.value));
-  sync(number.value || range.value || 0);
-}
-
-/* ========= Navigation ========= */
+/* ------------ Navigation ------------ */
 function show(name){
-  byId('view-input').classList.toggle('hidden', name!=='input');
-  byId('view-result').classList.toggle('hidden', name!=='result');
-  byId('view-history').classList.toggle('hidden', name!=='history');
+  byId(views.input).classList.toggle('hidden', name!=='input');
+  byId(views.result).classList.toggle('hidden', name!=='result');
+  byId(views.history).classList.toggle('hidden', name!=='history');
 }
 byId('navInput').onclick = ()=>show('input');
-byId('navResult').onclick = ()=>{ renderResult(); show('result'); };
-byId('navHistory').onclick= ()=>{ loadHistory(); show('history'); };
+byId('navResult').onclick = () => { window.renderResult(); show('result'); };
+byId('navHistory').onclick = ()=>{ loadHistory(); show('history'); };
 
-/* ========= Gewichte (nur aktiver Slider wird gedeckelt) ========= */
-const wCs=byId('w_cs'), wKz=byId('w_kz'), wPi=byId('w_pi');
-const wCsNum=byId('w_cs_num'), wKzNum=byId('w_kz_num'), wPiNum=byId('w_pi_num');
-const wPill=byId('w_pill'), wSum=byId('w_sum'), btnGo=byId('goResult');
-
-function weightSum(){ return clamp01(wCs.value)+clamp01(wKz.value)+clamp01(wPi.value); }
-function updateWeightSumPill(){
-  const total = weightSum();
-  wSum.textContent = String(total);
-  wPill.classList.toggle('bad', total!==100);
-  btnGo.disabled = (total!==100);
-}
-
-/* nur aktiven Gewichts-Slider begrenzen */
-function capActiveWeight(activeRange){
-  const group=[wCs,wKz,wPi];
-  // sanitize alle
-  group.forEach(r=>{ r.value = clamp01(r.value); });
-  const others = group.filter(x=>x!==activeRange);
-  const sumOthers = others.reduce((a,x)=> a + clamp01(x.value), 0);
-  const rest = Math.max(0, 100 - sumOthers);
-  const cur  = clamp01(activeRange.value);
-  const mx   = Math.min(100, cur + rest);
-  activeRange.max = String(mx);
-  if (cur>mx) activeRange.value = String(mx);
-  const num = activeRange.parentElement.querySelector('input[type="number"]');
-  if (num){ num.max = String(mx); if (clamp01(num.value)!==clamp01(activeRange.value)) num.value = activeRange.value; }
-  updateWeightSumPill();
-}
-
-bindRangeNumber(wCs,wCsNum,()=>capActiveWeight(wCs));
-bindRangeNumber(wKz,wKzNum,()=>capActiveWeight(wKz));
-bindRangeNumber(wPi,wPiNum,()=>capActiveWeight(wPi));
-
-/* ========= Personen ========= */
-const tbody = byId('tbody');
-const sumCs=byId('sum_cs'), sumKz=byId('sum_kz'), sumPi=byId('sum_pi');
-
-const cols = { cs:{sliders:[]}, kz:{sliders:[]}, pi:{sliders:[]} };
-
-function capActiveInColumn(key, el){
-  const group = cols[key].sliders;
-  // sanitize alle Slider der Spalte
-  group.forEach(r=>{ r.value = clamp01(r.value); });
-  const others = group.filter(x=>x!==el);
-  const sumOthers = others.reduce((a,x)=> a + clamp01(x.value), 0);
-  const rest = Math.max(0, 100 - sumOthers);
-  const cur  = clamp01(el.value);
-  const mx   = Math.min(100, cur + rest);
-  el.max = String(mx);
-  if (cur>mx) el.value = String(mx);
-  const num = el.closest('.range-num').querySelector('input[type="number"]');
-  if (num){ num.max = String(mx); if (clamp01(num.value)!==clamp01(el.value)) num.value = el.value; }
-  recalcSums();
-}
-
-function addRow(data={name:'',cs:0,kz:0,pi:0}){
+/* ------------ Rows ------------ */
+function addRow(data={name:'',cs:'',kz:'',pi:''}){
   const tr=document.createElement('tr');
 
   const tdName=document.createElement('td');
   const inpName=document.createElement('input'); inpName.type='text'; inpName.placeholder='Vorname Nachname'; inpName.value=data.name||'';
   tdName.appendChild(inpName);
 
-  function mkCell(val,key){
+  function mkPointsCell(val=''){
     const td=document.createElement('td'); td.className='right';
-    const wrap=document.createElement('div'); wrap.className='range-num';
-    const rng=document.createElement('input'); rng.type='range'; rng.className='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value=String(clamp01(val));
-    const num=document.createElement('input'); num.type='number'; num.min='0'; num.max='100'; num.step='1'; num.value=rng.value;
-    blockNonDigits(num);
-    bindRangeNumber(rng,num,()=>capActiveInColumn(key, rng));
-    wrap.appendChild(rng); wrap.appendChild(num); td.appendChild(wrap);
-    cols[key].sliders.push(rng);
-    return {td,rng};
+    const inp=document.createElement('input'); inp.type='number'; inp.min='0'; inp.max='100'; inp.step='1'; inp.value=val;
+    inp.addEventListener('input', ()=>{ inp.value=clampInt(inp.value); recalcSums(); });
+    td.appendChild(inp); return {td, inp};
   }
-
-  const c1=mkCell(data.cs,'cs');
-  const c2=mkCell(data.kz,'kz');
-  const c3=mkCell(data.pi,'pi');
+  const c1=mkPointsCell(data.cs); const c2=mkPointsCell(data.kz); const c3=mkPointsCell(data.pi);
 
   const tdAct=document.createElement('td');
   const btnDel=document.createElement('button'); btnDel.className='btn icon'; btnDel.textContent='Entfernen';
-  btnDel.onclick=()=>{
-    ['cs','kz','pi'].forEach((k,i)=>{
-      const r=[c1.rng,c2.rng,c3.rng][i];
-      const a=cols[k].sliders; const ix=a.indexOf(r); if(ix>=0) a.splice(ix,1);
-    });
-    tr.remove(); recalcSums();
-  };
+  btnDel.addEventListener('click', ()=>{ tr.remove(); recalcSums(); });
   tdAct.appendChild(btnDel);
 
   tr.appendChild(tdName); tr.appendChild(c1.td); tr.appendChild(c2.td); tr.appendChild(c3.td); tr.appendChild(tdAct);
-  tbody.appendChild(tr);
-
-  // Erste Kappung nach Einfügen
-  capActiveInColumn('cs', c1.rng);
-  capActiveInColumn('kz', c2.rng);
-  capActiveInColumn('pi', c3.rng);
-  recalcSums();
+  tbody.appendChild(tr); recalcSums();
 }
-
 function readRows(){
-  const out=[];
-  [...tbody.querySelectorAll('tr')].forEach(tr=>{
+  const out=[]; [...tbody.querySelectorAll('tr')].forEach(tr=>{
     const tds=tr.querySelectorAll('td');
     const name=tds[0].querySelector('input').value.trim();
-    const cs=clamp01(tds[1].querySelector('input[type="range"]').value);
-    const kz=clamp01(tds[2].querySelector('input[type="range"]').value);
-    const pi=clamp01(tds[3].querySelector('input[type="range"]').value);
-    out.push({name,cs,kz,pi});
-  });
-  return out;
+    const cs=tds[1].querySelector('input').value.trim();
+    const kz=tds[2].querySelector('input').value.trim();
+    const pi=tds[3].querySelector('input').value.trim();
+    out.push({ name, cs: cs===''?0:+cs, kz: kz===''?0:+kz, pi: pi===''?0:+pi });
+  }); return out;
 }
-
 function recalcSums(){
-  const rows=readRows();
-  const s=rows.reduce((a,r)=>{a.cs+=r.cs;a.kz+=r.kz;a.pi+=r.pi;return a;},{cs:0,kz:0,pi:0});
+  const current=readRows();
+  const s=current.reduce((a,r)=>{a.cs+=r.cs; a.kz+=r.kz; a.pi+=r.pi; return a;},{cs:0,kz:0,pi:0});
   sumCs.textContent=s.cs; sumKz.textContent=s.kz; sumPi.textContent=s.pi;
-  return s;
+  updateWeightSumPill(); return s;
 }
 
-/* ========= Validierung ========= */
-const clientEl=byId('client'), projectEl=byId('project'), assessorEl=byId('assessor');
-const errors=byId('errors');
+/* ------------ Weights ------------ */
+function weightSum(){ return (+wCs.value||0)+(+wKz.value||0)+(+wPi.value||0); }
+function updateWeightSumPill(){
+  const total = Math.trunc(weightSum());
+  wSum.textContent=String(total);
+  const ok = (total===100);
+  wPill.classList.toggle('bad', !ok);
+  btnGo.disabled = !ok;
+}
 
+/* ------------ Validation ------------ */
 function validate(){
   const errs=[];
   if(!clientEl.value.trim()) errs.push('Auftraggeber fehlt.');
   if(!projectEl.value.trim()) errs.push('Projekttitel fehlt.');
   if(!assessorEl.value.trim()) errs.push('Schätzung von fehlt.');
 
-  const wTotal = weightSum();
+  const wTotal=Math.trunc(weightSum());
   if(wTotal!==100) errs.push(`Gewichtssumme = ${wTotal}, erforderlich: 100.`);
 
   const data=readRows();
-  const anyUsed=data.some(r=>r.cs||r.kz||r.pi);
+  const anyUsed=data.some(r=>(r.cs+r.kz+r.pi)>0);
   if(!anyUsed) errs.push('Mindestens eine Zeile mit Punkten ist erforderlich.');
+
   data.forEach((r,i)=>{ if((r.cs+r.kz+r.pi)>0 && !r.name) errs.push(`Name fehlt in Zeile ${i+1}.`); });
 
   const sums=recalcSums();
-  [{k:'Consultative Selling',s:sums.cs},{k:'Konzepterstellung',s:sums.kz},{k:'Pitch',s:sums.pi}]
-    .forEach(c=>{ if(c.s>0 && c.s!==100) errs.push(`Kategorie „${c.k}“: Summe = ${c.s}, erforderlich: 100.`); });
+  const cats=[{k:'Consultative Selling',s:sums.cs},{k:'Konzepterstellung',s:sums.kz},{k:'Pitch',s:sums.pi}];
+  cats.forEach(c=>{ if(c.s>0 && c.s!==100) errs.push(`Kategorie „${c.k}“: Summe = ${c.s}, erforderlich: 100.`); });
 
   if(errs.length){ errors.innerHTML=errs.map(e=>'• '+e).join('<br>'); errors.classList.remove('hidden'); return false; }
   errors.classList.add('hidden'); return true;
 }
 
-/* ========= Ergebnis ========= */
+/* ------------ Compute ------------ */
 function compute(){
   const rows=readRows();
   const sums=recalcSums();
   const active={ cs:sums.cs>0, kz:sums.kz>0, pi:sums.pi>0 };
 
-  const wIn={ cs:clamp01(wCs.value), kz:clamp01(wKz.value), pi:clamp01(wPi.value) };
+  const wIn={ cs:Math.max(0,+wCs.value||0), kz:Math.max(0,+wKz.value||0), pi:Math.max(0,+wPi.value||0) };
   let totalWActive=0; if(active.cs) totalWActive+=wIn.cs; if(active.kz) totalWActive+=wIn.kz; if(active.pi) totalWActive+=wIn.pi;
 
-  let wn={cs:0,kz:0,pi:0};
-  const activeCount=(active.cs?1:0)+(active.kz?1:0)+(active.pi?1:0);
+  let wn={cs:0,kz:0,pi:0}; const activeCount=(active.cs?1:0)+(active.kz?1:0)+(active.pi?1:0);
   if(totalWActive===0 && activeCount>0){
     if(active.cs) wn.cs=1/activeCount; if(active.kz) wn.kz=1/activeCount; if(active.pi) wn.pi=1/activeCount;
-  }else{
-    if(active.cs) wn.cs=wIn.cs/totalWActive;
-    if(active.kz) wn.kz=wIn.kz/totalWActive;
-    if(active.pi) wn.pi=wIn.pi/totalWActive;
+  } else {
+    if(active.cs) wn.cs=wIn.cs/totalWActive; if(active.kz) wn.kz=wIn.kz/totalWActive; if(active.pi) wn.pi=wIn.pi/totalWActive;
   }
 
   const people=[];
   rows.forEach(r=>{
-    if(!(r.cs||r.kz||r.pi)) return;
+    const used=(r.cs+r.kz+r.pi)>0; if(!used) return;
     let frac=0;
     if(active.cs) frac+=wn.cs*(r.cs/100);
     if(active.kz) frac+=wn.kz*(r.kz/100);
     if(active.pi) frac+=wn.pi*(r.pi/100);
-    people.push({name:r.name||'Unbenannt', frac});
+    people.push({ name:r.name||'Unbenannt', frac });
   });
 
   let totalPct=0;
@@ -504,16 +391,42 @@ function compute(){
   };
 }
 
-function setTeamsLink(a, email, message){
-  const encoded=encodeURIComponent(message);
-  a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
+/* ------------ API ------------ */
+async function apiList(){
+  const r = await fetch(`${API_BASE}/entries`, { method: "GET" });
+  if(!r.ok) throw new Error("API list failed");
+  return await r.json();
+}
+async function apiSave(entry){
+  const r = await fetch(`${API_BASE}/entries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
+  });
+  if(!r.ok) throw new Error("API save failed");
+  return await r.json();
+}
+async function apiUpdate(id, entry){
+  const r = await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
+  });
+  if(!r.ok) throw new Error("API update failed");
+  return await r.json();
+}
+async function apiDelete(id){
+  const r = await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if(!r.ok) throw new Error("API delete failed");
+  return await r.json();
 }
 
-function renderResult(){
+/* ------------ Result render (global) ------------ */
+window.renderResult = function renderResult(){
   const comp=compute();
-  byId('out_client').textContent=comp.input.client||'–';
-  byId('out_project').textContent=comp.input.project||'–';
-  byId('out_assessor').textContent=comp.input.assessor||'–';
+  byId('out_client').textContent=comp.input.client || '–';
+  byId('out_project').textContent=comp.input.project || '–';
+  byId('out_assessor').textContent=comp.input.assessor || '–';
 
   byId('out_weights_input').textContent=
     `CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`;
@@ -533,52 +446,48 @@ function renderResult(){
   });
   byId('sum_pct').textContent=fmtPct(s);
 
+  const msg=composeMessage(comp);
+  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
+  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
+  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
+  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+};
+function composeMessage(comp){
   const lines=[];
   lines.push(`Auftraggeber: ${comp.input.client||'–'}`);
   lines.push(`Projekttitel: ${comp.input.project||'–'}`);
   lines.push(`Schätzung von: ${comp.input.assessor||'–'}`);
   lines.push(`Eingabe-Gewichte (∑100): CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`);
-  const aw2=[]; if(comp.activeWeightsPct.cs>0) aw2.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
-  if(comp.activeWeightsPct.kz>0) aw2.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
-  if(comp.activeWeightsPct.pi>0) aw2.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
-  lines.push(`Aktive Gewichte (normalisiert): ${aw2.join(' | ')||'–'}`);
+  const aw=[]; if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
+  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
+  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  lines.push(`Aktive Gewichte (normalisiert): ${aw.join(' | ')||'–'}`);
   lines.push(`Beteiligung je Person:`); comp.people.forEach(p=>lines.push(`• ${p.name}: ${fmtPct(p.pct)}%`));
-  const msg=lines.join('\n');
-
-  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
-  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
-  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
-  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+  return lines.join('\n');
+}
+function setTeamsLink(a, email, message){
+  const encoded=encodeURIComponent(message);
+  a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
 }
 
-/* ========= API + Historie ========= */
-async function apiList(){ const r=await fetch(`${API_BASE}/entries`); if(!r.ok) throw new Error("API list failed"); return await r.json(); }
-async function apiSave(entry){ const r=await fetch(`${API_BASE}/entries`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API save failed"); return await r.json(); }
-async function apiUpdate(id,entry){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API update failed"); return await r.json(); }
-async function apiDelete(id){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:"DELETE"}); if(!r.ok) throw new Error("API delete failed"); return await r.json(); }
-
+/* ------------ Historie ------------ */
 let editingId=null;
 
 function loadEntryIntoForm(e){
   editingId=e.id||null;
-  byId('client').value=e.input.client||''; byId('project').value=e.input.project||''; byId('assessor').value=e.input.assessor||'';
-
-  setRangeNumber(wCs,wCsNum,e.input.weights.cs);
-  setRangeNumber(wKz,wKzNum,e.input.weights.kz);
-  setRangeNumber(wPi,wPiNum,e.input.weights.pi);
-  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
-
+  clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
+  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
   tbody.innerHTML='';
-  cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0;
-
   (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
   if((e.rowsRaw||[]).length===0) addRow();
-  recalcSums(); renderResult();
+  recalcSums(); updateWeightSumPill();
+  window.renderResult();
 }
 
 async function loadHistory(){
   const list = await apiList();
   list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
   const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
   if(!list.length){
     const tr=document.createElement('tr'); const td=document.createElement('td');
@@ -586,33 +495,51 @@ async function loadHistory(){
   }
   list.forEach(e=>{
     const tr=document.createElement('tr');
+
     const tdC=document.createElement('td'); tdC.textContent=e.input?.client ?? '';
     const tdP=document.createElement('td'); tdP.textContent=e.input?.project ?? '';
     const tdA=document.createElement('td'); tdA.textContent=e.input?.assessor ?? '';
     const tdT=document.createElement('td'); tdT.textContent=e.ts ? formatTs(e.ts) : '—';
+
     const tdAct=document.createElement('td'); tdAct.className='right';
     const btnEdit=document.createElement('button'); btnEdit.className='btn'; btnEdit.textContent='Bearbeiten';
     btnEdit.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
+
     const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.style.marginLeft='8px'; btnDel.textContent='Löschen';
-    btnDel.onclick=async()=>{ if(!confirm('Eintrag wirklich löschen?')) return; await apiDelete(e.id); await loadHistory(); };
-    tdAct.appendChild(btnEdit); tdAct.appendChild(btnDel);
+    btnDel.onclick=async()=>{
+      const ok = confirm('Eintrag wirklich löschen?');
+      if(!ok) return;
+      await apiDelete(e.id);
+      await loadHistory();
+    };
+
+    tdAct.appendChild(btnEdit);
+    tdAct.appendChild(btnDel);
+
     tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdT); tr.appendChild(tdAct);
     tbodyH.appendChild(tr);
   });
 }
 
-/* ========= Buttons + Init ========= */
+/* ------------ Events ------------ */
+;['w_cs','w_kz','w_pi'].forEach(id=>{
+  byId(id).addEventListener('input', e=>{ e.target.value=clampInt(e.target.value); updateWeightSumPill(); });
+});
 byId('addRow').onclick=()=>addRow();
-byId('resetTable').onclick=()=>{ tbody.innerHTML=''; cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0; addRow(); recalcSums(); };
-byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('result'); };
+byId('resetTable').onclick=()=>{ tbody.innerHTML=''; recalcSums(); };
+byId('goResult').onclick=()=>{ if(!validate()) return; window.renderResult(); show('result'); };
 byId('back').onclick=()=>show('input');
 byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
-byId('newEntry').onclick=()=>{ editingId=null; byId('client').value=''; byId('project').value=''; byId('assessor').value='';
-  setRangeNumber(wCs,wCsNum,50); setRangeNumber(wKz,wKzNum,30); setRangeNumber(wPi,wPiNum,20);
-  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
-  tbody.innerHTML=''; cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0; addRow(); recalcSums(); show('input');
-};
+byId('newEntry').onclick=()=>{ clearForm(); show('input'); };
 
+function clearForm(){
+  editingId=null;
+  clientEl.value=''; projectEl.value=''; assessorEl.value='';
+  wCs.value='50'; wKz.value='30'; wPi.value='20';
+  tbody.innerHTML=''; addRow(); recalcSums(); updateWeightSumPill();
+}
+
+/* ------------ Speichern (API) ------------ */
 byId('saveEntry').onclick=async()=>{
   if(!validate()) { show('input'); return; }
   const comp=compute();
@@ -624,18 +551,21 @@ byId('saveEntry').onclick=async()=>{
     people: comp.people,
     rowsRaw: comp.rowsRaw
   };
-  if (editingId) await apiUpdate(editingId, entry);
-  else { const res = await apiSave(entry); editingId = res.id; }
+  if (editingId) {
+    await apiUpdate(editingId, entry);
+  } else {
+    const res = await apiSave(entry);
+    editingId = res.id;
+  }
   await loadHistory(); show('history');
 };
 
-/* Start */
-setRangeNumber(wCs,wCsNum,50); setRangeNumber(wKz,wKzNum,30); setRangeNumber(wPi,wPiNum,20);
-capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
-addRow();
-recalcSums(); updateWeightSumPill();
+/* ------------ Init ------------ */
+addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
+
 
 
