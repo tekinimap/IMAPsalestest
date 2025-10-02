@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sales-Beteiligung – Punkte & Prozent</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161c; --panel-2:#151b22; --border:#2a313a; --muted:#a0a7b4;
+    --text:#e9edf3; --accent:#19b6ff; --danger:#ff6b6b; --ok:#3ddc97; --radius:14px;
+    --gap:12px; --gap-lg:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 800px at 10% -10%, #16202b, #0b0d10 50%) fixed;
+    color:var(--text); font:14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing:.2px;
+  }
+  .wrap{max-width:1200px; margin:28px auto; padding:0 16px}
+  h1{font-size:22px; margin:0 0 10px}
+  h2{font-size:16px; margin:22px 0 8px; color:#dfe6ee}
+  h3{font-size:14px; margin:16px 0 6px; color:#dfe6ee}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .grid{display:grid; grid-template-columns:1fr; gap:var(--gap)}
+  .card{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  .toolbar{display:flex; gap:var(--gap); flex-wrap:wrap; align-items:center}
+  .nav{display:flex; gap:8px; align-items:center; margin-bottom:14px}
+  .nav .brand{font-weight:700; letter-spacing:.3px; margin-right:auto}
+  .btn{
+    appearance:none; border:1px solid var(--border); background:#0f141a; color:var(--text);
+    padding:10px 14px; border-radius:10px; cursor:pointer; transition:.15s ease; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.25)}
+  .btn.primary{background:var(--accent); border-color:transparent; color:#04121a; font-weight:600}
+  .btn.ghost{background:transparent}
+  .btn.danger{background:rgba(255,107,107,.1); border-color:#ff9292; color:#ffb3b3}
+  .btn:disabled{opacity:.5; cursor:not-allowed; transform:none; box-shadow:none}
+  .btn.icon{padding:8px 10px}
+  .tag{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border:1px dashed var(--border); border-radius:999px; background:#0f141a}
+  .tag.bad{border-color:#ff9e9e; color:#ffbebe; background:rgba(255,107,107,.08)}
+  .row{display:flex; gap:var(--gap); flex-wrap:wrap; align-items:end}
+  .field{display:flex; flex-direction:column; gap:6px; min-width:220px}
+  input[type="text"], input[type="number"]{
+    width:100%; padding:12px 12px; background:#0f141a; border:1px solid var(--border); color:var(--text);
+    border-radius:10px; outline:none; transition:border .15s ease, box-shadow .15s ease;
+  }
+  input[type="text"]:focus, input[type="number"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(25,182,255,.15)}
+  input[type="number"]{text-align:right}
+  table{width:100%; border-collapse:separate; border-spacing:0; margin-top:var(--gap); overflow:hidden; border-radius:12px; border:1px solid var(--border)}
+  thead th{background:#10161d; color:#dbe6f2; position:sticky; top:0; z-index:1}
+  th, td{padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle}
+  tfoot td{background:#10161d; font-weight:700}
+  .right{text-align:right}
+  .hidden{display:none !important}
+  .error{color:#ffcccc; background:rgba(255,107,107,.08); border:1px solid #ff9e9e; padding:10px 12px; border-radius:10px}
+  .ok{color:var(--ok)}
+  .spacer{flex:1}
+  .divider{height:1px; background:var(--border); margin:10px 0}
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .linklike{color:var(--accent); cursor:pointer; text-decoration:underline}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">IMAP · Sales-Beteiligung</div>
+      <button id="navInput" class="btn ghost">Eingabe</button>
+      <button id="navResult" class="btn ghost">Ergebnis</button>
+      <button id="navHistory" class="btn ghost">Historie</button>
+    </div>
+
+    <!-- Eingabe -->
+    <section id="view-input" class="grid">
+      <div class="card">
+        <h1>Eingabe</h1>
+        <div class="muted small">Punkte je Person/Kategorie: 0–100. Wenn eine Kategorie genutzt wird, muss ihre Summe = 100 sein. Gewichtssumme = 100.</div>
+
+        <h2>Rahmendaten</h2>
+        <div class="row">
+          <label class="field" style="flex:1;min-width:260px">
+            <span>Auftraggeber <span class="muted small">(Pflichtfeld)</span></span>
+            <input type="text" id="client" placeholder="z. B. DRV Bund" />
+          </label>
+          <label class="field" style="flex:1;min-width:260px">
+            <span>Projekttitel <span class="muted small">(Pflichtfeld)</span></span>
+            <input type="text" id="project" placeholder="z. B. Basisprogramm Führungskräfte – Los 4" />
+          </label>
+          <label class="field" style="flex:1;min-width:240px">
+            <span>Schätzung von <span class="muted small">(Pflichtfeld)</span></span>
+            <input type="text" id="assessor" placeholder="z. B. Abdi Tekin" />
+          </label>
+        </div>
+
+        <h2>Gewichtungen (Summe = 100)</h2>
+        <div class="row">
+          <label class="field" style="width:220px">
+            <span>Consultative Selling – %</span>
+            <input type="number" id="w_cs" min="0" max="100" step="1" value="50" />
+          </label>
+          <label class="field" style="width:220px">
+            <span>Konzepterstellung – %</span>
+            <input type="number" id="w_kz" min="0" max="100" step="1" value="30" />
+          </label>
+          <label class="field" style="width:220px">
+            <span>Pitch – %</span>
+            <input type="number" id="w_pi" min="0" max="100" step="1" value="20" />
+          </label>
+          <div class="field" style="min-width:220px">
+            <span class="muted small">Summe Gewichte</span>
+            <div id="w_pill" class="tag"><span>∑</span><span id="w_sum">100</span><span>%</span></div>
+            <div class="muted small">Berechnung nutzt nur aktive Kategorien; Gewichte werden intern skaliert.</div>
+          </div>
+        </div>
+
+        <h2>Personen & Punkte</h2>
+        <div class="toolbar">
+          <button class="btn" id="addRow">+ Zeile</button>
+          <div class="spacer"></div>
+          <button class="btn danger" id="resetTable">Tabelle leeren</button>
+        </div>
+
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th style="width:260px">Name <span class="muted small">(Pflicht bei Nutzung)</span></th>
+              <th class="right">Consultative Selling<br><span class="muted small">Punkte (0–100)</span></th>
+              <th class="right">Konzepterstellung<br><span class="muted small">Punkte (0–100)</span></th>
+              <th class="right">Pitch<br><span class="muted small">Punkte (0–100)</span></th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+          <tfoot>
+            <tr>
+              <td class="right"><b>Summe je Kategorie</b></td>
+              <td class="right"><span id="sum_cs">0</span></td>
+              <td class="right"><span id="sum_kz">0</span></td>
+              <td class="right"><span id="sum_pi">0</span></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div id="errors" class="error hidden"></div>
+
+        <div class="toolbar" style="margin-top:12px">
+          <div class="spacer"></div>
+          <button class="btn primary" id="goResult">Weiter zur Ergebnisansicht</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ergebnis -->
+    <section id="view-result" class="grid hidden">
+      <div class="card">
+        <h1>Ergebnis</h1>
+        <div class="row">
+          <div class="field" style="min-width:260px">
+            <h3>Auftraggeber</h3><div id="out_client" class="mono">–</div>
+          </div>
+          <div class="field" style="min-width:260px">
+            <h3>Projekttitel</h3><div id="out_project" class="mono">–</div>
+          </div>
+          <div class="field" style="min-width:240px">
+            <h3>Schätzung von</h3><div id="out_assessor" class="mono">–</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field" style="min-width:280px">
+            <h3>Eingabe-Gewichte (∑ 100)</h3>
+            <div id="out_weights_input" class="mono">–</div>
+          </div>
+          <div class="field" style="min-width:280px">
+            <h3>Aktive Gewichte (normalisiert)</h3>
+            <div id="out_weights_active" class="mono">–</div>
+          </div>
+        </div>
+
+        <h2>Prozentuale Beteiligung je Person</h2>
+        <table id="tbl_result">
+          <thead>
+            <tr><th>Person</th><th class="right">Gesamtbeitrag&nbsp;%</th></tr>
+          </thead>
+          <tbody id="tbody_result"></tbody>
+          <tfoot>
+            <tr><td class="right"><b>Summe:</b></td><td class="right"><b><span id="sum_pct">100,00</span>&nbsp;%</b></td></tr>
+          </tfoot>
+        </table>
+
+        <div class="divider"></div>
+
+        <h2>Weitergabe</h2>
+        <div class="toolbar">
+          <button class="btn" id="copyMsg">Nachricht kopieren</button>
+          <div class="spacer"></div>
+          <a class="btn" id="btn_oe" target="_blank" rel="noopener">Organisational Excellence</a>
+          <a class="btn" id="btn_pi" target="_blank" rel="noopener">Public Impact</a>
+          <a class="btn" id="btn_cp" target="_blank" rel="noopener">ChangePartner</a>
+        </div>
+
+        <div class="toolbar" style="margin-top:12px">
+          <button class="btn" id="back">Zurück</button>
+          <div class="spacer"></div>
+          <button class="btn primary" id="saveEntry">Speichern</button>
+          <button class="btn ghost" id="toHistory">Zur Historie</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historie -->
+    <section id="view-history" class="grid hidden">
+      <div class="card">
+        <h1>Historie</h1>
+        <div class="muted small">Abgeschickte Einträge werden lokal im Browser gespeichert.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Auftraggeber</th>
+              <th>Projekttitel</th>
+              <th>Schätzung von</th>
+              <th class="right">Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="tbody_history"></tbody>
+        </table>
+        <div class="toolbar" style="margin-top:12px">
+          <button class="btn" id="newEntry">Neuer Eintrag</button>
+          <div class="spacer"></div>
+          <span class="muted small">Speicherort: <span class="mono">localStorage.imap_sales_entries</span></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ------------ Utilities ------------ */
+const byId = id => document.getElementById(id);
+const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
+const clampInt = v => { if (v===''||v===null||Number.isNaN(+v)) return ''; const n=Math.max(0,Math.min(100,Math.trunc(+v))); return String(n); };
+const uid = () => 'e' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+/* ------------ DOM refs ------------ */
+const views = { input:'view-input', result:'view-result', history:'view-history' };
+const clientEl = byId('client'), projectEl = byId('project'), assessorEl = byId('assessor');
+const wCs = byId('w_cs'), wKz = byId('w_kz'), wPi = byId('w_pi'), wSum = byId('w_sum'), wPill = byId('w_pill');
+const tbody = byId('tbody'); const sumCs = byId('sum_cs'), sumKz = byId('sum_kz'), sumPi = byId('sum_pi');
+const errors = byId('errors'); const btnGo = byId('goResult');
+
+/* ------------ Navigation ------------ */
+function show(name){
+  byId(views.input).classList.toggle('hidden', name!=='input');
+  byId(views.result).classList.toggle('hidden', name!=='result');
+  byId(views.history).classList.toggle('hidden', name!=='history');
+}
+byId('navInput').onclick = ()=>show('input');
+byId('navResult').onclick = ()=>show('result');
+byId('navHistory').onclick = ()=>{ loadHistory(); show('history'); };
+
+/* ------------ Rows ------------ */
+function addRow(data={name:'',cs:'',kz:'',pi:''}){
+  const tr=document.createElement('tr');
+
+  const tdName=document.createElement('td');
+  const inpName=document.createElement('input'); inpName.type='text'; inpName.placeholder='Vorname Nachname'; inpName.value=data.name||'';
+  tdName.appendChild(inpName);
+
+  function mkPointsCell(val=''){
+    const td=document.createElement('td'); td.className='right';
+    const inp=document.createElement('input'); inp.type='number'; inp.min='0'; inp.max='100'; inp.step='1'; inp.value=val;
+    inp.addEventListener('input', ()=>{ inp.value=clampInt(inp.value); recalcSums(); });
+    td.appendChild(inp); return {td, inp};
+  }
+  const c1=mkPointsCell(data.cs); const c2=mkPointsCell(data.kz); const c3=mkPointsCell(data.pi);
+
+  const tdAct=document.createElement('td');
+  const btnDel=document.createElement('button'); btnDel.className='btn icon'; btnDel.textContent='Entfernen';
+  btnDel.addEventListener('click', ()=>{ tr.remove(); recalcSums(); });
+  tdAct.appendChild(btnDel);
+
+  tr.appendChild(tdName); tr.appendChild(c1.td); tr.appendChild(c2.td); tr.appendChild(c3.td); tr.appendChild(tdAct);
+  tbody.appendChild(tr); recalcSums();
+}
+function readRows(){
+  const out=[]; [...tbody.querySelectorAll('tr')].forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    const name=tds[0].querySelector('input').value.trim();
+    const cs=tds[1].querySelector('input').value.trim();
+    const kz=tds[2].querySelector('input').value.trim();
+    const pi=tds[3].querySelector('input').value.trim();
+    out.push({ name, cs: cs===''?0:+cs, kz: kz===''?0:+kz, pi: pi===''?0:+pi });
+  }); return out;
+}
+function recalcSums(){
+  const current=readRows();
+  const s=current.reduce((a,r)=>{a.cs+=r.cs; a.kz+=r.kz; a.pi+=r.pi; return a;},{cs:0,kz:0,pi:0});
+  sumCs.textContent=s.cs; sumKz.textContent=s.kz; sumPi.textContent=s.pi;
+  updateWeightSumPill(); return s;
+}
+
+/* ------------ Weights ------------ */
+function weightSum(){ return (+wCs.value||0)+(+wKz.value||0)+(+wPi.value||0); }
+function updateWeightSumPill(){
+  const total = Math.trunc(weightSum());
+  wSum.textContent=String(total);
+  const ok = (total===100);
+  wPill.classList.toggle('bad', !ok);
+  btnGo.disabled = !ok;
+}
+
+/* ------------ Validation ------------ */
+function validate(){
+  const errs=[];
+  if(!clientEl.value.trim()) errs.push('Auftraggeber fehlt.');
+  if(!projectEl.value.trim()) errs.push('Projekttitel fehlt.');
+  if(!assessorEl.value.trim()) errs.push('Schätzung von fehlt.');
+
+  const wTotal=Math.trunc(weightSum());
+  if(wTotal!==100) errs.push(`Gewichtssumme = ${wTotal}, erforderlich: 100.`);
+
+  const data=readRows();
+  const anyUsed=data.some(r=>(r.cs+r.kz+r.pi)>0);
+  if(!anyUsed) errs.push('Mindestens eine Zeile mit Punkten ist erforderlich.');
+
+  data.forEach((r,i)=>{ if((r.cs+r.kz+r.pi)>0 && !r.name) errs.push(`Name fehlt in Zeile ${i+1}.`); });
+
+  const sums=recalcSums();
+  const cats=[{k:'Consultative Selling',s:sums.cs},{k:'Konzepterstellung',s:sums.kz},{k:'Pitch',s:sums.pi}];
+  cats.forEach(c=>{ if(c.s>0 && c.s!==100) errs.push(`Kategorie „${c.k}“: Summe = ${c.s}, erforderlich: 100.`); });
+
+  if(errs.length){ errors.innerHTML=errs.map(e=>'• '+e).join('<br>'); errors.classList.remove('hidden'); return false; }
+  errors.classList.add('hidden'); return true;
+}
+
+/* ------------ Compute ------------ */
+function compute(){
+  const rows=readRows();
+  const sums=recalcSums();
+  const active={ cs:sums.cs>0, kz:sums.kz>0, pi:sums.pi>0 };
+
+  const wIn={ cs:Math.max(0,+wCs.value||0), kz:Math.max(0,+wKz.value||0), pi:Math.max(0,+wPi.value||0) };
+  let totalWActive=0; if(active.cs) totalWActive+=wIn.cs; if(active.kz) totalWActive+=wIn.kz; if(active.pi) totalWActive+=wIn.pi;
+
+  let wn={cs:0,kz:0,pi:0}; const activeCount=(active.cs?1:0)+(active.kz?1:0)+(active.pi?1:0);
+  if(totalWActive===0 && activeCount>0){
+    if(active.cs) wn.cs=1/activeCount; if(active.kz) wn.kz=1/activeCount; if(active.pi) wn.pi=1/activeCount;
+  } else {
+    if(active.cs) wn.cs=wIn.cs/totalWActive; if(active.kz) wn.kz=wIn.kz/totalWActive; if(active.pi) wn.pi=wIn.pi/totalWActive;
+  }
+
+  const people=[];
+  rows.forEach(r=>{
+    const used=(r.cs+r.kz+r.pi)>0; if(!used) return;
+    let frac=0;
+    if(active.cs) frac+=wn.cs*(r.cs/100);
+    if(active.kz) frac+=wn.kz*(r.kz/100);
+    if(active.pi) frac+=wn.pi*(r.pi/100);
+    people.push({ name:r.name||'Unbenannt', frac });
+  });
+
+  let totalPct=0;
+  const pcts=people.map(p=>{ const pct=+(fmtPct(p.frac*100)); totalPct+=+pct; return pct; });
+  const diff=+(100-totalPct).toFixed(2);
+  if(people.length && Math.abs(diff)>=0.01){ pcts[pcts.length-1]=+(pcts[pcts.length-1]+diff).toFixed(2); }
+
+  return {
+    input:{ client:clientEl.value.trim(), project:projectEl.value.trim(), assessor:assessorEl.value.trim(), weights:wIn },
+    activeWeightsPct:{
+      cs:active.cs?+(wn.cs*100).toFixed(2):0,
+      kz:active.kz?+(wn.kz*100).toFixed(2):0,
+      pi:active.pi?+(wn.pi*100).toFixed(2):0
+    },
+    people:people.map((p,i)=>({ name:p.name, pct:pcts[i] })),
+    rowsRaw:readRows()
+  };
+}
+
+/* ------------ Result render ------------ */
+function renderResult(){
+  const comp=compute();
+  byId('out_client').textContent=comp.input.client;
+  byId('out_project').textContent=comp.input.project;
+  byId('out_assessor').textContent=comp.input.assessor;
+
+  byId('out_weights_input').textContent=
+    `CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`;
+
+  const aw=[];
+  if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
+  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
+  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  byId('out_weights_active').textContent=aw.join(' | ')||'–';
+
+  const tbodyRes=byId('tbody_result'); tbodyRes.innerHTML='';
+  let s=0; comp.people.forEach(p=>{
+    const tr=document.createElement('tr');
+    const tdN=document.createElement('td'); tdN.textContent=p.name;
+    const tdP=document.createElement('td'); tdP.className='right'; tdP.textContent=fmtPct(p.pct)+' %';
+    tr.appendChild(tdN); tr.appendChild(tdP); tbodyRes.appendChild(tr); s+=+p.pct;
+  });
+  byId('sum_pct').textContent=fmtPct(s);
+
+  const msg=composeMessage(comp);
+  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
+  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
+  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
+  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+}
+function composeMessage(comp){
+  const lines=[];
+  lines.push(`Auftraggeber: ${comp.input.client}`);
+  lines.push(`Projekttitel: ${comp.input.project}`);
+  lines.push(`Schätzung von: ${comp.input.assessor}`);
+  lines.push(`Eingabe-Gewichte (∑100): CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`);
+  const aw=[]; if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
+  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
+  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  lines.push(`Aktive Gewichte (normalisiert): ${aw.join(' | ')||'–'}`);
+  lines.push(`Beteiligung je Person:`); comp.people.forEach(p=>lines.push(`• ${p.name}: ${fmtPct(p.pct)}%`));
+  return lines.join('\n');
+}
+function setTeamsLink(a, email, message){
+  const encoded=encodeURIComponent(message);
+  a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
+}
+
+/* ------------ Storage (Historie) ------------ */
+const STORE_KEY='imap_sales_entries';
+let editingId=null;
+
+function saveToStore(entry){
+  const list = JSON.parse(localStorage.getItem(STORE_KEY)||'[]');
+  const idx = list.findIndex(e=>e.id===entry.id);
+  if(idx>=0) list[idx]=entry; else list.push(entry);
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+function getStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch(e){ return []; } }
+function loadHistory(){
+  const list=getStore();
+  const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
+  if(!list.length){
+    const tr=document.createElement('tr'); const td=document.createElement('td');
+    td.colSpan=4; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tbodyH.appendChild(tr); return;
+  }
+  list.forEach(e=>{
+    const tr=document.createElement('tr');
+    const tdC=document.createElement('td'); tdC.textContent=e.input.client;
+    const tdP=document.createElement('td'); tdP.textContent=e.input.project;
+    const tdA=document.createElement('td'); tdA.textContent=e.input.assessor;
+    const tdAct=document.createElement('td'); tdAct.className='right';
+    const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Bearbeiten';
+    btn.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
+    tdAct.appendChild(btn);
+    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdAct); tbodyH.appendChild(tr);
+  });
+}
+function loadEntryIntoForm(e){
+  editingId=e.id||null;
+  clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
+  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
+  tbody.innerHTML='';
+  (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
+  if((e.rowsRaw||[]).length===0) addRow();
+  recalcSums(); updateWeightSumPill();
+}
+
+/* ------------ Events ------------ */
+;['w_cs','w_kz','w_pi'].forEach(id=>{
+  byId(id).addEventListener('input', e=>{ e.target.value=clampInt(e.target.value); updateWeightSumPill(); });
+});
+byId('addRow').onclick=()=>addRow();
+byId('resetTable').onclick=()=>{ tbody.innerHTML=''; recalcSums(); };
+byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('result'); };
+byId('back').onclick=()=>show('input');
+byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
+byId('newEntry').onclick=()=>{ clearForm(); show('input'); };
+
+function clearForm(){
+  editingId=null;
+  clientEl.value=''; projectEl.value=''; assessorEl.value='';
+  wCs.value='50'; wKz.value='30'; wPi.value='20';
+  tbody.innerHTML=''; addRow(); recalcSums(); updateWeightSumPill();
+}
+
+/* Save entry */
+byId('saveEntry').onclick=()=>{
+  if(!validate()) { show('input'); return; }
+  const comp=compute();
+  const entry={
+    id: editingId || uid(),
+    ts: Date.now(),
+    input: comp.input,
+    activeWeightsPct: comp.activeWeightsPct,
+    people: comp.people,
+    rowsRaw: comp.rowsRaw
+  };
+  saveToStore(entry);
+  editingId=entry.id;
+  loadHistory(); show('history');
+};
+
+/* Init */
+addRow(); recalcSums(); updateWeightSumPill();
+</script>
+</body>
+</html>
