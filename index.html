@@ -265,59 +265,88 @@
 <script>
 const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
 
-/* ---------- Helpers ---------- */
+/* ========= Utilities ========= */
 const byId = id => document.getElementById(id);
 const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
 const z2 = n => String(n).padStart(2,'0');
 function formatTs(ts){ const d=new Date(ts); return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`; }
 
-function bindRangeNumber(range, number, onChange){
-  function clamp(val){ const mx=+range.max||100; return Math.max(0, Math.min(mx, Math.trunc(+val||0))); }
-  range.addEventListener('input', ()=>{ number.value = clamp(range.value); onChange && onChange('range'); });
-  number.addEventListener('input', ()=>{ number.value = clamp(number.value); range.value = number.value; onChange && onChange('number'); });
-  number.value = clamp(number.value); range.value = number.value;
+/* Nur Ziffern zulassen */
+function blockNonDigits(el){
+  el.setAttribute('inputmode','numeric');
+  el.setAttribute('pattern','[0-9]*');
+  el.addEventListener('keydown', e=>{
+    if (e.ctrlKey||e.metaKey||e.altKey) return;
+    const ok = (
+      (e.key >= '0' && e.key <= '9') ||
+      ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'].includes(e.key)
+    );
+    if(!ok) e.preventDefault();
+  });
 }
 
-/* ---------- Views ---------- */
+/* clamp helpers */
+function clamp01(n){ n = Math.floor(Number(n)||0); return n<0?0:(n>100?100:n); }
+function setRangeNumber(range, number, v){
+  const mx = Math.min(100, Math.floor(Number(range.max)||100));
+  const n  = Math.max(0, Math.min(mx, Math.floor(Number(v)||0)));
+  range.value = n; number.value = n; return n;
+}
+
+/* Bind Range<->Number (mit Clamp) */
+function bindRangeNumber(range, number, onChange){
+  blockNonDigits(number);
+  const sync = (val)=>{ setRangeNumber(range, number, val); onChange && onChange(); };
+  range.addEventListener('input',  ()=> sync(range.value));
+  number.addEventListener('input', ()=> sync(number.value));
+  sync(number.value || range.value || 0);
+}
+
+/* ========= Navigation ========= */
 function show(name){
   byId('view-input').classList.toggle('hidden', name!=='input');
   byId('view-result').classList.toggle('hidden', name!=='result');
   byId('view-history').classList.toggle('hidden', name!=='history');
 }
 byId('navInput').onclick = ()=>show('input');
-byId('navResult').onclick = () => { renderResult(); show('result'); };
-byId('navHistory').onclick = ()=>{ loadHistory(); show('history'); };
+byId('navResult').onclick = ()=>{ renderResult(); show('result'); };
+byId('navHistory').onclick= ()=>{ loadHistory(); show('history'); };
 
-/* ---------- Gewichte: nur aktiver Slider wird gekappt ---------- */
+/* ========= Gewichte (nur aktiver Slider wird gedeckelt) ========= */
 const wCs=byId('w_cs'), wKz=byId('w_kz'), wPi=byId('w_pi');
 const wCsNum=byId('w_cs_num'), wKzNum=byId('w_kz_num'), wPiNum=byId('w_pi_num');
 const wPill=byId('w_pill'), wSum=byId('w_sum'), btnGo=byId('goResult');
 
-function weightSum(){ return (+wCs.value||0)+(+wKz.value||0)+(+wPi.value||0); }
-function syncWeightNums(){ wCsNum.value=wCs.value; wKzNum.value=wKz.value; wPiNum.value=wPi.value; }
-
-function capActiveWeight(activeRange){
-  const group=[wCs,wKz,wPi];
-  const others = group.filter(x=>x!==activeRange);
-  const sumOthers = others.reduce((a,x)=>a+(+x.value||0),0);
-  const rest = Math.max(0,100-sumOthers);
-  activeRange.max = (+activeRange.value||0) + rest;               // nur aktiver Slider
-  const num = activeRange.parentElement.querySelector('input[type="number"]');
-  if(num){ num.max = activeRange.max; if(+num.value>+num.max) num.value = activeRange.max; }
-}
-
+function weightSum(){ return clamp01(wCs.value)+clamp01(wKz.value)+clamp01(wPi.value); }
 function updateWeightSumPill(){
-  const total=Math.trunc(weightSum());
-  wSum.textContent=String(total);
+  const total = weightSum();
+  wSum.textContent = String(total);
   wPill.classList.toggle('bad', total!==100);
   btnGo.disabled = (total!==100);
 }
 
-bindRangeNumber(wCs,wCsNum,()=>{ capActiveWeight(wCs); syncWeightNums(); updateWeightSumPill(); });
-bindRangeNumber(wKz,wKzNum,()=>{ capActiveWeight(wKz); syncWeightNums(); updateWeightSumPill(); });
-bindRangeNumber(wPi,wPiNum,()=>{ capActiveWeight(wPi); syncWeightNums(); updateWeightSumPill(); });
+/* nur aktiven Gewichts-Slider begrenzen */
+function capActiveWeight(activeRange){
+  const group=[wCs,wKz,wPi];
+  // sanitize alle
+  group.forEach(r=>{ r.value = clamp01(r.value); });
+  const others = group.filter(x=>x!==activeRange);
+  const sumOthers = others.reduce((a,x)=> a + clamp01(x.value), 0);
+  const rest = Math.max(0, 100 - sumOthers);
+  const cur  = clamp01(activeRange.value);
+  const mx   = Math.min(100, cur + rest);
+  activeRange.max = String(mx);
+  if (cur>mx) activeRange.value = String(mx);
+  const num = activeRange.parentElement.querySelector('input[type="number"]');
+  if (num){ num.max = String(mx); if (clamp01(num.value)!==clamp01(activeRange.value)) num.value = activeRange.value; }
+  updateWeightSumPill();
+}
 
-/* ---------- Personen: identisch – nur aktiver Slider wird gekappt ---------- */
+bindRangeNumber(wCs,wCsNum,()=>capActiveWeight(wCs));
+bindRangeNumber(wKz,wKzNum,()=>capActiveWeight(wKz));
+bindRangeNumber(wPi,wPiNum,()=>capActiveWeight(wPi));
+
+/* ========= Personen ========= */
 const tbody = byId('tbody');
 const sumCs=byId('sum_cs'), sumKz=byId('sum_kz'), sumPi=byId('sum_pi');
 
@@ -325,12 +354,18 @@ const cols = { cs:{sliders:[]}, kz:{sliders:[]}, pi:{sliders:[]} };
 
 function capActiveInColumn(key, el){
   const group = cols[key].sliders;
+  // sanitize alle Slider der Spalte
+  group.forEach(r=>{ r.value = clamp01(r.value); });
   const others = group.filter(x=>x!==el);
-  const sumOthers = others.reduce((a,x)=>a+(+x.value||0),0);
+  const sumOthers = others.reduce((a,x)=> a + clamp01(x.value), 0);
   const rest = Math.max(0, 100 - sumOthers);
-  el.max = (+el.value||0) + rest;                                   // nur aktiver Slider
+  const cur  = clamp01(el.value);
+  const mx   = Math.min(100, cur + rest);
+  el.max = String(mx);
+  if (cur>mx) el.value = String(mx);
   const num = el.closest('.range-num').querySelector('input[type="number"]');
-  if(num){ num.max = el.max; if(+num.value>+num.max){ num.value = el.max; el.value = el.max; } }
+  if (num){ num.max = String(mx); if (clamp01(num.value)!==clamp01(el.value)) num.value = el.value; }
+  recalcSums();
 }
 
 function addRow(data={name:'',cs:0,kz:0,pi:0}){
@@ -343,13 +378,12 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
   function mkCell(val,key){
     const td=document.createElement('td'); td.className='right';
     const wrap=document.createElement('div'); wrap.className='range-num';
-    const rng=document.createElement('input'); rng.type='range'; rng.className='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value=String(+val||0);
+    const rng=document.createElement('input'); rng.type='range'; rng.className='range'; rng.min='0'; rng.max='100'; rng.step='1'; rng.value=String(clamp01(val));
     const num=document.createElement('input'); num.type='number'; num.min='0'; num.max='100'; num.step='1'; num.value=rng.value;
+    blockNonDigits(num);
+    bindRangeNumber(rng,num,()=>capActiveInColumn(key, rng));
     wrap.appendChild(rng); wrap.appendChild(num); td.appendChild(wrap);
-
-    bindRangeNumber(rng,num,()=>{ capActiveInColumn(key, rng); recalcSums(); });
     cols[key].sliders.push(rng);
-    // Start: max=100, erste Bewegung legt die Kappung fest
     return {td,rng};
   }
 
@@ -360,9 +394,9 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
   const tdAct=document.createElement('td');
   const btnDel=document.createElement('button'); btnDel.className='btn icon'; btnDel.textContent='Entfernen';
   btnDel.onclick=()=>{
-    ['cs','kz','pi'].forEach((k,idx)=>{
-      const r=[c1.rng,c2.rng,c3.rng][idx];
-      const a=cols[k].sliders; const i=a.indexOf(r); if(i>=0) a.splice(i,1);
+    ['cs','kz','pi'].forEach((k,i)=>{
+      const r=[c1.rng,c2.rng,c3.rng][i];
+      const a=cols[k].sliders; const ix=a.indexOf(r); if(ix>=0) a.splice(ix,1);
     });
     tr.remove(); recalcSums();
   };
@@ -371,6 +405,10 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
   tr.appendChild(tdName); tr.appendChild(c1.td); tr.appendChild(c2.td); tr.appendChild(c3.td); tr.appendChild(tdAct);
   tbody.appendChild(tr);
 
+  // Erste Kappung nach Einfügen
+  capActiveInColumn('cs', c1.rng);
+  capActiveInColumn('kz', c2.rng);
+  capActiveInColumn('pi', c3.rng);
   recalcSums();
 }
 
@@ -379,9 +417,9 @@ function readRows(){
   [...tbody.querySelectorAll('tr')].forEach(tr=>{
     const tds=tr.querySelectorAll('td');
     const name=tds[0].querySelector('input').value.trim();
-    const cs=+tds[1].querySelector('input[type="range"]').value||0;
-    const kz=+tds[2].querySelector('input[type="range"]').value||0;
-    const pi=+tds[3].querySelector('input[type="range"]').value||0;
+    const cs=clamp01(tds[1].querySelector('input[type="range"]').value);
+    const kz=clamp01(tds[2].querySelector('input[type="range"]').value);
+    const pi=clamp01(tds[3].querySelector('input[type="range"]').value);
     out.push({name,cs,kz,pi});
   });
   return out;
@@ -391,11 +429,10 @@ function recalcSums(){
   const rows=readRows();
   const s=rows.reduce((a,r)=>{a.cs+=r.cs;a.kz+=r.kz;a.pi+=r.pi;return a;},{cs:0,kz:0,pi:0});
   sumCs.textContent=s.cs; sumKz.textContent=s.kz; sumPi.textContent=s.pi;
-  updateWeightSumPill();
   return s;
 }
 
-/* ---------- Validation ---------- */
+/* ========= Validierung ========= */
 const clientEl=byId('client'), projectEl=byId('project'), assessorEl=byId('assessor');
 const errors=byId('errors');
 
@@ -405,7 +442,7 @@ function validate(){
   if(!projectEl.value.trim()) errs.push('Projekttitel fehlt.');
   if(!assessorEl.value.trim()) errs.push('Schätzung von fehlt.');
 
-  const wTotal = Math.trunc(weightSum());
+  const wTotal = weightSum();
   if(wTotal!==100) errs.push(`Gewichtssumme = ${wTotal}, erforderlich: 100.`);
 
   const data=readRows();
@@ -421,13 +458,13 @@ function validate(){
   errors.classList.add('hidden'); return true;
 }
 
-/* ---------- Ergebnis ---------- */
+/* ========= Ergebnis ========= */
 function compute(){
   const rows=readRows();
   const sums=recalcSums();
   const active={ cs:sums.cs>0, kz:sums.kz>0, pi:sums.pi>0 };
 
-  const wIn={ cs:+wCs.value||0, kz:+wKz.value||0, pi:+wPi.value||0 };
+  const wIn={ cs:clamp01(wCs.value), kz:clamp01(wKz.value), pi:clamp01(wPi.value) };
   let totalWActive=0; if(active.cs) totalWActive+=wIn.cs; if(active.kz) totalWActive+=wIn.kz; if(active.pi) totalWActive+=wIn.pi;
 
   let wn={cs:0,kz:0,pi:0};
@@ -514,7 +551,7 @@ function renderResult(){
   byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
 }
 
-/* ---------- API + Historie ---------- */
+/* ========= API + Historie ========= */
 async function apiList(){ const r=await fetch(`${API_BASE}/entries`); if(!r.ok) throw new Error("API list failed"); return await r.json(); }
 async function apiSave(entry){ const r=await fetch(`${API_BASE}/entries`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API save failed"); return await r.json(); }
 async function apiUpdate(id,entry){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API update failed"); return await r.json(); }
@@ -526,8 +563,10 @@ function loadEntryIntoForm(e){
   editingId=e.id||null;
   byId('client').value=e.input.client||''; byId('project').value=e.input.project||''; byId('assessor').value=e.input.assessor||'';
 
-  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
-  syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
+  setRangeNumber(wCs,wCsNum,e.input.weights.cs);
+  setRangeNumber(wKz,wKzNum,e.input.weights.kz);
+  setRangeNumber(wPi,wPiNum,e.input.weights.pi);
+  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
 
   tbody.innerHTML='';
   cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0;
@@ -562,14 +601,15 @@ async function loadHistory(){
   });
 }
 
-/* ---------- Buttons + Init ---------- */
+/* ========= Buttons + Init ========= */
 byId('addRow').onclick=()=>addRow();
 byId('resetTable').onclick=()=>{ tbody.innerHTML=''; cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0; addRow(); recalcSums(); };
 byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('result'); };
 byId('back').onclick=()=>show('input');
 byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
 byId('newEntry').onclick=()=>{ editingId=null; byId('client').value=''; byId('project').value=''; byId('assessor').value='';
-  wCs.value='50'; wKz.value='30'; wPi.value='20'; syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
+  setRangeNumber(wCs,wCsNum,50); setRangeNumber(wKz,wKzNum,30); setRangeNumber(wPi,wPiNum,20);
+  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
   tbody.innerHTML=''; cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0; addRow(); recalcSums(); show('input');
 };
 
@@ -590,10 +630,12 @@ byId('saveEntry').onclick=async()=>{
 };
 
 /* Start */
+setRangeNumber(wCs,wCsNum,50); setRangeNumber(wKz,wKzNum,30); setRangeNumber(wPi,wPiNum,20);
+capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
 addRow();
-syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
 recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
 
