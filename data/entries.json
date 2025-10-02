@@ -1,48 +1,5 @@
 [
   {
-    "ts": 1759412407962,
-    "input": {
-      "client": "Deutsche Rentenversicherung Bund",
-      "project": "Führungskräfteentwicklung",
-      "assessor": "Abdi Tekin",
-      "weights": {
-        "cs": 30,
-        "kz": 50,
-        "pi": 20
-      }
-    },
-    "activeWeightsPct": {
-      "cs": 30,
-      "kz": 50,
-      "pi": 20
-    },
-    "people": [
-      {
-        "name": "Abdi Tekin",
-        "pct": 70.1
-      },
-      {
-        "name": "Merlin Klein",
-        "pct": 29.9
-      }
-    ],
-    "rowsRaw": [
-      {
-        "name": "Abdi Tekin",
-        "cs": 100,
-        "kz": 77,
-        "pi": 8
-      },
-      {
-        "name": "Merlin Klein",
-        "cs": 0,
-        "kz": 23,
-        "pi": 92
-      }
-    ],
-    "id": "1e50def4-c6f2-456c-a03a-00ace7ad1e95"
-  },
-  {
     "ts": 1759413944422,
     "input": {
       "client": "Deutsche Rentenversicherung Bund",
