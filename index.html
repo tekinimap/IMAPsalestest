@@ -470,45 +470,108 @@ function setTeamsLink(a, email, message){
   a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
 }
 
+  
+/* ------------ Bestätigungsdialog ------------ */
+function customConfirm(message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.inset = '0';
+    overlay.style.background = 'rgba(0,0,0,0.65)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '9999';
+
+    const dialog = document.createElement('div');
+    dialog.style.background = '#12161c';
+    dialog.style.border = '1px solid #2a313a';
+    dialog.style.borderRadius = '12px';
+    dialog.style.padding = '20px';
+    dialog.style.maxWidth = '420px';
+    dialog.style.textAlign = 'center';
+    dialog.style.color = '#e9edf3';
+    dialog.innerHTML = `<p style="margin:0 0 20px">Möchten Sie den Eintrag unwiderruflich löschen?</p>`;
+
+    const btnYes = document.createElement('button');
+    btnYes.textContent = 'Ja';
+    btnYes.className = 'btn primary';
+
+    const btnNo = document.createElement('button');
+    btnNo.textContent = 'Nein';
+    btnNo.className = 'btn ghost';
+    btnNo.style.marginLeft = '12px';
+
+    btnYes.onclick = () => { document.body.removeChild(overlay); resolve(true); };
+    btnNo.onclick = () => { document.body.removeChild(overlay); resolve(false); };
+
+    dialog.appendChild(btnYes);
+    dialog.appendChild(btnNo);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+  });
+}
+
 /* ------------ Historie ------------ */
-let editingId=null;
+let editingId = null;
 
 function loadEntryIntoForm(e){
-  editingId=e.id||null;
-  clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
-  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
-  tbody.innerHTML='';
-  (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
-  if((e.rowsRaw||[]).length===0) addRow();
-  recalcSums(); updateWeightSumPill();
+  editingId = e.id || null;
+  clientEl.value = e.input?.client || '';
+  projectEl.value = e.input?.project || '';
+  assessorEl.value = e.input?.assessor || '';
+  wCs.value = e.input?.weights?.cs ?? '50';
+  wKz.value = e.input?.weights?.kz ?? '30';
+  wPi.value = e.input?.weights?.pi ?? '20';
+
+  tbody.innerHTML = '';
+  (e.rowsRaw || []).forEach(r => addRow({ name: r.name, cs: r.cs, kz: r.kz, pi: r.pi }));
+  if ((e.rowsRaw || []).length === 0) addRow();
+
+  recalcSums();
+  updateWeightSumPill();
   window.renderResult();
 }
 
 async function loadHistory(){
   const list = await apiList();
-  list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  list.sort((a,b) => (b.ts || 0) - (a.ts || 0));
 
-  const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
-  if(!list.length){
-    const tr=document.createElement('tr'); const td=document.createElement('td');
-    td.colSpan=5; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tbodyH.appendChild(tr); return;
+  const tbodyH = byId('tbody_history');
+  tbodyH.innerHTML = '';
+
+  if (!list.length){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.innerHTML = '<span class="muted">Keine Einträge gespeichert.</span>';
+    tr.appendChild(td);
+    tbodyH.appendChild(tr);
+    return;
   }
-  list.forEach(e=>{
-    const tr=document.createElement('tr');
 
-    const tdC=document.createElement('td'); tdC.textContent=e.input?.client ?? '';
-    const tdP=document.createElement('td'); tdP.textContent=e.input?.project ?? '';
-    const tdA=document.createElement('td'); tdA.textContent=e.input?.assessor ?? '';
-    const tdT=document.createElement('td'); tdT.textContent=e.ts ? formatTs(e.ts) : '—';
+  list.forEach(e => {
+    const tr = document.createElement('tr');
 
-    const tdAct=document.createElement('td'); tdAct.className='right';
-    const btnEdit=document.createElement('button'); btnEdit.className='btn'; btnEdit.textContent='Bearbeiten';
-    btnEdit.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
+    const tdC = document.createElement('td'); tdC.textContent = e.input?.client ?? '';
+    const tdP = document.createElement('td'); tdP.textContent = e.input?.project ?? '';
+    const tdA = document.createElement('td'); tdA.textContent = e.input?.assessor ?? '';
+    const tdT = document.createElement('td'); tdT.textContent = e.ts ? formatTs(e.ts) : '—';
 
-    const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.style.marginLeft='8px'; btnDel.textContent='Löschen';
-    btnDel.onclick=async()=>{
-      const ok = confirm('Eintrag wirklich löschen?');
-      if(!ok) return;
+    const tdAct = document.createElement('td'); tdAct.className = 'right';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn';
+    btnEdit.textContent = 'Bearbeiten';
+    btnEdit.onclick = () => { loadEntryIntoForm(e); show('input'); };
+
+    const btnDel = document.createElement('button');
+    btnDel.className = 'btn danger';
+    btnDel.style.marginLeft = '8px';
+    btnDel.textContent = 'Löschen';
+    btnDel.onclick = async () => {
+      const ok = await customConfirm('Möchten Sie den Eintrag unwiderruflich löschen?');
+      if (!ok) return;
       await apiDelete(e.id);
       await loadHistory();
     };
@@ -516,10 +579,16 @@ async function loadHistory(){
     tdAct.appendChild(btnEdit);
     tdAct.appendChild(btnDel);
 
-    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdT); tr.appendChild(tdAct);
+    tr.appendChild(tdC);
+    tr.appendChild(tdP);
+    tr.appendChild(tdA);
+    tr.appendChild(tdT);
+    tr.appendChild(tdAct);
+
     tbodyH.appendChild(tr);
   });
 }
+
 
 /* ------------ Events ------------ */
 ;['w_cs','w_kz','w_pi'].forEach(id=>{
@@ -565,6 +634,7 @@ addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
 
 
 
