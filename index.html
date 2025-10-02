@@ -50,8 +50,7 @@
     width:100%; padding:12px 12px; background:#0f141a; border:1px solid var(--border); color:var(--text);
     border-radius:10px; outline:none; transition:border .15s ease, box-shadow .15s ease;
   }
-  input[type="text"]:focus, input[type="number"]:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(25,182,255,.15)}
-  input[type="number"]{text-align:right}
+  input[type="text"]:focus, input[type="number"]{text-align:right}
   table{width:100%; border-collapse:separate; border-spacing:0; margin-top:var(--gap); overflow:hidden; border-radius:12px; border:1px solid var(--border)}
   thead th{background:#10161d; color:#dbe6f2; position:sticky; top:0; z-index:1}
   th, td{padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle}
@@ -218,7 +217,7 @@
     <section id="view-history" class="grid hidden">
       <div class="card">
         <h1>Historie</h1>
-        <div class="muted small">Abgeschickte Einträge werden lokal im Browser gespeichert.</div>
+        <div class="muted small">Einträge werden serverseitig gespeichert (GitHub via API).</div>
         <table>
           <thead>
             <tr>
@@ -233,13 +232,15 @@
         <div class="toolbar" style="margin-top:12px">
           <button class="btn" id="newEntry">Neuer Eintrag</button>
           <div class="spacer"></div>
-          <span class="muted small">Speicherort: <span class="mono">localStorage.imap_sales_entries</span></span>
         </div>
       </div>
     </section>
   </div>
 
 <script>
+/* ---------- API-Endpoint (Cloudflare Worker) ---------- */
+const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
+
 /* ------------ Utilities ------------ */
 const byId = id => document.getElementById(id);
 const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
@@ -381,68 +382,43 @@ function compute(){
   };
 }
 
-/* ------------ Result render ------------ */
-function renderResult(){
-  const comp=compute();
-  byId('out_client').textContent=comp.input.client;
-  byId('out_project').textContent=comp.input.project;
-  byId('out_assessor').textContent=comp.input.assessor;
-
-  byId('out_weights_input').textContent=
-    `CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`;
-
-  const aw=[];
-  if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
-  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
-  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
-  byId('out_weights_active').textContent=aw.join(' | ')||'–';
-
-  const tbodyRes=byId('tbody_result'); tbodyRes.innerHTML='';
-  let s=0; comp.people.forEach(p=>{
-    const tr=document.createElement('tr');
-    const tdN=document.createElement('td'); tdN.textContent=p.name;
-    const tdP=document.createElement('td'); tdP.className='right'; tdP.textContent=fmtPct(p.pct)+' %';
-    tr.appendChild(tdN); tr.appendChild(tdP); tbodyRes.appendChild(tr); s+=+p.pct;
+/* ------------ API Calls ------------ */
+async function apiList(){
+  const r = await fetch(`${API_BASE}/entries`, { method: "GET" });
+  if(!r.ok) throw new Error("API list failed");
+  return await r.json();
+}
+async function apiSave(entry){
+  const r = await fetch(`${API_BASE}/entries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
   });
-  byId('sum_pct').textContent=fmtPct(s);
-
-  const msg=composeMessage(comp);
-  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
-  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
-  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
-  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+  if(!r.ok) throw new Error("API save failed");
+  return await r.json(); // {ok,id}
 }
-function composeMessage(comp){
-  const lines=[];
-  lines.push(`Auftraggeber: ${comp.input.client}`);
-  lines.push(`Projekttitel: ${comp.input.project}`);
-  lines.push(`Schätzung von: ${comp.input.assessor}`);
-  lines.push(`Eingabe-Gewichte (∑100): CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`);
-  const aw=[]; if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
-  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
-  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
-  lines.push(`Aktive Gewichte (normalisiert): ${aw.join(' | ')||'–'}`);
-  lines.push(`Beteiligung je Person:`); comp.people.forEach(p=>lines.push(`• ${p.name}: ${fmtPct(p.pct)}%`));
-  return lines.join('\n');
-}
-function setTeamsLink(a, email, message){
-  const encoded=encodeURIComponent(message);
-  a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
+async function apiUpdate(id, entry){
+  const r = await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
+  });
+  if(!r.ok) throw new Error("API update failed");
+  return await r.json();
 }
 
-/* ------------ Storage (Historie) ------------ */
-const STORE_KEY='imap_sales_entries';
-let editingId=null;
-
-function saveToStore(entry){
-  const list = JSON.parse(localStorage.getItem(STORE_KEY)||'[]');
-  const idx = list.findIndex(e=>e.id===entry.id);
-  if(idx>=0) list[idx]=entry; else list.push(entry);
-  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+/* ------------ Historie-Render ------------ */
+function loadEntryIntoForm(e){
+  editingId=e.id||null;
+  clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
+  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
+  tbody.innerHTML='';
+  (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
+  if((e.rowsRaw||[]).length===0) addRow();
+  recalcSums(); updateWeightSumPill();
 }
-function getStore(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'[]'); }catch(e){ return []; } }
-function loadHistory(){
-  const list=getStore();
+async function loadHistory(){
+  const list = await apiList();
   const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
   if(!list.length){
     const tr=document.createElement('tr'); const td=document.createElement('td');
@@ -457,20 +433,13 @@ function loadHistory(){
     const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Bearbeiten';
     btn.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
     tdAct.appendChild(btn);
-    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdAct); tbodyH.appendChild(tr);
+    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdAct);
+    tbodyH.appendChild(tr);
   });
-}
-function loadEntryIntoForm(e){
-  editingId=e.id||null;
-  clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
-  wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
-  tbody.innerHTML='';
-  (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
-  if((e.rowsRaw||[]).length===0) addRow();
-  recalcSums(); updateWeightSumPill();
 }
 
 /* ------------ Events ------------ */
+let editingId=null;
 ;['w_cs','w_kz','w_pi'].forEach(id=>{
   byId(id).addEventListener('input', e=>{ e.target.value=clampInt(e.target.value); updateWeightSumPill(); });
 });
@@ -488,21 +457,25 @@ function clearForm(){
   tbody.innerHTML=''; addRow(); recalcSums(); updateWeightSumPill();
 }
 
-/* Save entry */
-byId('saveEntry').onclick=()=>{
+/* Save entry → API */
+byId('saveEntry').onclick=async()=>{
   if(!validate()) { show('input'); return; }
   const comp=compute();
   const entry={
-    id: editingId || uid(),
+    id: editingId || undefined,
     ts: Date.now(),
     input: comp.input,
     activeWeightsPct: comp.activeWeightsPct,
     people: comp.people,
     rowsRaw: comp.rowsRaw
   };
-  saveToStore(entry);
-  editingId=entry.id;
-  loadHistory(); show('history');
+  if (editingId) {
+    await apiUpdate(editingId, entry);
+  } else {
+    const res = await apiSave(entry);
+    editingId = res.id;
+  }
+  await loadHistory(); show('history');
 };
 
 /* Init */
@@ -510,3 +483,4 @@ addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
