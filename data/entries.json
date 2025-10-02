@@ -84,5 +84,48 @@
       }
     ],
     "id": "7a0a9c10-3277-42c2-9a05-6f3317712653"
+  },
+  {
+    "ts": 1759400301820,
+    "input": {
+      "client": "DRV bund",
+      "project": "Los 4",
+      "assessor": "Abdi Tekin",
+      "weights": {
+        "cs": 50,
+        "kz": 30,
+        "pi": 20
+      }
+    },
+    "activeWeightsPct": {
+      "cs": 50,
+      "kz": 30,
+      "pi": 20
+    },
+    "people": [
+      {
+        "name": "Abdi",
+        "pct": 70
+      },
+      {
+        "name": "Merlin",
+        "pct": 30
+      }
+    ],
+    "rowsRaw": [
+      {
+        "name": "Abdi",
+        "cs": 100,
+        "kz": 0,
+        "pi": 100
+      },
+      {
+        "name": "Merlin",
+        "cs": 0,
+        "kz": 100,
+        "pi": 0
+      }
+    ],
+    "id": "31e6f80b-4da9-41c5-b296-eeecd25ca848"
   }
 ]
