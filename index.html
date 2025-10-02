@@ -50,7 +50,7 @@
     width:100%; padding:12px 12px; background:#0f141a; border:1px solid var(--border); color:var(--text);
     border-radius:10px; outline:none; transition:border .15s ease, box-shadow .15s ease;
   }
-  input[type="text"]:focus, input[type="number"]{text-align:right}
+  input[type="number"]{text-align:right}
   table{width:100%; border-collapse:separate; border-spacing:0; margin-top:var(--gap); overflow:hidden; border-radius:12px; border:1px solid var(--border)}
   thead th{background:#10161d; color:#dbe6f2; position:sticky; top:0; z-index:1}
   th, td{padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle}
@@ -238,8 +238,8 @@
   </div>
 
 <script>
-/* ---------- API-Endpoint (Cloudflare Worker) ---------- */
-const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
+/* ---------- API-Endpoint ---------- */
+const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev"; // Worker-URL
 
 /* ------------ Utilities ------------ */
 const byId = id => document.getElementById(id);
@@ -382,7 +382,7 @@ function compute(){
   };
 }
 
-/* ------------ API Calls ------------ */
+/* ------------ API ------------ */
 async function apiList(){
   const r = await fetch(`${API_BASE}/entries`, { method: "GET" });
   if(!r.ok) throw new Error("API list failed");
@@ -395,7 +395,7 @@ async function apiSave(entry){
     body: JSON.stringify(entry),
   });
   if(!r.ok) throw new Error("API save failed");
-  return await r.json(); // {ok,id}
+  return await r.json();
 }
 async function apiUpdate(id, entry){
   const r = await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`, {
@@ -407,7 +407,58 @@ async function apiUpdate(id, entry){
   return await r.json();
 }
 
-/* ------------ Historie-Render ------------ */
+/* ------------ Result render (global) ------------ */
+window.renderResult = function renderResult(){
+  const comp=compute();
+  byId('out_client').textContent=comp.input.client || '–';
+  byId('out_project').textContent=comp.input.project || '–';
+  byId('out_assessor').textContent=comp.input.assessor || '–';
+
+  byId('out_weights_input').textContent=
+    `CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`;
+
+  const aw=[];
+  if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
+  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
+  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  byId('out_weights_active').textContent=aw.join(' | ')||'–';
+
+  const tbodyRes=byId('tbody_result'); tbodyRes.innerHTML='';
+  let s=0; comp.people.forEach(p=>{
+    const tr=document.createElement('tr');
+    const tdN=document.createElement('td'); tdN.textContent=p.name;
+    const tdP=document.createElement('td'); tdP.className='right'; tdP.textContent=fmtPct(p.pct)+' %';
+    tr.appendChild(tdN); tr.appendChild(tdP); tbodyRes.appendChild(tr); s+=+p.pct;
+  });
+  byId('sum_pct').textContent=fmtPct(s);
+
+  const msg=composeMessage(comp);
+  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
+  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
+  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
+  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+};
+function composeMessage(comp){
+  const lines=[];
+  lines.push(`Auftraggeber: ${comp.input.client||'–'}`);
+  lines.push(`Projekttitel: ${comp.input.project||'–'}`);
+  lines.push(`Schätzung von: ${comp.input.assessor||'–'}`);
+  lines.push(`Eingabe-Gewichte (∑100): CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`);
+  const aw=[]; if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
+  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
+  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  lines.push(`Aktive Gewichte (normalisiert): ${aw.join(' | ')||'–'}`);
+  lines.push(`Beteiligung je Person:`); comp.people.forEach(p=>lines.push(`• ${p.name}: ${fmtPct(p.pct)}%`));
+  return lines.join('\n');
+}
+function setTeamsLink(a, email, message){
+  const encoded=encodeURIComponent(message);
+  a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
+}
+
+/* ------------ Historie ------------ */
+let editingId=null;
+
 function loadEntryIntoForm(e){
   editingId=e.id||null;
   clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
@@ -439,13 +490,12 @@ async function loadHistory(){
 }
 
 /* ------------ Events ------------ */
-let editingId=null;
 ;['w_cs','w_kz','w_pi'].forEach(id=>{
   byId(id).addEventListener('input', e=>{ e.target.value=clampInt(e.target.value); updateWeightSumPill(); });
 });
 byId('addRow').onclick=()=>addRow();
 byId('resetTable').onclick=()=>{ tbody.innerHTML=''; recalcSums(); };
-byId('goResult').onclick=()=>{ if(!validate()) return; show('result'); };
+byId('goResult').onclick=()=>{ if(!validate()) return; window.renderResult(); show('result'); };
 byId('back').onclick=()=>show('input');
 byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
 byId('newEntry').onclick=()=>{ clearForm(); show('input'); };
@@ -457,7 +507,7 @@ function clearForm(){
   tbody.innerHTML=''; addRow(); recalcSums(); updateWeightSumPill();
 }
 
-/* Save entry → API */
+/* ------------ Speichern (API) ------------ */
 byId('saveEntry').onclick=async()=>{
   if(!validate()) { show('input'); return; }
   const comp=compute();
@@ -478,11 +528,8 @@ byId('saveEntry').onclick=async()=>{
   await loadHistory(); show('history');
 };
 
-/* Init */
+/* ------------ Init ------------ */
 addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
-
-
-
