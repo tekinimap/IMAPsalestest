@@ -258,10 +258,6 @@ function formatTs(ts){ const d=new Date(ts); return `${z2(d.getDate())}/${z2(d.g
 
 /* ------------ Scrubbable Numbers (Drag auf Zahl) ------------ */
 function addScrub(input, onChange){
-  // Für mobiles Numpad + nur Ziffern
-  input.setAttribute('inputmode','numeric');
-  input.setAttribute('pattern','[0-9]*');
-
   let down=false, startX=0, startVal=0;
   const step=1;
 
@@ -272,15 +268,24 @@ function addScrub(input, onChange){
   const get = () => clampInt(input.value);
 
   input.addEventListener('mousedown', e=>{
-    down = true; startX = e.clientX; startVal = get();
+    // Nur starten, wenn linke Maustaste und nicht im Textfokus
+    if (e.button!==0) return;
+    // Wenn Klick auf das Feld (ohne ziehen), soll Tippen erlaubt bleiben
+    if (e.target===input) {
+      // -> Fokus zum Tippen, KEIN preventDefault!
+      return;
+    }
+    down = true;
+    startX = e.clientX;
+    startVal = get();
     document.body.style.userSelect='none';
     document.body.style.cursor='ew-resize';
-    e.preventDefault();
   });
+
   window.addEventListener('mousemove', e=>{
     if(!down) return;
     const dx = e.clientX - startX;
-    const scale = e.shiftKey ? 2 : (e.altKey ? 0.2 : 1); // Shift=gröber, Alt=feiner
+    const scale = e.shiftKey ? 2 : (e.altKey ? 0.2 : 1);
     set(startVal + Math.round(dx*scale*step));
   });
   window.addEventListener('mouseup', ()=>{
@@ -290,11 +295,13 @@ function addScrub(input, onChange){
     document.body.style.cursor='';
   });
 
-  // Scrollrad
+  // Scrollrad und Eingabe bleiben wie gehabt
   input.addEventListener('wheel', e=>{
     e.preventDefault();
     set(get() + (e.deltaY>0 ? -step : step));
   }, {passive:false});
+  input.addEventListener('input', ()=> set(input.value));
+}
 
   // Direkte Eingabe
   input.addEventListener('input', ()=> set(input.value));
@@ -607,6 +614,7 @@ addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
 
 
 
