@@ -445,7 +445,7 @@ let editingId=null;
 });
 byId('addRow').onclick=()=>addRow();
 byId('resetTable').onclick=()=>{ tbody.innerHTML=''; recalcSums(); };
-byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('result'); };
+byId('goResult').onclick=()=>{ if(!validate()) return; // <- jetzt Kommentar, wird ignoriert renderResult(); show('result'); };
 byId('back').onclick=()=>show('input');
 byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
 byId('newEntry').onclick=()=>{ clearForm(); show('input'); };
@@ -483,4 +483,5 @@ addRow(); recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
 
