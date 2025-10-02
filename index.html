@@ -245,119 +245,104 @@
 <script>
 const API_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
 
-/* ------------ Utils ------------ */
-const byId = id => document.getElementById(id);
-const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
-const z2 = n => String(n).padStart(2,'0');
-const clampInt = v => {
+/* ---------- Utilities ---------- */
+const $ = (id)=>document.getElementById(id);
+const clamp = (v)=> {
   const n = Math.trunc(Number(v));
   if (Number.isNaN(n)) return 0;
   return Math.max(0, Math.min(100, n));
 };
+const z2 = n=>String(n).padStart(2,'0');
+const fmt2 = n => (Math.round(n*100)/100).toFixed(2);
 function formatTs(ts){ const d=new Date(ts); return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`; }
 
-/* ------------ Scrubbable Numbers (Drag auf Zahl) ------------ */
+/* ---------- Scrubbable Numbers (Drag auf Zahl) ---------- */
 function addScrub(input, onChange){
-  let down=false, startX=0, startVal=0;
+  input.setAttribute('inputmode','numeric');
+  input.setAttribute('pattern','[0-9]*');
+
+  let dragging=false, startX=0, startVal=0;
   const step=1;
 
-  const set = v => {
-    input.value = clampInt(v);
-    onChange && onChange();
-  };
-  const get = () => clampInt(input.value);
+  function set(v){ input.value = clamp(v); onChange && onChange(); }
+  function get(){ return clamp(input.value); }
 
   input.addEventListener('mousedown', e=>{
-    // Nur starten, wenn linke Maustaste und nicht im Textfokus
-    if (e.button!==0) return;
-    // Wenn Klick auf das Feld (ohne ziehen), soll Tippen erlaubt bleiben
-    if (e.target===input) {
-      // -> Fokus zum Tippen, KEIN preventDefault!
-      return;
-    }
-    down = true;
-    startX = e.clientX;
-    startVal = get();
+    if (e.button!==0) return;            // nur linke Taste
+    // Klick soll tippen erlauben; Drag erst bei Bewegung starten
+    dragging=true; startX=e.clientX; startVal=get();
     document.body.style.userSelect='none';
     document.body.style.cursor='ew-resize';
   });
-
   window.addEventListener('mousemove', e=>{
-    if(!down) return;
+    if(!dragging) return;
     const dx = e.clientX - startX;
-    const scale = e.shiftKey ? 2 : (e.altKey ? 0.2 : 1);
+    const scale = e.shiftKey ? 2 : (e.altKey ? 0.25 : 1);
     set(startVal + Math.round(dx*scale*step));
   });
   window.addEventListener('mouseup', ()=>{
-    if(!down) return;
-    down=false;
+    if(!dragging) return;
+    dragging=false;
     document.body.style.userSelect='';
     document.body.style.cursor='';
   });
 
-  // Scrollrad und Eingabe bleiben wie gehabt
   input.addEventListener('wheel', e=>{
     e.preventDefault();
     set(get() + (e.deltaY>0 ? -step : step));
   }, {passive:false});
+
   input.addEventListener('input', ()=> set(input.value));
 }
 
-  // Direkte Eingabe
-  input.addEventListener('input', ()=> set(input.value));
-}
-
-/* ------------ DOM refs / Navigation ------------ */
-const views = { input:'view-input', result:'view-result', history:'view-history' };
+/* ---------- Views / Refs ---------- */
 function show(name){
-  byId(views.input).classList.toggle('hidden', name!=='input');
-  byId(views.result).classList.toggle('hidden', name!=='result');
-  byId(views.history).classList.toggle('hidden', name!=='history');
+  $('view-input').classList.toggle('hidden', name!=='input');
+  $('view-result').classList.toggle('hidden', name!=='result');
+  $('view-history').classList.toggle('hidden', name!=='history');
 }
-byId('navInput').onclick  = ()=>show('input');
-byId('navResult').onclick = ()=>{ renderResult(); show('result'); };
-byId('navHistory').onclick= ()=>{ loadHistory(); show('history'); };
+$('navInput').onclick = ()=>show('input');
+$('navResult').onclick= ()=>{ renderResult(); show('result'); };
+$('navHistory').onclick=()=>{ loadHistory(); show('history'); };
 
-const clientEl = byId('client'), projectEl = byId('project'), assessorEl = byId('assessor');
+const clientEl=$('client'), projectEl=$('project'), assessorEl=$('assessor');
 
-const wCs = byId('w_cs'), wKz = byId('w_kz'), wPi = byId('w_pi'),
-      wSum = byId('w_sum'), wPill = byId('w_pill'), btnGo = byId('goResult');
+const wCs=$('w_cs'), wKz=$('w_kz'), wPi=$('w_pi');
+const wSum=$('w_sum'), wPill=$('w_pill'), btnGo=$('goResult');
 
-const tbody = byId('tbody');
-const sumCs = byId('sum_cs'), sumKz = byId('sum_kz'), sumPi = byId('sum_pi');
-const errors = byId('errors');
+const tbody=$('tbody'), sumCs=$('sum_cs'), sumKz=$('sum_kz'), sumPi=$('sum_pi');
+const errors=$('errors');
 
-/* ------------ Gewichte: nur aktives Feld auf Rest begrenzen ------------ */
-function weightSum(){ return clampInt(wCs.value)+clampInt(wKz.value)+clampInt(wPi.value); }
-function updateWeightSumPill(){
-  const total = weightSum();
-  wSum.textContent = String(total);
-  wPill.classList.toggle('bad', total!==100);
-  btnGo.disabled = (total!==100);
+/* ---------- Gewichte: nur aktives Feld begrenzen ---------- */
+function weightSum(){ return clamp(wCs.value)+clamp(wKz.value)+clamp(wPi.value); }
+function updateWeightUI(){
+  const s = weightSum();
+  wSum.textContent=String(s);
+  wPill.classList.toggle('bad', s!==100);
+  btnGo.disabled = (s!==100);
 }
-function capActiveWeightInput(active){
-  const group=[wCs,wKz,wPi];
-  const sumOthers = group.filter(x=>x!==active).reduce((a,x)=>a+clampInt(x.value),0);
+function capActiveWeight(inp){
+  const others = [wCs,wKz,wPi].filter(x=>x!==inp);
+  const sumOthers = others.reduce((a,x)=>a+clamp(x.value),0);
   const rest = Math.max(0, 100 - sumOthers);
-  active.value = Math.min(clampInt(active.value), rest);
-  updateWeightSumPill();
+  inp.value = Math.min(clamp(inp.value), rest);
+  updateWeightUI();
 }
-// Scrub + Kappung binden
 [wCs,wKz,wPi].forEach(inp=>{
-  addScrub(inp, ()=> capActiveWeightInput(inp));
-  inp.addEventListener('change', ()=> capActiveWeightInput(inp));
-  inp.addEventListener('input',  ()=> capActiveWeightInput(inp));
+  addScrub(inp, ()=>capActiveWeight(inp));
+  inp.addEventListener('input', ()=>capActiveWeight(inp));
+  inp.addEventListener('change',()=>capActiveWeight(inp));
 });
-updateWeightSumPill();
+updateWeightUI();
 
-/* ------------ Personen & Punkte (nur aktives Feld auf Rest) ------------ */
-const cols = { cs:[], kz:[], pi:[] }; // je Spalte Referenzen der Inputs
+/* ---------- Personen: nur aktives Feld in Spalte begrenzen ---------- */
+const cols = { cs:[], kz:[], pi:[] };
 
 function capActiveInColumn(key, el){
   const group = cols[key];
-  const sumOthers = group.filter(x=>x!==el).reduce((a,x)=>a+clampInt(x.value),0);
+  const sumOthers = group.filter(x=>x!==el).reduce((a,x)=>a+clamp(x.value),0);
   const rest = Math.max(0, 100 - sumOthers);
-  el.value = Math.min(clampInt(el.value), rest);
+  el.value = Math.min(clamp(el.value), rest);
   recalcSums();
 }
 
@@ -365,94 +350,89 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
   const tr=document.createElement('tr');
 
   const tdName=document.createElement('td');
-  const inpName=document.createElement('input'); inpName.type='text'; inpName.placeholder='Vorname Nachname'; inpName.value=data.name||'';
+  const inpName=document.createElement('input');
+  inpName.type='text'; inpName.placeholder='Vorname Nachname'; inpName.value=data.name||'';
   tdName.appendChild(inpName);
 
-  function mkNumCell(val,key){
+  function cell(val,key){
     const td=document.createElement('td'); td.className='right';
-    const inp=document.createElement('input'); inp.type='number'; inp.min='0'; inp.max='100'; inp.step='1'; inp.value=clampInt(val);
-    // Scrub + Kappung + Sanitizing
-    addScrub(inp, ()=> capActiveInColumn(key, inp));
-    inp.addEventListener('input',  ()=>{ inp.value=clampInt(inp.value); capActiveInColumn(key, inp); });
-    inp.addEventListener('change', ()=>{ inp.value=clampInt(inp.value); capActiveInColumn(key, inp); });
-    td.appendChild(inp);
-    cols[key].push(inp);
-    return {td, inp};
+    const n=document.createElement('input'); n.type='number'; n.min='0'; n.max='100'; n.step='1'; n.value=clamp(val);
+    addScrub(n, ()=>capActiveInColumn(key,n));
+    n.addEventListener('input',  ()=>{ n.value=clamp(n.value); capActiveInColumn(key,n); });
+    n.addEventListener('change', ()=>{ n.value=clamp(n.value); capActiveInColumn(key,n); });
+    td.appendChild(n); cols[key].push(n);
+    return {td, n};
   }
-  const c1=mkNumCell(data.cs,'cs');
-  const c2=mkNumCell(data.kz,'kz');
-  const c3=mkNumCell(data.pi,'pi');
+  const c1=cell(data.cs,'cs');
+  const c2=cell(data.kz,'kz');
+  const c3=cell(data.pi,'pi');
 
   const tdAct=document.createElement('td');
-  const btnDel=document.createElement('button'); btnDel.className='btn icon'; btnDel.textContent='Entfernen';
-  btnDel.onclick=()=>{
-    // aus Spaltenlisten entfernen
-    [['cs',c1.inp],['kz',c2.inp],['pi',c3.inp]].forEach(([k,ref])=>{
-      const arr=cols[k]; const i=arr.indexOf(ref); if(i>=0) arr.splice(i,1);
+  const del=document.createElement('button'); del.className='btn icon'; del.textContent='Entfernen';
+  del.onclick=()=>{
+    ['cs','kz','pi'].forEach((k,i)=>{
+      const ref=[c1.n,c2.n,c3.n][i]; const arr=cols[k]; const idx=arr.indexOf(ref); if(idx>=0) arr.splice(idx,1);
     });
     tr.remove(); recalcSums();
   };
-  tdAct.appendChild(btnDel);
+  tdAct.appendChild(del);
 
   tr.appendChild(tdName); tr.appendChild(c1.td); tr.appendChild(c2.td); tr.appendChild(c3.td); tr.appendChild(tdAct);
   tbody.appendChild(tr);
 
-  // Einmal initial begrenzen (falls andere Werte schon da sind)
-  capActiveInColumn('cs', c1.inp);
-  capActiveInColumn('kz', c2.inp);
-  capActiveInColumn('pi', c3.inp);
+  // initiale Kappung pro Spalte
+  capActiveInColumn('cs', c1.n);
+  capActiveInColumn('kz', c2.n);
+  capActiveInColumn('pi', c3.n);
   recalcSums();
 }
 
+/* ---------- Summen / Validierung ---------- */
 function readRows(){
   const out=[];
-  [...tbody.querySelectorAll('tr')].forEach(tr=>{
+  tbody.querySelectorAll('tr').forEach(tr=>{
     const tds=tr.querySelectorAll('td');
+    if (!tds.length) return;
     const name=tds[0].querySelector('input').value.trim();
-    const cs=clampInt(tds[1].querySelector('input').value);
-    const kz=clampInt(tds[2].querySelector('input').value);
-    const pi=clampInt(tds[3].querySelector('input').value);
-    out.push({ name, cs, kz, pi });
-  }); return out;
+    const cs=clamp(tds[1].querySelector('input').value);
+    const kz=clamp(tds[2].querySelector('input').value);
+    const pi=clamp(tds[3].querySelector('input').value);
+    out.push({name,cs,kz,pi});
+  });
+  return out;
 }
 function recalcSums(){
   const rows=readRows();
-  const s=rows.reduce((a,r)=>{a.cs+=r.cs; a.kz+=r.kz; a.pi+=r.pi; return a;},{cs:0,kz:0,pi:0});
+  const s=rows.reduce((a,r)=>{a.cs+=r.cs;a.kz+=r.kz;a.pi+=r.pi;return a;},{cs:0,kz:0,pi:0});
   sumCs.textContent=s.cs; sumKz.textContent=s.kz; sumPi.textContent=s.pi;
   return s;
 }
-
-/* ------------ Validierung ------------ */
 function validate(){
   const errs=[];
   if(!clientEl.value.trim()) errs.push('Auftraggeber fehlt.');
   if(!projectEl.value.trim()) errs.push('Projekttitel fehlt.');
   if(!assessorEl.value.trim()) errs.push('Schätzung von fehlt.');
+  if(weightSum()!==100) errs.push('Gewichtssumme muss 100 sein.');
 
-  const wTotal=Math.trunc(weightSum());
-  if(wTotal!==100) errs.push(`Gewichtssumme = ${wTotal}, erforderlich: 100.`);
-
-  const data=readRows();
-  const anyUsed=data.some(r=>(r.cs+r.kz+r.pi)>0);
-  if(!anyUsed) errs.push('Mindestens eine Zeile mit Punkten ist erforderlich.');
-
-  data.forEach((r,i)=>{ if((r.cs+r.kz+r.pi)>0 && !r.name) errs.push(`Name fehlt in Zeile ${i+1}.`); });
+  const rows=readRows();
+  if(!rows.some(r=>r.cs||r.kz||r.pi)) errs.push('Mindestens eine Zeile mit Punkten ist erforderlich.');
+  rows.forEach((r,i)=>{ if((r.cs+r.kz+r.pi)>0 && !r.name) errs.push(`Name fehlt in Zeile ${i+1}.`); });
 
   const sums=recalcSums();
-  const cats=[{k:'Consultative Selling',s:sums.cs},{k:'Konzepterstellung',s:sums.kz},{k:'Pitch',s:sums.pi}];
-  cats.forEach(c=>{ if(c.s>0 && c.s!==100) errs.push(`Kategorie „${c.k}“: Summe = ${c.s}, erforderlich: 100.`); });
+  [{k:'Consultative Selling',s:sums.cs},{k:'Konzepterstellung',s:sums.kz},{k:'Pitch',s:sums.pi}]
+    .forEach(c=>{ if(c.s>0 && c.s!==100) errs.push(`Kategorie „${c.k}“: Summe = ${c.s}, erforderlich: 100.`); });
 
   if(errs.length){ errors.innerHTML=errs.map(e=>'• '+e).join('<br>'); errors.classList.remove('hidden'); return false; }
   errors.classList.add('hidden'); return true;
 }
 
-/* ------------ Ergebnis/Compute (unverändert) ------------ */
+/* ---------- Ergebnis ---------- */
 function compute(){
   const rows=readRows();
   const sums=recalcSums();
   const active={ cs:sums.cs>0, kz:sums.kz>0, pi:sums.pi>0 };
 
-  const wIn={ cs:clampInt(wCs.value), kz:clampInt(wKz.value), pi:clampInt(wPi.value) };
+  const wIn={ cs:clamp(wCs.value), kz:clamp(wKz.value), pi:clamp(wPi.value) };
   let totalWActive=0; if(active.cs) totalWActive+=wIn.cs; if(active.kz) totalWActive+=wIn.kz; if(active.pi) totalWActive+=wIn.pi;
 
   let wn={cs:0,kz:0,pi:0}; const activeCount=(active.cs?1:0)+(active.kz?1:0)+(active.pi?1:0);
@@ -464,16 +444,16 @@ function compute(){
 
   const people=[];
   rows.forEach(r=>{
-    const used=(r.cs+r.kz+r.pi)>0; if(!used) return;
+    if(!(r.cs||r.kz||r.pi)) return;
     let frac=0;
     if(active.cs) frac+=wn.cs*(r.cs/100);
     if(active.kz) frac+=wn.kz*(r.kz/100);
     if(active.pi) frac+=wn.pi*(r.pi/100);
-    people.push({ name:r.name||'Unbenannt', frac });
+    people.push({name:r.name||'Unbenannt', frac});
   });
 
   let totalPct=0;
-  const pcts=people.map(p=>{ const pct=+(fmtPct(p.frac*100)); totalPct+=+pct; return pct; });
+  const pcts=people.map(p=>{ const pct=+(fmt2(p.frac*100)); totalPct+=+pct; return pct; });
   const diff=+(100-totalPct).toFixed(2);
   if(people.length && Math.abs(diff)>=0.01){ pcts[pcts.length-1]=+(pcts[pcts.length-1]+diff).toFixed(2); }
 
@@ -488,58 +468,56 @@ function compute(){
     rowsRaw:readRows()
   };
 }
-
 function setTeamsLink(a, email, message){
   const encoded=encodeURIComponent(message);
   a.href=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encoded}`;
 }
 function renderResult(){
-  const comp=compute();
-  byId('out_client').textContent=comp.input.client||'–';
-  byId('out_project').textContent=comp.input.project||'–';
-  byId('out_assessor').textContent=comp.input.assessor||'–';
+  const c=compute();
+  $('out_client').textContent=c.input.client||'–';
+  $('out_project').textContent=c.input.project||'–';
+  $('out_assessor').textContent=c.input.assessor||'–';
 
-  byId('out_weights_input').textContent=
-    `CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`;
+  $('out_weights_input').textContent=
+    `CS ${fmt2(c.input.weights.cs)}% | KZ ${fmt2(c.input.weights.kz)}% | PI ${fmt2(c.input.weights.pi)}%`;
 
-  const aw=[];
-  if(comp.activeWeightsPct.cs>0) aw.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
-  if(comp.activeWeightsPct.kz>0) aw.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
-  if(comp.activeWeightsPct.pi>0) aw.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
-  byId('out_weights_active').textContent=aw.join(' | ')||'–';
+  const aw=[]; if(c.activeWeightsPct.cs>0) aw.push(`CS ${fmt2(c.activeWeightsPct.cs)}%`);
+  if(c.activeWeightsPct.kz>0) aw.push(`KZ ${fmt2(c.activeWeightsPct.kz)}%`);
+  if(c.activeWeightsPct.pi>0) aw.push(`PI ${fmt2(c.activeWeightsPct.pi)}%`);
+  $('out_weights_active').textContent=aw.join(' | ')||'–';
 
-  const tbodyRes=byId('tbody_result'); tbodyRes.innerHTML='';
-  let s=0; comp.people.forEach(p=>{
+  const tbodyRes=$('tbody_result'); tbodyRes.innerHTML='';
+  let s=0; c.people.forEach(p=>{
     const tr=document.createElement('tr');
     const tdN=document.createElement('td'); tdN.textContent=p.name;
-    const tdP=document.createElement('td'); tdP.className='right'; tdP.textContent=fmtPct(p.pct)+' %';
+    const tdP=document.createElement('td'); tdP.className='right'; tdP.textContent=fmt2(p.pct)+' %';
     tr.appendChild(tdN); tr.appendChild(tdP); tbodyRes.appendChild(tr); s+=+p.pct;
   });
-  byId('sum_pct').textContent=fmtPct(s);
+  $('sum_pct').textContent=fmt2(s);
 
   const lines=[];
-  lines.push(`Auftraggeber: ${comp.input.client}`);
-  lines.push(`Projekttitel: ${comp.input.project}`);
-  lines.push(`Schätzung von: ${comp.input.assessor}`);
-  lines.push(`Eingabe-Gewichte (∑100): CS ${fmtPct(comp.input.weights.cs)}% | KZ ${fmtPct(comp.input.weights.kz)}% | PI ${fmtPct(comp.input.weights.pi)}%`);
-  const aw2=[]; if(comp.activeWeightsPct.cs>0) aw2.push(`CS ${fmtPct(comp.activeWeightsPct.cs)}%`);
-  if(comp.activeWeightsPct.kz>0) aw2.push(`KZ ${fmtPct(comp.activeWeightsPct.kz)}%`);
-  if(comp.activeWeightsPct.pi>0) aw2.push(`PI ${fmtPct(comp.activeWeightsPct.pi)}%`);
+  lines.push(`Auftraggeber: ${c.input.client}`);
+  lines.push(`Projekttitel: ${c.input.project}`);
+  lines.push(`Schätzung von: ${c.input.assessor}`);
+  lines.push(`Eingabe-Gewichte (∑100): CS ${fmt2(c.input.weights.cs)}% | KZ ${fmt2(c.input.weights.kz)}% | PI ${fmt2(c.input.weights.pi)}%`);
+  const aw2=[]; if(c.activeWeightsPct.cs>0) aw2.push(`CS ${fmt2(c.activeWeightsPct.cs)}%`);
+  if(c.activeWeightsPct.kz>0) aw2.push(`KZ ${fmt2(c.activeWeightsPct.kz)}%`);
+  if(c.activeWeightsPct.pi>0) aw2.push(`PI ${fmt2(c.activeWeightsPct.pi)}%`);
   lines.push(`Aktive Gewichte (normalisiert): ${aw2.join(' | ')||'–'}`);
-  lines.push(`Beteiligung je Person:`); comp.people.forEach(p=>lines.push(`• ${p.name}: ${fmtPct(p.pct)}%`));
+  lines.push(`Beteiligung je Person:`); c.people.forEach(p=>lines.push(`• ${p.name}: ${fmt2(p.pct)}%`));
   const msg=lines.join('\n');
 
-  setTeamsLink(byId('btn_oe'),'tekin@imap-institut.de',msg);
-  setTeamsLink(byId('btn_pi'),'bartsch@imap-institut.de',msg);
-  setTeamsLink(byId('btn_cp'),'freitag@imap-institut.de',msg);
-  byId('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
+  setTeamsLink($('btn_oe'),'tekin@imap-institut.de',msg);
+  setTeamsLink($('btn_pi'),'bartsch@imap-institut.de',msg);
+  setTeamsLink($('btn_cp'),'freitag@imap-institut.de',msg);
+  $('copyMsg').onclick=async()=>{ try{ await navigator.clipboard.writeText(msg); alert('Nachricht kopiert.'); }catch(e){ alert('Kopieren nicht möglich.'); } };
 }
 
-/* ------------ API + Historie ------------ */
-async function apiList(){ const r=await fetch(`${API_BASE}/entries`); if(!r.ok) throw new Error("API list failed"); return await r.json(); }
-async function apiSave(entry){ const r=await fetch(`${API_BASE}/entries`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API save failed"); return await r.json(); }
-async function apiUpdate(id,entry){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)}); if(!r.ok) throw new Error("API update failed"); return await r.json(); }
-async function apiDelete(id){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:"DELETE"}); if(!r.ok) throw new Error("API delete failed"); return await r.json(); }
+/* ---------- API + Historie ---------- */
+async function apiList(){ const r=await fetch(`${API_BASE}/entries`); if(!r.ok) throw new Error('API list failed'); return r.json(); }
+async function apiSave(entry){ const r=await fetch(`${API_BASE}/entries`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}); if(!r.ok) throw new Error('API save failed'); return r.json(); }
+async function apiUpdate(id,entry){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}); if(!r.ok) throw new Error('API update failed'); return r.json(); }
+async function apiDelete(id){ const r=await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(!r.ok) throw new Error('API delete failed'); return r.json(); }
 
 let editingId=null;
 
@@ -547,73 +525,67 @@ function loadEntryIntoForm(e){
   editingId=e.id||null;
   clientEl.value=e.input.client||''; projectEl.value=e.input.project||''; assessorEl.value=e.input.assessor||'';
   wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
-  capActiveWeightInput(wCs); capActiveWeightInput(wKz); capActiveWeightInput(wPi);
+  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
 
-  tbody.innerHTML='';
-  cols.cs.length=0; cols.kz.length=0; cols.pi.length=0;
+  tbody.innerHTML=''; cols.cs.length=0; cols.kz.length=0; cols.pi.length=0;
   (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
   if((e.rowsRaw||[]).length===0) addRow();
   recalcSums(); renderResult();
 }
-
 async function loadHistory(){
   const list = await apiList();
   list.sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
+  const tb=$('tbody_history'); tb.innerHTML='';
   if(!list.length){
-    const tr=document.createElement('tr'); const td=document.createElement('td');
-    td.colSpan=5; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tbodyH.appendChild(tr); return;
+    const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=5; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tb.appendChild(tr); return;
   }
   list.forEach(e=>{
     const tr=document.createElement('tr');
     const tdC=document.createElement('td'); tdC.textContent=e.input?.client ?? '';
     const tdP=document.createElement('td'); tdP.textContent=e.input?.project ?? '';
     const tdA=document.createElement('td'); tdA.textContent=e.input?.assessor ?? '';
-    const tdT=document.createElement('td'); tdT.textContent=e.ts ? formatTs(e.ts) : '—';
+    const tdT=document.createElement('td'); tdT.textContent=e.ts?formatTs(e.ts):'—';
     const tdAct=document.createElement('td'); tdAct.className='right';
-    const btnEdit=document.createElement('button'); btnEdit.className='btn'; btnEdit.textContent='Bearbeiten';
-    btnEdit.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
-    const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.style.marginLeft='8px'; btnDel.textContent='Löschen';
-    btnDel.onclick=async()=>{ if(!confirm('Eintrag wirklich löschen?')) return; await apiDelete(e.id); await loadHistory(); };
-    tdAct.appendChild(btnEdit); tdAct.appendChild(btnDel);
+    const btnE=document.createElement('button'); btnE.className='btn'; btnE.textContent='Bearbeiten'; btnE.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
+    const btnD=document.createElement('button'); btnD.className='btn danger'; btnD.style.marginLeft='8px'; btnD.textContent='Löschen';
+    btnD.onclick=async()=>{ if(!confirm('Eintrag wirklich löschen?')) return; await apiDelete(e.id); await loadHistory(); };
+    tdAct.appendChild(btnE); tdAct.appendChild(btnD);
     tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdT); tr.appendChild(tdAct);
-    tbodyH.appendChild(tr);
+    tb.appendChild(tr);
   });
 }
 
-/* ------------ Buttons + Init ------------ */
-byId('addRow').onclick=()=>addRow();
-byId('resetTable').onclick=()=>{ tbody.innerHTML=''; cols.cs.length=0; cols.kz.length=0; cols.pi.length=0; addRow(); recalcSums(); };
-byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('result'); };
-byId('back').onclick=()=>show('input');
-byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
-byId('newEntry').onclick=()=>{ editingId=null; clientEl.value=''; projectEl.value=''; assessorEl.value='';
+/* ---------- Buttons ---------- */
+$('addRow').onclick = ()=>addRow();
+$('resetTable').onclick=()=>{
+  tbody.innerHTML=''; cols.cs.length=0; cols.kz.length=0; cols.pi.length=0;
+};
+$('goResult').onclick = ()=>{ if(!validate()) return; renderResult(); show('result'); };
+$('back').onclick     = ()=>show('input');
+$('toHistory').onclick= ()=>{ loadHistory(); show('history'); };
+$('newEntry').onclick = ()=>{
+  editingId=null;
+  clientEl.value=''; projectEl.value=''; assessorEl.value='';
   wCs.value='50'; wKz.value='30'; wPi.value='20';
-  capActiveWeightInput(wCs); capActiveWeightInput(wKz); capActiveWeightInput(wPi);
+  capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
   tbody.innerHTML=''; cols.cs.length=0; cols.kz.length=0; cols.pi.length=0; addRow(); recalcSums(); show('input');
 };
-
-byId('saveEntry').onclick=async()=>{
+$('saveEntry').onclick= async ()=>{
   if(!validate()) { show('input'); return; }
-  const comp=compute();
-  const entry={
-    id: editingId || undefined,
-    ts: Date.now(),
-    input: comp.input,
-    activeWeightsPct: comp.activeWeightsPct,
-    people: comp.people,
-    rowsRaw: comp.rowsRaw
-  };
+  const c=compute();
+  const entry={ id: editingId||undefined, ts: Date.now(), input: c.input, activeWeightsPct: c.activeWeightsPct, people: c.people, rowsRaw: c.rowsRaw };
   if (editingId) await apiUpdate(editingId, entry);
   else { const res = await apiSave(entry); editingId = res.id; }
   await loadHistory(); show('history');
 };
 
-/* Init */
-addRow(); recalcSums(); updateWeightSumPill();
+/* ---------- Init ---------- */
+addRow();            // <- erste Zeile sichtbar
+updateWeightUI();
 </script>
 </body>
 </html>
+
 
 
 
