@@ -1,9 +1,9 @@
 [
   {
-    "ts": 1759404024795,
+    "ts": 1759404110530,
     "input": {
       "client": "Deutsche Rentenversicherung Bund",
-      "project": "F�hrungskr�fteentwicklung",
+      "project": "Führungskräfteentwicklung",
       "assessor": "Abdi Tekin",
       "weights": {
         "cs": 50,
@@ -26,11 +26,11 @@
         "pct": 9
       },
       {
-        "name": "Christopher van den Hövel",
+        "name": "Christopher van den HÃ¶vel",
         "pct": 3
       },
       {
-        "name": "Jens Maaßen",
+        "name": "Jens MaaÃŸen",
         "pct": 30
       }
     ],
@@ -48,13 +48,13 @@
         "pi": 0
       },
       {
-        "name": "Christopher van den Hövel",
+        "name": "Christopher van den HÃ¶vel",
         "cs": 0,
         "kz": 10,
         "pi": 0
       },
       {
-        "name": "Jens Maaßen",
+        "name": "Jens MaaÃŸen",
         "cs": 0,
         "kz": 40,
         "pi": 90
