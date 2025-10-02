@@ -1,6 +1,6 @@
 [
   {
-    "ts": 1759404110530,
+    "ts": 1759404132504,
     "input": {
       "client": "Deutsche Rentenversicherung Bund",
       "project": "Führungskräfteentwicklung",
@@ -26,11 +26,11 @@
         "pct": 9
       },
       {
-        "name": "Christopher van den HÃ¶vel",
+        "name": "Christopher van den Hövel",
         "pct": 3
       },
       {
-        "name": "Jens MaaÃŸen",
+        "name": "Jens Maaßen",
         "pct": 30
       }
     ],
@@ -48,13 +48,13 @@
         "pi": 0
       },
       {
-        "name": "Christopher van den HÃ¶vel",
+        "name": "Christopher van den Hövel",
         "cs": 0,
         "kz": 10,
         "pi": 0
       },
       {
-        "name": "Jens MaaÃŸen",
+        "name": "Jens Maaßen",
         "cs": 0,
         "kz": 40,
         "pi": 90
