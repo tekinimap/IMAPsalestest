@@ -106,7 +106,7 @@
     "id": "6948cc6c-79b4-44fa-b555-5c0720f74505"
   },
   {
-    "ts": 1759412385876,
+    "ts": 1759412407962,
     "input": {
       "client": "Deutsche Rentenversicherung Bund",
       "project": "Führungskräfteentwicklung",
@@ -125,24 +125,24 @@
     "people": [
       {
         "name": "Abdi Tekin",
-        "pct": 50.1
+        "pct": 70.1
       },
       {
         "name": "Merlin Klein",
-        "pct": 49.9
+        "pct": 29.9
       }
     ],
     "rowsRaw": [
       {
         "name": "Abdi Tekin",
         "cs": 100,
-        "kz": 37,
+        "kz": 77,
         "pi": 8
       },
       {
         "name": "Merlin Klein",
         "cs": 0,
-        "kz": 63,
+        "kz": 23,
         "pi": 92
       }
     ],
