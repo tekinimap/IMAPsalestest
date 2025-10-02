@@ -272,10 +272,10 @@ const z2 = n => String(n).padStart(2,'0');
 function formatTs(ts){ const d=new Date(ts); return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`; }
 
 function bindRangeNumber(range, number, onChange){
-  function clampToMax(val){ const mx=+range.max||100; return Math.max(0, Math.min(mx, Math.trunc(+val||0))); }
-  range.addEventListener('input', ()=>{ number.value = clampToMax(range.value); onChange && onChange(); });
-  number.addEventListener('input', ()=>{ number.value = clampToMax(number.value); range.value = number.value; onChange && onChange(); });
-  number.value = clampToMax(number.value); range.value = number.value;
+  function clamp(val){ const mx=+range.max||100; return Math.max(0, Math.min(mx, Math.trunc(+val||0))); }
+  range.addEventListener('input', ()=>{ number.value = clamp(range.value); onChange && onChange('range'); });
+  number.addEventListener('input', ()=>{ number.value = clamp(number.value); range.value = number.value; onChange && onChange('number'); });
+  number.value = clamp(number.value); range.value = number.value;
 }
 
 /* ---------- Views ---------- */
@@ -288,51 +288,49 @@ byId('navInput').onclick = ()=>show('input');
 byId('navResult').onclick = () => { renderResult(); show('result'); };
 byId('navHistory').onclick = ()=>{ loadHistory(); show('history'); };
 
-/* ---------- Weights: Headroom wie besprochen ---------- */
+/* ---------- Gewichte: nur aktiver Slider wird gekappt ---------- */
 const wCs=byId('w_cs'), wKz=byId('w_kz'), wPi=byId('w_pi');
 const wCsNum=byId('w_cs_num'), wKzNum=byId('w_kz_num'), wPiNum=byId('w_pi_num');
 const wPill=byId('w_pill'), wSum=byId('w_sum'), btnGo=byId('goResult');
 
-bindRangeNumber(wCs,wCsNum,updateWeightsHeadroom);
-bindRangeNumber(wKz,wKzNum,updateWeightsHeadroom);
-bindRangeNumber(wPi,wPiNum,updateWeightsHeadroom);
+function weightSum(){ return (+wCs.value||0)+(+wKz.value||0)+(+wPi.value||0); }
+function syncWeightNums(){ wCsNum.value=wCs.value; wKzNum.value=wKz.value; wPiNum.value=wPi.value; }
 
-function updateWeightsHeadroom(){
-  const arr=[wCs,wKz,wPi];
-  const sum = arr.reduce((a,r)=>a+(+r.value||0),0);
-  const rest = Math.max(0,100-sum);
-  arr.forEach(r=>{
-    r.max = (+r.value||0) + rest;
-    const num = r.parentElement.querySelector('input[type="number"]');
-    if(num){ num.max = r.max; if(+num.value>+num.max) num.value = r.max; }
-  });
-  const total=Math.trunc(sum);
+function capActiveWeight(activeRange){
+  const group=[wCs,wKz,wPi];
+  const others = group.filter(x=>x!==activeRange);
+  const sumOthers = others.reduce((a,x)=>a+(+x.value||0),0);
+  const rest = Math.max(0,100-sumOthers);
+  activeRange.max = (+activeRange.value||0) + rest;               // nur aktiver Slider
+  const num = activeRange.parentElement.querySelector('input[type="number"]');
+  if(num){ num.max = activeRange.max; if(+num.value>+num.max) num.value = activeRange.max; }
+}
+
+function updateWeightSumPill(){
+  const total=Math.trunc(weightSum());
   wSum.textContent=String(total);
   wPill.classList.toggle('bad', total!==100);
   btnGo.disabled = (total!==100);
 }
 
-/* ---------- People sliders: gleicher Headroom-Mechanismus pro Spalte ---------- */
+bindRangeNumber(wCs,wCsNum,()=>{ capActiveWeight(wCs); syncWeightNums(); updateWeightSumPill(); });
+bindRangeNumber(wKz,wKzNum,()=>{ capActiveWeight(wKz); syncWeightNums(); updateWeightSumPill(); });
+bindRangeNumber(wPi,wPiNum,()=>{ capActiveWeight(wPi); syncWeightNums(); updateWeightSumPill(); });
+
+/* ---------- Personen: identisch – nur aktiver Slider wird gekappt ---------- */
 const tbody = byId('tbody');
 const sumCs=byId('sum_cs'), sumKz=byId('sum_kz'), sumPi=byId('sum_pi');
 
-const cols = {
-  cs: { sliders:[] },
-  kz: { sliders:[] },
-  pi: { sliders:[] }
-};
+const cols = { cs:{sliders:[]}, kz:{sliders:[]}, pi:{sliders:[]} };
 
-function restFor(sliders){ return Math.max(0, 100 - sliders.reduce((a,s)=>a+(+s.value||0),0)); }
-
-function updateColumnHeadroom(key){
-  const g=cols[key].sliders;
-  const rest = restFor(g);
-  g.forEach(r=>{
-    r.max = (+r.value||0) + rest;
-    const num = r.closest('.range-num').querySelector('input[type="number"]');
-    if(num){ num.max = r.max; if(+num.value>+num.max){ num.value=r.max; r.value=r.max; } }
-  });
-  recalcSums();
+function capActiveInColumn(key, el){
+  const group = cols[key].sliders;
+  const others = group.filter(x=>x!==el);
+  const sumOthers = others.reduce((a,x)=>a+(+x.value||0),0);
+  const rest = Math.max(0, 100 - sumOthers);
+  el.max = (+el.value||0) + rest;                                   // nur aktiver Slider
+  const num = el.closest('.range-num').querySelector('input[type="number"]');
+  if(num){ num.max = el.max; if(+num.value>+num.max){ num.value = el.max; el.value = el.max; } }
 }
 
 function addRow(data={name:'',cs:0,kz:0,pi:0}){
@@ -349,10 +347,9 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
     const num=document.createElement('input'); num.type='number'; num.min='0'; num.max='100'; num.step='1'; num.value=rng.value;
     wrap.appendChild(rng); wrap.appendChild(num); td.appendChild(wrap);
 
-    bindRangeNumber(rng,num,()=>updateColumnHeadroom(key));
+    bindRangeNumber(rng,num,()=>{ capActiveInColumn(key, rng); recalcSums(); });
     cols[key].sliders.push(rng);
-    // initial Headroom anwenden
-    updateColumnHeadroom(key);
+    // Start: max=100, erste Bewegung legt die Kappung fest
     return {td,rng};
   }
 
@@ -366,7 +363,6 @@ function addRow(data={name:'',cs:0,kz:0,pi:0}){
     ['cs','kz','pi'].forEach((k,idx)=>{
       const r=[c1.rng,c2.rng,c3.rng][idx];
       const a=cols[k].sliders; const i=a.indexOf(r); if(i>=0) a.splice(i,1);
-      updateColumnHeadroom(k);
     });
     tr.remove(); recalcSums();
   };
@@ -395,6 +391,7 @@ function recalcSums(){
   const rows=readRows();
   const s=rows.reduce((a,r)=>{a.cs+=r.cs;a.kz+=r.kz;a.pi+=r.pi;return a;},{cs:0,kz:0,pi:0});
   sumCs.textContent=s.cs; sumKz.textContent=s.kz; sumPi.textContent=s.pi;
+  updateWeightSumPill();
   return s;
 }
 
@@ -408,8 +405,8 @@ function validate(){
   if(!projectEl.value.trim()) errs.push('Projekttitel fehlt.');
   if(!assessorEl.value.trim()) errs.push('Schätzung von fehlt.');
 
-  const wTotal = (+wCs.value||0)+(+wKz.value||0)+(+wPi.value||0);
-  if(Math.trunc(wTotal)!==100) errs.push(`Gewichtssumme = ${Math.trunc(wTotal)}, erforderlich: 100.`);
+  const wTotal = Math.trunc(weightSum());
+  if(wTotal!==100) errs.push(`Gewichtssumme = ${wTotal}, erforderlich: 100.`);
 
   const data=readRows();
   const anyUsed=data.some(r=>r.cs||r.kz||r.pi);
@@ -530,8 +527,7 @@ function loadEntryIntoForm(e){
   byId('client').value=e.input.client||''; byId('project').value=e.input.project||''; byId('assessor').value=e.input.assessor||'';
 
   wCs.value=e.input.weights.cs; wKz.value=e.input.weights.kz; wPi.value=e.input.weights.pi;
-  wCsNum.value=wCs.value; wKzNum.value=wKz.value; wPiNum.value=wPi.value;
-  updateWeightsHeadroom();
+  syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
 
   tbody.innerHTML='';
   cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0;
@@ -573,7 +569,7 @@ byId('goResult').onclick=()=>{ if(!validate()) return; renderResult(); show('res
 byId('back').onclick=()=>show('input');
 byId('toHistory').onclick=()=>{ loadHistory(); show('history'); };
 byId('newEntry').onclick=()=>{ editingId=null; byId('client').value=''; byId('project').value=''; byId('assessor').value='';
-  wCs.value='50'; wKz.value='30'; wPi.value='20'; wCsNum.value='50'; wKzNum.value='30'; wPiNum.value='20'; updateWeightsHeadroom();
+  wCs.value='50'; wKz.value='30'; wPi.value='20'; syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
   tbody.innerHTML=''; cols.cs.sliders.length=0; cols.kz.sliders.length=0; cols.pi.sliders.length=0; addRow(); recalcSums(); show('input');
 };
 
@@ -595,8 +591,9 @@ byId('saveEntry').onclick=async()=>{
 
 /* Start */
 addRow();
-updateWeightsHeadroom();
-recalcSums();
+syncWeightNums(); capActiveWeight(wCs); capActiveWeight(wKz); capActiveWeight(wPi);
+recalcSums(); updateWeightSumPill();
 </script>
 </body>
 </html>
+
