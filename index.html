@@ -224,6 +224,7 @@
               <th>Auftraggeber</th>
               <th>Projekttitel</th>
               <th>Schätzung von</th>
+              <th>Zuletzt bearbeitet</th>
               <th class="right">Aktion</th>
             </tr>
           </thead>
@@ -246,6 +247,11 @@ const byId = id => document.getElementById(id);
 const fmtPct = x => (Math.round(x * 100) / 100).toFixed(2);
 const clampInt = v => { if (v===''||v===null||Number.isNaN(+v)) return ''; const n=Math.max(0,Math.min(100,Math.trunc(+v))); return String(n); };
 const uid = () => 'e' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+const z2 = n => String(n).padStart(2,'0');
+function formatTs(ts){
+  const d = new Date(ts);
+  return `${z2(d.getDate())}/${z2(d.getMonth()+1)}/${d.getFullYear()} um ${z2(d.getHours())}:${z2(d.getMinutes())}`;
+}
 
 /* ------------ DOM refs ------------ */
 const views = { input:'view-input', result:'view-result', history:'view-history' };
@@ -406,6 +412,11 @@ async function apiUpdate(id, entry){
   if(!r.ok) throw new Error("API update failed");
   return await r.json();
 }
+async function apiDelete(id){
+  const r = await fetch(`${API_BASE}/entries/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if(!r.ok) throw new Error("API delete failed");
+  return await r.json();
+}
 
 /* ------------ Result render (global) ------------ */
 window.renderResult = function renderResult(){
@@ -467,25 +478,42 @@ function loadEntryIntoForm(e){
   (e.rowsRaw||[]).forEach(r=>addRow({name:r.name, cs:r.cs, kz:r.kz, pi:r.pi}));
   if((e.rowsRaw||[]).length===0) addRow();
   recalcSums(); updateWeightSumPill();
-  window.renderResult(); // sofort aktualisierte Ergebnisdaten/Links
+  window.renderResult();
 }
+
 async function loadHistory(){
   const list = await apiList();
+  list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
   const tbodyH=byId('tbody_history'); tbodyH.innerHTML='';
   if(!list.length){
     const tr=document.createElement('tr'); const td=document.createElement('td');
-    td.colSpan=4; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tbodyH.appendChild(tr); return;
+    td.colSpan=5; td.innerHTML='<span class="muted">Keine Einträge gespeichert.</span>'; tr.appendChild(td); tbodyH.appendChild(tr); return;
   }
   list.forEach(e=>{
     const tr=document.createElement('tr');
-    const tdC=document.createElement('td'); tdC.textContent=e.input.client;
-    const tdP=document.createElement('td'); tdP.textContent=e.input.project;
-    const tdA=document.createElement('td'); tdA.textContent=e.input.assessor;
+
+    const tdC=document.createElement('td'); tdC.textContent=e.input?.client ?? '';
+    const tdP=document.createElement('td'); tdP.textContent=e.input?.project ?? '';
+    const tdA=document.createElement('td'); tdA.textContent=e.input?.assessor ?? '';
+    const tdT=document.createElement('td'); tdT.textContent=e.ts ? formatTs(e.ts) : '—';
+
     const tdAct=document.createElement('td'); tdAct.className='right';
-    const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Bearbeiten';
-    btn.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
-    tdAct.appendChild(btn);
-    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdAct);
+    const btnEdit=document.createElement('button'); btnEdit.className='btn'; btnEdit.textContent='Bearbeiten';
+    btnEdit.onclick=()=>{ loadEntryIntoForm(e); show('input'); };
+
+    const btnDel=document.createElement('button'); btnDel.className='btn danger'; btnDel.style.marginLeft='8px'; btnDel.textContent='Löschen';
+    btnDel.onclick=async()=>{
+      const ok = confirm('Eintrag wirklich löschen?');
+      if(!ok) return;
+      await apiDelete(e.id);
+      await loadHistory();
+    };
+
+    tdAct.appendChild(btnEdit);
+    tdAct.appendChild(btnDel);
+
+    tr.appendChild(tdC); tr.appendChild(tdP); tr.appendChild(tdA); tr.appendChild(tdT); tr.appendChild(tdAct);
     tbodyH.appendChild(tr);
   });
 }
