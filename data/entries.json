@@ -84,5 +84,38 @@
       }
     ],
     "id": "dce7af7e-3d88-4dd2-b839-e23e0ec1326e"
+  },
+  {
+    "ts": 1759414818951,
+    "input": {
+      "client": "Deutsche Rentenversicherung Bund",
+      "project": "Führungskräfteentwicklung",
+      "assessor": "Abdi Tekin",
+      "weights": {
+        "cs": 50,
+        "kz": 30,
+        "pi": 20
+      }
+    },
+    "activeWeightsPct": {
+      "cs": 100,
+      "kz": 0,
+      "pi": 0
+    },
+    "people": [
+      {
+        "name": "Abdi Tekin",
+        "pct": 100
+      }
+    ],
+    "rowsRaw": [
+      {
+        "name": "Abdi Tekin",
+        "cs": 100,
+        "kz": 0,
+        "pi": 0
+      }
+    ],
+    "id": "8a6f7c33-d4fe-4613-8c52-a3e5c416bfd5"
   }
 ]
