@@ -60,17 +60,43 @@
   },
   {
     "id": "4bcccb51-63ff-41c1-b478-7300e9e39419",
-    "ts": 1759759245946,
+    "ts": 1759761813977,
     "source": "hubspot",
-    "complete": false,
+    "complete": true,
     "title": "FKE",
-    "client": "",
+    "client": "Köln",
     "amount": 50,
     "hubspotId": "45193058690",
     "pipeline": "default",
     "dealstage": "closedwon",
     "closedate": null,
-    "modified": null
+    "modified": null,
+    "list": [
+      {
+        "name": "Abdi Tekin",
+        "pct": 100,
+        "money": 50
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ]
   },
   {
     "source": "manuell",
