@@ -1,1 +1,48 @@
-[]
+[
+  {
+    "source": "manuell",
+    "complete": true,
+    "client": "Stadt Düsseldorf",
+    "title": "Führungsfeedback",
+    "amount": 120000,
+    "list": [
+      {
+        "name": "Sara Kaufmann",
+        "pct": 69,
+        "money": 82800
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "pct": 16,
+        "money": 19200
+      },
+      {
+        "name": "Merlin Klein",
+        "pct": 15,
+        "money": 18000
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "submittedBy": "Abdi Tekin",
+    "ts": 1759763904559,
+    "id": "e43d2de4-4a58-4a07-8106-0319612f1218"
+  }
+]
