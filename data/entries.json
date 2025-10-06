@@ -57,45 +57,5 @@
     },
     "ts": 1759758626548,
     "id": "9e5fef5b-ad54-42e8-b8db-7c943dc0bcc2"
-  },
-  {
-    "source": "manuell",
-    "complete": true,
-    "client": "DRV Bund",
-    "title": "Los4",
-    "amount": 50000,
-    "list": [
-      {
-        "name": "Abdi Tekin",
-        "pct": 85,
-        "money": 42500
-      },
-      {
-        "name": "Merlin Klein",
-        "pct": 15,
-        "money": 7500
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 0
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 70
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1759760347603,
-    "id": "25479a74-a96a-4900-9146-fef0104ee890"
   }
 ]
