@@ -177,40 +177,5 @@
     ],
     "ts": 1759761586281,
     "id": "1dfeb2ea-c629-4526-b3d0-ab4060cae8fe"
-  },
-  {
-    "source": "manuell",
-    "complete": true,
-    "client": "Stadt Düsseldorf",
-    "title": "Führungsfeedback",
-    "amount": 120000,
-    "list": [
-      {
-        "name": "Abdi Tekin",
-        "pct": 100,
-        "money": 120000
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1759761908094,
-    "id": "41f820f4-91bb-42b7-8fd1-bd1316e85d4d"
   }
 ]
