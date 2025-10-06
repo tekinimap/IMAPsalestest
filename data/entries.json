@@ -44,5 +44,19 @@
     "submittedBy": "Abdi Tekin",
     "ts": 1759763904559,
     "id": "e43d2de4-4a58-4a07-8106-0319612f1218"
+  },
+  {
+    "id": "f9df1710-8f6a-4326-b378-57894c9b3956",
+    "ts": 1759764464712,
+    "source": "hubspot",
+    "complete": false,
+    "title": "Change-Begleitung",
+    "client": "",
+    "amount": 250000,
+    "hubspotId": "45326972175",
+    "pipeline": "default",
+    "dealstage": "closedwon",
+    "closedate": null,
+    "modified": null
   }
 ]
