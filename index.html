@@ -25,6 +25,7 @@
   .step .grow{flex:1}
   .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);
            padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
+  .linkbtn.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
   /* Cards */
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
@@ -50,7 +51,7 @@
   .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:999px;font-size:12px}
 
   .table{width:100%;border:1px solid var(--border);border-radius:12px;overflow:auto;background:#0b1120}
-  table{width:100%;min-width:920px;border-collapse:collapse}
+  table{width:100%;min-width:980px;border-collapse:collapse}
   thead th{position:sticky;top:0;background:#0d162a;border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:13px}
   tbody td{border-top:1px solid var(--border);padding:8px 10px}
   tbody tr:hover{background:#0c1426}
@@ -81,21 +82,10 @@
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
   .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
 
-  /* Minimal Buttons (Icons) */
+  /* Icon Buttons (SVG) */
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);
            width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
-  .icon{width:16px;height:16px;display:inline-block}
-  .icon.pen{background:conic-gradient(from 90deg,#fff 0 25%,#0000 0) content-box,
-            linear-gradient(#fff 0 0) 0 100%/60% 2px no-repeat;background-clip:content-box;padding:2px}
-  .icon.x{position:relative}
-  .icon.x::before,.icon.x::after{content:"";position:absolute;width:14px;height:2px;background:#e5e7eb}
-  .icon.x::before{transform:rotate(45deg)} .icon.x::after{transform:rotate(-45deg)}
-
-  /* Modal */
-  dialog{border:none;border-radius:14px;padding:0;background:#0f1724;color:var(--text);width:560px;max-width:calc(100% - 32px)}
-  dialog::backdrop{background:rgba(0,0,0,.55)}
-  .modal-hd{padding:16px 18px;border-bottom:1px solid var(--border)}
-  .modal-ct{padding:16px 18px}
+  .iconbtn svg{width:16px;height:16px;stroke:#e5e7eb;stroke-width:2;fill:none}
 </style>
 </head>
 <body>
@@ -117,7 +107,7 @@
         <div class="ttl">Ergebnis</div>
         <div class="sub">Prozent + Geldwert</div>
       </div>
-      <button class="linkbtn" data-nav="2">Öffnen</button>
+      <button class="linkbtn disabled" id="step2btn" data-nav="2" aria-disabled="true">Öffnen</button>
     </div>
     <div class="step" data-step="3" id="step3">
       <div class="idx">3</div>
@@ -138,17 +128,24 @@
     <div class="ct">
       <div class="grid-3">
         <div>
-          <label for="auftraggeber">Auftraggeber</label>
+          <label for="auftraggeber">Auftraggeber *</label>
           <input id="auftraggeber" type="text" placeholder="z. B. Deutsche Rentenversicherung Bund" autocomplete="organization">
         </div>
         <div>
-          <label for="projekttitel">Projekttitel</label>
+          <label for="projekttitel">Projekttitel *</label>
           <input id="projekttitel" type="text" placeholder="z. B. Basisprogramm Führungskräfte – Los 4">
         </div>
         <div>
-          <label for="auftragswert">Auftragswert</label>
-          <input id="auftragswert" type="text" inputmode="decimal" placeholder="optional, z. B. 120.000,00">
+          <label for="auftragswert">Auftragswert (optional)</label>
+          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
           <div class="note">Wird als 50.000,00 € angezeigt.</div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top:10px">
+        <div>
+          <label for="submittedBy">Einschätzung abgegeben von *</label>
+          <input id="submittedBy" type="text" placeholder="Ihr Name">
         </div>
       </div>
 
@@ -201,7 +198,7 @@
         <div></div>
         <div style="display:flex;gap:10px">
           <button class="btn" id="toHistory">Zur Historie</button>
-          <button class="btn primary" id="toResult">Ergebnis anzeigen</button>
+          <button class="btn primary" id="toResult">Abschicken</button>
         </div>
       </div>
     </div>
@@ -246,7 +243,6 @@
 
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn ok" id="saveToHistory">In Historie speichern</button>
-        <button class="btn" id="goToHistory">Historie ansehen</button>
       </div>
     </div>
   </div>
@@ -284,12 +280,13 @@
         <table>
           <thead>
             <tr>
-              <th style="width:26%">Projekttitel</th>
-              <th style="width:20%">Auftraggeber</th>
-              <th style="width:12%">Quelle</th>
-              <th style="width:12%">Status</th>
+              <th style="width:24%">Projekttitel</th>
+              <th style="width:18%">Auftraggeber</th>
+              <th style="width:10%">Quelle</th>
+              <th style="width:14%">Status</th>
               <th style="width:14%">Wert EUR</th>
-              <th style="width:16%">Aktionen</th>
+              <th style="width:14%">Zuletzt bearbeitet</th>
+              <th style="width:6%">Aktionen</th>
             </tr>
           </thead>
           <tbody id="historyBody"></tbody>
@@ -335,25 +332,15 @@ const CATS = [
 const LS_KEY = "sales_state_v1";
 
 function clamp01(x){ return Math.max(0, Math.min(100, x)); }
-function toInt0(v){
-  const n = Math.round(Number(String(v ?? '0').replace(',', '.')));
-  return Number.isFinite(n) ? n : 0;
-}
-function parseAmountInput(str){
-  if (!str) return 0;
-  const clean = String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');
-  const n = Number(clean);
-  return Number.isFinite(n) ? n : 0;
-}
+function toInt0(v){ const n = Math.round(Number(String(v ?? '0').replace(',', '.'))); return Number.isFinite(n) ? n : 0; }
+function parseAmountInput(str){ if (!str) return 0; const clean = String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.'); const n = Number(clean); return Number.isFinite(n) ? n : 0; }
 function formatAmountDisplay(v){ return fmtCurr2.format((+v)||0); }
 function formatAmountInput(v){ return fmtOnly2.format((+v)||0); }
 
 function saveState(st){ localStorage.setItem(LS_KEY, JSON.stringify(st)); }
 function loadState(){ try{ const s = localStorage.getItem(LS_KEY); return s? JSON.parse(s): null; } catch{ return null; } }
 
-function totals(rows){
-  return rows.reduce((a,r)=>{ a.cs+=r.cs; a.konzept+=r.konzept; a.pitch+=r.pitch; return a; }, {cs:0, konzept:0, pitch:0});
-}
+function totals(rows){ return rows.reduce((a,r)=>{ a.cs+=r.cs; a.konzept+=r.konzept; a.pitch+=r.pitch; return a; }, {cs:0, konzept:0, pitch:0}); }
 function normalizeWeightsForUsed(allWeights, usedKeys){
   const used = allWeights.filter(w => usedKeys.includes(w.key));
   const sum  = used.reduce((a,w)=>a + w.weight, 0);
@@ -364,10 +351,7 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
     return { key:w.key, weight: 0 };
   });
   const rem = 100 - Math.round(out.reduce((a,w)=>a + w.weight, 0));
-  if (rem !== 0){
-    const ix = out.findIndex(x => usedKeys.includes(x.key));
-    if (ix >= 0) out[ix].weight = Math.round(out[ix].weight + rem);
-  }
+  if (rem !== 0){ const ix = out.findIndex(x => usedKeys.includes(x.key)); if (ix >= 0) out[ix].weight = Math.round(out[ix].weight + rem); }
   return out.map(w=>({ key:w.key, weight: Math.round(w.weight*100)/100 }));
 }
 function compute(rows, weights, amount){
@@ -395,7 +379,6 @@ function compute(rows, weights, amount){
   const sum = list.reduce((a,x)=>a+x.pct,0), resid=100-sum;
   if (list.length && Math.abs(resid)>1e-9) list[0].pct += resid;
   list.forEach(x=>{ if (x.pct<0) x.pct=0; });
-
   const withMoney = list.map(x=>({ ...x, money: Math.round((amount>0? amount:0) * x.pct / 100) }));
   return { totals:t, usedKeys, effectiveWeights:effW, list:withMoney };
 }
@@ -403,12 +386,14 @@ function compute(rows, weights, amount){
 /* === Stepper-Navigation === */
 const stepElems = [document.getElementById('step1'),document.getElementById('step2'),document.getElementById('step3')];
 const views = [document.getElementById('view1'),document.getElementById('view2'),document.getElementById('view3')];
+const step2btn = document.getElementById('step2btn');
 function activate(step){
   stepElems.forEach((el,i)=>{ el.classList.toggle('active', i===step-1); });
   views.forEach((v,i)=>{ v.classList.toggle('hide', i!==step-1); });
 }
 document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
+    if (btn.classList.contains('disabled')) return;
     const n = Number(btn.getAttribute('data-nav'));
     if (n===2) buildResult();
     if (n===3) loadHistory();
@@ -423,6 +408,7 @@ const errorsEl = document.getElementById('errors');
 const auftraggeber = document.getElementById('auftraggeber');
 const projekttitel = document.getElementById('projekttitel');
 const auftragswert = document.getElementById('auftragswert');
+const submittedBy  = document.getElementById('submittedBy');
 const w_cs = document.getElementById('w_cs');
 const w_konzept = document.getElementById('w_konzept');
 const w_pitch = document.getElementById('w_pitch');
@@ -452,11 +438,7 @@ function bindRow(tr){
   tr.querySelector('.delrow').addEventListener('click', ()=>{ tr.remove(); recalc(); });
 }
 function addRow(focus=false){
-  const tr = rowTemplate();
-  tbody.appendChild(tr);
-  bindRow(tr);
-  if (focus) tr.querySelector('.name').focus();
-  recalc();
+  const tr = rowTemplate(); tbody.appendChild(tr); bindRow(tr); if (focus) tr.querySelector('.name').focus(); recalc();
 }
 function readRows(){
   const rows=[];
@@ -496,15 +478,23 @@ function updateWeightNote(){
   w_note.textContent = `Summe Gewichte: ${sum} %`;
 }
 function validateInput(){
+  const st = loadState() || {};
+  const isHubspot = st.source === 'hubspot' && !!st.editingId;
+
   const errs=[];
-  // Auftragswert ist optional
+  // Pflichtfelder nur bei manueller Erfassung
+  if (!isHubspot){
+    if (!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
+    if (!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
+    if (!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
+  }
+
   const rows = readRows();
   const anyActive = rows.some(r=>r.cs+r.konzept+r.pitch>0);
   if (!anyActive) errs.push('Mindestens eine Person mit Punkten erfassen.');
   rows.forEach((r,i)=>{ if ((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
 
   const t = totals(rows);
-  // Regel: nur Blockade wenn eine Kategorie > 100
   ['cs','konzept','pitch'].forEach(k=>{
     if (t[k] > 100) errs.push(`Kategorie überschreitet 100: ${k} = ${t[k]}`);
   });
@@ -518,10 +508,8 @@ function recalc(){
   const v = validateInput();
   renderChips(v.t);
   errorsEl.innerHTML = v.ok ? '' : v.errs.map(e=>`• ${e}`).join('<br>');
-  if (v.ok) btnToResult.classList.remove('disabled'); else btnToResult.classList.add('disabled');
 }
 
-/* Erfassung: Events */
 btnAddRow.addEventListener('click', ()=>addRow(true));
 auftragswert.addEventListener('blur', ()=>{
   const raw = parseAmountInput(auftragswert.value);
@@ -530,41 +518,39 @@ auftragswert.addEventListener('blur', ()=>{
 [w_cs,w_konzept,w_pitch].forEach(el=>{
   el.addEventListener('input', ()=>{
     el.value = String(clamp01(toInt0(el.value)));
-    updateWeightNote();
-    recalc();
+    updateWeightNote(); recalc();
   });
 });
-btnToResult.addEventListener('click', ()=>{
-  if (btnToResult.classList.contains('disabled')) return;
-  persistToLocal();
-  buildResult();
-  activate(2);
-});
-btnToHistory.addEventListener('click', ()=>{
-  activate(3);
-  loadHistory();
-});
 
-/* State-Persistenz */
-function persistToLocal(){
-  const rows = readRows();
-  const weights = currentWeights();
+btnToResult.addEventListener('click', ()=>{
+  // Abschicken = validieren + State speichern + Ergebnis freischalten + Wechsel
+  const v = validateInput();
+  if (!v.ok){ recalc(); return; }
+
   const amount = parseAmountInput(auftragswert.value);
-  const st = loadState() || {};
-  const editingId = st.editingId || null;
-  const source = st.source || 'manuell';
+  const stPrev = loadState() || {};
   saveState({
-    source,
-    editingId,
+    source: stPrev.source || 'manuell',
+    submitted: true,
+    editingId: stPrev.editingId || null,
     input: {
       client: auftraggeber.value.trim(),
       title:  projekttitel.value.trim(),
       amount, // optional
-      rows,
-      weights
+      rows: v.rows,
+      weights: currentWeights(),
+      submittedBy: submittedBy.value.trim()
     }
   });
-}
+
+  // Ergebnis-Reiter aktivieren
+  step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
+
+  buildResult();
+  activate(2);
+});
+
+btnToHistory.addEventListener('click', ()=>{ activate(3); loadHistory(); });
 
 /* Ansicht 2: Ergebnis */
 const kpiAG = document.getElementById('kpiAG');
@@ -575,7 +561,6 @@ const pillComplete= document.getElementById('pillComplete');
 const resultBody = document.getElementById('resultBody');
 const sumCheck   = document.getElementById('sumCheck');
 const saveToHistory = document.getElementById('saveToHistory');
-const goToHistory   = document.getElementById('goToHistory');
 
 function buildResult(){
   const st = loadState();
@@ -590,7 +575,6 @@ function buildResult(){
   kpiPT.textContent = title || '–';
   kpiAmt.textContent= (amount>0) ? formatAmountDisplay(amount) : '–';
 
-  // Vollständigkeit automatisch: client+title vorhanden, amount>0, mindestens eine Person mit gültigen Punkten
   const isComplete = !!(client && title && (amount>0) && rows.some(r=>r.cs+r.konzept+r.pitch>0));
   pillComplete.textContent = `Status: ${isComplete ? 'vollständig' : 'unvollständig'}`;
 
@@ -603,18 +587,14 @@ function buildResult(){
   res.list.forEach(x=>{
     sum += x.pct;
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${x.name}</td>
-      <td>${fmtPct.format(x.pct)} %</td>
-      <td>${fmtCurr0.format(x.money)}</td>
-    `;
+    tr.innerHTML = `<td>${x.name}</td><td>${fmtPct.format(x.pct)} %</td><td>${fmtCurr0.format(x.money)}</td>`;
     resultBody.appendChild(tr);
   });
   sumCheck.textContent = `Summe: ${fmtPct.format(sum)} %`;
 
   saveState({ ...st, result:{ list:res.list, totals:res.totals, weights:res.effectiveWeights, complete:isComplete } });
 }
-goToHistory.addEventListener('click', ()=>{ activate(3); loadHistory(); });
+
 saveToHistory.addEventListener('click', async ()=>{
   const st = loadState();
   if (!st?.input) return;
@@ -627,6 +607,7 @@ saveToHistory.addEventListener('click', async ()=>{
     list:   st?.result?.list || [],
     totals: st?.result?.totals || {},
     weights:st?.result?.weights || [],
+    submittedBy: st.input.submittedBy || '',
     ts: Date.now(),
     id: st.editingId || undefined
   };
@@ -638,7 +619,6 @@ saveToHistory.addEventListener('click', async ()=>{
     } else {
       await fetch(`${WORKER_BASE}/entries`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     }
-    // nach Speichern Editing-Modus verlassen
     saveState({ source:'manuell' });
     activate(3); loadHistory();
   } catch {}
@@ -660,25 +640,24 @@ async function loadHistory(){
   } catch { entries = []; }
   renderHistory();
 }
+function autoComplete(e){
+  // Automatischer Status
+  return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0);
+}
 function filtered(){
   const text = q.value.trim().toLowerCase();
   const src = f_source.value;
-  const stat= f_status.value; // ok|bad|""
+  const stat= f_status.value;
   let arr = entries.slice();
 
   if (text){
     arr = arr.filter(e => String(e.title||'').toLowerCase().includes(text) ||
                           String(e.client||'').toLowerCase().includes(text));
   }
-  if (src){
-    arr = arr.filter(e => (e.source||'') === src);
-  }
+  if (src){ arr = arr.filter(e => (e.source||'') === src); }
   if (stat){
     const wantOk = stat==='ok';
-    arr = arr.filter(e => {
-      const ok = !!autoComplete(e);
-      return wantOk ? ok : !ok;
-    });
+    arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
   }
 
   switch (f_sort.value){
@@ -691,16 +670,14 @@ function filtered(){
   }
   return arr;
 }
-function autoComplete(e){
-  // Automatischer Status wie gefordert
-  return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0);
-}
 function renderHistory(){
   historyBody.innerHTML='';
   const arr = filtered();
   for (const e of arr){
     const ok = autoComplete(e);
     const status = `<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
+    const modified = e.modified ? new Date(e.modified).toLocaleString('de-DE') :
+                     e.ts ? new Date(e.ts).toLocaleString('de-DE') : '–';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${e.title || '–'}</td>
@@ -708,9 +685,19 @@ function renderHistory(){
       <td>${e.source || '–'}</td>
       <td>${status}</td>
       <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
-      <td style="display:flex;gap:8px;align-items:center">
-        <button class="iconbtn" title="Bearbeiten" data-act="edit" data-id="${e.id}"><span class="icon pen"></span></button>
-        <button class="iconbtn" title="Löschen" data-act="del" data-id="${e.id}"><span class="icon x"></span></button>
+      <td>${modified}</td>
+      <td style="display:flex;gap:8px;align-items:center;justify-content:flex-start">
+        <button class="iconbtn" title="Bearbeiten" data-act="edit" data-id="${e.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 21h4l11-11a2.828 2.828 0 0 0-4-4L3 17v4z"></path>
+          </svg>
+        </button>
+        <button class="iconbtn" title="Löschen" data-act="del" data-id="${e.id}">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"></path>
+            <path d="M6 6l12 0"></path>
+          </svg>
+        </button>
       </td>
     `;
     historyBody.appendChild(tr);
@@ -719,13 +706,14 @@ function renderHistory(){
 [q,f_source,f_status,f_sort].forEach(el=> el.addEventListener('input', renderHistory));
 
 document.getElementById('backToInput2').addEventListener('click', ()=>{
-  // neuen Zustand beginnen
+  // neue Erfassung beginnen
   saveState({ source:'manuell' });
-  // Formular leeren
   tbody.innerHTML=''; addRow(true); addRow(false);
-  auftraggeber.value=''; projekttitel.value=''; auftragswert.value='';
+  auftraggeber.value=''; projekttitel.value=''; auftragswert.value=''; submittedBy.value='';
   w_cs.value='50'; w_konzept.value='30'; w_pitch.value='20';
   updateWeightNote(); recalc();
+  // Ergebnis wieder sperren
+  step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
   activate(1);
 });
 
@@ -736,16 +724,17 @@ historyBody.addEventListener('click', async (ev)=>{
   const act= btn.getAttribute('data-act');
 
   if (act==='edit'){
-    // Eintrag laden, in Erfassung öffnen (inkl. Beteiligungen)
+    // In Erfassung öffnen (inkl. Beteiligungen). Ergebnis-Reiter gesperrt bis erneut "Abschicken".
     const e = entries.find(x=>x.id===id); if(!e) return;
     const st = {
       source: e.source || 'manuell',
+      submitted: false,
       editingId: e.id,
       input: {
         client: e.client || '',
         title:  e.title || '',
         amount: e.amount || 0,
-        // Falls Rohdaten vorhanden (rows) verwenden, sonst aus list eine flache Vorlage bauen
+        submittedBy: e.submittedBy || '',
         rows: Array.isArray(e.rows) && e.rows.length ? e.rows :
               (Array.isArray(e.list) ? e.list.map(x=>({ name:x.name, cs:0, konzept:0, pitch:0 })) : []),
         weights: Array.isArray(e.weights) ? e.weights :
@@ -753,8 +742,9 @@ historyBody.addEventListener('click', async (ev)=>{
       }
     };
     saveState(st);
-    // Formular füllen
     initFromState();
+    // Ergebnis sperren
+    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
     activate(1);
     return;
   }
@@ -784,6 +774,7 @@ function initFromState(){
   if (st?.input){
     auftraggeber.value = st.input.client || '';
     projekttitel.value = st.input.title  || '';
+    submittedBy.value  = st.input.submittedBy || '';
     auftragswert.value = st.input.amount ? formatAmountInput(st.input.amount) : '';
     if (Array.isArray(st.input.rows) && st.input.rows.length){
       st.input.rows.forEach(r=>{
@@ -793,25 +784,26 @@ function initFromState(){
         tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept||0)));
         tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch||0)));
       });
-    } else {
-      addRow(true); addRow(false);
-    }
+    } else { addRow(true); addRow(false); }
     if (Array.isArray(st.input.weights)){
       const m = Object.fromEntries(st.input.weights.map(w=>[w.key,w.weight]));
       if (m.cs!=null) w_cs.value = String(clamp01(toInt0(m.cs)));
       if (m.konzept!=null) w_konzept.value = String(clamp01(toInt0(m.konzept)));
       if (m.pitch!=null) w_pitch.value = String(clamp01(toInt0(m.pitch)));
     }
+    // Ergebnis-Reiter je nach submitted sperren/freigeben
+    if (st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); }
+    else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
   } else {
     addRow(true); addRow(false);
+    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
   }
-  updateWeightNote();
-  recalc();
+  updateWeightNote(); recalc();
 }
 initFromState();
 activate(1);
 
-// Enter in Inputs unterbinden
+// Enter blocken in Inputs
 document.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && e.target?.tagName==='INPUT') e.preventDefault(); });
 </script>
 </body>
