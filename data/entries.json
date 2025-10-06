@@ -57,5 +57,19 @@
     },
     "ts": 1759758626548,
     "id": "9e5fef5b-ad54-42e8-b8db-7c943dc0bcc2"
+  },
+  {
+    "id": "4bcccb51-63ff-41c1-b478-7300e9e39419",
+    "ts": 1759759245946,
+    "source": "hubspot",
+    "complete": false,
+    "title": "FKE",
+    "client": "",
+    "amount": 50,
+    "hubspotId": "45193058690",
+    "pipeline": "default",
+    "dealstage": "closedwon",
+    "closedate": null,
+    "modified": null
   }
 ]
