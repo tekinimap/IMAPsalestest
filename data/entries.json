@@ -19,5 +19,43 @@
     "dealstage": "closedwon",
     "closedate": null,
     "modified": null
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "DRV Bund",
+    "title": "Los4",
+    "amount": 50000,
+    "list": [
+      {
+        "name": "(unbenannt)",
+        "pct": 70
+      },
+      {
+        "name": "Abdi Tekin",
+        "pct": 30
+      }
+    ],
+    "rows": [
+      {
+        "name": "Abdi Tekin",
+        "cs": 30,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "",
+        "cs": 70,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "ts": 1759758626548,
+    "id": "9e5fef5b-ad54-42e8-b8db-7c943dc0bcc2"
   }
 ]
