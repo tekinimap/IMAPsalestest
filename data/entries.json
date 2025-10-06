@@ -5,5 +5,19 @@
     "amount": 1234,
     "id": "955b2b0a-9fe6-4889-8450-0a2ca5369b70",
     "ts": 1759747034109
+  },
+  {
+    "id": "36d9d1ac-cb0e-450b-babc-7315eb5f564f",
+    "ts": 1759756871392,
+    "source": "hubspot",
+    "complete": false,
+    "title": "tEST",
+    "client": "",
+    "amount": 500000,
+    "hubspotId": "45313903654",
+    "pipeline": "default",
+    "dealstage": "closedwon",
+    "closedate": null,
+    "modified": null
   }
 ]
