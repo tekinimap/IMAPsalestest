@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="de">
 <head>
@@ -17,19 +16,15 @@
   /* Stepper */
   .stepper{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
   .step{flex:1;display:flex;align-items:center;gap:10px;background:#0d162a;border:1px solid var(--border);
-        padding:10px 12px;border-radius:12px;position:relative}
+        padding:10px 12px;border-radius:12px}
   .step.active{outline:2px solid var(--accent)}
   .step .idx{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;
              background:#0c1324;border:1px solid var(--border);font-weight:700}
   .step .ttl{font-weight:700}
   .step .sub{color:var(--muted);font-size:12px}
   .step .grow{flex:1}
-  .step .act{display:flex;gap:8px}
   .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);
            padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
-  .linkbtn.primary{background:var(--accent);border-color:transparent}
-  .linkbtn.ok{background:var(--ok);border-color:transparent}
-  .linkbtn.warn{background:var(--warn);color:#111}
 
   /* Cards */
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
@@ -71,18 +66,36 @@
   .small{font-size:12px}
   .hide{display:none !important}
 
-  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .kpi .box{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:12px}
   .kpi .box h3{margin:0;font-size:12px;color:var(--muted)}
   .kpi .box p{margin:4px 0 0;font-size:18px;font-weight:700}
   .pill{background:#0e1a33;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:12px}
+
+  /* Historie Controls */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .ipt{background:#0c1320;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+
+  /* Status-Pills */
+  .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
+  .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+
+  /* Minimal Buttons (Icons) */
+  .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);
+           width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
+  .icon{width:16px;height:16px;display:inline-block}
+  .icon.pen{background:conic-gradient(from 90deg,#fff 0 25%,#0000 0) content-box,
+            linear-gradient(#fff 0 0) 0 100%/60% 2px no-repeat;background-clip:content-box;padding:2px}
+  .icon.x{position:relative}
+  .icon.x::before,.icon.x::after{content:"";position:absolute;width:14px;height:2px;background:#e5e7eb}
+  .icon.x::before{transform:rotate(45deg)} .icon.x::after{transform:rotate(-45deg)}
 
   /* Modal */
   dialog{border:none;border-radius:14px;padding:0;background:#0f1724;color:var(--text);width:560px;max-width:calc(100% - 32px)}
   dialog::backdrop{background:rgba(0,0,0,.55)}
   .modal-hd{padding:16px 18px;border-bottom:1px solid var(--border)}
   .modal-ct{padding:16px 18px}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 </style>
 </head>
 <body>
@@ -96,9 +109,7 @@
         <div class="ttl">Erfassung</div>
         <div class="sub">Daten + Gewichtung</div>
       </div>
-      <div class="act">
-        <button class="linkbtn" data-nav="1">Öffnen</button>
-      </div>
+      <button class="linkbtn" data-nav="1">Öffnen</button>
     </div>
     <div class="step" data-step="2" id="step2">
       <div class="idx">2</div>
@@ -106,9 +117,7 @@
         <div class="ttl">Ergebnis</div>
         <div class="sub">Prozent + Geldwert</div>
       </div>
-      <div class="act">
-        <button class="linkbtn" data-nav="2">Öffnen</button>
-      </div>
+      <button class="linkbtn" data-nav="2">Öffnen</button>
     </div>
     <div class="step" data-step="3" id="step3">
       <div class="idx">3</div>
@@ -116,9 +125,7 @@
         <div class="ttl">Historie</div>
         <div class="sub">Quelle, Vollständigkeit</div>
       </div>
-      <div class="act">
-        <button class="linkbtn" data-nav="3">Öffnen</button>
-      </div>
+      <button class="linkbtn" data-nav="3">Öffnen</button>
     </div>
   </div>
 
@@ -140,8 +147,8 @@
         </div>
         <div>
           <label for="auftragswert">Auftragswert</label>
-          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
-          <div class="note">Anzeige im Format 50.000,00 €</div>
+          <input id="auftragswert" type="text" inputmode="decimal" placeholder="optional, z. B. 120.000,00">
+          <div class="note">Wird als 50.000,00 € angezeigt.</div>
         </div>
       </div>
 
@@ -191,7 +198,7 @@
       <div class="hr"></div>
 
       <div class="actions">
-        <div class="mono" id="amountPreview">Vorschau: 0,00 €</div>
+        <div></div>
         <div style="display:flex;gap:10px">
           <button class="btn" id="toHistory">Zur Historie</button>
           <button class="btn primary" id="toResult">Ergebnis anzeigen</button>
@@ -211,7 +218,6 @@
         <div class="box"><h3>Auftraggeber</h3><p id="kpiAG">–</p></div>
         <div class="box"><h3>Projekttitel</h3><p id="kpiPT">–</p></div>
         <div class="box"><h3>Auftragswert</h3><p id="kpiAmt">–</p></div>
-        <div class="box"><h3>Aktive Kategorien</h3><p id="kpiCats">–</p></div>
       </div>
 
       <div class="hr"></div>
@@ -239,7 +245,6 @@
       <div class="hr"></div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" id="backToInput">Zur Erfassung</button>
         <button class="btn ok" id="saveToHistory">In Historie speichern</button>
         <button class="btn" id="goToHistory">Historie ansehen</button>
       </div>
@@ -250,13 +255,31 @@
   <div class="card hide" id="view3">
     <div class="hd">
       <h1>Historie</h1>
-      <p>Quelle und Vollständigkeit sichtbar. Einträge bearbeiten oder löschen.</p>
+      <p>Suche, Filter, Sortierung. Quelle und Vollständigkeit sichtbar. Bearbeiten öffnet Erfassung.</p>
     </div>
     <div class="ct">
-      <div class="legend" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-        <span class="chip ok"><span class="dot"></span> vollständig</span>
-        <span class="chip bad"><span class="dot"></span> unvollständig</span>
+      <div class="filters">
+        <input id="q" class="ipt" type="text" placeholder="Suchen (Titel, Auftraggeber)">
+        <select id="f_source" class="ipt">
+          <option value="">Quelle: alle</option>
+          <option value="manuell">manuell</option>
+          <option value="hubspot">hubspot</option>
+        </select>
+        <select id="f_status" class="ipt">
+          <option value="">Status: alle</option>
+          <option value="ok">vollständig</option>
+          <option value="bad">unvollständig</option>
+        </select>
+        <select id="f_sort" class="ipt">
+          <option value="ts_desc">Sortieren: Neueste</option>
+          <option value="ts_asc">Älteste</option>
+          <option value="amount_desc">Betrag absteigend</option>
+          <option value="amount_asc">Betrag aufsteigend</option>
+          <option value="title_asc">Titel A→Z</option>
+          <option value="title_desc">Titel Z→A</option>
+        </select>
       </div>
+
       <div class="table">
         <table>
           <thead>
@@ -281,35 +304,14 @@
   </div>
 </div>
 
-<!-- Modal: Bearbeiten -->
-<dialog id="editDlg">
-  <div class="modal-hd"><strong>Eintrag bearbeiten</strong></div>
+<!-- Bestätigungsdialog Löschen -->
+<dialog id="confirmDlg">
+  <div class="modal-hd"><strong>Eintrag löschen</strong></div>
   <div class="modal-ct">
-    <div class="grid-2">
-      <div>
-        <label for="e_title">Projekttitel</label>
-        <input id="e_title" type="text">
-      </div>
-      <div>
-        <label for="e_client">Auftraggeber</label>
-        <input id="e_client" type="text">
-      </div>
-      <div>
-        <label for="e_amount">Auftragswert (EUR)</label>
-        <input id="e_amount" type="number" min="0" step="1">
-      </div>
-      <div>
-        <label for="e_complete">Status</label>
-        <select id="e_complete">
-          <option value="true">vollständig</option>
-          <option value="false">unvollständig</option>
-        </select>
-      </div>
-    </div>
-    <div class="hr"></div>
+    <p>Wollen Sie den Eintrag wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button class="btn" id="btnCancel">Abbrechen</button>
-      <button class="btn primary" id="btnSaveEdit">Speichern</button>
+      <button class="btn" id="btnNo">Abbrechen</button>
+      <button class="btn danger" id="btnYes">Löschen</button>
     </div>
   </div>
 </dialog>
@@ -408,17 +410,16 @@ function activate(step){
 document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const n = Number(btn.getAttribute('data-nav'));
-    if (n===2) buildResult(); // beim Sprung auf Ergebnis neu berechnen
+    if (n===2) buildResult();
     if (n===3) loadHistory();
     activate(n);
   });
 });
 
-/* === Erfassung: Elemente + Logik === */
+/* === Erfassung === */
 const tbody = document.getElementById('tbody');
 const sumchips = document.getElementById('sumchips');
 const errorsEl = document.getElementById('errors');
-const amountPreview = document.getElementById('amountPreview');
 const auftraggeber = document.getElementById('auftraggeber');
 const projekttitel = document.getElementById('projekttitel');
 const auftragswert = document.getElementById('auftragswert');
@@ -496,17 +497,14 @@ function updateWeightNote(){
 }
 function validateInput(){
   const errs=[];
-  if (!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
-  if (!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
-  const amount = parseAmountInput(auftragswert.value);
-  if (!(amount>0)) errs.push('Auftragswert muss > 0 sein.');
-
+  // Auftragswert ist optional
   const rows = readRows();
   const anyActive = rows.some(r=>r.cs+r.konzept+r.pitch>0);
   if (!anyActive) errs.push('Mindestens eine Person mit Punkten erfassen.');
   rows.forEach((r,i)=>{ if ((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
 
   const t = totals(rows);
+  // Regel: nur Blockade wenn eine Kategorie > 100
   ['cs','konzept','pitch'].forEach(k=>{
     if (t[k] > 100) errs.push(`Kategorie überschreitet 100: ${k} = ${t[k]}`);
   });
@@ -514,7 +512,7 @@ function validateInput(){
   const sumW = currentWeights().reduce((a,c)=>a + Number(c.weight||0), 0);
   if (sumW !== 100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
 
-  return { ok: errs.length===0, errs, t, rows, amount };
+  return { ok: errs.length===0, errs, t, rows };
 }
 function recalc(){
   const v = validateInput();
@@ -525,16 +523,9 @@ function recalc(){
 
 /* Erfassung: Events */
 btnAddRow.addEventListener('click', ()=>addRow(true));
-[auftragswert].forEach(el=>{
-  el.addEventListener('input', ()=>{
-    const raw = parseAmountInput(auftragswert.value);
-    amountPreview.textContent = `Vorschau: ${formatAmountDisplay(raw)}`;
-  });
-  el.addEventListener('blur', ()=>{
-    const raw = parseAmountInput(auftragswert.value);
-    auftragswert.value = formatAmountInput(raw);
-    amountPreview.textContent = `Vorschau: ${formatAmountDisplay(raw)}`;
-  });
+auftragswert.addEventListener('blur', ()=>{
+  const raw = parseAmountInput(auftragswert.value);
+  auftragswert.value = raw>0 ? formatAmountInput(raw) : '';
 });
 [w_cs,w_konzept,w_pitch].forEach(el=>{
   el.addEventListener('input', ()=>{
@@ -559,12 +550,16 @@ function persistToLocal(){
   const rows = readRows();
   const weights = currentWeights();
   const amount = parseAmountInput(auftragswert.value);
+  const st = loadState() || {};
+  const editingId = st.editingId || null;
+  const source = st.source || 'manuell';
   saveState({
-    source:'manuell',
+    source,
+    editingId,
     input: {
       client: auftraggeber.value.trim(),
       title:  projekttitel.value.trim(),
-      amount,
+      amount, // optional
       rows,
       weights
     }
@@ -575,12 +570,10 @@ function persistToLocal(){
 const kpiAG = document.getElementById('kpiAG');
 const kpiPT = document.getElementById('kpiPT');
 const kpiAmt= document.getElementById('kpiAmt');
-const kpiCats= document.getElementById('kpiCats');
 const pillWeights = document.getElementById('pillWeights');
 const pillComplete= document.getElementById('pillComplete');
 const resultBody = document.getElementById('resultBody');
 const sumCheck   = document.getElementById('sumCheck');
-const backToInput= document.getElementById('backToInput');
 const saveToHistory = document.getElementById('saveToHistory');
 const goToHistory   = document.getElementById('goToHistory');
 
@@ -588,21 +581,18 @@ function buildResult(){
   const st = loadState();
   if (!st?.input){ activate(1); return; }
   const { client, title, amount, rows, weights } = st.input;
-  const res = compute(rows, (weights&&weights.length? weights: [
+  const effWeights = (weights&&weights.length? weights: [
     {key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}
-  ]), amount);
+  ]);
+  const res = compute(rows, effWeights, amount||0);
 
   kpiAG.textContent = client || '–';
   kpiPT.textContent = title || '–';
-  kpiAmt.textContent= formatAmountDisplay(amount||0);
-  kpiCats.textContent = res.usedKeys.length ? res.usedKeys.join(', ') : '–';
+  kpiAmt.textContent= (amount>0) ? formatAmountDisplay(amount) : '–';
 
-  const complete = (
-    client && title && (amount>0) &&
-    rows.some(r=>r.cs+r.konzept+r.pitch>0) &&
-    Object.values(res.totals).every(v => v<=100)
-  );
-  pillComplete.textContent = `Status: ${complete ? 'vollständig' : 'unvollständig'}`;
+  // Vollständigkeit automatisch: client+title vorhanden, amount>0, mindestens eine Person mit gültigen Punkten
+  const isComplete = !!(client && title && (amount>0) && rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  pillComplete.textContent = `Status: ${isComplete ? 'vollständig' : 'unvollständig'}`;
 
   const wText = res.effectiveWeights.filter(w=>w.weight>0)
                   .map(w=>`${w.key}:${w.weight}%`).join(' · ');
@@ -622,16 +612,14 @@ function buildResult(){
   });
   sumCheck.textContent = `Summe: ${fmtPct.format(sum)} %`;
 
-  // Zwischenergebnis in State legen (inkl. complete), damit Historie speichern kann
-  saveState({ ...st, result:{ list:res.list, totals:res.totals, weights:res.effectiveWeights, complete } });
+  saveState({ ...st, result:{ list:res.list, totals:res.totals, weights:res.effectiveWeights, complete:isComplete } });
 }
-backToInput.addEventListener('click', ()=>activate(1));
 goToHistory.addEventListener('click', ()=>{ activate(3); loadHistory(); });
 saveToHistory.addEventListener('click', async ()=>{
   const st = loadState();
   if (!st?.input) return;
   const payload = {
-    source:'manuell',
+    source: st.source || 'manuell',
     complete: !!st?.result?.complete,
     client: st.input.client || '',
     title:  st.input.title  || '',
@@ -639,17 +627,32 @@ saveToHistory.addEventListener('click', async ()=>{
     list:   st?.result?.list || [],
     totals: st?.result?.totals || {},
     weights:st?.result?.weights || [],
-    ts: Date.now()
+    ts: Date.now(),
+    id: st.editingId || undefined
   };
   try{
-    const r = await fetch(`${WORKER_BASE}/entries`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if (r.ok){ activate(3); loadHistory(); }
+    if (st.editingId){
+      await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${WORKER_BASE}/entries`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    }
+    // nach Speichern Editing-Modus verlassen
+    saveState({ source:'manuell' });
+    activate(3); loadHistory();
   } catch {}
 });
 
-/* Ansicht 3: Historie */
+/* Ansicht 3: Historie (Suche/Filter/Sort) */
 const historyBody = document.getElementById('historyBody');
+const q = document.getElementById('q');
+const f_source = document.getElementById('f_source');
+const f_status = document.getElementById('f_status');
+const f_sort = document.getElementById('f_sort');
 let entries = [];
+let pendingDeleteId = null;
+
 async function loadHistory(){
   try{
     const r = await fetch(`${WORKER_BASE}/entries`);
@@ -657,89 +660,138 @@ async function loadHistory(){
   } catch { entries = []; }
   renderHistory();
 }
+function filtered(){
+  const text = q.value.trim().toLowerCase();
+  const src = f_source.value;
+  const stat= f_status.value; // ok|bad|""
+  let arr = entries.slice();
+
+  if (text){
+    arr = arr.filter(e => String(e.title||'').toLowerCase().includes(text) ||
+                          String(e.client||'').toLowerCase().includes(text));
+  }
+  if (src){
+    arr = arr.filter(e => (e.source||'') === src);
+  }
+  if (stat){
+    const wantOk = stat==='ok';
+    arr = arr.filter(e => {
+      const ok = !!autoComplete(e);
+      return wantOk ? ok : !ok;
+    });
+  }
+
+  switch (f_sort.value){
+    case 'ts_asc': arr.sort((a,b)=>(a.ts||0)-(b.ts||0)); break;
+    case 'ts_desc': arr.sort((a,b)=>(b.ts||0)-(a.ts||0)); break;
+    case 'amount_asc': arr.sort((a,b)=>(a.amount||0)-(b.amount||0)); break;
+    case 'amount_desc': arr.sort((a,b)=>(b.amount||0)-(a.amount||0)); break;
+    case 'title_asc': arr.sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'de')); break;
+    case 'title_desc': arr.sort((a,b)=>String(b.title||'').localeCompare(String(a.title||''),'de')); break;
+  }
+  return arr;
+}
+function autoComplete(e){
+  // Automatischer Status wie gefordert
+  return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0);
+}
 function renderHistory(){
   historyBody.innerHTML='';
-  const sorted = [...entries].sort((a,b)=> (b.ts||0) - (a.ts||0));
-  for (const e of sorted){
+  const arr = filtered();
+  for (const e of arr){
+    const ok = autoComplete(e);
+    const status = `<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const tr = document.createElement('tr');
-    const ok = !!e.complete;
-    const dot = `<span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ok?'#22c55e':'#ef4444'};margin-right:6px"></span>`;
     tr.innerHTML = `
       <td>${e.title || '–'}</td>
       <td>${e.client || '–'}</td>
       <td>${e.source || '–'}</td>
-      <td>${dot}${ok?'vollständig':'unvollständig'}</td>
+      <td>${status}</td>
       <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
-      <td>
-        <button class="btn" data-act="edit" data-id="${e.id}">Bearbeiten</button>
-        <button class="btn danger" data-act="del" data-id="${e.id}">Löschen</button>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="iconbtn" title="Bearbeiten" data-act="edit" data-id="${e.id}"><span class="icon pen"></span></button>
+        <button class="iconbtn" title="Löschen" data-act="del" data-id="${e.id}"><span class="icon x"></span></button>
       </td>
     `;
     historyBody.appendChild(tr);
   }
 }
-document.getElementById('backToInput2').addEventListener('click', ()=>activate(1));
+[q,f_source,f_status,f_sort].forEach(el=> el.addEventListener('input', renderHistory));
+
+document.getElementById('backToInput2').addEventListener('click', ()=>{
+  // neuen Zustand beginnen
+  saveState({ source:'manuell' });
+  // Formular leeren
+  tbody.innerHTML=''; addRow(true); addRow(false);
+  auftraggeber.value=''; projekttitel.value=''; auftragswert.value='';
+  w_cs.value='50'; w_konzept.value='30'; w_pitch.value='20';
+  updateWeightNote(); recalc();
+  activate(1);
+});
+
 historyBody.addEventListener('click', async (ev)=>{
   const btn = ev.target.closest('button[data-act]');
   if (!btn) return;
   const id = btn.getAttribute('data-id');
   const act= btn.getAttribute('data-act');
+
   if (act==='edit'){
+    // Eintrag laden, in Erfassung öffnen (inkl. Beteiligungen)
     const e = entries.find(x=>x.id===id); if(!e) return;
-    currentId = id;
-    document.getElementById('e_title').value = e.title||'';
-    document.getElementById('e_client').value= e.client||'';
-    document.getElementById('e_amount').value= Number(e.amount||0);
-    document.getElementById('e_complete').value = String(!!e.complete);
-    document.getElementById('editDlg').showModal();
-  } else if (act==='del'){
-    const ok = window.confirm("Wollen Sie den Eintrag wirklich löschen?");
-    if (!ok) return;
-    try{
-      const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method:'DELETE' });
-      if (r.ok){ entries = entries.filter(x=>x.id!==id); renderHistory(); }
-    } catch {}
+    const st = {
+      source: e.source || 'manuell',
+      editingId: e.id,
+      input: {
+        client: e.client || '',
+        title:  e.title || '',
+        amount: e.amount || 0,
+        // Falls Rohdaten vorhanden (rows) verwenden, sonst aus list eine flache Vorlage bauen
+        rows: Array.isArray(e.rows) && e.rows.length ? e.rows :
+              (Array.isArray(e.list) ? e.list.map(x=>({ name:x.name, cs:0, konzept:0, pitch:0 })) : []),
+        weights: Array.isArray(e.weights) ? e.weights :
+                 [{key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}]
+      }
+    };
+    saveState(st);
+    // Formular füllen
+    initFromState();
+    activate(1);
+    return;
+  }
+
+  if (act==='del'){
+    pendingDeleteId = id;
+    document.getElementById('confirmDlg').showModal();
   }
 });
-let currentId = null;
-document.getElementById('btnCancel').addEventListener('click', ()=>document.getElementById('editDlg').close());
-document.getElementById('btnSaveEdit').addEventListener('click', async ()=>{
-  if (!currentId) return;
-  const upd = {
-    title:  document.getElementById('e_title').value.trim(),
-    client: document.getElementById('e_client').value.trim(),
-    amount: Math.max(0, Math.floor(Number(document.getElementById('e_amount').value||0))),
-    complete: document.getElementById('e_complete').value === 'true'
-  };
+
+/* Delete confirm */
+document.getElementById('btnNo').addEventListener('click', ()=>document.getElementById('confirmDlg').close());
+document.getElementById('btnYes').addEventListener('click', async ()=>{
+  const id = pendingDeleteId; pendingDeleteId=null;
+  document.getElementById('confirmDlg').close();
+  if (!id) return;
   try{
-    const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentId)}`, {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(upd)
-    });
-    if (r.ok){
-      const i = entries.findIndex(x=>x.id===currentId);
-      if (i>=0) entries[i] = { ...entries[i], ...upd };
-      document.getElementById('editDlg').close();
-      renderHistory();
-    }
+    const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method:'DELETE' });
+    if (r.ok){ entries = entries.filter(x=>x.id!==id); renderHistory(); }
   } catch {}
 });
 
 /* Init */
 function initFromState(){
   const st = loadState();
+  tbody.innerHTML='';
   if (st?.input){
     auftraggeber.value = st.input.client || '';
     projekttitel.value = st.input.title  || '';
     auftragswert.value = st.input.amount ? formatAmountInput(st.input.amount) : '';
-    amountPreview.textContent = `Vorschau: ${formatAmountDisplay(st.input.amount||0)}`;
     if (Array.isArray(st.input.rows) && st.input.rows.length){
-      tbody.innerHTML='';
-      st.input.rows.forEach((r,i)=>{
+      st.input.rows.forEach(r=>{
         const tr = rowTemplate(); tbody.appendChild(tr); bindRow(tr);
         tr.querySelector('.name').value = r.name||'';
-        tr.querySelector('.cs').value = String(clamp01(toInt0(r.cs)));
-        tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept)));
-        tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch)));
+        tr.querySelector('.cs').value = String(clamp01(toInt0(r.cs||0)));
+        tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept||0)));
+        tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch||0)));
       });
     } else {
       addRow(true); addRow(false);
@@ -764,4 +816,3 @@ document.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && e.target?.tag
 </script>
 </body>
 </html>
-```
