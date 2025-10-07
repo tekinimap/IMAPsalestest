@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sales-Beteiligung · Erfassung → Ergebnis → Historie</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sales-Beteiligung</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#0a0f16; --panel:#0f1724; --panel2:#0c1320; --text:#e6ebf3; --muted:#94a3b8; --border:#213044;
@@ -12,38 +14,33 @@
   *{box-sizing:border-box}
   body{margin:0;background:#0a0f16;color:var(--text);font:15px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
   .container{max-width:1200px;margin:28px auto;padding:0 16px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .toplinks{display:flex;gap:10px}
+  .linktiny{font-size:12px;color:#cbd5e1;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer}
+  .linktiny.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
-  /* Stepper */
-  .stepper{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-  .step{flex:1;display:flex;align-items:center;gap:10px;background:#0d162a;border:1px solid var(--border);
-        padding:10px 12px;border-radius:12px}
+  .stepper{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .step{flex:1;display:flex;align-items:center;gap:10px;background:#0d162a;border:1px solid var(--border);padding:10px 12px;border-radius:12px}
   .step.active{outline:2px solid var(--accent)}
-  .step .idx{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;
-             background:#0c1324;border:1px solid var(--border);font-weight:700}
-  .step .ttl{font-weight:700}
-  .step .sub{color:var(--muted);font-size:12px}
-  .step .grow{flex:1}
-  .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);
-           padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
+  .idx{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;background:#0c1324;border:1px solid var(--border);font-weight:700}
+  .ttl{font-weight:700}.sub{color:var(--muted);font-size:12px}.grow{flex:1}
+  .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
   .linkbtn.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
-  /* Cards */
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
-        box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:14px}
   .hd{padding:18px 20px 8px}.hd h1{margin:0 0 6px;font-size:22px}.hd p{margin:0;color:var(--muted);font-size:13px}
   .ct{padding:18px 20px 22px}
 
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
   label{display:block;font-weight:600;margin:8px 0 6px}
-  input[type="text"], input[type="number"]{
+  input[type="text"],input[type="number"],select{
     width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
     border-radius:10px;padding:10px 12px;outline:none
   }
-  input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.35)}
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.35)}
   .note{color:var(--muted);font-size:12px}
   .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
-  .btn{appearance:none;border:1px solid var(--border);background:#0d1426;color:var(--text);
-       padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600}
+  .btn{appearance:none;border:1px solid var(--border);background:#0d1426;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600}
   .btn.primary{background:var(--accent);border-color:transparent}
   .btn.disabled{opacity:.5;pointer-events:none}
   .btn.ok{background:var(--ok);border-color:transparent}
@@ -66,125 +63,76 @@
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
   .small{font-size:12px}
   .hide{display:none !important}
-
   .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .kpi .box{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:12px}
   .kpi .box h3{margin:0;font-size:12px;color:var(--muted)}
   .kpi .box p{margin:4px 0 0;font-size:18px;font-weight:700}
   .pill{background:#0e1a33;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:12px}
 
-  /* Historie Controls */
   .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
   .ipt{background:#0c1320;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
 
-  /* Status-Pills */
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
   .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
 
-  /* Icon Buttons (SVG) */
-  .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);
-           width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
+  .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn svg{width:16px;height:16px;stroke:#e5e7eb;stroke-width:2;fill:none}
+
+  /* Auswertung (SVG Bars) */
+  .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .chart h3{margin:0 0 8px 0;font-size:14px;color:#cbd5e1}
+  .chart svg{width:100%;height:auto}
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Stepper -->
+  <div class="topbar">
+    <div style="font-weight:700">Sales-Beteiligung</div>
+    <div class="toplinks">
+      <button class="linktiny" id="lnkAnalytics">Auswertung</button>
+      <button class="linktiny" id="lnkAdmin">Admin</button>
+    </div>
+  </div>
+
   <div class="stepper">
-    <div class="step" data-step="1" id="step1">
-      <div class="idx">1</div>
-      <div class="grow">
-        <div class="ttl">Erfassung</div>
-        <div class="sub">Daten + Gewichtung</div>
-      </div>
-      <button class="linkbtn" data-nav="1">Öffnen</button>
-    </div>
-    <div class="step" data-step="2" id="step2">
-      <div class="idx">2</div>
-      <div class="grow">
-        <div class="ttl">Ergebnis</div>
-        <div class="sub">Prozent + Geldwert</div>
-      </div>
-      <button class="linkbtn disabled" id="step2btn" data-nav="2" aria-disabled="true">Öffnen</button>
-    </div>
-    <div class="step" data-step="3" id="step3">
-      <div class="idx">3</div>
-      <div class="grow">
-        <div class="ttl">Historie</div>
-        <div class="sub">Quelle, Vollständigkeit</div>
-      </div>
-      <button class="linkbtn" data-nav="3">Öffnen</button>
-    </div>
+    <div class="step" id="step1"><div class="idx">1</div><div class="grow"><div class="ttl">Erfassung</div><div class="sub">Daten + Gewichtung</div></div><button class="linkbtn" data-nav="1">Öffnen</button></div>
+    <div class="step" id="step2"><div class="idx">2</div><div class="grow"><div class="ttl">Ergebnis</div><div class="sub">Prozent + Geldwert</div></div><button class="linkbtn disabled" id="step2btn" data-nav="2" aria-disabled="true">Öffnen</button></div>
+    <div class="step" id="step3"><div class="idx">3</div><div class="grow"><div class="ttl">Historie</div><div class="sub">Quelle, Vollständigkeit</div></div><button class="linkbtn" data-nav="3">Öffnen</button></div>
   </div>
 
   <!-- Ansicht 1: Erfassung -->
   <div class="card" id="view1">
-    <div class="hd">
-      <h1>Erfassung</h1>
-      <p>Gewichtung ist anpassbar. Ungenutzte Kategorien werden automatisch auf die übrigen verteilt.</p>
-    </div>
+    <div class="hd"><h1>Erfassung</h1><p>Gewichtung anpassbar. Ungenutzte Kategorien werden auf die übrigen verteilt.</p></div>
     <div class="ct">
       <div class="grid-3">
-        <div>
-          <label for="auftraggeber">Auftraggeber *</label>
-          <input id="auftraggeber" type="text" placeholder="z. B. Deutsche Rentenversicherung Bund" autocomplete="organization">
-        </div>
-        <div>
-          <label for="projekttitel">Projekttitel *</label>
-          <input id="projekttitel" type="text" placeholder="z. B. Basisprogramm Führungskräfte – Los 4">
-        </div>
-        <div>
-          <label for="auftragswert">Auftragswert (optional)</label>
-          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
-          <div class="note">Wird als 50.000,00 € angezeigt.</div>
-        </div>
+        <div><label for="auftraggeber">Auftraggeber *</label><input id="auftraggeber" type="text" autocomplete="organization"></div>
+        <div><label for="projekttitel">Projekttitel *</label><input id="projekttitel" type="text"></div>
+        <div><label for="auftragswert">Auftragswert (optional)</label><input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00"><div class="note">Anzeige: 50.000,00 €</div></div>
       </div>
-
       <div class="grid-3" style="margin-top:10px">
-        <div>
-          <label for="submittedBy">Einschätzung abgegeben von *</label>
-          <input id="submittedBy" type="text" placeholder="Ihr Name">
-        </div>
+        <div><label for="submittedBy">Einschätzung abgegeben von *</label><input id="submittedBy" type="text" placeholder="Ihr Name"></div>
       </div>
 
       <div class="hr"></div>
 
       <div class="grid-3">
-        <div>
-          <label>Gewicht: Consultative Selling (%)</label>
-          <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
-        </div>
-        <div>
-          <label>Gewicht: Konzepterstellung (%)</label>
-          <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
-        </div>
-        <div>
-          <label>Gewicht: Pitch (%)</label>
-          <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
-        </div>
+        <div><label>Gewicht: Consultative Selling (%)</label><input id="w_cs" type="number" min="0" max="100" step="1" value="50"></div>
+        <div><label>Gewicht: Konzepterstellung (%)</label><input id="w_konzept" type="number" min="0" max="100" step="1" value="30"></div>
+        <div><label>Gewicht: Pitch (%)</label><input id="w_pitch" type="number" min="0" max="100" step="1" value="20"></div>
       </div>
       <div class="note mono" id="w_note" style="margin-top:6px">Summe Gewichte: 100 %</div>
 
       <div class="hr"></div>
 
-      <div class="actions">
-        <span class="tag">Punkte 0–100 je Person und Kategorie</span>
-        <button class="btn" id="btnAddRow">+ Zeile</button>
-      </div>
+      <div class="actions"><span class="tag">Person aus Liste wählen oder tippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
+
+      <datalist id="peopleList"></datalist>
 
       <div class="table" style="margin-top:8px">
         <table>
-          <thead>
-            <tr>
-              <th style="width:30%">Name</th>
-              <th style="width:18%">Consultative Selling</th>
-              <th style="width:18%">Konzepterstellung</th>
-              <th style="width:18%">Pitch</th>
-              <th style="width:16%">Aktion</th>
-            </tr>
-          </thead>
+          <thead><tr><th style="width:34%">Person</th><th style="width:18%">Consultative Selling</th><th style="width:18%">Konzepterstellung</th><th style="width:18%">Pitch</th><th style="width:12%">Aktion</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -206,105 +154,120 @@
 
   <!-- Ansicht 2: Ergebnis -->
   <div class="card hide" id="view2">
-    <div class="hd">
-      <h1>Ergebnis</h1>
-      <p>Prozentuale Beteiligung und monetäre Anteile. Quelle: manuell</p>
-    </div>
+    <div class="hd"><h1>Ergebnis</h1><p>Prozentuale Beteiligung und monetäre Anteile.</p></div>
     <div class="ct">
       <div class="kpi">
         <div class="box"><h3>Auftraggeber</h3><p id="kpiAG">–</p></div>
         <div class="box"><h3>Projekttitel</h3><p id="kpiPT">–</p></div>
         <div class="box"><h3>Auftragswert</h3><p id="kpiAmt">–</p></div>
       </div>
-
       <div class="hr"></div>
-
-      <div class="legend" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <span class="pill" id="pillWeights">Gewichtung –</span>
         <span class="pill" id="pillComplete">Status: –</span>
       </div>
-
       <div class="table" style="margin-top:6px">
         <table>
-          <thead>
-            <tr>
-              <th>Person</th>
-              <th>Gesamtbeitrag %</th>
-              <th>Geldwert EUR</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Person</th><th>Gesamtbeitrag %</th><th>Geldwert EUR</th></tr></thead>
           <tbody id="resultBody"></tbody>
         </table>
       </div>
-
       <div class="mono small" id="sumCheck" style="margin-top:6px">Summe: 0,00 %</div>
-
       <div class="hr"></div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn ok" id="saveToHistory">In Historie speichern</button>
-      </div>
+      <div style="display:flex;gap:10px"><button class="btn ok" id="saveToHistory">In Historie speichern</button></div>
     </div>
   </div>
 
   <!-- Ansicht 3: Historie -->
   <div class="card hide" id="view3">
-    <div class="hd">
-      <h1>Historie</h1>
-      <p>Suche, Filter, Sortierung. Quelle und Vollständigkeit sichtbar. Bearbeiten öffnet Erfassung.</p>
-    </div>
+    <div class="hd"><h1>Historie</h1><p>Suche, Filter, Sort. Export .xlsx der gefilterten Ansicht.</p></div>
     <div class="ct">
       <div class="filters">
         <input id="q" class="ipt" type="text" placeholder="Suchen (Titel, Auftraggeber)">
-        <select id="f_source" class="ipt">
-          <option value="">Quelle: alle</option>
-          <option value="manuell">manuell</option>
-          <option value="hubspot">hubspot</option>
-        </select>
-        <select id="f_status" class="ipt">
-          <option value="">Status: alle</option>
-          <option value="ok">vollständig</option>
-          <option value="bad">unvollständig</option>
-        </select>
+        <select id="f_source" class="ipt"><option value="">Quelle: alle</option><option value="manuell">manuell</option><option value="hubspot">hubspot</option></select>
+        <select id="f_status" class="ipt"><option value="">Status: alle</option><option value="ok">vollständig</option><option value="bad">unvollständig</option></select>
         <select id="f_sort" class="ipt">
-          <option value="ts_desc">Sortieren: Neueste</option>
-          <option value="ts_asc">Älteste</option>
-          <option value="amount_desc">Betrag absteigend</option>
-          <option value="amount_asc">Betrag aufsteigend</option>
-          <option value="title_asc">Titel A→Z</option>
-          <option value="title_desc">Titel Z→A</option>
+          <option value="ts_desc">Neueste</option><option value="ts_asc">Älteste</option>
+          <option value="amount_desc">Betrag absteigend</option><option value="amount_asc">Betrag aufsteigend</option>
+          <option value="title_asc">Titel A→Z</option><option value="title_desc">Titel Z→A</option>
         </select>
+        <button class="btn" id="btnXlsx">Export XLSX</button>
       </div>
 
       <div class="table">
         <table>
-          <thead>
-            <tr>
-              <th style="width:24%">Projekttitel</th>
-              <th style="width:18%">Auftraggeber</th>
-              <th style="width:10%">Quelle</th>
-              <th style="width:14%">Status</th>
-              <th style="width:14%">Wert EUR</th>
-              <th style="width:14%">Zuletzt bearbeitet</th>
-              <th style="width:6%">Aktionen</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th style="width:24%">Projekttitel</th>
+            <th style="width:18%">Auftraggeber</th>
+            <th style="width:10%">Quelle</th>
+            <th style="width:14%">Status</th>
+            <th style="width:14%">Wert EUR</th>
+            <th style="width:14%">Zuletzt bearbeitet</th>
+            <th style="width:6%">Aktionen</th>
+          </tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
       </div>
 
       <div class="hr"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" id="backToInput2">Neue Erfassung</button>
+      <div style="display:flex;gap:10px"><button class="btn" id="backToInput2">Neue Erfassung</button></div>
+    </div>
+  </div>
+
+  <!-- Ansicht 4: Admin -->
+  <div class="card hide" id="viewAdmin">
+    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen. Enter sendet das Formular.</p></div>
+    <div class="ct">
+      <div class="grid-3">
+        <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
+        <div><label for="adm_team">Team</label><select id="adm_team"></select></div>
+        <div>
+          <label for="adm_token">Admin-Token</label>
+          <input id="adm_token" type="text" placeholder="Authorization Bearer">
+          <div class="note">Wird bei POST/PUT/DELETE als Authorization-Header gesendet.</div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:10px"><div></div><div><button class="btn ok" id="adm_add">Anlegen</button></div></div>
+
+      <div class="hr"></div>
+
+      <div class="table">
+        <table>
+          <thead><tr><th style="width:40%">Name</th><th style="width:40%">Team</th><th style="width:20%">Aktionen</th></tr></thead>
+          <tbody id="adm_body"></tbody>
+        </table>
       </div>
     </div>
   </div>
+
+  <!-- Ansicht 5: Auswertung -->
+  <div class="card hide" id="viewAnalytics">
+    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Historie.</p></div>
+    <div class="ct">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+        <label>Jahr</label>
+        <select id="anaYear" class="ipt"></select>
+        <button class="btn" id="anaRefresh">Aktualisieren</button>
+      </div>
+      <div class="grid-3">
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Top Personen (monetär)</h3>
+          <div id="chartPersons"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Teams (monetär, aggregiert)</h3>
+          <div id="chartTeams"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Bestätigungsdialog Löschen -->
+<!-- Delete-Dialog -->
 <dialog id="confirmDlg">
-  <div class="modal-hd"><strong>Eintrag löschen</strong></div>
-  <div class="modal-ct">
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
+  <div class="ct" style="padding:16px">
     <p>Wollen Sie den Eintrag wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="btn" id="btnNo">Abbrechen</button>
@@ -314,94 +277,76 @@
 </dialog>
 
 <script>
-/* === Konfiguration / Formatter === */
+/* ---------- Konfiguration ---------- */
 const WORKER_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
-
-const fmtPct   = new Intl.NumberFormat('de-DE', { minimumFractionDigits:2, maximumFractionDigits:2 });
-const fmtInt   = new Intl.NumberFormat('de-DE', { maximumFractionDigits:0 });
-const fmtCurr2 = new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', minimumFractionDigits:2, maximumFractionDigits:2 });
-const fmtCurr0 = new Intl.NumberFormat('de-DE', { style:'currency', currency:'EUR', minimumFractionDigits:0, maximumFractionDigits:0 });
-const fmtOnly2 = new Intl.NumberFormat('de-DE', { minimumFractionDigits:2, maximumFractionDigits:2 });
-
-const CATS = [
-  { key:'cs',      label:'Consultative Selling' },
-  { key:'konzept', label:'Konzepterstellung' },
-  { key:'pitch',   label:'Pitch' },
+const TEAMS = [
+  "Vielfalt+","Evaluation und Beteiligung","Nachhaltigkeit","Sozial- und Krankenversicherungen",
+  "ChangePartner","Bundes- und Landesbehörden","Kommunalverwaltungen",
+  "Internationale Zusammenarbeit","Head of Organisational Excellence","Head of Public Impact"
 ];
 
-const LS_KEY = "sales_state_v1";
+/* ---------- Formatter ---------- */
+const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtOnly2 = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-function clamp01(x){ return Math.max(0, Math.min(100, x)); }
-function toInt0(v){ const n = Math.round(Number(String(v ?? '0').replace(',', '.'))); return Number.isFinite(n) ? n : 0; }
-function parseAmountInput(str){ if (!str) return 0; const clean = String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.'); const n = Number(clean); return Number.isFinite(n) ? n : 0; }
-function formatAmountDisplay(v){ return fmtCurr2.format((+v)||0); }
-function formatAmountInput(v){ return fmtOnly2.format((+v)||0); }
+function clamp01(x){return Math.max(0,Math.min(100,x));}
+function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
+function parseAmountInput(str){if(!str)return 0;const clean=String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');const n=Number(clean);return Number.isFinite(n)?n:0;}
+function formatAmountDisplay(v){return fmtCurr2.format((+v)||0);}
+function formatAmountInput(v){return fmtOnly2.format((+v)||0);}
 
-function saveState(st){ localStorage.setItem(LS_KEY, JSON.stringify(st)); }
-function loadState(){ try{ const s = localStorage.getItem(LS_KEY); return s? JSON.parse(s): null; } catch{ return null; } }
+const LS_KEY="sales_state_v1";
+function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
+function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
-function totals(rows){ return rows.reduce((a,r)=>{ a.cs+=r.cs; a.konzept+=r.konzept; a.pitch+=r.pitch; return a; }, {cs:0, konzept:0, pitch:0}); }
-function normalizeWeightsForUsed(allWeights, usedKeys){
-  const used = allWeights.filter(w => usedKeys.includes(w.key));
-  const sum  = used.reduce((a,w)=>a + w.weight, 0);
-  if (sum <= 0) return allWeights.map(w=>({key:w.key, weight:w.weight}));
-  const factor = 100 / sum;
-  const out = allWeights.map(w=>{
-    if (usedKeys.includes(w.key)) return { key:w.key, weight: w.weight * factor };
-    return { key:w.key, weight: 0 };
-  });
-  const rem = 100 - Math.round(out.reduce((a,w)=>a + w.weight, 0));
-  if (rem !== 0){ const ix = out.findIndex(x => usedKeys.includes(x.key)); if (ix >= 0) out[ix].weight = Math.round(out[ix].weight + rem); }
-  return out.map(w=>({ key:w.key, weight: Math.round(w.weight*100)/100 }));
-}
-function compute(rows, weights, amount){
-  const t = totals(rows);
-  const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
-  const effW = normalizeWeightsForUsed(weights, usedKeys);
-  const map = new Map();
-  rows.forEach(r=>{
-    const active = r.cs+r.konzept+r.pitch>0;
-    const nm = (r.name||'').trim() || (active ? '(unbenannt)' : '');
-    if (!nm) return;
-    const cur = map.get(nm) || { name:nm, cs:0, konzept:0, pitch:0 };
-    cur.cs+=r.cs; cur.konzept+=r.konzept; cur.pitch+=r.pitch; map.set(nm, cur);
-  });
-  const wIndex = Object.fromEntries(effW.map(w=>[w.key, w.weight/100]));
-  const list = [];
-  for (const p of map.values()){
-    let pct = 0;
-    if (usedKeys.includes('cs')      && t.cs>0)      pct += wIndex.cs      * (p.cs      / t.cs);
-    if (usedKeys.includes('konzept') && t.konzept>0) pct += wIndex.konzept * (p.konzept / t.konzept);
-    if (usedKeys.includes('pitch')   && t.pitch>0)   pct += wIndex.pitch   * (p.pitch   / t.pitch);
-    list.push({ name:p.name, pct:pct*100 });
-  }
-  list.sort((a,b)=>b.pct-a.pct);
-  const sum = list.reduce((a,x)=>a+x.pct,0), resid=100-sum;
-  if (list.length && Math.abs(resid)>1e-9) list[0].pct += resid;
-  list.forEach(x=>{ if (x.pct<0) x.pct=0; });
-  const withMoney = list.map(x=>({ ...x, money: Math.round((amount>0? amount:0) * x.pct / 100) }));
-  return { totals:t, usedKeys, effectiveWeights:effW, list:withMoney };
-}
-
-/* === Stepper-Navigation === */
-const stepElems = [document.getElementById('step1'),document.getElementById('step2'),document.getElementById('step3')];
-const views = [document.getElementById('view1'),document.getElementById('view2'),document.getElementById('view3')];
+/* ---------- Navigation ---------- */
+const views = {
+  v1: document.getElementById('view1'),
+  v2: document.getElementById('view2'),
+  v3: document.getElementById('view3'),
+  admin: document.getElementById('viewAdmin'),
+  analytics: document.getElementById('viewAnalytics'),
+};
+const steps = [document.getElementById('step1'),document.getElementById('step2'),document.getElementById('step3')];
 const step2btn = document.getElementById('step2btn');
-function activate(step){
-  stepElems.forEach((el,i)=>{ el.classList.toggle('active', i===step-1); });
-  views.forEach((v,i)=>{ v.classList.toggle('hide', i!==step-1); });
+
+function show(view){
+  Object.values(views).forEach(v=>v.classList.add('hide'));
+  if (view==='v1') { steps[0].classList.add('active'); steps[1].classList.remove('active'); steps[2].classList.remove('active'); }
+  if (view==='v2') { steps[1].classList.add('active'); steps[0].classList.remove('active'); steps[2].classList.remove('active'); }
+  if (view==='v3') { steps[2].classList.add('active'); steps[0].classList.remove('active'); steps[1].classList.remove('active'); }
+  views[view].classList.remove('hide');
 }
+
 document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
+  btn.addEventListener('click',()=>{
     if (btn.classList.contains('disabled')) return;
-    const n = Number(btn.getAttribute('data-nav'));
-    if (n===2) buildResult();
-    if (n===3) loadHistory();
-    activate(n);
+    const n=Number(btn.getAttribute('data-nav'));
+    if(n===1) show('v1');
+    if(n===2){buildResult();show('v2');}
+    if(n===3){loadHistory();show('v3');}
   });
 });
+document.getElementById('lnkAdmin').addEventListener('click',()=>{loadPeople();renderPeopleAdmin();show('admin');});
+document.getElementById('lnkAnalytics').addEventListener('click',()=>{loadHistory().then(()=>{renderAnalytics();show('analytics');});});
 
-/* === Erfassung === */
+/* ---------- People (Admin + Erfassung Dropdown) ---------- */
+let people = [];
+const peopleList = document.getElementById('peopleList');
+const admTeam = document.getElementById('adm_team');
+TEAMS.forEach(t=>{const o=document.createElement('option');o.value=t;admTeam.appendChild(o);});
+async function loadPeople(){
+  try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
+  catch{ people=[]; }
+  peopleList.innerHTML='';
+  people.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.setAttribute('data-id',p.id); peopleList.appendChild(o); });
+}
+function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
+
+/* ---------- Erfassung ---------- */
 const tbody = document.getElementById('tbody');
 const sumchips = document.getElementById('sumchips');
 const errorsEl = document.getElementById('errors');
@@ -418,249 +363,159 @@ const btnToResult = document.getElementById('toResult');
 const btnToHistory = document.getElementById('toHistory');
 
 function rowTemplate(){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" class="name" placeholder="Vor- und Nachname"></td>
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input type="text" class="name" placeholder="Name wählen oder tippen" list="peopleList"></td>
     <td><input type="number" class="cs" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="konzept" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="pitch" min="0" max="100" step="1" value="0"></td>
-    <td><button class="delrow">Entfernen</button></td>
-  `;
+    <td><button class="delrow">Entfernen</button></td>`;
   return tr;
 }
 function bindRow(tr){
-  tr.addEventListener('input', (ev)=>{
-    if (ev.target.matches('input[type="number"]')){
-      ev.target.value = String(clamp01(toInt0(ev.target.value)));
+  tr.addEventListener('input',(ev)=>{
+    if (ev.target.matches('input[type="number"]')) ev.target.value=String(clamp01(toInt0(ev.target.value)));
+    if (ev.target.classList.contains('name')){
+      const p=findPersonByName(ev.target.value);
+      if(p) ev.target.dataset.personId=p.id; else delete ev.target.dataset.personId;
     }
     recalc();
   });
-  tr.querySelector('.delrow').addEventListener('click', ()=>{ tr.remove(); recalc(); });
+  tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); recalc();});
 }
-function addRow(focus=false){
-  const tr = rowTemplate(); tbody.appendChild(tr); bindRow(tr); if (focus) tr.querySelector('.name').focus(); recalc();
-}
+function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();recalc();}
 function readRows(){
-  const rows=[];
-  tbody.querySelectorAll('tr').forEach(tr=>{
+  const rows=[]; tbody.querySelectorAll('tr').forEach(tr=>{
     rows.push({
-      name:(tr.querySelector('.name').value||'').trim(),
-      cs:toInt0(tr.querySelector('.cs').value),
-      konzept:toInt0(tr.querySelector('.konzept').value),
-      pitch:toInt0(tr.querySelector('.pitch').value),
+      personId: tr.querySelector('.name').dataset.personId || null,
+      name: (tr.querySelector('.name').value||'').trim(),
+      cs: toInt0(tr.querySelector('.cs').value),
+      konzept: toInt0(tr.querySelector('.konzept').value),
+      pitch: toInt0(tr.querySelector('.pitch').value),
     });
-  });
-  return rows;
+  }); return rows;
 }
+function totals(rows){ return rows.reduce((a,r)=>{a.cs+=r.cs;a.konzept+=r.konzept;a.pitch+=r.pitch;return a;},{cs:0,konzept:0,pitch:0}); }
 function renderChips(t){
   sumchips.innerHTML='';
-  CATS.forEach(c=>{
-    const x = t[c.key];
-    const div=document.createElement('div'); div.className='chip';
-    const dot=document.createElement('span'); dot.className='dot';
-    const txt=document.createElement('span'); txt.innerHTML=`<strong>${c.label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
-    if (x===0 || x===100) div.classList.add('ok');
-    else if (x>100) div.classList.add('bad');
-    else div.classList.add('warn');
-    div.appendChild(dot); div.appendChild(txt); sumchips.appendChild(div);
+  [["cs","Consultative Selling"],["konzept","Konzepterstellung"],["pitch","Pitch"]].forEach(([k,label])=>{
+    const x=t[k]; const div=document.createElement('div');div.className='chip';
+    const dot=document.createElement('span');dot.className='dot';
+    const txt=document.createElement('span');txt.innerHTML=`<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
+    if(x===0 || x===100) div.classList.add('ok'); else if(x>100) div.classList.add('bad'); else div.classList.add('warn');
+    div.appendChild(dot);div.appendChild(txt);sumchips.appendChild(div);
   });
 }
-function currentWeights(){
-  return [
-    { key:'cs',      weight: clamp01(toInt0(w_cs.value)) },
-    { key:'konzept', weight: clamp01(toInt0(w_konzept.value)) },
-    { key:'pitch',   weight: clamp01(toInt0(w_pitch.value)) },
-  ];
-}
-function updateWeightNote(){
-  const ws = currentWeights();
-  const sum = ws.reduce((a,c)=>a+Number(c.weight||0),0);
-  w_note.textContent = `Summe Gewichte: ${sum} %`;
-}
+function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
+function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
 function validateInput(){
-  const st = loadState() || {};
-  const isHubspot = st.source === 'hubspot' && !!st.editingId;
-
+  const st=loadState()||{}; const isHubspot=st.source==='hubspot'&&!!st.editingId;
   const errs=[];
-  // Pflichtfelder nur bei manueller Erfassung
-  if (!isHubspot){
-    if (!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
-    if (!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
-    if (!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
+  if(!isHubspot){
+    if(!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
+    if(!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
+    if(!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
   }
-
-  const rows = readRows();
-  const anyActive = rows.some(r=>r.cs+r.konzept+r.pitch>0);
-  if (!anyActive) errs.push('Mindestens eine Person mit Punkten erfassen.');
-  rows.forEach((r,i)=>{ if ((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
-
-  const t = totals(rows);
-  ['cs','konzept','pitch'].forEach(k=>{
-    if (t[k] > 100) errs.push(`Kategorie überschreitet 100: ${k} = ${t[k]}`);
-  });
-
-  const sumW = currentWeights().reduce((a,c)=>a + Number(c.weight||0), 0);
-  if (sumW !== 100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
-
-  return { ok: errs.length===0, errs, t, rows };
+  const rows=readRows(); const any=rows.some(r=>r.cs+r.konzept+r.pitch>0);
+  if(!any) errs.push('Mindestens eine Person mit Punkten erfassen.');
+  rows.forEach((r,i)=>{ if((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
+  const t=totals(rows);
+  ['cs','konzept','pitch'].forEach(k=>{ if(t[k]>100) errs.push(`Kategorie überschreitet 100: ${k} = ${t[k]}`); });
+  const sumW=currentWeights().reduce((a,c)=>a+Number(c.weight||0),0);
+  if(sumW!==100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
+  return {ok:errs.length===0, errs, t, rows};
 }
-function recalc(){
-  const v = validateInput();
-  renderChips(v.t);
-  errorsEl.innerHTML = v.ok ? '' : v.errs.map(e=>`• ${e}`).join('<br>');
-}
+function recalc(){const v=validateInput();renderChips(v.t);errorsEl.innerHTML=v.ok?'':v.errs.map(e=>'• '+e).join('<br>');}
+btnAddRow.addEventListener('click',()=>addRow(true));
+auftragswert.addEventListener('blur',()=>{const raw=parseAmountInput(auftragswert.value);auftragswert.value=raw>0?formatAmountInput(raw):'';});
+[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{el.value=String(clamp01(toInt0(el.value)));updateWeightNote();recalc();}));
 
-btnAddRow.addEventListener('click', ()=>addRow(true));
-auftragswert.addEventListener('blur', ()=>{
-  const raw = parseAmountInput(auftragswert.value);
-  auftragswert.value = raw>0 ? formatAmountInput(raw) : '';
-});
-[w_cs,w_konzept,w_pitch].forEach(el=>{
-  el.addEventListener('input', ()=>{
-    el.value = String(clamp01(toInt0(el.value)));
-    updateWeightNote(); recalc();
-  });
-});
-
-btnToResult.addEventListener('click', ()=>{
-  // Abschicken = validieren + State speichern + Ergebnis freischalten + Wechsel
-  const v = validateInput();
-  if (!v.ok){ recalc(); return; }
-
-  const amount = parseAmountInput(auftragswert.value);
-  const stPrev = loadState() || {};
+btnToResult.addEventListener('click',()=>{
+  const v=validateInput(); if(!v.ok){recalc();return;}
+  const amount=parseAmountInput(auftragswert.value); const stPrev=loadState()||{};
   saveState({
     source: stPrev.source || 'manuell',
     submitted: true,
     editingId: stPrev.editingId || null,
-    input: {
-      client: auftraggeber.value.trim(),
-      title:  projekttitel.value.trim(),
-      amount, // optional
-      rows: v.rows,
-      weights: currentWeights(),
-      submittedBy: submittedBy.value.trim()
-    }
+    input: { client:auftraggeber.value.trim(), title:projekttitel.value.trim(), amount, rows:v.rows, weights:currentWeights(), submittedBy:submittedBy.value.trim() }
   });
-
-  // Ergebnis-Reiter aktivieren
   step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
-
-  buildResult();
-  activate(2);
+  buildResult(); show('v2');
 });
+btnToHistory.addEventListener('click',()=>{loadHistory();show('v3');});
 
-btnToHistory.addEventListener('click', ()=>{ activate(3); loadHistory(); });
+/* ---------- Ergebnis ---------- */
+const kpiAG=document.getElementById('kpiAG'), kpiPT=document.getElementById('kpiPT'), kpiAmt=document.getElementById('kpiAmt');
+const pillWeights=document.getElementById('pillWeights'), pillComplete=document.getElementById('pillComplete');
+const resultBody=document.getElementById('resultBody'), sumCheck=document.getElementById('sumCheck');
+const saveToHistory=document.getElementById('saveToHistory');
 
-/* Ansicht 2: Ergebnis */
-const kpiAG = document.getElementById('kpiAG');
-const kpiPT = document.getElementById('kpiPT');
-const kpiAmt= document.getElementById('kpiAmt');
-const pillWeights = document.getElementById('pillWeights');
-const pillComplete= document.getElementById('pillComplete');
-const resultBody = document.getElementById('resultBody');
-const sumCheck   = document.getElementById('sumCheck');
-const saveToHistory = document.getElementById('saveToHistory');
-
+function normalizeWeightsForUsed(allWeights, usedKeys){
+  const used=allWeights.filter(w=>usedKeys.includes(w.key)); const sum=used.reduce((a,w)=>a+w.weight,0);
+  if(sum<=0) return allWeights.map(w=>({key:w.key,weight:w.weight}));
+  const factor=100/sum;
+  const out=allWeights.map(w=> usedKeys.includes(w.key)?{key:w.key,weight:w.weight*factor}:{key:w.key,weight:0});
+  const rem=100-Math.round(out.reduce((a,w)=>a+w.weight,0)); if(rem!==0){const ix=out.findIndex(x=>usedKeys.includes(x.key)); if(ix>=0) out[ix].weight=Math.round(out[ix].weight+rem);}
+  return out.map(w=>({key:w.key,weight:Math.round(w.weight*100)/100}));
+}
+function compute(rows, weights, amount){
+  const t=totals(rows); const usedKeys=Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
+  const effW=normalizeWeightsForUsed(weights, usedKeys);
+  const map=new Map();
+  rows.forEach(r=>{const act=r.cs+r.konzept+r.pitch>0; const nm=(r.name||'').trim() || (act ? '(unbenannt)' : ''); if(!nm)return;
+    const cur=map.get(nm)||{name:nm,cs:0,konzept:0,pitch:0}; cur.cs+=r.cs;cur.konzept+=r.konzept;cur.pitch+=r.pitch; map.set(nm,cur);});
+  const wIdx=Object.fromEntries(effW.map(w=>[w.key,w.weight/100])); const list=[];
+  for(const p of map.values()){let pct=0;
+    if(usedKeys.includes('cs')&&t.cs>0) pct+=wIdx.cs*(p.cs/t.cs);
+    if(usedKeys.includes('konzept')&&t.konzept>0) pct+=wIdx.konzept*(p.konzept/t.konzept);
+    if(usedKeys.includes('pitch')&&t.pitch>0) pct+=wIdx.pitch*(p.pitch/t.pitch);
+    list.push({name:p.name,pct:pct*100});
+  }
+  list.sort((a,b)=>b.pct-a.pct); const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
+  list.forEach(x=>{if(x.pct<0)x.pct=0;});
+  const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
+  return { totals:t, usedKeys, effectiveWeights:effW, list:withMoney };
+}
 function buildResult(){
-  const st = loadState();
-  if (!st?.input){ activate(1); return; }
-  const { client, title, amount, rows, weights } = st.input;
-  const effWeights = (weights&&weights.length? weights: [
-    {key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}
-  ]);
-  const res = compute(rows, effWeights, amount||0);
-
-  kpiAG.textContent = client || '–';
-  kpiPT.textContent = title || '–';
-  kpiAmt.textContent= (amount>0) ? formatAmountDisplay(amount) : '–';
-
-  const isComplete = !!(client && title && (amount>0) && rows.some(r=>r.cs+r.konzept+r.pitch>0));
-  pillComplete.textContent = `Status: ${isComplete ? 'vollständig' : 'unvollständig'}`;
-
-  const wText = res.effectiveWeights.filter(w=>w.weight>0)
-                  .map(w=>`${w.key}:${w.weight}%`).join(' · ');
-  pillWeights.textContent = `Gewichtung ${wText || '–'}`;
-
-  resultBody.innerHTML='';
-  let sum=0;
-  res.list.forEach(x=>{
-    sum += x.pct;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${x.name}</td><td>${fmtPct.format(x.pct)} %</td><td>${fmtCurr0.format(x.money)}</td>`;
-    resultBody.appendChild(tr);
-  });
-  sumCheck.textContent = `Summe: ${fmtPct.format(sum)} %`;
-
-  saveState({ ...st, result:{ list:res.list, totals:res.totals, weights:res.effectiveWeights, complete:isComplete } });
+  const st=loadState(); if(!st?.input){show('v1');return;}
+  const {client,title,amount,rows,weights}=st.input;
+  const effWeights=(weights&&weights.length?weights:[{key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}]);
+  const res=compute(rows,effWeights,amount||0);
+  kpiAG.textContent=client||'–'; kpiPT.textContent=title||'–'; kpiAmt.textContent=(amount>0)?formatAmountDisplay(amount):'–';
+  const isComplete=!!(client&&title&&(amount>0)&&rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  pillComplete.textContent=`Status: ${isComplete?'vollständig':'unvollständig'}`;
+  const wText=res.effectiveWeights.filter(w=>w.weight>0).map(w=>`${w.key}:${w.weight}%`).join(' · ');
+  pillWeights.textContent=`Gewichtung ${wText||'–'}`;
+  resultBody.innerHTML=''; let sum=0;
+  res.list.forEach(x=>{sum+=x.pct;const tr=document.createElement('tr');tr.innerHTML=`<td>${x.name}</td><td>${fmtPct.format(x.pct)} %</td><td>${fmtCurr0.format(x.money)}</td>`;resultBody.appendChild(tr);});
+  sumCheck.textContent=`Summe: ${fmtPct.format(sum)} %`;
+  saveState({...st, result:{list:res.list, totals:res.totals, weights:res.effectiveWeights, complete:isComplete}});
 }
-
-saveToHistory.addEventListener('click', async ()=>{
-  const st = loadState();
-  if (!st?.input) return;
-  const payload = {
-    source: st.source || 'manuell',
-    complete: !!st?.result?.complete,
-    client: st.input.client || '',
-    title:  st.input.title  || '',
-    amount: st.input.amount || 0,
-    list:   st?.result?.list || [],
-    totals: st?.result?.totals || {},
-    weights:st?.result?.weights || [],
-    submittedBy: st.input.submittedBy || '',
-    ts: Date.now(),
-    id: st.editingId || undefined
-  };
+saveToHistory.addEventListener('click',async()=>{
+  const st=loadState(); if(!st?.input) return;
+  const payload={ source:st.source||'manuell', complete:!!st?.result?.complete, client:st.input.client||'', title:st.input.title||'', amount:st.input.amount||0,
+    list:st?.result?.list||[], totals:st?.result?.totals||{}, weights:st?.result?.weights||[], submittedBy:st.input.submittedBy||'', ts:Date.now(), id:st.editingId||undefined };
   try{
-    if (st.editingId){
-      await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`, {
-        method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
-      });
-    } else {
-      await fetch(`${WORKER_BASE}/entries`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    }
-    saveState({ source:'manuell' });
-    activate(3); loadHistory();
-  } catch {}
+    if(st.editingId){await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+    else {await fetch(`${WORKER_BASE}/entries`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+    saveState({source:'manuell'}); loadHistory(); show('v3');
+  }catch{}
 });
 
-/* Ansicht 3: Historie (Suche/Filter/Sort) */
-const historyBody = document.getElementById('historyBody');
-const q = document.getElementById('q');
-const f_source = document.getElementById('f_source');
-const f_status = document.getElementById('f_status');
-const f_sort = document.getElementById('f_sort');
-let entries = [];
-let pendingDeleteId = null;
+/* ---------- Historie + Export ---------- */
+const historyBody=document.getElementById('historyBody');
+const q=document.getElementById('q'), f_source=document.getElementById('f_source'), f_status=document.getElementById('f_status'), f_sort=document.getElementById('f_sort');
+const btnXlsx=document.getElementById('btnXlsx');
+let entries=[]; let pendingDeleteId=null;
 
-async function loadHistory(){
-  try{
-    const r = await fetch(`${WORKER_BASE}/entries`);
-    entries = r.ok ? await r.json() : [];
-  } catch { entries = []; }
-  renderHistory();
-}
-function autoComplete(e){
-  // Automatischer Status
-  return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0);
-}
+async function loadHistory(){ try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[];} renderHistory(); return entries; }
+function autoComplete(e){ return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0); }
 function filtered(){
-  const text = q.value.trim().toLowerCase();
-  const src = f_source.value;
-  const stat= f_status.value;
-  let arr = entries.slice();
-
-  if (text){
-    arr = arr.filter(e => String(e.title||'').toLowerCase().includes(text) ||
-                          String(e.client||'').toLowerCase().includes(text));
-  }
-  if (src){ arr = arr.filter(e => (e.source||'') === src); }
-  if (stat){
-    const wantOk = stat==='ok';
-    arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
-  }
-
-  switch (f_sort.value){
+  const text=q.value.trim().toLowerCase(); const src=f_source.value; const stat=f_status.value; let arr=entries.slice();
+  if(text){arr=arr.filter(e=>String(e.title||'').toLowerCase().includes(text)||String(e.client||'').toLowerCase().includes(text));}
+  if(src){arr=arr.filter(e=>(e.source||'')===src);}
+  if(stat){const wantOk=stat==='ok'; arr=arr.filter(e=> wantOk?autoComplete(e):!autoComplete(e));}
+  switch(f_sort.value){
     case 'ts_asc': arr.sort((a,b)=>(a.ts||0)-(b.ts||0)); break;
     case 'ts_desc': arr.sort((a,b)=>(b.ts||0)-(a.ts||0)); break;
     case 'amount_asc': arr.sort((a,b)=>(a.amount||0)-(b.amount||0)); break;
@@ -671,140 +526,203 @@ function filtered(){
   return arr;
 }
 function renderHistory(){
-  historyBody.innerHTML='';
-  const arr = filtered();
-  for (const e of arr){
-    const ok = autoComplete(e);
-    const status = `<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
-    const modified = e.modified ? new Date(e.modified).toLocaleString('de-DE') :
-                     e.ts ? new Date(e.ts).toLocaleString('de-DE') : '–';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${e.title || '–'}</td>
-      <td>${e.client || '–'}</td>
-      <td>${e.source || '–'}</td>
-      <td>${status}</td>
-      <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
-      <td>${modified}</td>
-      <td style="display:flex;gap:8px;align-items:center;justify-content:flex-start">
-        <button class="iconbtn" title="Bearbeiten" data-act="edit" data-id="${e.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 21h4l11-11a2.828 2.828 0 0 0-4-4L3 17v4z"></path>
-          </svg>
+  historyBody.innerHTML=''; const arr=filtered();
+  for(const e of arr){
+    const ok=autoComplete(e); const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
+    const modified=e.modified? new Date(e.modified).toLocaleString('de-DE'): e.ts? new Date(e.ts).toLocaleString('de-DE'): '–';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
+      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${modified}</td>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten">
+          <svg viewBox="0 0 24 24"><path d="M3 21h4l11-11a2.8 2.8 0 0 0-4-4L3 17v4z"/></svg>
         </button>
-        <button class="iconbtn" title="Löschen" data-act="del" data-id="${e.id}">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"></path>
-            <path d="M6 6l12 0"></path>
-          </svg>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"/></svg>
         </button>
-      </td>
-    `;
+      </td>`;
     historyBody.appendChild(tr);
   }
 }
-[q,f_source,f_status,f_sort].forEach(el=> el.addEventListener('input', renderHistory));
+[q,f_source,f_status,f_sort].forEach(el=>el.addEventListener('input',renderHistory));
 
-document.getElementById('backToInput2').addEventListener('click', ()=>{
-  // neue Erfassung beginnen
-  saveState({ source:'manuell' });
-  tbody.innerHTML=''; addRow(true); addRow(false);
-  auftraggeber.value=''; projekttitel.value=''; auftragswert.value=''; submittedBy.value='';
-  w_cs.value='50'; w_konzept.value='30'; w_pitch.value='20';
-  updateWeightNote(); recalc();
-  // Ergebnis wieder sperren
-  step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
-  activate(1);
-});
-
-historyBody.addEventListener('click', async (ev)=>{
-  const btn = ev.target.closest('button[data-act]');
-  if (!btn) return;
-  const id = btn.getAttribute('data-id');
-  const act= btn.getAttribute('data-act');
-
-  if (act==='edit'){
-    // In Erfassung öffnen (inkl. Beteiligungen). Ergebnis-Reiter gesperrt bis erneut "Abschicken".
-    const e = entries.find(x=>x.id===id); if(!e) return;
-    const st = {
-      source: e.source || 'manuell',
-      submitted: false,
-      editingId: e.id,
-      input: {
-        client: e.client || '',
-        title:  e.title || '',
-        amount: e.amount || 0,
-        submittedBy: e.submittedBy || '',
-        rows: Array.isArray(e.rows) && e.rows.length ? e.rows :
-              (Array.isArray(e.list) ? e.list.map(x=>({ name:x.name, cs:0, konzept:0, pitch:0 })) : []),
-        weights: Array.isArray(e.weights) ? e.weights :
-                 [{key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}]
-      }
-    };
-    saveState(st);
-    initFromState();
-    // Ergebnis sperren
-    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
-    activate(1);
+historyBody.addEventListener('click', async(ev)=>{
+  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
+  if(act==='edit'){
+    const e=entries.find(x=>x.id===id); if(!e) return;
+    const st={ source:e.source||'manuell', submitted:false, editingId:e.id,
+      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, submittedBy:e.submittedBy||'',
+              rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
+              weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:50},{key:'konzept',weight:30},{key:'pitch',weight:20}] }};
+    saveState(st); initFromState(); step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); show('v1');
     return;
   }
+  if(act==='del'){ pendingDeleteId=id; document.getElementById('confirmDlg').showModal(); }
+});
 
-  if (act==='del'){
-    pendingDeleteId = id;
-    document.getElementById('confirmDlg').showModal();
+document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
+document.getElementById('btnYes').addEventListener('click',async()=>{
+  const id=pendingDeleteId; pendingDeleteId=null; document.getElementById('confirmDlg').close();
+  if(!id) return;
+  try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ entries=entries.filter(x=>x.id!==id); renderHistory(); } } catch{}
+});
+
+/* Export XLSX der gefilterten Ansicht */
+btnXlsx.addEventListener('click',()=>{
+  const arr=filtered().map(e=>({
+    Titel: e.title||'',
+    Auftraggeber: e.client||'',
+    Quelle: e.source||'',
+    Status: autoComplete(e)?'vollständig':'unvollständig',
+    Wert_EUR: e.amount||0,
+    Zuletzt_bearbeitet: e.modified? new Date(e.modified).toISOString() : (e.ts? new Date(e.ts).toISOString():'')
+  }));
+  const ws=XLSX.utils.json_to_sheet(arr);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Historie");
+  XLSX.writeFile(wb, "historie_export.xlsx");
+});
+
+/* ---------- Admin ---------- */
+const admName=document.getElementById('adm_name');
+const admToken=document.getElementById('adm_token');
+const admBody=document.getElementById('adm_body');
+document.getElementById('adm_add').addEventListener('click',()=>adminCreate());
+admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
+
+function renderPeopleAdmin(){
+  admBody.innerHTML='';
+  people.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${p.name}"></td>
+      <td>
+        <select>${TEAMS.map(t=>`<option value="${t}" ${p.team===t?'selected':''}>${t}</option>`).join('')}</select>
+      </td>
+      <td style="display:flex;gap:8px">
+        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern">
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+        </button>
+        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"/></svg>
+        </button>
+      </td>`;
+    admBody.appendChild(tr);
+  });
+}
+admBody.addEventListener('click',async(ev)=>{
+  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const tr=btn.closest('tr');
+  if(act==='save'){
+    const name=tr.querySelector('td:nth-child(1) input').value.trim();
+    const team=tr.querySelector('td:nth-child(2) select').value;
+    if(!name) return;
+    await fetch(`${WORKER_BASE}/people/${encodeURIComponent(id)}`,{
+      method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(admToken.value||'')},
+      body:JSON.stringify({name,team})
+    });
+    await loadPeople(); renderPeopleAdmin();
+  } else if(act==='del'){
+    await fetch(`${WORKER_BASE}/people/${encodeURIComponent(id)}`,{
+      method:'DELETE', headers:{'Authorization':'Bearer '+(admToken.value||'')}
+    });
+    await loadPeople(); renderPeopleAdmin();
   }
 });
+async function adminCreate(){
+  const name=admName.value.trim(); const team=admTeam.value;
+  if(!name) return;
+  await fetch(`${WORKER_BASE}/people`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+(admToken.value||'')},
+    body:JSON.stringify({name,team})
+  });
+  admName.value=''; await loadPeople(); renderPeopleAdmin();
+}
 
-/* Delete confirm */
-document.getElementById('btnNo').addEventListener('click', ()=>document.getElementById('confirmDlg').close());
-document.getElementById('btnYes').addEventListener('click', async ()=>{
-  const id = pendingDeleteId; pendingDeleteId=null;
-  document.getElementById('confirmDlg').close();
-  if (!id) return;
-  try{
-    const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method:'DELETE' });
-    if (r.ok){ entries = entries.filter(x=>x.id!==id); renderHistory(); }
-  } catch {}
-});
+/* ---------- Auswertung (SVG horizontale Balken) ---------- */
+const anaYear=document.getElementById('anaYear');
+for(let y=2022; y<=new Date().getFullYear()+1; y++){const o=document.createElement('option');o.value=String(y);o.textContent=String(y);anaYear.appendChild(o);}
+anaYear.value=String(new Date().getFullYear());
+document.getElementById('anaRefresh').addEventListener('click',renderAnalytics);
 
-/* Init */
+function renderAnalytics(){
+  const year=Number(anaYear.value);
+  const start=new Date(Date.UTC(year,0,1)).getTime();
+  const end=new Date(Date.UTC(year+1,0,1)).getTime();
+
+  // Personen
+  const per=new Map();
+  entries.forEach(e=>{
+    const when = e.closedate ?? e.ts ?? 0;
+    if(!(when>=start && when<end)) return;
+    const amount=e.amount||0; if(amount<=0) return;
+    if(Array.isArray(e.list)){
+      e.list.forEach(x=>{
+        const key=x.name||'Unbekannt';
+        const money=Math.round(amount*(x.pct||0)/100);
+        per.set(key, (per.get(key)||0)+money);
+      });
+    }
+  });
+  const perArr=Array.from(per,([name,val])=>({name,val})).sort((a,b)=>b.val-a.val).slice(0,20);
+  drawBars('chartPersons', perArr);
+
+  // Teams (Join über people)
+  const byNameTeam = new Map(people.map(p=>[p.name, p.team||'']));
+  const teamMap=new Map();
+  perArr.forEach(p=>{
+    const team=byNameTeam.get(p.name)||'';
+    const key=team||'Ohne Team';
+    teamMap.set(key, (teamMap.get(key)||0)+p.val);
+  });
+  const teamArr=Array.from(teamMap,([name,val])=>({name,val})).sort((a,b)=>b.val-a.val);
+  drawBars('chartTeams', teamArr);
+}
+function drawBars(hostId, items){
+  const host=document.getElementById(hostId); host.innerHTML='';
+  const max=items.reduce((m,x)=>Math.max(m,x.val),0)||1;
+  const barH=28, gap=8, w=1060, h=items.length?(items.length*(barH+gap)+10):50;
+  const svgNS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(svgNS,'svg'); svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  let y=10;
+  items.forEach(it=>{
+    const len=Math.max(4, Math.round((it.val/max)*(w-200)));
+    const g=document.createElementNS(svgNS,'g');
+    const rect=document.createElementNS(svgNS,'rect'); rect.setAttribute('x','180'); rect.setAttribute('y',String(y)); rect.setAttribute('rx','6'); rect.setAttribute('ry','6');
+    rect.setAttribute('width',String(len)); rect.setAttribute('height',String(barH)); rect.setAttribute('fill','#3b82f6');
+    const labelL=document.createElementNS(svgNS,'text'); labelL.setAttribute('x','10'); labelL.setAttribute('y',String(y+barH*0.7)); labelL.setAttribute('fill','#cbd5e1'); labelL.setAttribute('font-size','13'); labelL.textContent=it.name;
+    const labelV=document.createElementNS(svgNS,'text'); labelV.setAttribute('x',String(188)); labelV.setAttribute('y',String(y+barH*0.7)); labelV.setAttribute('fill','#0a0f16'); labelV.setAttribute('font-weight','700'); labelV.setAttribute('font-size','13');
+    labelV.textContent=fmtCurr0.format(it.val);
+    g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV); svg.appendChild(g);
+    y += barH + gap;
+  });
+  host.appendChild(svg);
+}
+
+/* ---------- Init ---------- */
 function initFromState(){
-  const st = loadState();
   tbody.innerHTML='';
-  if (st?.input){
-    auftraggeber.value = st.input.client || '';
-    projekttitel.value = st.input.title  || '';
-    submittedBy.value  = st.input.submittedBy || '';
-    auftragswert.value = st.input.amount ? formatAmountInput(st.input.amount) : '';
-    if (Array.isArray(st.input.rows) && st.input.rows.length){
-      st.input.rows.forEach(r=>{
-        const tr = rowTemplate(); tbody.appendChild(tr); bindRow(tr);
-        tr.querySelector('.name').value = r.name||'';
-        tr.querySelector('.cs').value = String(clamp01(toInt0(r.cs||0)));
-        tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept||0)));
-        tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch||0)));
+  const st=loadState();
+  if(st?.input){
+    auftraggeber.value=st.input.client||''; projekttitel.value=st.input.title||''; submittedBy.value=st.input.submittedBy||'';
+    auftragswert.value=st.input.amount? formatAmountInput(st.input.amount):'';
+    if(Array.isArray(st.input.rows)&&st.input.rows.length){
+      st.input.rows.forEach(r=>{const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);
+        const nm=r.name||''; tr.querySelector('.name').value=nm; const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
+        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0))); tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0))); tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
       });
     } else { addRow(true); addRow(false); }
-    if (Array.isArray(st.input.weights)){
-      const m = Object.fromEntries(st.input.weights.map(w=>[w.key,w.weight]));
-      if (m.cs!=null) w_cs.value = String(clamp01(toInt0(m.cs)));
-      if (m.konzept!=null) w_konzept.value = String(clamp01(toInt0(m.konzept)));
-      if (m.pitch!=null) w_pitch.value = String(clamp01(toInt0(m.pitch)));
-    }
-    // Ergebnis-Reiter je nach submitted sperren/freigeben
-    if (st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); }
-    else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
-  } else {
-    addRow(true); addRow(false);
-    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
-  }
+    if(Array.isArray(st.input.weights)){ const m=Object.fromEntries(st.input.weights.map(w=>[w.key,w.weight])); if(m.cs!=null) w_cs.value=String(clamp01(toInt0(m.cs))); if(m.konzept!=null) w_konzept.value=String(clamp01(toInt0(m.konzept))); if(m.pitch!=null) w_pitch.value=String(clamp01(toInt0(m.pitch))); }
+    if(st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); } else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
+  } else { addRow(true); addRow(false); step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
   updateWeightNote(); recalc();
 }
-initFromState();
-activate(1);
+loadPeople().then(()=>{ initFromState(); show('v1'); });
 
-// Enter blocken in Inputs
-document.addEventListener('keydown', (e)=>{ if (e.key==='Enter' && e.target?.tagName==='INPUT') e.preventDefault(); });
+// Enter in Inputs nicht submitten (außer Admin-Form)
+document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
 </script>
 </body>
 </html>
