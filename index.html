@@ -322,9 +322,10 @@ const step2btn = document.getElementById('step2btn');
 
 function show(view){
   Object.values(views).forEach(v=>v.classList.add('hide'));
-  if (view==='v1') { steps[0].classList.add('active'); steps[1].classList.remove('active'); steps[2].classList.remove('active'); }
-  if (view==='v2') { steps[1].classList.add('active'); steps[0].classList.remove('active'); steps[2].classList.remove('active'); }
-  if (view==='v3') { steps[2].classList.add('active'); steps[0].classList.remove('active'); steps[1].classList.remove('active'); }
+  steps.forEach(s=>s.classList.remove('active'));
+  if(view==='v1') steps[0].classList.add('active');
+  if(view==='v2') steps[1].classList.add('active');
+  if(view==='v3') steps[2].classList.add('active');
   views[view].classList.remove('hide');
 }
 
@@ -334,7 +335,7 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
     const n=Number(btn.getAttribute('data-nav'));
     if(n===1) show('v1');
     if(n===2){buildResult();show('v2');}
-    if(n===3){loadHistory();show('v3');}
+    if(n===3){loadHistory().then(()=>show('v3')); }
   });
 });
 
@@ -451,7 +452,7 @@ btnToResult.addEventListener('click',()=>{
   step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
   buildResult(); show('v2');
 });
-btnToHistory.addEventListener('click',()=>{loadHistory();show('v3');});
+btnToHistory.addEventListener('click',()=>{loadHistory().then(()=>show('v3'));});
 
 /* ---------- Ergebnis ---------- */
 const kpiAG=document.getElementById('kpiAG'), kpiPT=document.getElementById('kpiPT'), kpiAmt=document.getElementById('kpiAmt');
@@ -507,7 +508,7 @@ saveToHistory.addEventListener('click',async()=>{
   try{
     if(st.editingId){await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
     else {await fetch(`${WORKER_BASE}/entries`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
-    saveState({source:'manuell'}); loadHistory(); show('v3');
+    saveState({source:'manuell'}); loadHistory().then(()=>show('v3'));
   }catch{}
 });
 
@@ -579,7 +580,6 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
 });
 
 /* Export XLSX */
-const btnXlsx=document.getElementById('btnXlsx');
 btnXlsx.addEventListener('click',()=>{
   const arr=filtered().map(e=>({
     Titel: e.title||'',
@@ -658,6 +658,8 @@ for(let y=2022; y<=new Date().getFullYear()+1; y++){const o=document.createEleme
 anaYear.value=String(new Date().getFullYear());
 document.getElementById('anaRefresh').addEventListener('click',renderAnalytics);
 
+let entries=[]; // (erneut deklariert? Nein: oben schon – hier nicht nochmals!)
+
 function renderAnalytics(){
   const year=Number(anaYear.value);
   const start=new Date(Date.UTC(year,0,1)).getTime();
@@ -680,7 +682,7 @@ function renderAnalytics(){
   const perArr=Array.from(per,([name,val])=>({name,val})).sort((a,b)=>b.val-a.val).slice(0,20);
   drawBars('chartPersons', perArr);
 
-  // Teams (Join über people)
+  // Teams
   const byNameTeam = new Map(people.map(p=>[p.name, p.team||'']));
   const teamMap=new Map();
   perArr.forEach(p=>{
@@ -705,7 +707,7 @@ function drawBars(hostId, items){
     rect.setAttribute('width',String(len)); rect.setAttribute('height',String(barH)); rect.setAttribute('fill','#3b82f6');
     const labelL=document.createElementNS(svgNS,'text'); labelL.setAttribute('x','10'); labelL.setAttribute('y',String(y+barH*0.7)); labelL.setAttribute('fill','#cbd5e1'); labelL.setAttribute('font-size','13'); labelL.textContent=it.name;
     const labelV=document.createElementNS(svgNS,'text'); labelV.setAttribute('x',String(188)); labelV.setAttribute('y',String(y+barH*0.7)); labelV.setAttribute('fill','#0a0f16'); labelV.setAttribute('font-weight','700'); labelV.setAttribute('font-size','13');
-    labelV.textContent=fmtCurr0.format(it.val);
+    labelV.textContent=new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(it.val);
     g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV); svg.appendChild(g);
     y += barH + gap;
   });
@@ -734,7 +736,8 @@ loadPeople().then(()=>{ initFromState(); show('v1'); });
 
 // Enter in Inputs nicht submitten (außer Admin-Name-Input explizit)
 document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
-
 </script>
 </body>
 </html>
+
+
