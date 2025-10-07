@@ -304,6 +304,14 @@ function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));r
 function parseAmountInput(str){if(!str)return 0;const clean=String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');const n=Number(clean);return Number.isFinite(n)?n:0;}
 function formatAmountDisplay(v){return fmtCurr2.format((+v)||0);}
 function formatAmountInput(v){return fmtOnly2.format((+v)||0);}
+function escapeHtml(str){
+  return String(str||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
@@ -599,42 +607,110 @@ btnXlsx.addEventListener('click',()=>{
 const admName = document.getElementById('adm_name');
 const admTeam = document.getElementById('adm_team');
 const admBody = document.getElementById('adm_body');
+const admAddBtn = document.getElementById('adm_add');
+let adminEditingId = null;
 
-document.getElementById('adm_add').onclick = () => adminCreate();
-admName.addEventListener('keydown', (e) => { if (e.key === 'Enter') adminCreate(); });
+function adminResetForm(){
+  adminEditingId = null;
+  admName.value = '';
+  admTeam.value = '';
+  admAddBtn.textContent = 'Anlegen';
+}
 
-async function adminCreate() {
+function renderPeopleAdmin(){
+  admBody.innerHTML = '';
+  if(!Array.isArray(people) || people.length === 0){
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="3" style="padding:18px;text-align:center;color:var(--muted)">Keine Personen vorhanden.</td>';
+    admBody.appendChild(tr);
+    return;
+  }
+
+  const sorted = [...people].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'de',{sensitivity:'base'}));
+  sorted.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.team||'')}</td>`+
+      `<td style="display:flex;gap:8px;flex-wrap:wrap">`+
+      `<button class="iconbtn" title="Bearbeiten" data-act="edit" data-id="${escapeHtml(p.id)}">`+
+      `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>`+
+      `<button class="iconbtn" title="Löschen" data-act="del" data-id="${escapeHtml(p.id)}">`+
+      `<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>`+
+      `</td>`;
+    admBody.appendChild(tr);
+  });
+}
+
+async function adminSubmit(){
   const name = admName.value.trim();
   const team = admTeam.value;
-
-  if (!name || !team) {
+  if(!name || !team){
     alert('Bitte Name und Team ausfüllen.');
     return;
   }
 
-  try {
-    const r = await fetch(`${WORKER_BASE}/people`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: `p_${Date.now()}`, name, team })
-    });
+  const payload = adminEditingId ? { name, team } : { id: `p_${Date.now()}`, name, team };
+  const url = adminEditingId ? `${WORKER_BASE}/people/${encodeURIComponent(adminEditingId)}` : `${WORKER_BASE}/people`;
+  const method = adminEditingId ? 'PUT' : 'POST';
 
-    if (!r.ok) {
-      const txt = await r.text().catch(()=>'');
-      console.error('POST /people failed', r.status, txt);
-      alert(`Konnte Person nicht anlegen (HTTP ${r.status}). Details siehe Konsole.`);
+  try{
+    const r = await fetch(url,{ method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    if(!r.ok){
+      const txt = await r.text().catch(()=> '');
+      console.error(`${method} ${url} failed`, r.status, txt);
+      alert(`Konnte Person nicht ${adminEditingId ? 'aktualisieren' : 'anlegen'} (HTTP ${r.status}). Details siehe Konsole.`);
       return;
     }
-
-    admName.value = '';
-    admTeam.value = '';
+    adminResetForm();
     await loadPeople();
     renderPeopleAdmin();
-  } catch (err) {
-    console.error('Network error POST /people', err);
-    alert('Netzwerkfehler beim Anlegen. Details in der Konsole.');
+  }catch(err){
+    console.error(`Network error ${method} ${url}`, err);
+    alert('Netzwerkfehler. Details in der Konsole.');
   }
 }
+
+function adminBeginEdit(id){
+  const person = people.find(p=>p.id===id);
+  if(!person) return;
+  adminEditingId = id;
+  admName.value = person.name || '';
+  admTeam.value = person.team || '';
+  admAddBtn.textContent = 'Aktualisieren';
+  admName.focus();
+}
+
+async function adminDelete(id){
+  if(!id) return;
+  if(!confirm('Person wirklich löschen?')) return;
+  try{
+    const url = `${WORKER_BASE}/people/${encodeURIComponent(id)}`;
+    const r = await fetch(url,{ method:'DELETE' });
+    if(!r.ok){
+      const txt = await r.text().catch(()=> '');
+      console.error('DELETE', url, r.status, txt);
+      alert(`Konnte Person nicht löschen (HTTP ${r.status}). Details siehe Konsole.`);
+      return;
+    }
+    if(adminEditingId === id) adminResetForm();
+    await loadPeople();
+    renderPeopleAdmin();
+  }catch(err){
+    console.error('Network error DELETE /people', err);
+    alert('Netzwerkfehler beim Löschen. Details in der Konsole.');
+  }
+}
+
+admAddBtn.addEventListener('click', adminSubmit);
+admName.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminSubmit(); });
+admTeam.addEventListener('keydown', e=>{ if(e.key === 'Enter') adminSubmit(); });
+admBody.addEventListener('click', ev=>{
+  const btn = ev.target.closest('button[data-act]');
+  if(!btn) return;
+  const id = btn.getAttribute('data-id');
+  const act = btn.getAttribute('data-act');
+  if(act === 'edit') adminBeginEdit(id);
+  if(act === 'del') adminDelete(id);
+});
 
 
 /* ---------- Auswertung ---------- */
