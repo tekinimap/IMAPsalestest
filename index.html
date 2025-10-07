@@ -79,7 +79,6 @@
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn svg{width:16px;height:16px;stroke:#e5e7eb;stroke-width:2;fill:none}
 
-  /* Auswertung (SVG Bars) */
   .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:12px}
   .chart h3{margin:0 0 8px 0;font-size:14px;color:#cbd5e1}
   .chart svg{width:100%;height:auto}
@@ -126,7 +125,7 @@
 
       <div class="hr"></div>
 
-      <div class="actions"><span class="tag">Person aus Liste wählen oder tippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
+      <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
 
       <datalist id="peopleList"></datalist>
 
@@ -214,20 +213,29 @@
     </div>
   </div>
 
-  <!-- Ansicht 4: Admin -->
+  <!-- Admin -->
   <div class="card hide" id="viewAdmin">
-    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen. Enter sendet das Formular.</p></div>
+    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen. Passwortschutz: imapadmin.</p></div>
     <div class="ct">
       <div class="grid-3">
         <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
-        <div><label for="adm_team">Team</label><select id="adm_team"></select></div>
-        <div>
-          <label for="adm_token">Admin-Token</label>
-          <input id="adm_token" type="text" placeholder="Authorization Bearer">
-          <div class="note">Wird bei POST/PUT/DELETE als Authorization-Header gesendet.</div>
+        <div><label for="adm_team">Team</label>
+          <select id="adm_team">
+            <option value="">— bitte wählen —</option>
+            <option>Vielfalt+</option>
+            <option>Evaluation und Beteiligung</option>
+            <option>Nachhaltigkeit</option>
+            <option>Sozial- und Krankenversicherungen</option>
+            <option>ChangePartner</option>
+            <option>Bundes- und Landesbehörden</option>
+            <option>Kommunalverwaltungen</option>
+            <option>Internationale Zusammenarbeit</option>
+            <option>Head of Organisational Excellence</option>
+            <option>Head of Public Impact</option>
+          </select>
         </div>
+        <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button></div>
       </div>
-      <div class="actions" style="margin-top:10px"><div></div><div><button class="btn ok" id="adm_add">Anlegen</button></div></div>
 
       <div class="hr"></div>
 
@@ -240,7 +248,7 @@
     </div>
   </div>
 
-  <!-- Ansicht 5: Auswertung -->
+  <!-- Auswertung -->
   <div class="card hide" id="viewAnalytics">
     <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Historie.</p></div>
     <div class="ct">
@@ -264,7 +272,6 @@
 
 </div>
 
-<!-- Delete-Dialog -->
 <dialog id="confirmDlg">
   <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
   <div class="ct" style="padding:16px">
@@ -330,14 +337,16 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
     if(n===3){loadHistory();show('v3');}
   });
 });
-document.getElementById('lnkAdmin').addEventListener('click',()=>{loadPeople();renderPeopleAdmin();show('admin');});
+
 document.getElementById('lnkAnalytics').addEventListener('click',()=>{loadHistory().then(()=>{renderAnalytics();show('analytics');});});
+document.getElementById('lnkAdmin').addEventListener('click',()=>{
+  const pw = prompt("Bitte Passwort für Admin eingeben:");
+  if (pw === "imapadmin"){ loadPeople().then(()=>{renderPeopleAdmin();show('admin');}); }
+});
 
 /* ---------- People (Admin + Erfassung Dropdown) ---------- */
 let people = [];
 const peopleList = document.getElementById('peopleList');
-const admTeam = document.getElementById('adm_team');
-TEAMS.forEach(t=>{const o=document.createElement('option');o.value=t;admTeam.appendChild(o);});
 async function loadPeople(){
   try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
   catch{ people=[]; }
@@ -569,7 +578,8 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
   try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ entries=entries.filter(x=>x.id!==id); renderHistory(); } } catch{}
 });
 
-/* Export XLSX der gefilterten Ansicht */
+/* Export XLSX */
+const btnXlsx=document.getElementById('btnXlsx');
 btnXlsx.addEventListener('click',()=>{
   const arr=filtered().map(e=>({
     Titel: e.title||'',
@@ -586,7 +596,7 @@ btnXlsx.addEventListener('click',()=>{
 
 /* ---------- Admin ---------- */
 const admName=document.getElementById('adm_name');
-const admToken=document.getElementById('adm_token');
+const admTeam=document.getElementById('adm_team');
 const admBody=document.getElementById('adm_body');
 document.getElementById('adm_add').addEventListener('click',()=>adminCreate());
 admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
@@ -618,30 +628,31 @@ admBody.addEventListener('click',async(ev)=>{
     const name=tr.querySelector('td:nth-child(1) input').value.trim();
     const team=tr.querySelector('td:nth-child(2) select').value;
     if(!name) return;
-    await fetch(`${WORKER_BASE}/people/${encodeURIComponent(id)}`,{
-      method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+(admToken.value||'')},
-      body:JSON.stringify({name,team})
+    await fetch(`${WORKER_BASE}/people`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id,name,team})
     });
     await loadPeople(); renderPeopleAdmin();
   } else if(act==='del'){
-    await fetch(`${WORKER_BASE}/people/${encodeURIComponent(id)}`,{
-      method:'DELETE', headers:{'Authorization':'Bearer '+(admToken.value||'')}
+    await fetch(`${WORKER_BASE}/people`,{
+      method:'DELETE', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id, _delete:true})
     });
     await loadPeople(); renderPeopleAdmin();
   }
 });
 async function adminCreate(){
   const name=admName.value.trim(); const team=admTeam.value;
-  if(!name) return;
+  if(!name || !team) return;
   await fetch(`${WORKER_BASE}/people`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+(admToken.value||'')},
-    body:JSON.stringify({name,team})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:`p_${Date.now()}`,name,team})
   });
-  admName.value=''; await loadPeople(); renderPeopleAdmin();
+  admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
 }
 
-/* ---------- Auswertung (SVG horizontale Balken) ---------- */
+/* ---------- Auswertung ---------- */
 const anaYear=document.getElementById('anaYear');
 for(let y=2022; y<=new Date().getFullYear()+1; y++){const o=document.createElement('option');o.value=String(y);o.textContent=String(y);anaYear.appendChild(o);}
 anaYear.value=String(new Date().getFullYear());
@@ -721,8 +732,9 @@ function initFromState(){
 }
 loadPeople().then(()=>{ initFromState(); show('v1'); });
 
-// Enter in Inputs nicht submitten (außer Admin-Form)
+// Enter in Inputs nicht submitten (außer Admin-Name-Input explizit)
 document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
+
 </script>
 </body>
 </html>
