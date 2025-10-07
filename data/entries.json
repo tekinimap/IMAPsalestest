@@ -47,16 +47,43 @@
   },
   {
     "id": "f9df1710-8f6a-4326-b378-57894c9b3956",
-    "ts": 1759764464712,
+    "ts": 1759849212552,
     "source": "hubspot",
-    "complete": false,
+    "complete": true,
     "title": "Change-Begleitung",
-    "client": "",
+    "client": "Stadt Düsseldorf",
     "amount": 250000,
     "hubspotId": "45326972175",
     "pipeline": "default",
     "dealstage": "closedwon",
     "closedate": null,
-    "modified": null
+    "modified": null,
+    "list": [
+      {
+        "name": "Christopher van den Hövel",
+        "pct": 100,
+        "money": 250000
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "submittedBy": "Abdi Tekin"
   }
 ]
