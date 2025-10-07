@@ -340,19 +340,25 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
 });
 
 document.getElementById('lnkAnalytics').addEventListener('click',()=>{loadHistory().then(()=>{renderAnalytics();show('analytics');});});
-document.getElementById('lnkAdmin').addEventListener('click',()=>{
+document.getElementById('lnkAdmin').addEventListener('click', async () => {
   const pw = prompt("Bitte Passwort für Admin eingeben:");
-  if (pw === "imapadmin"){ loadPeople().then(()=>{renderPeopleAdmin();show('admin');}); }
+  const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
+  if (!ok) { alert('Falsches Passwort.'); return; }
+  try { await loadPeople(); renderPeopleAdmin(); show('admin'); }
+  catch(e){ console.error('Admin init failed',e); alert('Konnte Admin-Daten nicht laden.'); }
 });
 
-/* ---------- People (Admin + Erfassung Dropdown) ---------- */
+/* ---------- People ---------- */
 let people = [];
 const peopleList = document.getElementById('peopleList');
 async function loadPeople(){
   try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
   catch{ people=[]; }
-  peopleList.innerHTML='';
-  people.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.setAttribute('data-id',p.id); peopleList.appendChild(o); });
+  // datalist für Erfassung
+  if (peopleList){
+    peopleList.innerHTML='';
+    people.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.setAttribute('data-id',p.id); peopleList.appendChild(o); });
+  }
 }
 function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
 
@@ -546,7 +552,7 @@ function renderHistory(){
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${modified}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten">
-          <svg viewBox="0 0 24 24"><path d="M3 21h4l11-11a2.8 2.8 0 0 0-4-4L3 17v4z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
         </button>
         <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen">
           <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"/></svg>
@@ -595,47 +601,72 @@ btnXlsx.addEventListener('click',()=>{
 });
 
 /* ---------- Admin ---------- */
-
-const admName = document.getElementById('adm_name');
-const admTeam = document.getElementById('adm_team');
-const admBody = document.getElementById('adm_body');
+const admName=document.getElementById('adm_name');
+const admTeam=document.getElementById('adm_team');
+const admBody=document.getElementById('adm_body');
 
 document.getElementById('adm_add').onclick = () => adminCreate();
-admName.addEventListener('keydown', (e) => { if (e.key === 'Enter') adminCreate(); });
+admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
 
-async function adminCreate() {
-  const name = admName.value.trim();
-  const team = admTeam.value;
-
-  if (!name || !team) {
-    alert('Bitte Name und Team ausfüllen.');
-    return;
-  }
-
-  try {
-    const r = await fetch(`${WORKER_BASE}/people`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: `p_${Date.now()}`, name, team })
-    });
-
-    if (!r.ok) {
-      const txt = await r.text().catch(()=>'');
-      console.error('POST /people failed', r.status, txt);
-      alert(`Konnte Person nicht anlegen (HTTP ${r.status}). Details siehe Konsole.`);
-      return;
-    }
-
-    admName.value = '';
-    admTeam.value = '';
-    await loadPeople();
-    renderPeopleAdmin();
-  } catch (err) {
-    console.error('Network error POST /people', err);
-    alert('Netzwerkfehler beim Anlegen. Details in der Konsole.');
-  }
+function renderPeopleAdmin(){
+  admBody.innerHTML='';
+  people.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${p.name}"></td>
+      <td>
+        <select>${TEAMS.map(t=>`<option value="${t}" ${p.team===t?'selected':''}>${t}</option>`).join('')}</select>
+      </td>
+      <td style="display:flex;gap:8px">
+        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern">
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+        </button>
+        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6v14m8-14v14M10 6V4h4v2"/></svg>
+        </button>
+      </td>`;
+    admBody.appendChild(tr);
+  });
 }
-
+admBody.addEventListener('click',async(ev)=>{
+  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const tr=btn.closest('tr');
+  if(act==='save'){
+    const name=tr.querySelector('td:nth-child(1) input').value.trim();
+    const team=tr.querySelector('td:nth-child(2) select').value;
+    if(!name) return;
+    try{
+      const r = await fetch(`${WORKER_BASE}/people`,{
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id,name,team})
+      });
+      if(!r.ok){const t=await r.text().catch(()=> ''); console.error('PUT /people',r.status,t); alert('Speichern fehlgeschlagen.'); return;}
+      await loadPeople(); renderPeopleAdmin();
+    }catch(e){ console.error(e); alert('Netzwerkfehler.'); }
+  } else if(act==='del'){
+    try{
+      const r = await fetch(`${WORKER_BASE}/people`,{
+        method:'DELETE', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id, _delete:true})
+      });
+      if(!r.ok){const t=await r.text().catch(()=> ''); console.error('DEL /people',r.status,t); alert('Löschen fehlgeschlagen.'); return;}
+      await loadPeople(); renderPeopleAdmin();
+    }catch(e){ console.error(e); alert('Netzwerkfehler.'); }
+  }
+});
+async function adminCreate(){
+  const name=admName.value.trim(); const team=admTeam.value;
+  if(!name || !team){ alert('Bitte Name und Team ausfüllen.'); return; }
+  try{
+    const r = await fetch(`${WORKER_BASE}/people`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:`p_${Date.now()}`,name,team})
+    });
+    if(!r.ok){ const t=await r.text().catch(()=> ''); console.error('POST /people',r.status,t); alert(`Konnte Person nicht anlegen (HTTP ${r.status}).`); return; }
+    admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
+  }catch(err){ console.error('Network error',err); alert('Netzwerkfehler beim Anlegen.'); }
+}
 
 /* ---------- Auswertung ---------- */
 const anaYear = document.getElementById('anaYear');
@@ -653,7 +684,6 @@ function renderAnalytics() {
   const start = new Date(Date.UTC(year, 0, 1)).getTime();
   const end   = new Date(Date.UTC(year + 1, 0, 1)).getTime();
 
-  // Personen aggregieren
   const per = new Map();
   entries.forEach(e => {
     const when = e.closedate ?? e.ts ?? 0;
@@ -673,7 +703,6 @@ function renderAnalytics() {
     .slice(0, 20);
   drawBars('chartPersons', perArr);
 
-  // Teams aggregieren (Join über People-Liste)
   const byNameTeam = new Map(people.map(p => [p.name, p.team || '']));
   const teamMap = new Map();
   perArr.forEach(p => {
@@ -685,7 +714,6 @@ function renderAnalytics() {
     .sort((a, b) => b.val - a.val);
   drawBars('chartTeams', teamArr);
 }
-
 function drawBars(hostId, items) {
   const host = document.getElementById(hostId);
   host.innerHTML = '';
@@ -752,12 +780,13 @@ function initFromState(){
 }
 loadPeople().then(()=>{ initFromState(); show('v1'); });
 
-// Enter in Inputs nicht submitten (außer Admin-Name-Input explizit)
+// Optionaler Direktzugang: #admin in URL öffnet Admin ohne Prompt
+if (location.hash === '#admin') {
+  loadPeople().then(() => { renderPeopleAdmin(); show('admin'); });
+}
+
+// Enter in Inputs blocken (außer Admin-Name)
 document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
 </script>
 </body>
 </html>
-
-
-
-
