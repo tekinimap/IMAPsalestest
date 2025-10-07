@@ -653,62 +653,96 @@ async function adminCreate(){
 }
 
 /* ---------- Auswertung ---------- */
-const anaYear=document.getElementById('anaYear');
-for(let y=2022; y<=new Date().getFullYear()+1; y++){const o=document.createElement('option');o.value=String(y);o.textContent=String(y);anaYear.appendChild(o);}
-anaYear.value=String(new Date().getFullYear());
-document.getElementById('anaRefresh').addEventListener('click',renderAnalytics);
+/* ---------- Auswertung ---------- */
+const anaYear = document.getElementById('anaYear');
+for (let y = 2022; y <= new Date().getFullYear() + 1; y++) {
+  const o = document.createElement('option');
+  o.value = String(y);
+  o.textContent = String(y);
+  anaYear.appendChild(o);
+}
+anaYear.value = String(new Date().getFullYear());
+document.getElementById('anaRefresh').addEventListener('click', renderAnalytics);
 
-let entries=[]; // (erneut deklariert? Nein: oben schon – hier nicht nochmals!)
+function renderAnalytics() {
+  const year = Number(anaYear.value);
+  const start = new Date(Date.UTC(year, 0, 1)).getTime();
+  const end   = new Date(Date.UTC(year + 1, 0, 1)).getTime();
 
-function renderAnalytics(){
-  const year=Number(anaYear.value);
-  const start=new Date(Date.UTC(year,0,1)).getTime();
-  const end=new Date(Date.UTC(year+1,0,1)).getTime();
-
-  // Personen
-  const per=new Map();
-  entries.forEach(e=>{
+  // Personen aggregieren
+  const per = new Map();
+  entries.forEach(e => {
     const when = e.closedate ?? e.ts ?? 0;
-    if(!(when>=start && when<end)) return;
-    const amount=e.amount||0; if(amount<=0) return;
-    if(Array.isArray(e.list)){
-      e.list.forEach(x=>{
-        const key=x.name||'Unbekannt';
-        const money=Math.round(amount*(x.pct||0)/100);
-        per.set(key, (per.get(key)||0)+money);
+    if (!(when >= start && when < end)) return;
+    const amount = e.amount || 0;
+    if (amount <= 0) return;
+    if (Array.isArray(e.list)) {
+      e.list.forEach(x => {
+        const key = x.name || 'Unbekannt';
+        const money = Math.round(amount * (x.pct || 0) / 100);
+        per.set(key, (per.get(key) || 0) + money);
       });
     }
   });
-  const perArr=Array.from(per,([name,val])=>({name,val})).sort((a,b)=>b.val-a.val).slice(0,20);
+  const perArr = Array.from(per, ([name, val]) => ({ name, val }))
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 20);
   drawBars('chartPersons', perArr);
 
-  // Teams
-  const byNameTeam = new Map(people.map(p=>[p.name, p.team||'']));
-  const teamMap=new Map();
-  perArr.forEach(p=>{
-    const team=byNameTeam.get(p.name)||'';
-    const key=team||'Ohne Team';
-    teamMap.set(key, (teamMap.get(key)||0)+p.val);
+  // Teams aggregieren (Join über People-Liste)
+  const byNameTeam = new Map(people.map(p => [p.name, p.team || '']));
+  const teamMap = new Map();
+  perArr.forEach(p => {
+    const team = byNameTeam.get(p.name) || '';
+    const key = team || 'Ohne Team';
+    teamMap.set(key, (teamMap.get(key) || 0) + p.val);
   });
-  const teamArr=Array.from(teamMap,([name,val])=>({name,val})).sort((a,b)=>b.val-a.val);
+  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val }))
+    .sort((a, b) => b.val - a.val);
   drawBars('chartTeams', teamArr);
 }
-function drawBars(hostId, items){
-  const host=document.getElementById(hostId); host.innerHTML='';
-  const max=items.reduce((m,x)=>Math.max(m,x.val),0)||1;
-  const barH=28, gap=8, w=1060, h=items.length?(items.length*(barH+gap)+10):50;
-  const svgNS="http://www.w3.org/2000/svg";
-  const svg=document.createElementNS(svgNS,'svg'); svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  let y=10;
-  items.forEach(it=>{
-    const len=Math.max(4, Math.round((it.val/max)*(w-200)));
-    const g=document.createElementNS(svgNS,'g');
-    const rect=document.createElementNS(svgNS,'rect'); rect.setAttribute('x','180'); rect.setAttribute('y',String(y)); rect.setAttribute('rx','6'); rect.setAttribute('ry','6');
-    rect.setAttribute('width',String(len)); rect.setAttribute('height',String(barH)); rect.setAttribute('fill','#3b82f6');
-    const labelL=document.createElementNS(svgNS,'text'); labelL.setAttribute('x','10'); labelL.setAttribute('y',String(y+barH*0.7)); labelL.setAttribute('fill','#cbd5e1'); labelL.setAttribute('font-size','13'); labelL.textContent=it.name;
-    const labelV=document.createElementNS(svgNS,'text'); labelV.setAttribute('x',String(188)); labelV.setAttribute('y',String(y+barH*0.7)); labelV.setAttribute('fill','#0a0f16'); labelV.setAttribute('font-weight','700'); labelV.setAttribute('font-size','13');
-    labelV.textContent=new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(it.val);
-    g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV); svg.appendChild(g);
+
+function drawBars(hostId, items) {
+  const host = document.getElementById(hostId);
+  host.innerHTML = '';
+  const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1;
+  const barH = 28, gap = 8, w = 1060, h = items.length ? (items.length * (barH + gap) + 10) : 50;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  let y = 10;
+  items.forEach(it => {
+    const len = Math.max(4, Math.round((it.val / max) * (w - 200)));
+    const g = document.createElementNS(svgNS, 'g');
+
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', '180');
+    rect.setAttribute('y', String(y));
+    rect.setAttribute('rx', '6');
+    rect.setAttribute('ry', '6');
+    rect.setAttribute('width', String(len));
+    rect.setAttribute('height', String(barH));
+    rect.setAttribute('fill', '#3b82f6');
+
+    const labelL = document.createElementNS(svgNS, 'text');
+    labelL.setAttribute('x', '10');
+    labelL.setAttribute('y', String(y + barH * 0.7));
+    labelL.setAttribute('fill', '#cbd5e1');
+    labelL.setAttribute('font-size', '13');
+    labelL.textContent = it.name;
+
+    const labelV = document.createElementNS(svgNS, 'text');
+    labelV.setAttribute('x', '188');
+    labelV.setAttribute('y', String(y + barH * 0.7));
+    labelV.setAttribute('fill', '#0a0f16');
+    labelV.setAttribute('font-weight', '700');
+    labelV.setAttribute('font-size', '13');
+    labelV.textContent = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(it.val);
+
+    g.appendChild(rect);
+    g.appendChild(labelL);
+    g.appendChild(labelV);
+    svg.appendChild(g);
     y += barH + gap;
   });
   host.appendChild(svg);
@@ -739,5 +773,6 @@ document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagNa
 </script>
 </body>
 </html>
+
 
 
