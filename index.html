@@ -348,9 +348,14 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
 });
 
 document.getElementById('lnkAnalytics').addEventListener('click',()=>{loadHistory().then(()=>{renderAnalytics();show('analytics');});});
-document.getElementById('lnkAdmin').addEventListener('click',()=>{
+document.getElementById('lnkAdmin').addEventListener('click', async()=>{
   const pw = prompt("Bitte Passwort für Admin eingeben:");
-  if (pw === "imapadmin"){ loadPeople().then(()=>{renderPeopleAdmin();show('admin');}); }
+  if (pw === null) return;
+  if (pw.trim().toLowerCase() !== "imapadmin"){ alert('Falsches Passwort.'); return; }
+  try{ await loadPeople(); }
+  catch(err){ console.error('Fehler beim Laden der Personenliste', err); }
+  renderPeopleAdmin();
+  show('admin');
 });
 
 /* ---------- People (Admin + Erfassung Dropdown) ---------- */
