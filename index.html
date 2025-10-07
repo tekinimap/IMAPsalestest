@@ -151,6 +151,7 @@
     </div>
   </div>
 
+
   <!-- Ansicht 2: Ergebnis -->
   <div class="card hide" id="view2">
     <div class="hd"><h1>Ergebnis</h1><p>Prozentuale Beteiligung und monetäre Anteile.</p></div>
@@ -788,5 +789,20 @@ if (location.hash === '#admin') {
 // Enter in Inputs blocken (außer Admin-Name)
 document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
 </script>
+<script>
+  // … dein bisheriges JS …
+
+  // 🧹 Alle Eingabefelder leeren außer den Gewichtungen
+  window.addEventListener("DOMContentLoaded", () => {
+    const exclude = ["w_cs", "w_konzept", "w_pitch"];
+    document.querySelectorAll("input").forEach((input) => {
+      if (!exclude.includes(input.id)) input.value = "";
+    });
+  });
+</script>
 </body>
 </html>
+  
+</body>
+</html>
+
