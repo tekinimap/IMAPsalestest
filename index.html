@@ -294,7 +294,6 @@ const TEAMS = [
   "ChangePartner","Bundes- und Landesbehörden","Kommunalverwaltungen",
   "Internationale Zusammenarbeit","Head of Organisational Excellence","Head of Public Impact"
 ];
-// NEU: Globale Konstante für Standardgewichtung
 const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
 
 /* ---------- Formatter ---------- */
@@ -338,7 +337,7 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     if (btn.classList.contains('disabled')) return;
     const n=Number(btn.getAttribute('data-nav'));
-    if(n===1) { clearInputFields(); initFromState(); show('v1'); } 
+    if(n===1) { initFromState(); show('v1'); } // HACK: clearInputFields entfernt, um den State zu erhalten
     if(n===2){buildResult();show('v2');}
     if(n===3){loadHistory().then(()=>show('v3')); }
   });
@@ -407,11 +406,12 @@ function bindRow(tr){
       const p=findPersonByName(ev.target.value);
       if(p) ev.target.dataset.personId=p.id; else delete ev.target.dataset.personId;
     }
+    saveCurrentInputState(); // Speichere den Zustand bei jeder Eingabe
     recalc();
   });
-  tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); recalc();});
+  tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); saveCurrentInputState(); recalc();});
 }
-function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();recalc();}
+function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();saveCurrentInputState(); recalc();}
 function readRows(){
   const rows=[]; tbody.querySelectorAll('tr').forEach(tr=>{
     rows.push({
@@ -430,7 +430,6 @@ function renderChips(t){
     const x=t[k]; const div=document.createElement('div');div.className='chip';
     const dot=document.createElement('span');dot.className='dot';
     const txt=document.createElement('span');txt.innerHTML=`<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
-    // Update: Muss exakt 0 ODER 100 sein.
     if(x===0 || x===100) div.classList.add('ok'); else if(x>100) div.classList.add('bad'); else div.classList.add('warn');
     div.appendChild(dot);div.appendChild(txt);sumchips.appendChild(div);
   });
@@ -449,7 +448,6 @@ function validateInput(){
   if(!any) errs.push('Mindestens eine Person mit Punkten erfassen.');
   rows.forEach((r,i)=>{ if((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
   const t=totals(rows);
-  // Update: Muss exakt 0 ODER 100 sein.
   ['cs','konzept','pitch'].forEach(k=>{
     if(t[k]!==0 && t[k]!==100) errs.push(`Kategorie "${k}": Summe muss exakt 0 ODER 100 sein (aktuell ${t[k]})`);
   });
@@ -462,7 +460,6 @@ function recalc(){
   renderChips(v.t);
   errorsEl.innerHTML=v.ok?'':v.errs.map(e=>'• '+e).join('<br>');
 
-  // NEU: Abschicken Button (btnToResult) basierend auf Validierung (v.ok) aktivieren/deaktivieren
   if (v.ok) {
     btnToResult.classList.remove('disabled');
     btnToResult.removeAttribute('aria-disabled');
@@ -471,46 +468,87 @@ function recalc(){
     btnToResult.setAttribute('aria-disabled', 'true');
   }
 }
+
+// NEU: Funktion zum Speichern des aktuellen Zustands in localStorage
+function saveCurrentInputState(isSubmitted = false) {
+    const stPrev = loadState() || {};
+    const currentInput = {
+        client: auftraggeber.value.trim(),
+        title: projekttitel.value.trim(),
+        amount: parseAmountInput(auftragswert.value),
+        rows: readRows(),
+        weights: currentWeights(),
+        submittedBy: submittedBy.value.trim(),
+        projectNumber: projectNumber.value.trim()
+    };
+    saveState({
+        source: stPrev.source || 'manuell',
+        submitted: isSubmitted,
+        editingId: stPrev.editingId || null,
+        input: currentInput
+    });
+}
+
+// Event-Listener für Hauptfelder, um Validierung auszulösen und State zu speichern
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber].forEach(el => {
+    el.addEventListener('input', () => { saveCurrentInputState(); recalc(); });
+});
+auftragswert.addEventListener('blur',()=>{
+    const raw=parseAmountInput(auftragswert.value);
+    auftragswert.value=raw>0?formatAmountInput(raw):'';
+    saveCurrentInputState();
+    recalc();
+});
+[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{
+    el.value=String(clamp01(toInt0(el.value)));
+    updateWeightNote();
+    saveCurrentInputState();
+    recalc();
+}));
 btnAddRow.addEventListener('click',()=>addRow(true));
-auftragswert.addEventListener('blur',()=>{const raw=parseAmountInput(auftragswert.value);auftragswert.value=raw>0?formatAmountInput(raw):'';});
-[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{el.value=String(clamp01(toInt0(el.value)));updateWeightNote();recalc();}));
 
 btnToResult.addEventListener('click',()=>{
   const v=validateInput(); if(!v.ok){recalc();return;}
-  const amount=parseAmountInput(auftragswert.value); const stPrev=loadState()||{};
-  saveState({
-    source: stPrev.source || 'manuell',
-    submitted: true,
-    editingId: stPrev.editingId || null,
-    input: {
-        client:auftraggeber.value.trim(),
-        title:projekttitel.value.trim(),
-        amount,
-        rows:v.rows,
-        weights:currentWeights(),
-        submittedBy:submittedBy.value.trim(),
-        projectNumber: projectNumber.value.trim()
-    }
-  });
+  saveCurrentInputState(true); // Als 'submitted' speichern
   step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
   buildResult(); show('v2');
 });
 btnToHistory.addEventListener('click',()=>{loadHistory().then(()=>show('v3'));});
 
+// NEU: Funktion zum Laden/Setzen der Formulardaten
+function loadInputForm(inputData) {
+    auftraggeber.value = inputData.client || '';
+    projekttitel.value = inputData.title || '';
+    auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
+    submittedBy.value = inputData.submittedBy || '';
+    projectNumber.value = inputData.projectNumber || '';
+    
+    const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+    w_cs.value = String(clamp01(toInt0(m.cs??DEFAULT_WEIGHTS.cs)));
+    w_konzept.value = String(clamp01(toInt0(m.konzept??DEFAULT_WEIGHTS.konzept)));
+    w_pitch.value = String(clamp01(toInt0(m.pitch??DEFAULT_WEIGHTS.pitch)));
+
+    tbody.innerHTML = '';
+    const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
+    if(rows.length > 0){
+      rows.forEach(r=>{
+        const tr=rowTemplate(); tbody.appendChild(tr); bindRow(tr);
+        const nm=r.name||''; tr.querySelector('.name').value=nm; 
+        const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
+        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0)));
+        tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0)));
+        tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
+      });
+    } else {
+        addRow(true); addRow(false);
+    }
+}
+
 // Function to clear input fields and reset state (for new capture)
 function clearInputFields() {
-    auftraggeber.value = '';
-    projekttitel.value = '';
-    auftragswert.value = '';
-    submittedBy.value = '';
-    projectNumber.value = '';
-    // NEU: Verwendung der DEFAULT_WEIGHTS Konstante
-    w_cs.value = DEFAULT_WEIGHTS.cs;
-    w_konzept.value = DEFAULT_WEIGHTS.konzept;
-    w_pitch.value = DEFAULT_WEIGHTS.pitch;
-    tbody.innerHTML = '';
-    saveState({ source: 'manuell' });
-    updateWeightNote();
+    saveState({ source: 'manuell' }); // Reset session/editing status
+    loadInputForm({}); // Load empty form (nutzt Standardgewichte)
 }
 
 
@@ -530,11 +568,12 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 }
 function compute(rows, weights, amount){
   const t=totals(rows); const usedKeys=Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
-  const effW=normalizeWeightsForUsed(weights, usedKeys);
+  const effWeights=(weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
+  const res=compute(rows,effWeights,amount||0);
   const map=new Map();
   rows.forEach(r=>{const act=r.cs+r.konzept+r.pitch>0; const nm=(r.name||'').trim() || (act ? '(unbenannt)' : ''); if(!nm)return;
     const cur=map.get(nm)||{name:nm,cs:0,konzept:0,pitch:0}; cur.cs+=r.cs;cur.konzept+=r.konzept;cur.pitch+=r.pitch; map.set(nm,cur);});
-  const wIdx=Object.fromEntries(effW.map(w=>[w.key,w.weight/100])); const list=[];
+  const wIdx=Object.fromEntries(effWeights.map(w=>[w.key,w.weight/100])); const list=[];
   for(const p of map.values()){let pct=0;
     if(usedKeys.includes('cs')&&t.cs>0) pct+=wIdx.cs*(p.cs/t.cs);
     if(usedKeys.includes('konzept')&&t.konzept>0) pct+=wIdx.konzept*(p.konzept/t.konzept);
@@ -544,7 +583,7 @@ function compute(rows, weights, amount){
   list.sort((a,b)=>b.pct-a.pct); const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
   list.forEach(x=>{if(x.pct<0)x.pct=0;});
   const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
-  return { totals:t, usedKeys, effectiveWeights:effW, list:withMoney };
+  return { totals:t, usedKeys, effectiveWeights:effWeights, list:withMoney };
 }
 function buildResult(){
   const st=loadState(); if(!st?.input){show('v1');return;}
@@ -580,7 +619,7 @@ saveToHistory.addEventListener('click',async()=>{
   try{
     if(st.editingId){await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
     else {await fetch(`${WORKER_BASE}/entries`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
-    clearInputFields();
+    clearInputFields(); // Nur hier wird der State zurückgesetzt!
     loadHistory().then(()=>show('v3'));
   }catch{}
 });
@@ -654,7 +693,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
 
 // Update for "Neue Erfassung" button
 document.getElementById('backToInput2').addEventListener('click',()=>{
-    clearInputFields();
+    clearInputFields(); // Ruft loadInputForm({}) auf, um den State zu leeren
     initFromState();
     show('v1');
 });
@@ -806,8 +845,8 @@ function drawBars(hostId, items) {
   svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
   let y = 10;
   
-  const textWidth = 220; // Breite für den Namenstext
-  const barStartX = textWidth; // Startpunkt der Balken
+  const textWidth = 220;
+  const barStartX = textWidth;
 
   items.forEach(it => {
     const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - 100)));
@@ -828,14 +867,13 @@ function drawBars(hostId, items) {
     labelL.setAttribute('fill', '#cbd5e1');
     labelL.setAttribute('font-size', '13');
 
-    // Manuelles Abschneiden des Namens
     let displayName = it.name;
     const maxCharLength = 25;
     if (it.name.length > maxCharLength) {
         displayName = it.name.substring(0, maxCharLength) + '...';
     }
     labelL.textContent = displayName;
-    labelL.setAttribute('title', it.name); // Tooltip mit vollem Namen
+    labelL.setAttribute('title', it.name);
 
     const labelV = document.createElementNS(svgNS, 'text');
     labelV.setAttribute('x', String(barStartX + 8));
@@ -880,43 +918,18 @@ btnAnaXlsx.addEventListener('click', () => {
 });
 
 /* ---------- Init ---------- */
+// NEU: initFromState verwendet loadInputForm, um den gespeicherten Zustand zu laden
 function initFromState(){
-  tbody.innerHTML='';
   const st=loadState();
   if(st?.input){
-    // Reset fields on load, only populate if editing
-    if(st.editingId){
-        auftraggeber.value=st.input.client||''; projekttitel.value=st.input.title||''; submittedBy.value=st.input.submittedBy||''; projectNumber.value=st.input.projectNumber||'';
-        auftragswert.value=st.input.amount? formatAmountInput(st.input.amount):'';
-    } else {
-        clearInputFields(); // Ensure new entry starts empty
-    }
-
-    if(Array.isArray(st.input.rows)&&st.input.rows.length && st.editingId){ // Only load rows if editing
-      st.input.rows.forEach(r=>{const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);
-        const nm=r.name||''; tr.querySelector('.name').value=nm; const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
-        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0))); tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0))); tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
-      });
-    } else if(!st.editingId){ // Add two empty rows for new entry
-        addRow(true); addRow(false);
-    }
-
-    // Always use saved weights or default
-    if(Array.isArray(st.input.weights)){
-        const m=Object.fromEntries(st.input.weights.map(w=>[w.key,w.weight]));
-        if(m.cs!=null) w_cs.value=String(clamp01(toInt0(m.cs))); else w_cs.value=String(DEFAULT_WEIGHTS.cs);
-        if(m.konzept!=null) w_konzept.value=String(clamp01(toInt0(m.konzept))); else w_konzept.value=String(DEFAULT_WEIGHTS.konzept);
-        if(m.pitch!=null) w_pitch.value=String(clamp01(toInt0(m.pitch))); else w_pitch.value=String(DEFAULT_WEIGHTS.pitch);
-    }
-    
-    // Die Anzeige des Step 2 Buttons wird nun hauptsächlich durch recalc() gesteuert.
+    loadInputForm(st.input);
     if(st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); } else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
   } else {
-    clearInputFields();
-    addRow(true); addRow(false);
+    loadInputForm({}); // Lade leeres Formular (Default-Werte)
     step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
   }
-  updateWeightNote(); recalc();
+  updateWeightNote(); 
+  recalc(); // Stellt sicher, dass die Validierung und der Abschicken-Button korrekt initialisiert werden
 }
 
 loadPeople().then(()=>{ initFromState(); show('v1'); });
