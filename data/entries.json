@@ -121,5 +121,46 @@
     "submittedBy": "Abdi Tekin",
     "ts": 1759922064787,
     "id": "c9aa968f-ed9a-41c0-ab55-4b0e40f084e1"
+  },
+  {
+    "source": "manuell",
+    "complete": true,
+    "client": "Stadt Düsseldorf",
+    "title": "Los4",
+    "amount": 120000,
+    "list": [
+      {
+        "name": "Marita Gasteiger",
+        "pct": 98.9247311827957,
+        "money": 118710
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "pct": 1.0752688172043012,
+        "money": 1290
+      }
+    ],
+    "totals": {
+      "cs": 93,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "submittedBy": "Abdi Tekin",
+    "ts": 1759928547146,
+    "id": "98b318c0-02f2-4296-8da2-b6a1f7ddebb8"
   }
 ]
