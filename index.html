@@ -50,7 +50,7 @@
   .table-wrapper{width:100%;border:1px solid var(--border);border-radius:12px;overflow-x:auto;background:#0b1120}
   table{width:100%;min-width:980px;border-collapse:collapse}
   thead th{position:sticky;top:0;background:#0d162a;border-bottom:1px solid var(--border);padding:12px;text-align:left;font-size:13px}
-  tbody td{border-top:1px solid var(--border);padding:10px 12px}
+  tbody td{border-top:1px solid var(--border);padding:10px 12px; vertical-align: middle;}
   tbody tr:hover{background:#0c1426}
   .delrow{background:#13203b;border:1px solid #21314f;color:#cbd5e1;border-radius:8px;padding:6px 8px;cursor:pointer}
 
@@ -58,6 +58,10 @@
   .chip{background:#0b1220;border:1px solid var(--border);border-radius:999px;padding:8px 12px;font-size:12px;display:inline-flex;align-items:center;gap:8px}
   .chip .dot{width:8px;height:8px;border-radius:50%}
   .chip.ok .dot{background:var(--ok)} .chip.bad .dot{background:var(--bad)} .chip.warn .dot{background:var(--warn)}
+  
+  .live-result{font-size:13px; font-weight: 600; color: var(--muted);}
+  .live-result .pct{color: var(--text); display: block; font-size: 15px;}
+  .live-result .money{font-size: 12px;}
 
   .hr{height:1px;background:var(--border);margin:24px 0}
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
@@ -107,6 +111,9 @@
     .filters{flex-direction:column; align-items:stretch;}
     .filters .ipt, .filters .btn{width:100%;}
     .form-bottom-actions{justify-content:center !important;}
+  }
+  @media(max-width: 980px){
+    table{min-width: 800px;}
   }
 
 </style>
@@ -161,7 +168,14 @@
 
       <div class="table-wrapper" style="margin-top:14px">
         <table>
-          <thead><tr><th style="width:34%">Person</th><th style="width:18%">Consultative Selling</th><th style="width:18%">Konzepterstellung</th><th style="width:18%">Pitch</th><th style="width:12%">Aktion</th></tr></thead>
+          <thead><tr>
+            <th style="width:25%">Person</th>
+            <th style="width:15%">Consultative Selling</th>
+            <th style="width:15%">Konzepterstellung</th>
+            <th style="width:15%">Pitch</th>
+            <th style="width:20%">Live-Anteil</th>
+            <th style="width:10%">Aktion</th>
+          </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -175,7 +189,6 @@
         <div style="flex-grow: 0; min-width: auto;">
           <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
           <input id="projectNumber" type="text" disabled placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions" style="padding: 8px 12px; width: 200px;">
-          <div class="note" style="margin-top:4px; display: none;">Auszufüllen von Corporate Functions</div>
         </div>
         <div style="display:flex;gap:10px; flex-grow: 1; justify-content: flex-end;">
           <button class="btn" id="toHistory">Zur Historie</button>
@@ -438,6 +451,7 @@ function rowTemplate(){
     <td><input type="number" class="cs" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="konzept" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="pitch" min="0" max="100" step="1" value="0"></td>
+    <td><div class="live-result"><span class="pct">- %</span><span class="money">- €</span></div></td>
     <td><button class="delrow">Entfernen</button></td>`;
   return tr;
 }
@@ -479,16 +493,19 @@ function renderChips(t){
 }
 function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
 function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
-function validateInput(){
+function validateInput(forLive=false){
   const st=loadState()||{}; const isHubspot=st.source==='hubspot'&&!!st.editingId;
   const errs=[];
-  if(!isHubspot){
-    if(!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
-    if(!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
-    if(!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
+  if(!forLive) {
+    if(!isHubspot){
+      if(!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
+      if(!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
+      if(!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
+    }
+    const any=readRows().some(r=>r.cs+r.konzept+r.pitch>0);
+    if(!any) errs.push('Mindestens eine Person mit Punkten erfassen.');
   }
-  const rows=readRows(); const any=rows.some(r=>r.cs+r.konzept+r.pitch>0);
-  if(!any) errs.push('Mindestens eine Person mit Punkten erfassen.');
+  const rows=readRows();
   rows.forEach((r,i)=>{ if((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
   const t=totals(rows);
   ['cs','konzept','pitch'].forEach(k=>{
@@ -499,11 +516,41 @@ function validateInput(){
   return {ok:errs.length===0, errs, t, rows};
 }
 function recalc(){
-  const v=validateInput();
-  renderChips(v.t);
-  errorsEl.innerHTML=v.ok?'':v.errs.map(e=>'• '+e).join('<br>');
-  if (v.ok) { btnToResult.classList.remove('disabled'); btnToResult.removeAttribute('aria-disabled'); }
+  // Live-Berechnung und Anzeige
+  const liveValidation = validateInput(true);
+  const liveAmount = parseAmountInput(auftragswert.value);
+  if (liveValidation.ok) {
+    const result = compute(liveValidation.rows, currentWeights(), liveAmount);
+    updateLiveResults(result.list);
+  } else {
+    // Bei Validierungsfehler (z.B. Summe != 100), leere die Live-Anzeige
+    updateLiveResults([]);
+  }
+  
+  // Endgültige Validierung für den "Abschicken"-Button
+  const finalValidation = validateInput(false);
+  renderChips(finalValidation.t);
+  errorsEl.innerHTML=finalValidation.ok?'':finalValidation.errs.map(e=>'• '+e).join('<br>');
+
+  if (finalValidation.ok) { btnToResult.classList.remove('disabled'); btnToResult.removeAttribute('aria-disabled'); }
   else { btnToResult.classList.add('disabled'); btnToResult.setAttribute('aria-disabled', 'true'); }
+}
+
+function updateLiveResults(resultList) {
+  const resultByName = new Map(resultList.map(item => [item.name, item]));
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    const nameInput = tr.querySelector('.name');
+    const name = nameInput.value.trim();
+    const resultEl = tr.querySelector('.live-result');
+    const resultData = resultByName.get(name);
+    if (name && resultData) {
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
+    } else {
+      resultEl.querySelector('.pct').textContent = `- %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+  });
 }
 
 function saveCurrentInputState(isSubmitted = false) {
@@ -568,6 +615,7 @@ function loadInputForm(inputData, isEditing = false) {
       });
     } else { addRow(true); addRow(false); }
     hasUnsavedChanges = false;
+    recalc(); // WICHTIG: Live-Anteile beim Laden berechnen
 }
 
 function clearInputFields() {
@@ -628,7 +676,7 @@ saveToHistory.addEventListener('click',async()=>{
   const payload={
     source:st.source||'manuell', complete:!!st?.result?.complete, client:st.input.client||'',
     title:st.input.title||'', amount:st.input.amount||0, 
-    rows: st.input.rows || [], // WICHTIG: Speichert die Eingabe-Zeilen
+    rows: st.input.rows || [],
     list:st?.result?.list||[],
     totals:st?.result?.totals||{}, weights:st?.result?.weights||[], submittedBy:st.input.submittedBy||'',
     projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined
@@ -882,7 +930,8 @@ function initFromState(isEditing = false){
     loadInputForm({}, false);
     step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
   }
-  updateWeightNote(); recalc();
+  updateWeightNote(); 
+  // recalc wird bereits von loadInputForm aufgerufen
 }
 
 // Warnung bei ungespeicherten Änderungen
