@@ -2,19 +2,19 @@
   {
     "source": "manuell",
     "complete": true,
-    "client": "Stadt Düsseldorf",
+    "client": "kkpok",
     "title": "Führungsfeedback",
     "amount": 120000,
     "list": [
       {
         "name": "Sara Kaufmann",
-        "pct": 69,
-        "money": 82800
+        "pct": 50,
+        "money": 60000
       },
       {
         "name": "Christopher van den Hövel",
-        "pct": 16,
-        "money": 19200
+        "pct": 35,
+        "money": 42000
       },
       {
         "name": "Merlin Klein",
@@ -25,7 +25,7 @@
     "totals": {
       "cs": 100,
       "konzept": 100,
-      "pitch": 100
+      "pitch": 0
     },
     "weights": [
       {
@@ -34,16 +34,17 @@
       },
       {
         "key": "konzept",
-        "weight": 30
+        "weight": 50
       },
       {
         "key": "pitch",
-        "weight": 20
+        "weight": 0
       }
     ],
     "submittedBy": "Abdi Tekin",
-    "ts": 1759763904559,
-    "id": "e43d2de4-4a58-4a07-8106-0319612f1218"
+    "ts": 1759934451629,
+    "id": "e43d2de4-4a58-4a07-8106-0319612f1218",
+    "projectNumber": ""
   },
   {
     "id": "f9df1710-8f6a-4326-b378-57894c9b3956",
