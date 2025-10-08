@@ -24,6 +24,7 @@
   .step.active{outline:2px solid var(--accent)}
   .idx{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;background:#0c1324;border:1px solid var(--border);font-weight:700}
   .ttl{font-weight:700}.sub{color:var(--muted);font-size:12px}.grow{flex:1}
+  <button class="linkbtn disabled" id="step2btn" data-nav="2" aria-disabled="true">Öffnen</button>
   .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
   .linkbtn.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
@@ -145,7 +146,7 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px;">
         <div style="flex-grow: 0; min-width: 300px;">
           <label for="projectNumber">Projektnummer</label>
-          <input id="projectNumber" type="text" disabled placeholder="Wird automatisch befüllt">
+          <input id="projectNumber" type="text" disabled placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions">
           <div class="note" style="margin-top:4px">Auszufüllen von Corporate Functions</div>
         </div>
         <div style="display:flex;gap:10px;">
@@ -337,7 +338,7 @@ document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     if (btn.classList.contains('disabled')) return;
     const n=Number(btn.getAttribute('data-nav'));
-    if(n===1) { initFromState(); show('v1'); } // HACK: clearInputFields entfernt, um den State zu erhalten
+    if(n===1) { initFromState(); show('v1'); }
     if(n===2){buildResult();show('v2');}
     if(n===3){loadHistory().then(()=>show('v3')); }
   });
@@ -406,7 +407,7 @@ function bindRow(tr){
       const p=findPersonByName(ev.target.value);
       if(p) ev.target.dataset.personId=p.id; else delete ev.target.dataset.personId;
     }
-    saveCurrentInputState(); // Speichere den Zustand bei jeder Eingabe
+    saveCurrentInputState();
     recalc();
   });
   tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); saveCurrentInputState(); recalc();});
@@ -469,7 +470,6 @@ function recalc(){
   }
 }
 
-// NEU: Funktion zum Speichern des aktuellen Zustands in localStorage
 function saveCurrentInputState(isSubmitted = false) {
     const stPrev = loadState() || {};
     const currentInput = {
@@ -479,7 +479,8 @@ function saveCurrentInputState(isSubmitted = false) {
         rows: readRows(),
         weights: currentWeights(),
         submittedBy: submittedBy.value.trim(),
-        projectNumber: projectNumber.value.trim()
+        // Nur Wert speichern, wenn NICHT disabled (d.h. beim Bearbeiten)
+        projectNumber: projectNumber.disabled ? stPrev?.input?.projectNumber || '' : projectNumber.value.trim()
     };
     saveState({
         source: stPrev.source || 'manuell',
@@ -490,9 +491,17 @@ function saveCurrentInputState(isSubmitted = false) {
 }
 
 // Event-Listener für Hauptfelder, um Validierung auszulösen und State zu speichern
-[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber].forEach(el => {
+[auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => {
     el.addEventListener('input', () => { saveCurrentInputState(); recalc(); });
 });
+// Hinzufügen des Event-Listeners für projectNumber, falls es beim Bearbeiten aktiviert wird
+projectNumber.addEventListener('input', () => { 
+    if(!projectNumber.disabled) { 
+        saveCurrentInputState(); 
+        recalc(); 
+    } 
+});
+
 auftragswert.addEventListener('blur',()=>{
     const raw=parseAmountInput(auftragswert.value);
     auftragswert.value=raw>0?formatAmountInput(raw):'';
@@ -509,19 +518,27 @@ btnAddRow.addEventListener('click',()=>addRow(true));
 
 btnToResult.addEventListener('click',()=>{
   const v=validateInput(); if(!v.ok){recalc();return;}
-  saveCurrentInputState(true); // Als 'submitted' speichern
+  saveCurrentInputState(true); // Wichtig: Setzt submitted: true
   step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
   buildResult(); show('v2');
 });
 btnToHistory.addEventListener('click',()=>{loadHistory().then(()=>show('v3'));});
 
-// NEU: Funktion zum Laden/Setzen der Formulardaten
-function loadInputForm(inputData) {
+function loadInputForm(inputData, isEditing = false) {
     auftraggeber.value = inputData.client || '';
     projekttitel.value = inputData.title || '';
     auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
     submittedBy.value = inputData.submittedBy || '';
+    
+    // ProjectNumber Logik: Laden, aber nur beim Bearbeiten aktivieren
     projectNumber.value = inputData.projectNumber || '';
+    if (isEditing) {
+        projectNumber.removeAttribute('disabled');
+        projectNumber.placeholder = 'Projektnummer eintragen';
+    } else {
+        projectNumber.setAttribute('disabled', 'true');
+        projectNumber.placeholder = 'Wird später eingetragen';
+    }
     
     const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
     const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
@@ -545,10 +562,9 @@ function loadInputForm(inputData) {
     }
 }
 
-// Function to clear input fields and reset state (for new capture)
 function clearInputFields() {
-    saveState({ source: 'manuell' }); // Reset session/editing status
-    loadInputForm({}); // Load empty form (nutzt Standardgewichte)
+    saveState({ source: 'manuell' });
+    loadInputForm({}, false); // false = kein Bearbeitungsmodus
 }
 
 
@@ -619,7 +635,7 @@ saveToHistory.addEventListener('click',async()=>{
   try{
     if(st.editingId){await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
     else {await fetch(`${WORKER_BASE}/entries`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
-    clearInputFields(); // Nur hier wird der State zurückgesetzt!
+    clearInputFields();
     loadHistory().then(()=>show('v3'));
   }catch{}
 });
@@ -678,7 +694,8 @@ historyBody.addEventListener('click', async(ev)=>{
       input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
               rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
               weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
-    saveState(st); initFromState(); step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); show('v1');
+    saveState(st); initFromState(true);
+    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); show('v1');
     return;
   }
   if(act==='del'){ pendingDeleteId=id; document.getElementById('confirmDlg').showModal(); }
@@ -693,7 +710,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
 
 // Update for "Neue Erfassung" button
 document.getElementById('backToInput2').addEventListener('click',()=>{
-    clearInputFields(); // Ruft loadInputForm({}) auf, um den State zu leeren
+    clearInputFields();
     initFromState();
     show('v1');
 });
@@ -918,18 +935,32 @@ btnAnaXlsx.addEventListener('click', () => {
 });
 
 /* ---------- Init ---------- */
-// NEU: initFromState verwendet loadInputForm, um den gespeicherten Zustand zu laden
-function initFromState(){
+function initFromState(isEditing = false){
   const st=loadState();
+  
+  // 1. Laden des Zustands
   if(st?.input){
-    loadInputForm(st.input);
-    if(st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); } else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
+    const isEditFromHistory = !!st.editingId;
+    loadInputForm(st.input, isEditFromHistory);
+    
+    // 2. Steuerung des Step 2 Buttons
+    // Erreichbar, wenn ein Ergebnis berechnet wurde (submitted: true)
+    if(st.submitted){ 
+      step2btn.classList.remove('disabled'); 
+      step2btn.removeAttribute('aria-disabled'); 
+    } else { 
+      step2btn.classList.add('disabled'); 
+      step2btn.setAttribute('aria-disabled','true'); 
+    }
   } else {
-    loadInputForm({}); // Lade leeres Formular (Default-Werte)
-    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
+    // Startzustand (keine Daten)
+    loadInputForm({}, false);
+    step2btn.classList.add('disabled'); 
+    step2btn.setAttribute('aria-disabled','true');
   }
+  
   updateWeightNote(); 
-  recalc(); // Stellt sicher, dass die Validierung und der Abschicken-Button korrekt initialisiert werden
+  recalc(); // Wichtig: Stellt sicher, dass der "Abschicken"-Button beim Laden des Formulars (z.B. nach Navigation zurück zu View 1) korrekt initialisiert wird.
 }
 
 loadPeople().then(()=>{ initFromState(); show('v1'); });
