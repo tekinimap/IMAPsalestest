@@ -86,47 +86,5 @@
       }
     ],
     "submittedBy": "Abdi Tekin"
-  },
-  {
-    "source": "manuell",
-    "complete": true,
-    "client": "klmlk",
-    "title": "lkmlkm",
-    "amount": 50000,
-    "list": [
-      {
-        "name": "Sophie But",
-        "pct": 81,
-        "money": 40500
-      },
-      {
-        "name": "Dilâra Dayakli",
-        "pct": 19,
-        "money": 9500
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 0
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 62
-      },
-      {
-        "key": "konzept",
-        "weight": 38
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "submittedBy": "Abdi Tekin",
-    "projectNumber": "",
-    "ts": 1759934548143,
-    "id": "1ff8dac5-6699-47ec-a654-a735c56c3d16"
   }
 ]
