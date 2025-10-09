@@ -669,18 +669,21 @@ function compute(rows, weights, amount, forLive=false){
   const t = totals(rows); 
   const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
   const effWeights = (weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
-  const normWeights = normalizeWeightsForUsed(effWeights, usedKeys);
+  
+  const calcWeights = forLive ? effWeights : normalizeWeightsForUsed(effWeights, usedKeys);
+  
   const map=new Map();
   rows.forEach(r=>{const act=r.cs+r.konzept+r.pitch>0; const nm=(r.name||'').trim() || (act ? '(unbenannt)' : ''); if(!nm)return;
     const cur=map.get(nm)||{name:nm,cs:0,konzept:0,pitch:0}; cur.cs+=r.cs;cur.konzept+=r.konzept;cur.pitch+=r.pitch; map.set(nm,cur);});
   
-  const wIdx = Object.fromEntries(normWeights.map(w=>[w.key, w.weight / 100])); 
+  const wIdx = Object.fromEntries(calcWeights.map(w=>[w.key, w.weight / 100])); 
   const list=[];
   for(const p of map.values()){
     let pct=0;
-    const divCS = forLive ? (t.cs || 1) : 100;
-    const divKonzept = forLive ? (t.konzept || 1) : 100;
-    const divPitch = forLive ? (t.pitch || 1) : 100;
+    
+    const divCS = forLive ? 100 : (t.cs || 1);
+    const divKonzept = forLive ? 100 : (t.konzept || 1);
+    const divPitch = forLive ? 100 : (t.pitch || 1);
 
     if(usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
     if(usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
@@ -696,8 +699,9 @@ function compute(rows, weights, amount, forLive=false){
   
   list.forEach(x=>{if(x.pct<0)x.pct=0;});
   const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
-  return { totals:t, usedKeys, effectiveWeights:normWeights, list:withMoney };
+  return { totals:t, usedKeys, effectiveWeights: calcWeights, list:withMoney };
 }
+
 function normalizeWeightsForUsed(allWeights, usedKeys){
   const used=allWeights.filter(w=>usedKeys.includes(w.key)); const sum=used.reduce((a,w)=>a+w.weight,0);
   if(sum<=0) return allWeights.map(w=>({key:w.key,weight:w.weight}));
