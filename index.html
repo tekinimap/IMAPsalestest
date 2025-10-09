@@ -76,7 +76,7 @@
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
   
   .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
-  input.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
+  input.invalid-field, select.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
   .checkbox-wrapper{display:flex; align-items:center; gap:8px; margin-top: 8px;}
 
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
@@ -159,7 +159,7 @@
       <div class="grid-3" style="margin-top:10px">
         <div>
           <label for="submittedBy">Einschätzung abgegeben von *</label>
-          <input id="submittedBy" type="text" placeholder="Ihr Name">
+          <select id="submittedBy"><option value="">--- Bitte wählen ---</option></select>
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
       </div>
@@ -421,10 +421,26 @@ async function loadPeople(){
   catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
   finally { hideLoader(); }
   people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
+  
+  const submittedBySelect = document.getElementById('submittedBy');
+  const currentSubmitter = submittedBySelect.value;
+  submittedBySelect.innerHTML = '<option value="">--- Bitte wählen ---</option>';
+  
   if (peopleList){
     peopleList.innerHTML='';
-    people.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.setAttribute('data-id',p.id); peopleList.appendChild(o); });
+    people.forEach(p=>{ 
+      const o = document.createElement('option'); 
+      o.value=p.name; 
+      o.setAttribute('data-id',p.id); 
+      peopleList.appendChild(o);
+
+      const s = document.createElement('option');
+      s.value = p.name;
+      s.textContent = p.name;
+      submittedBySelect.appendChild(s);
+    });
   }
+  submittedBySelect.value = currentSubmitter;
 }
 function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
 
@@ -499,7 +515,7 @@ function validateInput(forLive = false) {
     if (!forLive) {
         if (!auftraggeber.value.trim()) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = 'Projekttitel ist erforderlich.';
-        if (!submittedBy.value.trim()) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
         if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
     }
@@ -568,16 +584,17 @@ function recalc(){
 }
 
 function updateLiveResults(resultList) {
-  const resultByName = new Map(resultList.map(item => [item.name, item]));
-  document.querySelectorAll('#tbody tr').forEach(tr => {
-    const nameInput = tr.querySelector('.name');
-    const name = nameInput.value.trim();
+  const resultByKey = new Map(resultList.map(item => [item.key, item]));
+  document.querySelectorAll('#tbody tr').forEach((tr, index) => {
+    const name = tr.querySelector('.name').value.trim();
     const resultEl = tr.querySelector('.live-result');
-    const resultData = resultByName.get(name);
-    if (name && resultData && auftragswertBekannt.checked) {
+    const key = name || `_temp_${index}`;
+    const resultData = resultByKey.get(key);
+
+    if (resultData && auftragswertBekannt.checked) {
       resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
       resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
-    } else if (name && resultData) {
+    } else if (resultData) {
       resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
       resultEl.querySelector('.money').textContent = `- €`;
     }
@@ -597,7 +614,7 @@ function saveCurrentInputState() {
         amountKnown: auftragswertBekannt.checked,
         rows: readRows(),
         weights: currentWeights(),
-        submittedBy: submittedBy.value.trim(),
+        submittedBy: submittedBy.value,
         projectNumber: projectNumber.disabled ? stPrev?.input?.projectNumber || '' : projectNumber.value.trim()
     };
     saveState({ source: stPrev.source || 'manuell', editingId: stPrev.editingId || null, input: currentInput });
@@ -704,14 +721,21 @@ function compute(rows, weights, amount, forLive=false){
   const calcWeights = forLive ? effWeights : normalizeWeightsForUsed(effWeights, usedKeys);
   
   const map=new Map();
-  rows.forEach(r=>{const act=r.cs+r.konzept+r.pitch>0; const nm=(r.name||'').trim() || (act ? '(unbenannt)' : ''); if(!nm)return;
-    const cur=map.get(nm)||{name:nm,cs:0,konzept:0,pitch:0}; cur.cs+=r.cs;cur.konzept+=r.konzept;cur.pitch+=r.pitch; map.set(nm,cur);});
+  rows.forEach((r, index)=>{
+    const act=r.cs+r.konzept+r.pitch>0;
+    const key = r.name.trim() || `_temp_${index}`;
+    if (!r.name.trim() && !act) return;
+
+    const cur=map.get(key) || { name: r.name, cs:0, konzept:0, pitch:0 };
+    cur.cs+=r.cs; cur.konzept+=r.konzept; cur.pitch+=r.pitch;
+    map.set(key,cur);
+  });
   
   const wIdx = Object.fromEntries(calcWeights.map(w=>[w.key, w.weight / 100])); 
   const list=[];
-  for(const p of map.values()){
+
+  for(const [key, p] of map.entries()){
     let pct=0;
-    
     const divCS = forLive ? 100 : (t.cs || 1);
     const divKonzept = forLive ? 100 : (t.konzept || 1);
     const divPitch = forLive ? 100 : (t.pitch || 1);
@@ -719,7 +743,7 @@ function compute(rows, weights, amount, forLive=false){
     if(usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
     if(usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
     if(usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
-    list.push({name:p.name,pct:pct*100});
+    list.push({ key, name: p.name, pct: pct * 100 });
   }
   
   list.sort((a,b)=>b.pct-a.pct); 
