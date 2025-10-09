@@ -63,12 +63,19 @@
   .small{font-size:12px}
   .hide{display:none !important}
   
-  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-  .ipt{background:#0c1320;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
+  .omni-search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
+  #omniSearch{width:100%;}
 
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
   .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+  
+  th.sortable{cursor:pointer;}
+  th.sortable:hover{background-color: var(--panel2);}
+  th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
+  
+  .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
+  input.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
 
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn svg{width:18px;height:18px;stroke:#e5e7eb;stroke-width:2;fill:none}
@@ -98,8 +105,6 @@
     .main-nav {width: 100%; justify-content: space-around;}
     .actions{flex-direction:column; align-items:stretch; gap:12px;}
     .btn{width:100%; text-align:center;}
-    .filters{flex-direction:column; align-items:stretch;}
-    .filters .ipt, .filters .btn{width:100%;}
     .form-bottom-actions{justify-content:center !important;}
   }
   @media(max-width: 980px){
@@ -129,26 +134,53 @@
     <div class="hd"><h1>Erfassung</h1><p>Gewichtung anpassbar. Ungenutzte Kategorien werden auf die übrigen verteilt.</p></div>
     <div class="ct">
       <div class="grid-3">
-        <div><label for="auftraggeber">Auftraggeber *</label><input id="auftraggeber" type="text" autocomplete="organization"></div>
-        <div><label for="projekttitel">Projekttitel *</label><input id="projekttitel" type="text"></div>
-        <div><label for="auftragswert">Auftragswert (optional)</label><input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00"></div>
+        <div>
+          <label for="auftraggeber">Auftraggeber *</label>
+          <input id="auftraggeber" type="text" autocomplete="organization">
+          <div class="field-error" data-validation-for="auftraggeber"></div>
+        </div>
+        <div>
+          <label for="projekttitel">Projekttitel *</label>
+          <input id="projekttitel" type="text">
+          <div class="field-error" data-validation-for="projekttitel"></div>
+        </div>
+        <div>
+          <label for="auftragswert">Auftragswert (optional)</label>
+          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
+          <div class="field-error"></div>
+        </div>
       </div>
       <div class="grid-3" style="margin-top:10px">
-        <div><label for="submittedBy">Einschätzung abgegeben von *</label><input id="submittedBy" type="text" placeholder="Ihr Name"></div>
+        <div>
+          <label for="submittedBy">Einschätzung abgegeben von *</label>
+          <input id="submittedBy" type="text" placeholder="Ihr Name">
+          <div class="field-error" data-validation-for="submittedBy"></div>
+        </div>
       </div>
 
       <div class="hr"></div>
 
       <div class="grid-3">
-        <div><label>Gewicht: Consultative Selling (%)</label><input id="w_cs" type="number" min="0" max="100" step="1" value="50"></div>
-        <div><label>Gewicht: Konzepterstellung (%)</label><input id="w_konzept" type="number" min="0" max="100" step="1" value="30"></div>
-        <div><label>Gewicht: Pitch (%)</label><input id="w_pitch" type="number" min="0" max="100" step="1" value="20"></div>
+        <div>
+          <label>Gewicht: Consultative Selling (%)</label>
+          <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
+        </div>
+        <div>
+          <label>Gewicht: Konzepterstellung (%)</label>
+          <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
+        </div>
+        <div>
+          <label>Gewicht: Pitch (%)</label>
+          <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
+        </div>
       </div>
       <div class="note mono" id="w_note" style="margin-top:6px">Summe Gewichte: 100 %</div>
+      <div class="field-error" data-validation-for="weights"></div>
 
       <div class="hr"></div>
 
       <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow" style="width:auto;">+ Zeile</button></div>
+      <div class="field-error" data-validation-for="rows"></div>
 
       <datalist id="peopleList"></datalist>
 
@@ -167,7 +199,7 @@
       </div>
 
       <div class="sumchips" id="sumchips"></div>
-      <div class="errors" id="errors" style="color:#fecaca;margin-top:12px; font-weight: 600;"></div>
+      <div class="field-error" data-validation-for="categories"></div>
 
       <div class="hr"></div>
 
@@ -184,30 +216,23 @@
   </div>
 
   <div class="card hide" id="viewUebersicht">
-    <div class="hd"><h1>Übersicht</h1><p>Suche, Filter, Sort. Export .xlsx der gefilterten Ansicht.</p></div>
+    <div class="hd"><h1>Übersicht</h1><p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p></div>
     <div class="ct">
-      <div class="filters">
-        <input id="q" class="ipt" type="text" placeholder="Suchen (Titel, Auftraggeber)">
-        <select id="f_source" class="ipt"><option value="">Quelle: alle</option><option value="manuell">manuell</option><option value="hubspot">hubspot</option></select>
-        <select id="f_status" class="ipt"><option value="">Status: alle</option><option value="ok">vollständig</option><option value="bad">unvollständig</option></select>
-        <select id="f_sort" class="ipt">
-          <option value="ts_desc">Neueste</option><option value="ts_asc">Älteste</option>
-          <option value="amount_desc">Betrag absteigend</option><option value="amount_asc">Betrag aufsteigend</option>
-          <option value="title_asc">Titel A→Z</option><option value="title_desc">Titel Z→A</option>
-        </select>
-        <button class="btn" id="btnXlsx">Export XLSX</button>
+      <div class="omni-search-wrapper">
+        <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
+        <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
       </div>
 
       <div class="table-wrapper">
         <table>
           <thead><tr>
-            <th style="width:24%">Projekttitel</th>
-            <th style="width:18%">Auftraggeber</th>
-            <th style="width:10%">Quelle</th>
+            <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th style="width:14%">Status</th>
-            <th style="width:14%">Wert EUR</th>
-            <th style="width:14%">Zuletzt bearbeitet</th>
-            <th style="width:6%">Aktionen</th>
+            <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="ts">Zuletzt bearbeitet<span class="sort-icon"></span></th>
+            <th style="width:10%">Aktionen</th>
           </tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
@@ -313,7 +338,7 @@ const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumF
 const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
 const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
-const fmtOnly2 = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
 
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
@@ -351,7 +376,7 @@ navLinks.forEach(link => {
     } else if (viewName === 'admin') {
       handleAdminClick();
     } else if (viewName === 'erfassung') {
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !document.querySelector('#viewErfassung').classList.contains('hide')) {
         if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
           clearInputFields();
           initFromState();
@@ -400,7 +425,6 @@ function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===St
 /* ---------- Erfassung ---------- */
 const tbody = document.getElementById('tbody');
 const sumchips = document.getElementById('sumchips');
-const errorsEl = document.getElementById('errors');
 const auftraggeber = document.getElementById('auftraggeber');
 const projekttitel = document.getElementById('projekttitel');
 const auftragswert = document.getElementById('auftragswert');
@@ -462,47 +486,69 @@ function renderChips(t){
 }
 function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
 function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
-function validateInput(forLive=false){
-  const st=loadState()||{}; const isHubspot=st.source==='hubspot'&&!!st.editingId;
-  const errs=[];
-  if(!forLive) {
-    if(!isHubspot){
-      if(!auftraggeber.value.trim()) errs.push('Auftraggeber ist erforderlich.');
-      if(!projekttitel.value.trim()) errs.push('Projekttitel ist erforderlich.');
-      if(!submittedBy.value.trim())  errs.push('Einschätzung abgegeben von ist erforderlich.');
-    }
-    const any=readRows().some(r=>r.cs+r.konzept+r.pitch>0);
-    if(!any) errs.push('Mindestens eine Person mit Punkten erfassen.');
-  }
-  const rows=readRows();
-  rows.forEach((r,i)=>{ if((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
-  const t=totals(rows);
-  ['cs','konzept','pitch'].forEach(k=>{
-    if(t[k] > 100) errs.push(`Kategorie "${k}": Summe darf 100 nicht überschreiten (aktuell ${t[k]})`);
-    if(!forLive && t[k]!==0 && t[k]!==100) errs.push(`Kategorie "${k}": Summe muss exakt 0 ODER 100 sein (aktuell ${t[k]})`);
-  });
-  const sumW=currentWeights().reduce((a,c)=>a+Number(c.weight||0),0);
-  if(!forLive && sumW!==100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
-  if(forLive && sumW === 0) errs.push('Gewichte dürfen nicht 0 sein für Live-Berechnung');
 
-  return {ok:errs.length===0, errs, t, rows};
+function validateInput(forLive=false){
+  const errors = {};
+  if (!forLive) {
+    if (!auftraggeber.value.trim()) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+    if (!projekttitel.value.trim()) errors.projekttitel = 'Projekttitel ist erforderlich.';
+    if (!submittedBy.value.trim()) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+    if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
+  }
+
+  const t = totals(readRows());
+  let categoryErrors = [];
+  ['cs', 'konzept', 'pitch'].forEach(k => {
+    if (t[k] > 100) categoryErrors.push(`Summe ${k} > 100`);
+    if (!forLive && t[k] !== 0 && t[k] !== 100) categoryErrors.push(`Summe ${k} muss 0 oder 100 sein`);
+  });
+  if(categoryErrors.length > 0) errors.categories = categoryErrors.join('; ');
+
+
+  const sumW = currentWeights().reduce((a, c) => a + Number(c.weight || 0), 0);
+  if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+  if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+  
+  return errors;
 }
+
+function clearValidation(){
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
+}
+
+function displayValidation(errors){
+    clearValidation();
+    Object.keys(errors).forEach(key => {
+        const el = document.querySelector(`[data-validation-for="${key}"]`);
+        if (el) el.textContent = errors[key];
+        
+        const input = document.getElementById(key);
+        if(input) input.classList.add('invalid-field');
+    });
+}
+
 function recalc(){
-  const liveValidation = validateInput(true);
+  const liveErrors = validateInput(true);
   const liveAmount = parseAmountInput(auftragswert.value);
-  if (liveValidation.ok) {
-    const result = compute(liveValidation.rows, currentWeights(), liveAmount, true);
+  if (Object.keys(liveErrors).length === 0) {
+    const result = compute(readRows(), currentWeights(), liveAmount, true);
     updateLiveResults(result.list);
   } else {
     updateLiveResults([]);
   }
   
-  const finalValidation = validateInput(false);
-  renderChips(finalValidation.t);
-  errorsEl.innerHTML=finalValidation.ok?'':finalValidation.errs.map(e=>'• '+e).join('<br>');
+  const finalErrors = validateInput(false);
+  displayValidation(finalErrors);
+  renderChips(totals(readRows()));
 
-  if (finalValidation.ok) { btnSave.classList.remove('disabled'); btnSave.removeAttribute('aria-disabled'); }
-  else { btnSave.classList.add('disabled'); btnSave.setAttribute('aria-disabled', 'true'); }
+  if (Object.keys(finalErrors).length === 0) { 
+    btnSave.classList.remove('disabled'); 
+    btnSave.removeAttribute('aria-disabled'); 
+  } else { 
+    btnSave.classList.add('disabled'); 
+    btnSave.setAttribute('aria-disabled', 'true'); 
+  }
 }
 
 function updateLiveResults(resultList) {
@@ -551,7 +597,11 @@ auftragswert.addEventListener('blur',()=>{
 btnAddRow.addEventListener('click',()=>addRow(true));
 
 btnSave.addEventListener('click', async () => {
-  const v = validateInput(); if(!v.ok){recalc();return;}
+  const errors = validateInput(); 
+  if (Object.keys(errors).length > 0) {
+    displayValidation(errors);
+    return;
+  }
   hasUnsavedChanges = false;
   
   const st = loadState(); if(!st?.input) return;
@@ -578,6 +628,7 @@ btnSave.addEventListener('click', async () => {
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
 });
+
 
 function loadInputForm(inputData, isEditing = false) {
     auftraggeber.value = inputData.client || '';
@@ -627,8 +678,6 @@ function compute(rows, weights, amount, forLive=false){
   const list=[];
   for(const p of map.values()){
     let pct=0;
-    // Die Berechnung verwendet t.cs etc. als Divisor. Wenn dieser 0 ist, wird der Anteil 0. Das ist korrekt.
-    // Wenn forLive=true, verwenden wir die aktuelle Summe, auch wenn sie nicht 100 ist.
     const divCS = forLive ? (t.cs || 1) : 100;
     const divKonzept = forLive ? (t.konzept || 1) : 100;
     const divPitch = forLive ? (t.pitch || 1) : 100;
@@ -661,29 +710,85 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 
 /* ---------- Übersicht (Historie) + Export ---------- */
 const historyBody=document.getElementById('historyBody');
-const q=document.getElementById('q'), f_source=document.getElementById('f_source'), f_status=document.getElementById('f_status'), f_sort=document.getElementById('f_sort');
+const omniSearch = document.getElementById('omniSearch');
 const btnXlsx=document.getElementById('btnXlsx');
-let entries=[]; let pendingDeleteId=null;
+let entries=[]; 
+let pendingDeleteId=null;
+let currentSort = { key: 'ts', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Übersicht konnte nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
 function autoComplete(e){ return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0); }
+
 function filtered(){
-  const text=q.value.trim().toLowerCase(); const src=f_source.value; const stat=f_status.value; let arr=entries.slice();
-  if(text){arr=arr.filter(e=>String(e.title||'').toLowerCase().includes(text)||String(e.client||'').toLowerCase().includes(text));}
-  if(src){arr=arr.filter(e=>(e.source||'')===src);}
-  if(stat){const wantOk=stat==='ok'; arr=arr.filter(e=> wantOk?autoComplete(e):!autoComplete(e));}
-  switch(f_sort.value){
-    case 'ts_asc': arr.sort((a,b)=>(a.ts||0)-(b.ts||0)); break;
-    case 'ts_desc': arr.sort((a,b)=>(b.ts||0)-(a.ts||0)); break;
-    case 'amount_asc': arr.sort((a,b)=>(a.amount||0)-(b.amount||0)); break;
-    case 'amount_desc': arr.sort((a,b)=>(b.amount||0)-(a.amount||0)); break;
-    case 'title_asc': arr.sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'de')); break;
-    case 'title_desc': arr.sort((a,b)=>String(b.title||'').localeCompare(String(a.title||''),'de')); break;
+  let arr = entries.slice();
+  const query = omniSearch.value.trim().toLowerCase();
+  const terms = query.split(/\s+/);
+  
+  const filters = [];
+  const searchTerms = [];
+
+  terms.forEach(term => {
+    if (term.includes(':')) {
+      const [key, ...value] = term.split(':');
+      if (value.length > 0) {
+        filters.push({ key, value: value.join(':') });
+      }
+    } else {
+      searchTerms.push(term);
+    }
+  });
+
+  const searchText = searchTerms.join(' ');
+  if (searchText) {
+    arr = arr.filter(e => 
+      String(e.title || '').toLowerCase().includes(searchText) || 
+      String(e.client || '').toLowerCase().includes(searchText)
+    );
   }
+
+  filters.forEach(({ key, value }) => {
+    if (key === 'status') {
+      const wantOk = value.startsWith('v') || value.startsWith('o'); // vollständig / ok
+      arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+    }
+    if (key === 'quelle' || key === 'source') {
+      arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
+    }
+    if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
+      const num = parseFloat(value.substring(1));
+      if (!isNaN(num)) {
+        if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
+        if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
+      }
+    }
+  });
+
+  // Sortierung anwenden
+  arr.sort((a,b) => {
+    let valA = a[currentSort.key] || '';
+    let valB = b[currentSort.key] || '';
+    
+    if (currentSort.key === 'ts') {
+        valA = a.modified || a.ts || 0;
+        valB = b.modified || b.ts || 0;
+    }
+
+    let comparison = 0;
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      comparison = valA.localeCompare(valB, 'de');
+    } else {
+      comparison = valA - valB;
+    }
+    return currentSort.direction === 'asc' ? comparison : -comparison;
+  });
+
   return arr;
 }
+
 function renderHistory(){
-  historyBody.innerHTML=''; const arr=filtered();
+  historyBody.innerHTML=''; 
+  updateSortIcons();
+  const arr=filtered();
   for(const e of arr){
     const ok=autoComplete(e); const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const modified=e.modified? new Date(e.modified).toLocaleString('de-DE'): e.ts? new Date(e.ts).toLocaleString('de-DE'): '–';
@@ -692,13 +797,35 @@ function renderHistory(){
       <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${modified}</td>
       <td style="display:flex;gap:8px;align-items:center">
-        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>`;
     historyBody.appendChild(tr);
   }
 }
-[q,f_source,f_status,f_sort].forEach(el=>el.addEventListener('input',renderHistory));
+omniSearch.addEventListener('input', renderHistory);
+
+document.querySelectorAll('#viewUebersicht th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (currentSort.key === key) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.key = key;
+      currentSort.direction = (key === 'title' || key === 'client' || key === 'source') ? 'asc' : 'desc';
+    }
+    renderHistory();
+  });
+});
+
+function updateSortIcons() {
+  document.querySelectorAll('#viewUebersicht th.sortable .sort-icon').forEach(icon => icon.textContent = '');
+  const activeTh = document.querySelector(`#viewUebersicht th[data-sort="${currentSort.key}"] .sort-icon`);
+  if (activeTh) {
+    activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+    activeTh.style.opacity = 1;
+  }
+}
 
 historyBody.addEventListener('click', async(ev)=>{
   const btn=ev.target.closest('button[data-act]'); if(!btn) return;
