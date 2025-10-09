@@ -35,6 +35,7 @@
   input:disabled { background-color: #0a0f16; opacity: 0.6; }
   input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.35)}
   .note{color:var(--muted);font-size:13px; margin-top: 8px;}
+  .info-box{background: var(--panel2); border: 1px solid var(--border); padding: 12px; border-radius: 10px; font-size: 13px; color: var(--muted); margin-bottom: 16px;}
   .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
   .btn{appearance:none;border:1px solid var(--border);background:#0d1426;color:var(--text);padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600; font-size:15px;}
   .btn.primary{background:var(--accent);border-color:transparent}
@@ -139,8 +140,9 @@
   </div>
 
   <div class="card" id="viewErfassung">
-    <div class="hd"><h1>Erfassung</h1><p>Gewichtung anpassbar. Ungenutzte Kategorien werden auf die übrigen verteilt.</p></div>
+    <div class="hd"><h1>Erfassung</h1><p id="erfassungSub">Neuen Auftrag oder Rahmenvertrag anlegen.</p></div>
     <div class="ct">
+      <div id="abrufInfo" class="info-box hide"></div>
       <div class="grid-3">
         <div>
           <label for="auftraggeber">Auftraggeber *</label>
@@ -168,7 +170,7 @@
           <input id="submittedBy" list="peopleList" placeholder="Namen eintippen oder auswählen...">
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
-        <div>
+        <div id="projectTypeWrapper">
           <label>Projekttyp *</label>
           <div class="radio-group">
             <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
@@ -260,19 +262,40 @@
   </div>
   
   <div class="card hide" id="viewRahmen">
-    <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren.</p></div>
+    <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p></div>
     <div class="ct">
        <div class="table-wrapper">
         <table>
           <thead><tr>
             <th style="width:15%">Projektnummer</th>
-            <th style="width:25%">Projekttitel</th>
+            <th style="width:30%">Projekttitel</th>
             <th style="width:20%">Kunde</th>
-            <th style="width:15%">Aktueller Wert</th>
-            <th style="width:10%">Zuletzt am</th>
-            <th style="width:15%">Aktionen</th>
+            <th style="width:15%">Gesamtwert</th>
+            <th style="width:20%">Aktionen</th>
           </tr></thead>
           <tbody id="rahmenBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card hide" id="viewRahmenDetails">
+    <div class="hd"><h1 id="rahmenDetailsTitle"></h1><p id="rahmenDetailsSub"></p></div>
+    <div class="ct">
+      <button class="btn" id="backToRahmen" style="margin-bottom: 16px;">← Zurück zur Übersicht</button>
+      <h3>Gründer-Team (initiale Verteilung)</h3>
+      <div class="table-wrapper">
+        <table style="min-width:auto;">
+          <thead><tr><th>Person</th><th>Anteil</th></tr></thead>
+          <tbody id="rahmenFoundersBody"></tbody>
+        </table>
+      </div>
+      <div class="hr"></div>
+      <h3>Transaktions-Historie</h3>
+       <div class="table-wrapper">
+        <table style="min-width:auto;">
+          <thead><tr><th>Datum</th><th>Typ</th><th>Titel/Notiz</th><th>Wert</th><th>Aktionen</th></tr></thead>
+          <tbody id="rahmenTransaktionenBody"></tbody>
         </table>
       </div>
     </div>
@@ -351,14 +374,14 @@
   </div>
 </dialog>
 
-<dialog id="updateValueDlg">
-  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong id="updateValueTitle">Wert aktualisieren</strong></div>
+<dialog id="addFounderValueDlg">
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Passiven Abruf hinzufügen</strong></div>
   <div class="ct" style="padding:16px">
-    <label for="newValueInput">Neuer Gesamtwert (EUR)</label>
-    <input type="text" id="newValueInput" inputmode="decimal">
+    <label for="founderValueInput">Hinzukommender Wert (EUR)</label>
+    <input type="text" id="founderValueInput" inputmode="decimal">
     <div style="display:flex;gap:10px;justify-content:flex-end; margin-top: 16px;">
-      <button class="btn" id="btnUpdateCancel">Abbrechen</button>
-      <button class="btn ok" id="btnUpdateSave">Speichern</button>
+      <button class="btn" id="btnFounderCancel">Abbrechen</button>
+      <button class="btn ok" id="btnFounderSave">Speichern</button>
     </div>
   </div>
 </dialog>
@@ -373,6 +396,7 @@ const TEAMS = [
 ];
 const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
 const CATEGORY_NAMES = {cs: "Consultative Selling", konzept: "Konzepterstellung", pitch: "Pitch"};
+const FOUNDER_SHARE_PCT = 20;
 
 
 /* ---------- Hilfsfunktionen & UI-Feedback ---------- */
@@ -404,7 +428,7 @@ function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
 /* ---------- Navigation ---------- */
-const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
+const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
 function showView(viewName) {
@@ -552,9 +576,10 @@ function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=
 
 function validateInput(forLive = false) {
     const errors = {};
+    const st = loadState() || {};
     if (!forLive) {
-        if (!auftraggeber.value.trim()) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
-        if (!projekttitel.value.trim()) errors.projekttitel = 'Projekttitel ist erforderlich.';
+        if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+        if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
         if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
@@ -658,7 +683,7 @@ function saveCurrentInputState() {
         submittedBy: submittedBy.value,
         projectNumber: projectNumber.disabled ? stPrev?.input?.projectNumber || '' : projectNumber.value.trim()
     };
-    saveState({ source: stPrev.source || 'manuell', editingId: stPrev.editingId || null, input: currentInput });
+    saveState({ ...stPrev, input: currentInput });
 }
 
 [auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
@@ -692,6 +717,17 @@ btnSave.addEventListener('click', async () => {
   hasUnsavedChanges = false;
   
   const st = loadState(); if(!st?.input) return;
+
+  if (st.isAbrufMode) {
+    // Save as a "Hunter" transaction on a framework contract
+    await saveHunterAbruf(st);
+  } else {
+    // Save as a new Fixauftrag or Rahmenvertrag
+    await saveNewEntry(st);
+  }
+});
+
+async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
   const resultData = compute(st.input.rows, st.input.weights, finalAmount);
   const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
@@ -703,7 +739,8 @@ btnSave.addEventListener('click', async () => {
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined
+    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined,
+    transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
   showLoader();
   try{
@@ -713,15 +750,39 @@ btnSave.addEventListener('click', async () => {
     if(!r.ok) throw new Error(await r.text());
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     clearInputFields();
-    loadHistory().then(()=>showView('fixauftraege'));
+    if(payload.projectType === 'rahmen') {
+        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
+    } else {
+        loadHistory().then(()=>showView('fixauftraege'));
+    }
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
-});
+}
 
 
 function loadInputForm(inputData, isEditing = false) {
-    auftraggeber.value = inputData.client || '';
-    projekttitel.value = inputData.title || '';
+    const st = loadState() || {};
+    const abrufInfo = document.getElementById('abrufInfo');
+    const erfsfassungSub = document.getElementById('erfassungSub');
+    const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+
+    if (st.isAbrufMode && st.parentEntry) {
+        abrufInfo.classList.remove('hide');
+        abrufInfo.innerHTML = `Sie erfassen einen <b>aktiven Abruf</b> für den Rahmenvertrag: <b>${st.parentEntry.title}</b>. <br> ${100 - FOUNDER_SHARE_PCT}% des Werts werden auf die hier erfassten Personen verteilt.`;
+        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
+        projectTypeWrapper.classList.add('hide');
+        auftraggeber.value = st.parentEntry.client;
+        auftraggeber.disabled = true;
+        projekttitel.value = inputData.title || '';
+    } else {
+        abrufInfo.classList.add('hide');
+        erfsfassungSub.textContent = "Neuen Auftrag oder Rahmenvertrag anlegen.";
+        projectTypeWrapper.classList.remove('hide');
+        auftraggeber.value = inputData.client || '';
+        auftraggeber.disabled = false;
+        projekttitel.value = inputData.title || '';
+    }
+
     auftragswertBekannt.checked = inputData.amountKnown !== false;
     auftragswert.disabled = !auftragswertBekannt.checked;
     auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
@@ -811,7 +872,7 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 }
 
 
-/* ---------- Übersicht (Historie) & Rahmenverträge ---------- */
+/* ---------- Übersicht & Rahmenverträge ---------- */
 const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
 const btnXlsx=document.getElementById('btnXlsx');
@@ -977,26 +1038,25 @@ btnXlsx.addEventListener('click',()=>{
 
 /* Rahmenverträge */
 const rahmenBody = document.getElementById('rahmenBody');
-const updateValueDlg = document.getElementById('updateValueDlg');
-const newValueInput = document.getElementById('newValueInput');
-let currentUpdateEntryId = null;
+const addFounderValueDlg = document.getElementById('addFounderValueDlg');
+const founderValueInput = document.getElementById('founderValueInput');
+let currentFrameworkEntryId = null;
 
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
   const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
   for (const e of rahmenEntries) {
-    const modified = e.modified ? new Date(e.modified).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
     const tr = document.createElement('tr');
+    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, e.amount || 0);
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
       <td>${e.title || '–'}</td>
       <td>${e.client || '–'}</td>
-      <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
-      <td>${modified}</td>
+      <td>${fmtCurr2.format(totalValue)}</td>
       <td style="display:flex;gap:8px;align-items:center">
-        <button class="btn primary" data-act="update-val" data-id="${e.id}">Wert</button>
-        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        <button class="btn ok" data-act="founder-plus" data-id="${e.id}" title="Passiver Abruf">+ Founder</button>
+        <button class="btn primary" data-act="hunter-plus" data-id="${e.id}" title="Aktiver Abruf">+ Hunter</button>
+        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten/Details"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
       </td>
     `;
     rahmenBody.appendChild(tr);
@@ -1007,56 +1067,128 @@ rahmenBody.addEventListener('click', (e) => {
   if (!btn) return;
   const act = btn.dataset.act;
   const id = btn.dataset.id;
-  
-  if (act === 'update-val') {
-    currentUpdateEntryId = id;
-    const entry = entries.find(en => en.id === currentUpdateEntryId);
-    if (entry) {
-      document.getElementById('updateValueTitle').textContent = `Wert für "${entry.title}"`;
-      newValueInput.value = entry.amount > 0 ? formatAmountInput(entry.amount) : '';
-      updateValueDlg.showModal();
-    }
-  } else if (act === 'edit') {
-    editEntry(id);
-  } else if (act === 'del') {
-    handleDeleteClick(id);
-  }
-});
-document.getElementById('btnUpdateCancel').addEventListener('click', () => updateValueDlg.close());
-document.getElementById('btnUpdateSave').addEventListener('click', async () => {
-  const newAmount = parseAmountInput(newValueInput.value);
-  if (newAmount <= 0) {
-    showToast('Bitte einen gültigen Wert > 0 eingeben.', 'bad');
-    return;
-  }
-  
-  const entry = entries.find(en => en.id === currentUpdateEntryId);
+  currentFrameworkEntryId = id;
+  const entry = entries.find(en => en.id === id);
   if (!entry) return;
   
-  entry.amount = newAmount;
-  entry.modified = Date.now();
-
-  showLoader();
-  try {
-    const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentUpdateEntryId)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entry)
-    });
-    if (!r.ok) throw new Error(await r.text());
-    
-    showToast('Wert aktualisiert', 'ok');
-    renderFrameworkContracts();
-    updateValueDlg.close();
-  } catch(err) {
-    showToast('Update fehlgeschlagen', 'bad');
-    console.error(err);
-    // Rollback local change if API call fails
-    entry.amount = parseAmountInput(document.getElementById('newValueInput').value);
-  } finally {
-    hideLoader();
+  if (act === 'founder-plus') {
+    founderValueInput.value = '';
+    addFounderValueDlg.showModal();
+  } else if (act === 'hunter-plus') {
+    saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{} });
+    initFromState();
+    showView('erfassung');
+  } else if (act === 'edit') {
+    renderRahmenDetails(id);
+    showView('rahmenDetails');
   }
 });
+document.getElementById('btnFounderCancel').addEventListener('click', () => addFounderValueDlg.close());
+document.getElementById('btnFounderSave').addEventListener('click', async () => {
+    const addedAmount = parseAmountInput(founderValueInput.value);
+    if (addedAmount <= 0) { return showToast('Bitte einen Wert > 0 eingeben.', 'bad'); }
+    
+    const entry = entries.find(en => en.id === currentFrameworkEntryId);
+    if (!entry) return;
+
+    if (!Array.isArray(entry.transactions)) { entry.transactions = []; }
+    entry.transactions.push({
+        id: `trans_${Date.now()}`,
+        type: 'founder',
+        amount: addedAmount,
+        ts: Date.now()
+    });
+    entry.modified = Date.now();
+
+    showLoader();
+    try {
+        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentFrameworkEntryId)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Passiver Abruf hinzugefügt', 'ok');
+        renderFrameworkContracts();
+        addFounderValueDlg.close();
+    } catch(err) {
+        showToast('Update fehlgeschlagen', 'bad');
+        entry.transactions.pop(); // Rollback local change
+        console.error(err);
+    } finally {
+        hideLoader();
+    }
+});
+
+async function saveHunterAbruf(st) {
+    const parentEntry = entries.find(e => e.id === st.parentEntry.id);
+    if (!parentEntry) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
+    
+    const abrufAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+    const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
+
+    if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
+    parentEntry.transactions.push({
+        id: `trans_${Date.now()}`,
+        type: 'hunter',
+        title: st.input.title,
+        amount: abrufAmount,
+        ts: Date.now(),
+        submittedBy: st.input.submittedBy,
+        rows: st.input.rows,
+        list: resultData.list, // List already has money calculated on the hunter's share
+        weights: resultData.effectiveWeights
+    });
+    parentEntry.modified = Date.now();
+
+    showLoader();
+    try {
+        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Aktiver Abruf hinzugefügt', 'ok');
+        clearInputFields();
+        renderFrameworkContracts();
+        showView('rahmen');
+    } catch (e) {
+        showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
+        parentEntry.transactions.pop();
+        console.error(e);
+    } finally {
+        hideLoader();
+    }
+}
+
+/* Rahmenvertrag Details */
+document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
+function renderRahmenDetails(id) {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+
+    document.getElementById('rahmenDetailsTitle').textContent = entry.title;
+    document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''}`;
+    
+    const foundersBody = document.getElementById('rahmenFoundersBody');
+    foundersBody.innerHTML = '';
+    entry.list.forEach(founder => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
+        foundersBody.appendChild(tr);
+    });
+
+    const transBody = document.getElementById('rahmenTransaktionenBody');
+    transBody.innerHTML = '';
+    (entry.transactions || []).forEach(trans => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${new Date(trans.ts).toLocaleDateString('de-DE')}</td>
+            <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
+            <td>${trans.title || '–'}</td>
+            <td>${fmtCurr2.format(trans.amount)}</td>
+            <td>-</td> 
+        `; // Edit/Delete for transactions to be implemented
+        transBody.appendChild(tr);
+    });
+}
 
 
 /* ---------- Admin ---------- */
@@ -1130,13 +1262,35 @@ function renderAnalytics() {
 
   const per = new Map();
   entries.forEach(e => {
-    const when = e.closedate ?? e.modified ?? e.ts ?? 0;
-    if (!(when >= start && when < end)) return;
-    const amount = e.amount || 0; if (amount <= 0) return;
-    if (Array.isArray(e.list)) {
-      e.list.forEach(x => { const key = x.name || 'Unbekannt'; const money = Math.round(amount * (x.pct || 0) / 100); per.set(key, (per.get(key) || 0) + money); });
+    if(e.projectType === 'fix') {
+        const when = e.ts || 0;
+        if (!(when >= start && when < end)) return;
+        const amount = e.amount || 0; if (amount <= 0) return;
+        if (Array.isArray(e.list)) {
+          e.list.forEach(x => { const key = x.name || 'Unbekannt'; const money = Math.round(amount * (x.pct || 0) / 100); per.set(key, (per.get(key) || 0) + money); });
+        }
+    } else if (e.projectType === 'rahmen') {
+        // Founder share from initial amount
+        const initialWhen = e.ts || 0;
+        if (initialWhen >= start && initialWhen < end && e.amount > 0) {
+            e.list.forEach(x => { const key = x.name; const money = Math.round(e.amount * (x.pct / 100)); per.set(key, (per.get(key) || 0) + money); });
+        }
+        // Transactions
+        (e.transactions || []).forEach(trans => {
+            const transWhen = trans.ts || 0;
+            if (!(transWhen >= start && transWhen < end)) return;
+            if (trans.type === 'founder') {
+                e.list.forEach(x => { const key = x.name; const money = Math.round(trans.amount * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+            } else if (trans.type === 'hunter') {
+                const founderShare = trans.amount * (FOUNDER_SHARE_PCT / 100);
+                const hunterShare = trans.amount - founderShare;
+                e.list.forEach(x => { const key = x.name; const money = Math.round(founderShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+                trans.list.forEach(x => { const key = x.name; const money = Math.round(hunterShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+            }
+        });
     }
   });
+  
   const perArr = Array.from(per, ([name, val]) => ({ name, val })).sort((a, b) => b.val - a.val).slice(0, 20);
   drawBars('chartPersons', perArr);
   analyticsData.persons = perArr;
