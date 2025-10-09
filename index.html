@@ -87,6 +87,13 @@
   .iconbtn:hover{background:var(--panel2);}
   .iconbtn[data-act="del"] svg{stroke-width:1.5;fill:rgba(239,68,68,.8)}
   .iconbtn[data-act="edit"] svg{stroke-width:1.5}
+  
+  .explanation details {border:1px solid var(--border); border-radius:12px; margin-bottom:16px; background:var(--panel2);}
+  .explanation summary {padding:12px; font-weight:700; cursor:pointer;}
+  .explanation .content {padding:0 12px 12px; font-size:14px; line-height:1.5;}
+  .explanation .content p {margin:0 0 10px;}
+  .explanation .content h4 {margin:12px 0 4px; color:var(--text);}
+
 
   .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:14px}
   .chart h3{margin:0 0 10px 0;font-size:15px;color:#cbd5e1}
@@ -264,14 +271,28 @@
   <div class="card hide" id="viewRahmen">
     <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p></div>
     <div class="ct">
+       <div class="explanation">
+         <details>
+           <summary>Das Founder & Hunter Modell</summary>
+           <div class="content">
+             <p>Rahmenverträge sind dynamisch. Um sowohl den Gewinn des ursprünglichen Vertrags als auch die Akquise neuer Aufträge innerhalb dieses Vertrags fair zu belohnen, nutzen wir das Zwei-Säulen-Modell "Founder & Hunter".</p>
+             <h4>Die Rollen</h4>
+             <p><b>Founder (Gründer):</b> Das Team, das die strategische Vorarbeit leistet und den ursprünglichen Rahmenvertrag gewinnt.<br>
+             <b>Hunter (Jäger):</b> Das Team oder die Person, die aktiv einen neuen, konkreten Auftrag (Abruf) aus einem bestehenden Rahmenvertrag generiert.</p>
+             <h4>Zwei Arten von Umsätzen & ihre Verteilung</h4>
+             <p><b>1. Passiver Abruf ("Founder +"):</b> Der Kunde kommt von sich aus auf uns zu. 100% dieses neuen Auftragswertes werden dem ursprünglichen Founder-Team zugerechnet.</p>
+             <p><b>2. Aktiver Abruf ("Hunter +"):</b> Ein Mitarbeiter leistet aktive Vertriebsarbeit. Der Auftragswert wird gesplittet: 20% gehen als "Grund-Provision" an das Founder-Team. Die restlichen 80% bilden die neue 100%-Basis für das Hunter-Team.</p>
+           </div>
+         </details>
+       </div>
        <div class="table-wrapper">
         <table>
           <thead><tr>
             <th style="width:15%">Projektnummer</th>
-            <th style="width:30%">Projekttitel</th>
+            <th style="width:25%">Projekttitel</th>
             <th style="width:20%">Kunde</th>
             <th style="width:15%">Gesamtwert</th>
-            <th style="width:20%">Aktionen</th>
+            <th style="width:25%">Aktionen</th>
           </tr></thead>
           <tbody id="rahmenBody"></tbody>
         </table>
@@ -364,9 +385,9 @@
 </div>
 
 <dialog id="confirmDlg">
-  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Transaktion löschen</strong></div>
   <div class="ct" style="padding:16px">
-    <p>Wollen Sie den Eintrag wirklich löschen?</p>
+    <p>Wollen Sie diese Transaktion wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="btn" id="btnNo">Abbrechen</button>
       <button class="btn danger" id="btnYes">Löschen</button>
@@ -719,45 +740,11 @@ btnSave.addEventListener('click', async () => {
   const st = loadState(); if(!st?.input) return;
 
   if (st.isAbrufMode) {
-    // Save as a "Hunter" transaction on a framework contract
     await saveHunterAbruf(st);
   } else {
-    // Save as a new Fixauftrag or Rahmenvertrag
     await saveNewEntry(st);
   }
 });
-
-async function saveNewEntry(st) {
-  const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
-  const resultData = compute(st.input.rows, st.input.weights, finalAmount);
-  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
-
-  const payload={
-    source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
-    title:st.input.title||'', amount:finalAmount, 
-    projectType: st.input.projectType || 'fix',
-    rows: st.input.rows || [],
-    list:resultData.list||[],
-    totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined,
-    transactions: st.input.projectType === 'rahmen' ? [] : undefined
-  };
-  showLoader();
-  try{
-    const method = st.editingId ? 'PUT' : 'POST';
-    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
-    const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-    if(!r.ok) throw new Error(await r.text());
-    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
-    clearInputFields();
-    if(payload.projectType === 'rahmen') {
-        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
-    } else {
-        loadHistory().then(()=>showView('fixauftraege'));
-    }
-  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
-  finally{ hideLoader(); }
-}
 
 
 function loadInputForm(inputData, isEditing = false) {
@@ -1056,7 +1043,7 @@ function renderFrameworkContracts() {
       <td style="display:flex;gap:8px;align-items:center">
         <button class="btn ok" data-act="founder-plus" data-id="${e.id}" title="Passiver Abruf">+ Founder</button>
         <button class="btn primary" data-act="hunter-plus" data-id="${e.id}" title="Aktiver Abruf">+ Hunter</button>
-        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten/Details"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="details" data-id="${e.id}" title="Details/Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path fill="currentColor" d="M380-240q-25 0-42.5-17.5T320-300q0-25 17.5-42.5T380-360q25 0 42.5 17.5T440-300q0 25-17.5 42.5T380-240Zm200 0q-25 0-42.5-17.5T520-300q0-25 17.5-42.5T580-360q25 0 42.5 17.5T640-300q0 25-17.5 42.5T580-240ZM120-120v-80h720v80H120Zm60-200v-360q0-25 17.5-42.5T240-740h480q25 0 42.5 17.5T800-680v360L700-420H260L180-320Z"/></svg></button>
       </td>
     `;
     rahmenBody.appendChild(tr);
@@ -1078,7 +1065,7 @@ rahmenBody.addEventListener('click', (e) => {
     saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{} });
     initFromState();
     showView('erfassung');
-  } else if (act === 'edit') {
+  } else if (act === 'details') {
     renderRahmenDetails(id);
     showView('rahmenDetails');
   }
@@ -1134,7 +1121,7 @@ async function saveHunterAbruf(st) {
         ts: Date.now(),
         submittedBy: st.input.submittedBy,
         rows: st.input.rows,
-        list: resultData.list, // List already has money calculated on the hunter's share
+        list: resultData.list, 
         weights: resultData.effectiveWeights
     });
     parentEntry.modified = Date.now();
@@ -1262,7 +1249,7 @@ function renderAnalytics() {
 
   const per = new Map();
   entries.forEach(e => {
-    if(e.projectType === 'fix') {
+    if((e.projectType || 'fix') === 'fix') {
         const when = e.ts || 0;
         if (!(when >= start && when < end)) return;
         const amount = e.amount || 0; if (amount <= 0) return;
@@ -1285,7 +1272,7 @@ function renderAnalytics() {
                 const founderShare = trans.amount * (FOUNDER_SHARE_PCT / 100);
                 const hunterShare = trans.amount - founderShare;
                 e.list.forEach(x => { const key = x.name; const money = Math.round(founderShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
-                trans.list.forEach(x => { const key = x.name; const money = Math.round(hunterShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+                (trans.list || []).forEach(x => { const key = x.name; const money = Math.round(hunterShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
             }
         });
     }
