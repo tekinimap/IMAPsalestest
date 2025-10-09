@@ -14,18 +14,13 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
   .container{max-width:1200px;margin:28px auto;padding:0 16px}
-  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .toplinks{display:flex;gap:10px}
-  .linktiny{font-size:12px;color:#cbd5e1;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer}
-  .linktiny.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
-
-  .stepper{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-  .step{flex:1;display:flex;align-items:center;gap:10px;background:#0d162a;border:1px solid var(--border);padding:10px 12px;border-radius:12px}
-  .step.active{outline:2px solid var(--accent)}
-  .idx{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;background:#0c1324;border:1px solid var(--border);font-weight:700}
-  .ttl{font-weight:700}.sub{color:var(--muted);font-size:12px}.grow{flex:1}
-  .linkbtn{appearance:none;border:1px solid var(--border);background:#0b1326;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:600}
-  .linkbtn.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
+  
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
+  .main-nav{display:flex;gap:10px}
+  .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
+  .nav-link:hover{background-color: var(--panel2);}
+  .nav-link.active{background:var(--accent); color: var(--text); border-color: var(--accent);}
+  .nav-link.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
 
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:18px}
   .hd{padding:20px 22px 8px}.hd h1{margin:0 0 8px;font-size:24px}.hd p{margin:0;color:var(--muted);font-size:14px}
@@ -67,12 +62,7 @@
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
   .small{font-size:12px}
   .hide{display:none !important}
-  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  .kpi .box{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:14px}
-  .kpi .box h3{margin:0;font-size:13px;color:var(--muted)}
-  .kpi .box p{margin:4px 0 0;font-size:20px;font-weight:700}
-  .pill{background:#0e1a33;border:1px solid var(--border);padding:8px 12px;border-radius:999px;font-size:13px}
-
+  
   .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
   .ipt{background:#0c1320;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 10px}
 
@@ -103,9 +93,9 @@
     .container{margin:16px auto; padding:0 12px;}
     .hd{padding:16px 18px 4px} .hd h1{font-size:20px} .hd p{font-size:13px}
     .ct{padding:16px 18px 20px}
-    .grid-3, .kpi{grid-template-columns:1fr;}
-    .stepper{flex-direction:column; align-items:stretch;}
+    .grid-3{grid-template-columns:1fr;}
     .topbar{flex-direction:column; gap:10px; align-items:flex-start;}
+    .main-nav {width: 100%; justify-content: space-around;}
     .actions{flex-direction:column; align-items:stretch; gap:12px;}
     .btn{width:100%; text-align:center;}
     .filters{flex-direction:column; align-items:stretch;}
@@ -127,19 +117,15 @@
 
   <div class="topbar">
     <div style="font-weight:700; font-size: 18px;">Sales-Beteiligung</div>
-    <div class="toplinks">
-      <button class="linktiny" id="lnkAnalytics">Auswertung</button>
-      <button class="linktiny" id="lnkAdmin">Admin</button>
+    <div class="main-nav">
+      <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
+      <a href="#" class="nav-link" data-view="uebersicht">Übersicht</a>
+      <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
+      <a href="#" class="nav-link" data-view="admin">Admin</a>
     </div>
   </div>
 
-  <div class="stepper">
-    <div class="step" id="step1"><div class="idx">1</div><div class="grow"><div class="ttl">Erfassung</div><div class="sub">Daten + Gewichtung</div></div><button class="linkbtn" data-nav="1">Öffnen</button></div>
-    <div class="step" id="step2"><div class="idx">2</div><div class="grow"><div class="ttl">Ergebnis</div><div class="sub">Prozent + Geldwert</div></div><button class="linkbtn disabled" id="step2btn" data-nav="2" aria-disabled="true">Öffnen</button></div>
-    <div class="step" id="step3"><div class="idx">3</div><div class="grow"><div class="ttl">Historie</div><div class="sub">Quelle, Vollständigkeit</div></div><button class="linkbtn" data-nav="3">Öffnen</button></div>
-  </div>
-
-  <div class="card" id="view1">
+  <div class="card" id="viewErfassung">
     <div class="hd"><h1>Erfassung</h1><p>Gewichtung anpassbar. Ungenutzte Kategorien werden auf die übrigen verteilt.</p></div>
     <div class="ct">
       <div class="grid-3">
@@ -191,44 +177,14 @@
           <input id="projectNumber" type="text" disabled placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions" style="padding: 8px 12px; width: 200px;">
         </div>
         <div style="display:flex;gap:10px; flex-grow: 1; justify-content: flex-end;">
-          <button class="btn" id="toHistory">Zur Historie</button>
-          <button class="btn primary disabled" id="toResult">Abschicken & Ergebnis</button>
+          <button class="btn primary disabled" id="btnSave">Speichern</button>
         </div>
       </div>
     </div>
   </div>
 
-
-  <div class="card hide" id="view2">
-    <div class="hd"><h1>Ergebnis</h1><p>Prozentuale Beteiligung und monetäre Anteile.</p></div>
-    <div class="ct">
-      <div class="kpi">
-        <div class="box"><h3>Auftraggeber</h3><p id="kpiAG">–</p></div>
-        <div class="box"><h3>Projekttitel</h3><p id="kpiPT">–</p></div>
-        <div class="box"><h3>Auftragswert</h3><p id="kpiAmt">–</p></div>
-      </div>
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <span class="pill" id="pillWeights">Gewichtung –</span>
-        <span class="pill" id="pillComplete">Status: –</span>
-      </div>
-      <div class="table-wrapper" style="margin-top:14px">
-        <table>
-          <thead><tr><th>Person</th><th>Gesamtbeitrag %</th><th>Geldwert EUR</th></tr></thead>
-          <tbody id="resultBody"></tbody>
-        </table>
-      </div>
-      <div class="mono small" id="sumCheck" style="margin-top:8px">Summe: 0,00 %</div>
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px;flex-wrap: wrap;">
-        <button class="btn" id="backToEdit">Zurück zur Bearbeitung</button>
-        <button class="btn ok" id="saveToHistory">In Historie speichern</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card hide" id="view3">
-    <div class="hd"><h1>Historie</h1><p>Suche, Filter, Sort. Export .xlsx der gefilterten Ansicht.</p></div>
+  <div class="card hide" id="viewUebersicht">
+    <div class="hd"><h1>Übersicht</h1><p>Suche, Filter, Sort. Export .xlsx der gefilterten Ansicht.</p></div>
     <div class="ct">
       <div class="filters">
         <input id="q" class="ipt" type="text" placeholder="Suchen (Titel, Auftraggeber)">
@@ -257,8 +213,6 @@
         </table>
       </div>
 
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px"><button class="btn" id="backToInput2">Neue Erfassung</button></div>
     </div>
   </div>
 
@@ -297,7 +251,7 @@
   </div>
 
   <div class="card hide" id="viewAnalytics">
-    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Historie.</p></div>
+    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Übersicht.</p></div>
     <div class="ct">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px; flex-wrap: wrap;">
         <label>Jahr</label>
@@ -364,52 +318,68 @@ const fmtOnly2 = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumF
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
 function parseAmountInput(str){if(!str)return 0;const clean=String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');const n=Number(clean);return Number.isFinite(n)?n:0;}
-function formatAmountDisplay(v){return fmtCurr2.format((+v)||0);}
-function formatAmountInput(v){return fmtOnly2.format((+v)||0);}
 
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
 /* ---------- Navigation ---------- */
-const views = {v1: document.getElementById('view1'),v2: document.getElementById('view2'),v3: document.getElementById('view3'),admin: document.getElementById('viewAdmin'),analytics: document.getElementById('viewAnalytics'),};
-const steps = [document.getElementById('step1'),document.getElementById('step2'),document.getElementById('step3')];
-const step2btn = document.getElementById('step2btn');
+const views = { erfassung: document.getElementById('viewErfassung'), uebersicht: document.getElementById('viewUebersicht'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
+const navLinks = document.querySelectorAll('.nav-link');
 
-function show(view){
-  Object.values(views).forEach(v=>v.classList.add('hide'));
-  steps.forEach(s=>s.classList.remove('active'));
-  if(view==='v1') steps[0].classList.add('active');
-  if(view==='v2') steps[1].classList.add('active');
-  if(view==='v3') steps[2].classList.add('active');
-  views[view].classList.remove('hide');
+function showView(viewName) {
+  Object.values(views).forEach(v => v.classList.add('hide'));
+  navLinks.forEach(l => l.classList.remove('active'));
+  
+  if (views[viewName]) {
+    views[viewName].classList.remove('hide');
+    const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
+    if (activeLink) activeLink.classList.add('active');
+  }
   window.scrollTo(0,0);
 }
 
-document.querySelectorAll('.linkbtn[data-nav]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    if (btn.classList.contains('disabled')) return;
-    const n=Number(btn.getAttribute('data-nav'));
-    if(n===1) { initFromState(); show('v1'); }
-    if(n===2){buildResult();show('v2');}
-    if(n===3){loadHistory().then(()=>show('v3')); }
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const viewName = e.target.getAttribute('data-view');
+    
+    if (viewName === 'uebersicht') {
+      loadHistory().then(() => showView('uebersicht'));
+    } else if (viewName === 'analytics') {
+      loadHistory().then(() => { renderAnalytics(); showView('analytics'); });
+    } else if (viewName === 'admin') {
+      handleAdminClick();
+    } else if (viewName === 'erfassung') {
+      if (hasUnsavedChanges) {
+        if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
+          clearInputFields();
+          initFromState();
+          showView('erfassung');
+        }
+      } else {
+        clearInputFields();
+        initFromState();
+        showView('erfassung');
+      }
+    }
   });
 });
 
-document.getElementById('lnkAnalytics').addEventListener('click',()=>{loadHistory().then(()=>{renderAnalytics();show('analytics');});});
-document.getElementById('lnkAdmin').addEventListener('click', async () => {
-    const pw = prompt("Bitte Passwort für Admin eingeben:");
-    const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
-    if (!ok) { showToast('Falsches Passwort.', 'bad'); return; }
-    try { 
-      showLoader();
-      await loadPeople(); 
-      renderPeopleAdmin(); 
-      show('admin'); 
-    }
-    catch(e){ console.error('Admin init failed',e); showToast('Konnte Admin-Daten nicht laden.', 'bad'); }
-    finally { hideLoader(); }
-});
+async function handleAdminClick() {
+  const pw = prompt("Bitte Passwort für Admin eingeben:");
+  const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
+  if (!ok) { showToast('Falsches Passwort.', 'bad'); return; }
+  try { 
+    showLoader();
+    await loadPeople(); 
+    renderPeopleAdmin(); 
+    showView('admin'); 
+  }
+  catch(e){ console.error('Admin init failed',e); showToast('Konnte Admin-Daten nicht laden.', 'bad'); }
+  finally { hideLoader(); }
+}
+
 
 /* ---------- People ---------- */
 let people = [];
@@ -441,8 +411,7 @@ const w_konzept = document.getElementById('w_konzept');
 const w_pitch = document.getElementById('w_pitch');
 const w_note = document.getElementById('w_note');
 const btnAddRow = document.getElementById('btnAddRow');
-const btnToResult = document.getElementById('toResult');
-const btnToHistory = document.getElementById('toHistory');
+const btnSave = document.getElementById('btnSave');
 
 function rowTemplate(){
   const tr=document.createElement('tr');
@@ -509,31 +478,31 @@ function validateInput(forLive=false){
   rows.forEach((r,i)=>{ if((r.cs+r.konzept+r.pitch>0) && !r.name) errs.push(`Name in Zeile ${i+1} ist erforderlich.`); });
   const t=totals(rows);
   ['cs','konzept','pitch'].forEach(k=>{
-    if(t[k]!==0 && t[k]!==100) errs.push(`Kategorie "${k}": Summe muss exakt 0 ODER 100 sein (aktuell ${t[k]})`);
+    if(t[k] > 100) errs.push(`Kategorie "${k}": Summe darf 100 nicht überschreiten (aktuell ${t[k]})`);
+    if(!forLive && t[k]!==0 && t[k]!==100) errs.push(`Kategorie "${k}": Summe muss exakt 0 ODER 100 sein (aktuell ${t[k]})`);
   });
   const sumW=currentWeights().reduce((a,c)=>a+Number(c.weight||0),0);
-  if(sumW!==100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
+  if(!forLive && sumW!==100) errs.push(`Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`);
+  if(forLive && sumW === 0) errs.push('Gewichte dürfen nicht 0 sein für Live-Berechnung');
+
   return {ok:errs.length===0, errs, t, rows};
 }
 function recalc(){
-  // Live-Berechnung und Anzeige
   const liveValidation = validateInput(true);
   const liveAmount = parseAmountInput(auftragswert.value);
   if (liveValidation.ok) {
-    const result = compute(liveValidation.rows, currentWeights(), liveAmount);
+    const result = compute(liveValidation.rows, currentWeights(), liveAmount, true);
     updateLiveResults(result.list);
   } else {
-    // Bei Validierungsfehler (z.B. Summe != 100), leere die Live-Anzeige
     updateLiveResults([]);
   }
   
-  // Endgültige Validierung für den "Abschicken"-Button
   const finalValidation = validateInput(false);
   renderChips(finalValidation.t);
   errorsEl.innerHTML=finalValidation.ok?'':finalValidation.errs.map(e=>'• '+e).join('<br>');
 
-  if (finalValidation.ok) { btnToResult.classList.remove('disabled'); btnToResult.removeAttribute('aria-disabled'); }
-  else { btnToResult.classList.add('disabled'); btnToResult.setAttribute('aria-disabled', 'true'); }
+  if (finalValidation.ok) { btnSave.classList.remove('disabled'); btnSave.removeAttribute('aria-disabled'); }
+  else { btnSave.classList.add('disabled'); btnSave.setAttribute('aria-disabled', 'true'); }
 }
 
 function updateLiveResults(resultList) {
@@ -553,7 +522,7 @@ function updateLiveResults(resultList) {
   });
 }
 
-function saveCurrentInputState(isSubmitted = false) {
+function saveCurrentInputState() {
     const stPrev = loadState() || {};
     const currentInput = {
         client: auftraggeber.value.trim(),
@@ -564,7 +533,7 @@ function saveCurrentInputState(isSubmitted = false) {
         submittedBy: submittedBy.value.trim(),
         projectNumber: projectNumber.disabled ? stPrev?.input?.projectNumber || '' : projectNumber.value.trim()
     };
-    saveState({ source: stPrev.source || 'manuell', submitted: isSubmitted, editingId: stPrev.editingId || null, input: currentInput });
+    saveState({ source: stPrev.source || 'manuell', editingId: stPrev.editingId || null, input: currentInput });
 }
 
 [auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
@@ -572,7 +541,7 @@ projectNumber.addEventListener('input', () => { if(!projectNumber.disabled) { ha
 
 auftragswert.addEventListener('blur',()=>{
     const raw=parseAmountInput(auftragswert.value);
-    auftragswert.value=raw>0?formatAmountInput(raw):'';
+    auftragswert.value=raw > 0 ? formatAmountInput(raw) : '';
     saveCurrentInputState(); recalc();
 });
 [w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{
@@ -581,13 +550,34 @@ auftragswert.addEventListener('blur',()=>{
 }));
 btnAddRow.addEventListener('click',()=>addRow(true));
 
-btnToResult.addEventListener('click',()=>{
-  const v=validateInput(); if(!v.ok){recalc();return;}
-  saveCurrentInputState(true); hasUnsavedChanges = false;
-  step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled');
-  buildResult(); show('v2');
+btnSave.addEventListener('click', async () => {
+  const v = validateInput(); if(!v.ok){recalc();return;}
+  hasUnsavedChanges = false;
+  
+  const st = loadState(); if(!st?.input) return;
+  const resultData = compute(st.input.rows, st.input.weights, st.input.amount);
+  const isComplete=!!(st.input.client && st.input.title && (st.input.amount>0) && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+
+  const payload={
+    source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
+    title:st.input.title||'', amount:st.input.amount||0, 
+    rows: st.input.rows || [],
+    list:resultData.list||[],
+    totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
+    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined
+  };
+  showLoader();
+  try{
+    const method = st.editingId ? 'PUT' : 'POST';
+    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
+    const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error(await r.text());
+    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
+    clearInputFields();
+    loadHistory().then(()=>showView('uebersicht'));
+  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
+  finally{ hideLoader(); }
 });
-btnToHistory.addEventListener('click',()=>{loadHistory().then(()=>show('v3'));});
 
 function loadInputForm(inputData, isEditing = false) {
     auftraggeber.value = inputData.client || '';
@@ -615,7 +605,7 @@ function loadInputForm(inputData, isEditing = false) {
       });
     } else { addRow(true); addRow(false); }
     hasUnsavedChanges = false;
-    recalc(); // WICHTIG: Live-Anteile beim Laden berechnen
+    recalc();
 }
 
 function clearInputFields() {
@@ -623,28 +613,38 @@ function clearInputFields() {
     loadInputForm({}, false);
 }
 
-/* ---------- Ergebnis ---------- */
-const kpiAG=document.getElementById('kpiAG'), kpiPT=document.getElementById('kpiPT'), kpiAmt=document.getElementById('kpiAmt');
-const pillWeights=document.getElementById('pillWeights'), pillComplete=document.getElementById('pillComplete');
-const resultBody=document.getElementById('resultBody'), sumCheck=document.getElementById('sumCheck');
-const saveToHistory=document.getElementById('saveToHistory');
-document.getElementById('backToEdit').addEventListener('click', () => show('v1'));
-
-function compute(rows, weights, amount){
-  const t=totals(rows); const usedKeys=Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
-  const effWeights=(weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
+/* ---------- Berechnungslogik ---------- */
+function compute(rows, weights, amount, forLive=false){
+  const t = totals(rows); 
+  const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
+  const effWeights = (weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
   const normWeights = normalizeWeightsForUsed(effWeights, usedKeys);
   const map=new Map();
   rows.forEach(r=>{const act=r.cs+r.konzept+r.pitch>0; const nm=(r.name||'').trim() || (act ? '(unbenannt)' : ''); if(!nm)return;
     const cur=map.get(nm)||{name:nm,cs:0,konzept:0,pitch:0}; cur.cs+=r.cs;cur.konzept+=r.konzept;cur.pitch+=r.pitch; map.set(nm,cur);});
-  const wIdx=Object.fromEntries(normWeights.map(w=>[w.key,w.weight/100])); const list=[];
-  for(const p of map.values()){let pct=0;
-    if(usedKeys.includes('cs')&&t.cs>0) pct+=wIdx.cs*(p.cs/t.cs);
-    if(usedKeys.includes('konzept')&&t.konzept>0) pct+=wIdx.konzept*(p.konzept/t.konzept);
-    if(usedKeys.includes('pitch')&&t.pitch>0) pct+=wIdx.pitch*(p.pitch/t.pitch);
+  
+  const wIdx = Object.fromEntries(normWeights.map(w=>[w.key, w.weight / 100])); 
+  const list=[];
+  for(const p of map.values()){
+    let pct=0;
+    // Die Berechnung verwendet t.cs etc. als Divisor. Wenn dieser 0 ist, wird der Anteil 0. Das ist korrekt.
+    // Wenn forLive=true, verwenden wir die aktuelle Summe, auch wenn sie nicht 100 ist.
+    const divCS = forLive ? (t.cs || 1) : 100;
+    const divKonzept = forLive ? (t.konzept || 1) : 100;
+    const divPitch = forLive ? (t.pitch || 1) : 100;
+
+    if(usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
+    if(usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
+    if(usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
     list.push({name:p.name,pct:pct*100});
   }
-  list.sort((a,b)=>b.pct-a.pct); const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
+  
+  list.sort((a,b)=>b.pct-a.pct); 
+  if(!forLive) {
+      const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; 
+      if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
+  }
+  
   list.forEach(x=>{if(x.pct<0)x.pct=0;});
   const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
   return { totals:t, usedKeys, effectiveWeights:normWeights, list:withMoney };
@@ -657,50 +657,15 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
   const rem=100-out.reduce((a,w)=>a+Math.round(w.weight),0); if(rem!==0){const ix=out.findIndex(x=>usedKeys.includes(x.key)); if(ix>=0) out[ix].weight+=rem;}
   return out.map(w=>({key:w.key,weight:Math.round(w.weight)}));
 }
-function buildResult(){
-  const st=loadState(); if(!st?.input){show('v1');return;}
-  const {client,title,amount,rows,weights}=st.input;
-  const res=compute(rows,weights,amount||0);
-  kpiAG.textContent=client||'–'; kpiPT.textContent=title||'–'; kpiAmt.textContent=(amount>0)?formatAmountDisplay(amount):'–';
-  const isComplete=!!(client&&title&&(amount>0)&&rows.some(r=>r.cs+r.konzept+r.pitch>0));
-  pillComplete.textContent=`Status: ${isComplete?'vollständig':'unvollständig'}`;
-  const wText=res.effectiveWeights.filter(w=>w.weight>0).map(w=>`${w.key.charAt(0).toUpperCase()+w.key.slice(1)}: ${w.weight}%`).join(' · ');
-  pillWeights.textContent=`Gewichtung: ${wText||'–'}`;
-  resultBody.innerHTML=''; let sum=0;
-  res.list.forEach(x=>{sum+=x.pct;const tr=document.createElement('tr');tr.innerHTML=`<td>${x.name}</td><td>${fmtPct.format(x.pct)} %</td><td>${fmtCurr0.format(x.money)}</td>`;resultBody.appendChild(tr);});
-  sumCheck.textContent=`Summe: ${fmtPct.format(sum)} %`;
-  saveState({...st, result:{list:res.list, totals:res.totals, weights:res.effectiveWeights, complete:isComplete}});
-}
-saveToHistory.addEventListener('click',async()=>{
-  const st=loadState(); if(!st?.input) return;
-  const payload={
-    source:st.source||'manuell', complete:!!st?.result?.complete, client:st.input.client||'',
-    title:st.input.title||'', amount:st.input.amount||0, 
-    rows: st.input.rows || [],
-    list:st?.result?.list||[],
-    totals:st?.result?.totals||{}, weights:st?.result?.weights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined
-  };
-  showLoader();
-  try{
-    const method = st.editingId ? 'PUT' : 'POST';
-    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
-    const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-    if(!r.ok) throw new Error(await r.text());
-    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
-    clearInputFields();
-    loadHistory().then(()=>show('v3'));
-  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
-  finally{ hideLoader(); }
-});
 
-/* ---------- Historie + Export ---------- */
+
+/* ---------- Übersicht (Historie) + Export ---------- */
 const historyBody=document.getElementById('historyBody');
 const q=document.getElementById('q'), f_source=document.getElementById('f_source'), f_status=document.getElementById('f_status'), f_sort=document.getElementById('f_sort');
 const btnXlsx=document.getElementById('btnXlsx');
 let entries=[]; let pendingDeleteId=null;
 
-async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Historie konnte nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
+async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Übersicht konnte nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
 function autoComplete(e){ return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0); }
 function filtered(){
   const text=q.value.trim().toLowerCase(); const src=f_source.value; const stat=f_status.value; let arr=entries.slice();
@@ -740,12 +705,12 @@ historyBody.addEventListener('click', async(ev)=>{
   const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
   if(act==='edit'){
     const e=entries.find(x=>x.id===id); if(!e) return;
-    const st={ source:e.source||'manuell', submitted:false, editingId:e.id,
+    const st={ source:e.source||'manuell', editingId:e.id,
       input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
               rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
               weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
     saveState(st); initFromState(true);
-    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); show('v1');
+    showView('erfassung');
     return;
   }
   if(act==='del'){ pendingDeleteId=id; document.getElementById('confirmDlg').showModal(); }
@@ -759,8 +724,6 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
   try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ showToast('Eintrag gelöscht.', 'ok'); entries=entries.filter(x=>x.id!==id); renderHistory(); } else { throw new Error(await r.text()); } } catch(e){ showToast('Löschen fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
 });
 
-document.getElementById('backToInput2').addEventListener('click',()=>{ clearInputFields(); initFromState(); show('v1'); });
-
 
 /* Export XLSX */
 btnXlsx.addEventListener('click',()=>{
@@ -770,8 +733,8 @@ btnXlsx.addEventListener('click',()=>{
     Zuletzt_bearbeitet: e.modified? new Date(e.modified).toISOString() : (e.ts? new Date(e.ts).toISOString():'')
   }));
   const ws=XLSX.utils.json_to_sheet(arr);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Historie");
-  XLSX.writeFile(wb, "historie_export.xlsx");
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Übersicht");
+  XLSX.writeFile(wb, "uebersicht_export.xlsx");
 });
 
 /* ---------- Admin ---------- */
@@ -924,14 +887,10 @@ function initFromState(isEditing = false){
   if(st?.input){
     const isEditFromHistory = !!st.editingId;
     loadInputForm(st.input, isEditFromHistory);
-    if(st.submitted){ step2btn.classList.remove('disabled'); step2btn.removeAttribute('aria-disabled'); }
-    else { step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true'); }
   } else {
     loadInputForm({}, false);
-    step2btn.classList.add('disabled'); step2btn.setAttribute('aria-disabled','true');
   }
   updateWeightNote(); 
-  // recalc wird bereits von loadInputForm aufgerufen
 }
 
 // Warnung bei ungespeicherten Änderungen
@@ -942,8 +901,8 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-loadPeople().then(()=>{ initFromState(); show('v1'); });
-if (location.hash === '#admin') { loadPeople().then(() => { renderPeopleAdmin(); show('admin'); }); }
+loadPeople().then(()=>{ initFromState(); showView('erfassung'); });
+if (location.hash === '#admin') { handleAdminClick(); }
 document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
 </script>
 </body>
