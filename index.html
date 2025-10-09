@@ -16,7 +16,7 @@
   .container{max-width:1200px;margin:28px auto;padding:0 16px}
   
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
-  .main-nav{display:flex;gap:10px}
+  .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
   .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
   .nav-link:hover{background-color: var(--panel2);}
   .nav-link.active{background:var(--accent); color: var(--text); border-color: var(--accent);}
@@ -42,6 +42,9 @@
   .btn.ok{background:var(--ok);border-color:transparent}
   .btn.danger{background:var(--bad);border-color:transparent}
   .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px}
+  
+  .radio-group {display:flex; gap:12px; margin-top: 8px;}
+  .radio-group label {display:flex; align-items:center; gap:6px; font-weight:normal; font-size:14px;}
 
   .table-wrapper{width:100%;border:1px solid var(--border);border-radius:12px;overflow-x:auto;background:#0b1120}
   table{width:100%;min-width:980px;border-collapse:collapse}
@@ -64,8 +67,8 @@
   .small{font-size:12px}
   .hide{display:none !important}
   
-  .omni-search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
-  #omniSearch{width:100%;}
+  .search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
+  .search-wrapper input {width:100%;}
 
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
@@ -80,7 +83,6 @@
   .checkbox-wrapper{display:flex; align-items:center; gap:8px; margin-top: 8px;}
 
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
-  .iconbtn svg{width:18px;height:18px;stroke:#e5e7eb;stroke-width:2;fill:none}
   .iconbtn:hover{background:var(--panel2);}
   .iconbtn[data-act="del"] svg{stroke-width:1.5;fill:rgba(239,68,68,.8)}
   .iconbtn[data-act="edit"] svg{stroke-width:1.5}
@@ -96,6 +98,9 @@
   .toast.bad{background:var(--bad);border-color:transparent;}
   .loader{position:fixed;top:20px;right:20px;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;z-index:10000;}
   @keyframes spin{to{transform:rotate(360deg)}}
+  
+  dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius);}
+  dialog::backdrop {background:rgba(0,0,0,.5);}
 
   /* --- Responsive Design --- */
   @media(max-width: 768px){
@@ -127,6 +132,7 @@
     <div class="main-nav">
       <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
       <a href="#" class="nav-link" data-view="uebersicht">Übersicht</a>
+      <a href="#" class="nav-link" data-view="rahmen">Rahmenverträge</a>
       <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
       <a href="#" class="nav-link" data-view="admin">Admin</a>
     </div>
@@ -159,8 +165,15 @@
       <div class="grid-3" style="margin-top:10px">
         <div>
           <label for="submittedBy">Einschätzung abgegeben von *</label>
-          <select id="submittedBy"><option value="">--- Bitte wählen ---</option></select>
+          <input id="submittedBy" list="peopleList" placeholder="Namen eintippen oder auswählen...">
           <div class="field-error" data-validation-for="submittedBy"></div>
+        </div>
+        <div>
+          <label>Projekttyp *</label>
+          <div class="radio-group">
+            <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
+            <label><input type="radio" name="projectType" value="rahmen"> Rahmenvertrag</label>
+          </div>
         </div>
       </div>
 
@@ -224,7 +237,7 @@
   <div class="card hide" id="viewUebersicht">
     <div class="hd"><h1>Übersicht</h1><p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p></div>
     <div class="ct">
-      <div class="omni-search-wrapper">
+      <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
         <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
       </div>
@@ -243,13 +256,34 @@
           <tbody id="historyBody"></tbody>
         </table>
       </div>
-
+    </div>
+  </div>
+  
+  <div class="card hide" id="viewRahmen">
+    <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren.</p></div>
+    <div class="ct">
+       <div class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th style="width:15%">Projektnummer</th>
+            <th style="width:30%">Projekttitel</th>
+            <th style="width:25%">Kunde</th>
+            <th style="width:15%">Aktueller Wert</th>
+            <th style="width:15%">Aktion</th>
+          </tr></thead>
+          <tbody id="rahmenBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <div class="card hide" id="viewAdmin">
-    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen. Passwortschutz erforderlich.</p></div>
+    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen.</p></div>
     <div class="ct">
+      <div class="search-wrapper">
+        <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
+      </div>
+      <div class="hr"></div>
       <div class="grid-3">
         <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
         <div><label for="adm_team">Team</label>
@@ -305,13 +339,25 @@
 
 </div>
 
-<dialog id="confirmDlg" style="border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius);">
+<dialog id="confirmDlg">
   <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
   <div class="ct" style="padding:16px">
     <p>Wollen Sie den Eintrag wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="btn" id="btnNo">Abbrechen</button>
       <button class="btn danger" id="btnYes">Löschen</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="updateValueDlg">
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong id="updateValueTitle">Wert aktualisieren</strong></div>
+  <div class="ct" style="padding:16px">
+    <label for="newValueInput">Neuer Gesamtwert (EUR)</label>
+    <input type="text" id="newValueInput" inputmode="decimal">
+    <div style="display:flex;gap:10px;justify-content:flex-end; margin-top: 16px;">
+      <button class="btn" id="btnUpdateCancel">Abbrechen</button>
+      <button class="btn ok" id="btnUpdateSave">Speichern</button>
     </div>
   </div>
 </dialog>
@@ -325,6 +371,8 @@ const TEAMS = [
   "Internationale Zusammenarbeit","Head of Organisational Excellence","Head of Public Impact"
 ];
 const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
+const CATEGORY_NAMES = {cs: "Consultative Selling", konzept: "Konzepterstellung", pitch: "Pitch"};
+
 
 /* ---------- Hilfsfunktionen & UI-Feedback ---------- */
 const loader = document.getElementById('loader');
@@ -355,7 +403,7 @@ function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
 /* ---------- Navigation ---------- */
-const views = { erfassung: document.getElementById('viewErfassung'), uebersicht: document.getElementById('viewUebersicht'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
+const views = { erfassung: document.getElementById('viewErfassung'), uebersicht: document.getElementById('viewUebersicht'), rahmen: document.getElementById('viewRahmen'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
 function showView(viewName) {
@@ -377,6 +425,8 @@ navLinks.forEach(link => {
     
     if (viewName === 'uebersicht') {
       loadHistory().then(() => showView('uebersicht'));
+    } else if (viewName === 'rahmen') {
+      loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else if (viewName === 'analytics') {
       loadHistory().then(() => { renderAnalytics(); showView('analytics'); });
     } else if (viewName === 'admin') {
@@ -422,25 +472,18 @@ async function loadPeople(){
   finally { hideLoader(); }
   people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
   
-  const submittedBySelect = document.getElementById('submittedBy');
-  const currentSubmitter = submittedBySelect.value;
-  submittedBySelect.innerHTML = '<option value="">--- Bitte wählen ---</option>';
+  const submittedByEl = document.getElementById('submittedBy');
+  const currentSubmitter = submittedByEl.value;
   
   if (peopleList){
     peopleList.innerHTML='';
     people.forEach(p=>{ 
       const o = document.createElement('option'); 
       o.value=p.name; 
-      o.setAttribute('data-id',p.id); 
       peopleList.appendChild(o);
-
-      const s = document.createElement('option');
-      s.value = p.name;
-      s.textContent = p.name;
-      submittedBySelect.appendChild(s);
     });
   }
-  submittedBySelect.value = currentSubmitter;
+  submittedByEl.value = currentSubmitter;
 }
 function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
 
@@ -463,7 +506,7 @@ const btnSave = document.getElementById('btnSave');
 function rowTemplate(){
   const tr=document.createElement('tr');
   tr.innerHTML=`
-    <td><input type="text" class="name" placeholder="Name wählen oder tippen" list="peopleList"></td>
+    <td><input type="text" class="name" placeholder="Namen eintippen oder auswählen..." list="peopleList"></td>
     <td><input type="number" class="cs" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="konzept" min="0" max="100" step="1" value="0"></td>
     <td><input type="number" class="pitch" min="0" max="100" step="1" value="0"></td>
@@ -525,13 +568,13 @@ function validateInput(forLive = false) {
     let categoryErrors = [];
     weights.forEach(w => {
         if (forLive) {
-            if (t[w.key] > 100) categoryErrors.push(`Summe ${w.key} > 100`);
+            if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
         } else {
             if (w.weight > 0 && t[w.key] !== 100) {
-                categoryErrors.push(`Für ${w.key} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+                categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
             }
             if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
-                 categoryErrors.push(`Für ${w.key} (0%) müssen die Punkte 0 oder 100 sein.`);
+                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
             }
         }
     });
@@ -612,6 +655,7 @@ function saveCurrentInputState() {
         title: projekttitel.value.trim(),
         amount: parseAmountInput(auftragswert.value),
         amountKnown: auftragswertBekannt.checked,
+        projectType: document.querySelector('input[name="projectType"]:checked').value,
         rows: readRows(),
         weights: currentWeights(),
         submittedBy: submittedBy.value,
@@ -621,6 +665,7 @@ function saveCurrentInputState() {
 }
 
 [auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
 projectNumber.addEventListener('input', () => { if(!projectNumber.disabled) { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); } });
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -657,6 +702,7 @@ btnSave.addEventListener('click', async () => {
   const payload={
     source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
     title:st.input.title||'', amount:finalAmount, 
+    projectType: st.input.projectType || 'fix',
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
@@ -683,6 +729,7 @@ function loadInputForm(inputData, isEditing = false) {
     auftragswert.disabled = !auftragswertBekannt.checked;
     auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
     submittedBy.value = inputData.submittedBy || '';
+    document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
     projectNumber.value = inputData.projectNumber || '';
     if (isEditing) { projectNumber.removeAttribute('disabled'); projectNumber.placeholder = 'Projektnummer eintragen'; }
     else { projectNumber.setAttribute('disabled', 'true'); projectNumber.placeholder = 'Wird später eingetragen'; }
@@ -767,7 +814,7 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 }
 
 
-/* ---------- Übersicht (Historie) + Export ---------- */
+/* ---------- Übersicht (Historie) & Rahmenverträge ---------- */
 const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
 const btnXlsx=document.getElementById('btnXlsx');
@@ -892,7 +939,7 @@ historyBody.addEventListener('click', async(ev)=>{
   if(act==='edit'){
     const e=entries.find(x=>x.id===id); if(!e) return;
     const st={ source:e.source||'manuell', editingId:e.id,
-      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
+      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
               rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
               weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
     saveState(st); initFromState(true);
@@ -923,14 +970,89 @@ btnXlsx.addEventListener('click',()=>{
   XLSX.writeFile(wb, "uebersicht_export.xlsx");
 });
 
+/* Rahmenverträge */
+const rahmenBody = document.getElementById('rahmenBody');
+const updateValueDlg = document.getElementById('updateValueDlg');
+const newValueInput = document.getElementById('newValueInput');
+let currentUpdateEntryId = null;
+
+function renderFrameworkContracts() {
+  rahmenBody.innerHTML = '';
+  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => b.ts - a.ts);
+  for (const e of rahmenEntries) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${e.projectNumber || '–'}</td>
+      <td>${e.title || '–'}</td>
+      <td>${e.client || '–'}</td>
+      <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
+      <td><button class="btn" data-id="${e.id}">Wert aktualisieren</button></td>
+    `;
+    rahmenBody.appendChild(tr);
+  }
+}
+rahmenBody.addEventListener('click', (e) => {
+  if (e.target.tagName === 'BUTTON') {
+    currentUpdateEntryId = e.target.dataset.id;
+    const entry = entries.find(en => en.id === currentUpdateEntryId);
+    if (entry) {
+      document.getElementById('updateValueTitle').textContent = `Wert für "${entry.title}"`;
+      newValueInput.value = entry.amount > 0 ? formatAmountInput(entry.amount) : '';
+      updateValueDlg.showModal();
+    }
+  }
+});
+document.getElementById('btnUpdateCancel').addEventListener('click', () => updateValueDlg.close());
+document.getElementById('btnUpdateSave').addEventListener('click', async () => {
+  const newAmount = parseAmountInput(newValueInput.value);
+  if (newAmount <= 0) {
+    showToast('Bitte einen gültigen Wert > 0 eingeben.', 'bad');
+    return;
+  }
+  
+  const entry = entries.find(en => en.id === currentUpdateEntryId);
+  if (!entry) return;
+  
+  // Create a minimal payload for update
+  const payload = { amount: newAmount, modified: Date.now() };
+
+  showLoader();
+  try {
+    const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentUpdateEntryId)}`, {
+      method: 'PATCH', // Using PATCH for partial update
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    
+    // Update local data
+    entry.amount = newAmount;
+    entry.modified = payload.modified;
+    
+    showToast('Wert aktualisiert', 'ok');
+    renderFrameworkContracts();
+    updateValueDlg.close();
+  } catch(err) {
+    showToast('Update fehlgeschlagen', 'bad');
+    console.error(err);
+  } finally {
+    hideLoader();
+  }
+});
+
+
 /* ---------- Admin ---------- */
-const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body');
+const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
 document.getElementById('adm_add').onclick = () => adminCreate();
 admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
+adminSearch.addEventListener('input', renderPeopleAdmin);
 
 function renderPeopleAdmin(){
   admBody.innerHTML='';
-  people.forEach(p=>{
+  const query = adminSearch.value.toLowerCase();
+  const filteredPeople = people.filter(p => p.name.toLowerCase().includes(query) || (p.team||'').toLowerCase().includes(query));
+
+  filteredPeople.forEach(p=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><input type="text" value="${p.name}"></td>
@@ -1043,10 +1165,19 @@ function drawBars(hostId, items) {
     labelL.textContent = it.name.length > 30 ? it.name.substring(0,28)+'...' : it.name;
 
     const labelV = document.createElementNS(svgNS, 'text');
-    labelV.setAttribute('x', String(barStartX + 10)); labelV.setAttribute('y', String(y + barH * 0.68));
-    labelV.setAttribute('fill', '#0a0f16'); labelV.setAttribute('font-weight', '700');
+    labelV.setAttribute('y', String(y + barH * 0.68));
+    labelV.setAttribute('font-weight', '700');
     labelV.setAttribute('font-size', '14');
     labelV.textContent = fmtCurr0.format(it.val);
+    
+    // Position label inside or outside based on bar length
+    if(len < 100) {
+      labelV.setAttribute('x', String(barStartX + len + 8));
+      labelV.setAttribute('fill', '#cbd5e1');
+    } else {
+      labelV.setAttribute('x', String(barStartX + 10));
+      labelV.setAttribute('fill', '#0a0f16');
+    }
 
     g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV);
     svg.appendChild(g);
