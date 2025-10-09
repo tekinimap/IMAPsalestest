@@ -32,6 +32,7 @@
     width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
     border-radius:10px;padding:12px;outline:none; font-size:15px;
   }
+  input:disabled { background-color: #0a0f16; opacity: 0.6; }
   input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.35)}
   .note{color:var(--muted);font-size:13px; margin-top: 8px;}
   .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
@@ -76,6 +77,7 @@
   
   .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
   input.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
+  .checkbox-wrapper{display:flex; align-items:center; gap:8px; margin-top: 8px;}
 
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn svg{width:18px;height:18px;stroke:#e5e7eb;stroke-width:2;fill:none}
@@ -145,9 +147,13 @@
           <div class="field-error" data-validation-for="projekttitel"></div>
         </div>
         <div>
-          <label for="auftragswert">Auftragswert (optional)</label>
+          <label for="auftragswert">Auftragswert *</label>
           <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
-          <div class="field-error"></div>
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="auftragswertBekannt" checked>
+            <label for="auftragswertBekannt" style="margin:0; font-weight:normal; font-size:13px;">Auftragswert bekannt?</label>
+          </div>
+          <div class="field-error" data-validation-for="auftragswert"></div>
         </div>
       </div>
       <div class="grid-3" style="margin-top:10px">
@@ -428,6 +434,7 @@ const sumchips = document.getElementById('sumchips');
 const auftraggeber = document.getElementById('auftraggeber');
 const projekttitel = document.getElementById('projekttitel');
 const auftragswert = document.getElementById('auftragswert');
+const auftragswertBekannt = document.getElementById('auftragswertBekannt');
 const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
 const w_cs = document.getElementById('w_cs');
@@ -487,29 +494,38 @@ function renderChips(t){
 function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
 function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
 
-function validateInput(forLive=false){
-  const errors = {};
-  if (!forLive) {
-    if (!auftraggeber.value.trim()) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
-    if (!projekttitel.value.trim()) errors.projekttitel = 'Projekttitel ist erforderlich.';
-    if (!submittedBy.value.trim()) errors.submittedBy = 'Einschätzung von ist erforderlich.';
-    if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
-  }
+function validateInput(forLive = false) {
+    const errors = {};
+    if (!forLive) {
+        if (!auftraggeber.value.trim()) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+        if (!projekttitel.value.trim()) errors.projekttitel = 'Projekttitel ist erforderlich.';
+        if (!submittedBy.value.trim()) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
+        if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
+    }
 
-  const t = totals(readRows());
-  let categoryErrors = [];
-  ['cs', 'konzept', 'pitch'].forEach(k => {
-    if (t[k] > 100) categoryErrors.push(`Summe ${k} > 100`);
-    if (!forLive && t[k] !== 0 && t[k] !== 100) categoryErrors.push(`Summe ${k} muss 0 oder 100 sein`);
-  });
-  if(categoryErrors.length > 0) errors.categories = categoryErrors.join('; ');
+    const t = totals(readRows());
+    const weights = currentWeights();
+    let categoryErrors = [];
+    weights.forEach(w => {
+        if (forLive) {
+            if (t[w.key] > 100) categoryErrors.push(`Summe ${w.key} > 100`);
+        } else {
+            if (w.weight > 0 && t[w.key] !== 100) {
+                categoryErrors.push(`Für ${w.key} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+            }
+            if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+                 categoryErrors.push(`Für ${w.key} (0%) müssen die Punkte 0 oder 100 sein.`);
+            }
+        }
+    });
+    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
 
-
-  const sumW = currentWeights().reduce((a, c) => a + Number(c.weight || 0), 0);
-  if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
-  if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
-  
-  return errors;
+    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+    if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+    
+    return errors;
 }
 
 function clearValidation(){
@@ -558,10 +574,14 @@ function updateLiveResults(resultList) {
     const name = nameInput.value.trim();
     const resultEl = tr.querySelector('.live-result');
     const resultData = resultByName.get(name);
-    if (name && resultData) {
+    if (name && resultData && auftragswertBekannt.checked) {
       resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
       resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
-    } else {
+    } else if (name && resultData) {
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+    else {
       resultEl.querySelector('.pct').textContent = `- %`;
       resultEl.querySelector('.money').textContent = `- €`;
     }
@@ -574,6 +594,7 @@ function saveCurrentInputState() {
         client: auftraggeber.value.trim(),
         title: projekttitel.value.trim(),
         amount: parseAmountInput(auftragswert.value),
+        amountKnown: auftragswertBekannt.checked,
         rows: readRows(),
         weights: currentWeights(),
         submittedBy: submittedBy.value.trim(),
@@ -584,6 +605,13 @@ function saveCurrentInputState() {
 
 [auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
 projectNumber.addEventListener('input', () => { if(!projectNumber.disabled) { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); } });
+auftragswertBekannt.addEventListener('change', () => {
+    auftragswert.disabled = !auftragswertBekannt.checked;
+    if(!auftragswertBekannt.checked) auftragswert.value = '';
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+});
 
 auftragswert.addEventListener('blur',()=>{
     const raw=parseAmountInput(auftragswert.value);
@@ -605,12 +633,13 @@ btnSave.addEventListener('click', async () => {
   hasUnsavedChanges = false;
   
   const st = loadState(); if(!st?.input) return;
-  const resultData = compute(st.input.rows, st.input.weights, st.input.amount);
-  const isComplete=!!(st.input.client && st.input.title && (st.input.amount>0) && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+  const resultData = compute(st.input.rows, st.input.weights, finalAmount);
+  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
 
   const payload={
     source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
-    title:st.input.title||'', amount:st.input.amount||0, 
+    title:st.input.title||'', amount:finalAmount, 
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
@@ -633,6 +662,8 @@ btnSave.addEventListener('click', async () => {
 function loadInputForm(inputData, isEditing = false) {
     auftraggeber.value = inputData.client || '';
     projekttitel.value = inputData.title || '';
+    auftragswertBekannt.checked = inputData.amountKnown !== false;
+    auftragswert.disabled = !auftragswertBekannt.checked;
     auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
     submittedBy.value = inputData.submittedBy || '';
     projectNumber.value = inputData.projectNumber || '';
@@ -721,7 +752,7 @@ let pendingDeleteId=null;
 let currentSort = { key: 'ts', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Übersicht konnte nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
-function autoComplete(e){ return !!(e.client && e.title && (e.amount>0) && Array.isArray(e.list) && e.list.length>0); }
+function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 
 function filtered(){
   let arr = entries.slice();
@@ -837,7 +868,7 @@ historyBody.addEventListener('click', async(ev)=>{
   if(act==='edit'){
     const e=entries.find(x=>x.id===id); if(!e) return;
     const st={ source:e.source||'manuell', editingId:e.id,
-      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
+      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
               rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
               weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
     saveState(st); initFromState(true);
