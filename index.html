@@ -131,7 +131,7 @@
     <div style="font-weight:700; font-size: 18px;">Sales-Beteiligung</div>
     <div class="main-nav">
       <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
-      <a href="#" class="nav-link" data-view="uebersicht">Übersicht</a>
+      <a href="#" class="nav-link" data-view="fixauftraege">Fixaufträge</a>
       <a href="#" class="nav-link" data-view="rahmen">Rahmenverträge</a>
       <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
       <a href="#" class="nav-link" data-view="admin">Admin</a>
@@ -234,8 +234,8 @@
     </div>
   </div>
 
-  <div class="card hide" id="viewUebersicht">
-    <div class="hd"><h1>Übersicht</h1><p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p></div>
+  <div class="card hide" id="viewFixauftraege">
+    <div class="hd"><h1>Fixaufträge</h1><p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p></div>
     <div class="ct">
       <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
@@ -266,10 +266,11 @@
         <table>
           <thead><tr>
             <th style="width:15%">Projektnummer</th>
-            <th style="width:30%">Projekttitel</th>
-            <th style="width:25%">Kunde</th>
+            <th style="width:25%">Projekttitel</th>
+            <th style="width:20%">Kunde</th>
             <th style="width:15%">Aktueller Wert</th>
-            <th style="width:15%">Aktion</th>
+            <th style="width:10%">Zuletzt am</th>
+            <th style="width:15%">Aktionen</th>
           </tr></thead>
           <tbody id="rahmenBody"></tbody>
         </table>
@@ -316,7 +317,7 @@
   </div>
 
   <div class="card hide" id="viewAnalytics">
-    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Übersicht.</p></div>
+    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Fixaufträge & Rahmenverträge.</p></div>
     <div class="ct">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px; flex-wrap: wrap;">
         <label>Jahr</label>
@@ -403,7 +404,7 @@ function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
 /* ---------- Navigation ---------- */
-const views = { erfassung: document.getElementById('viewErfassung'), uebersicht: document.getElementById('viewUebersicht'), rahmen: document.getElementById('viewRahmen'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
+const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
 function showView(viewName) {
@@ -423,8 +424,8 @@ navLinks.forEach(link => {
     e.preventDefault();
     const viewName = e.target.getAttribute('data-view');
     
-    if (viewName === 'uebersicht') {
-      loadHistory().then(() => showView('uebersicht'));
+    if (viewName === 'fixauftraege') {
+      loadHistory().then(() => showView('fixauftraege'));
     } else if (viewName === 'rahmen') {
       loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else if (viewName === 'analytics') {
@@ -472,9 +473,6 @@ async function loadPeople(){
   finally { hideLoader(); }
   people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
   
-  const submittedByEl = document.getElementById('submittedBy');
-  const currentSubmitter = submittedByEl.value;
-  
   if (peopleList){
     peopleList.innerHTML='';
     people.forEach(p=>{ 
@@ -483,7 +481,6 @@ async function loadPeople(){
       peopleList.appendChild(o);
     });
   }
-  submittedByEl.value = currentSubmitter;
 }
 function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
 
@@ -716,7 +713,7 @@ btnSave.addEventListener('click', async () => {
     if(!r.ok) throw new Error(await r.text());
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     clearInputFields();
-    loadHistory().then(()=>showView('uebersicht'));
+    loadHistory().then(()=>showView('fixauftraege'));
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
 });
@@ -822,11 +819,11 @@ let entries=[];
 let pendingDeleteId=null;
 let currentSort = { key: 'ts', direction: 'desc' };
 
-async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Übersicht konnte nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
+async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
 function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 
-function filtered(){
-  let arr = entries.slice();
+function filtered(type = 'fix'){
+  let arr = entries.filter(e => (e.projectType || 'fix') === type);
   const query = omniSearch.value.trim().toLowerCase();
   const terms = query.split(/\s+/);
   
@@ -854,7 +851,7 @@ function filtered(){
 
   filters.forEach(({ key, value }) => {
     if (key === 'status') {
-      const wantOk = value.startsWith('v') || value.startsWith('o'); // vollständig / ok
+      const wantOk = value.startsWith('v') || value.startsWith('o');
       arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
     }
     if (key === 'quelle' || key === 'source') {
@@ -869,16 +866,10 @@ function filtered(){
     }
   });
 
-  // Sortierung anwenden
   arr.sort((a,b) => {
     let valA = a[currentSort.key] || '';
     let valB = b[currentSort.key] || '';
-    
-    if (currentSort.key === 'ts') {
-        valA = a.modified || a.ts || 0;
-        valB = b.modified || b.ts || 0;
-    }
-
+    if (currentSort.key === 'ts') { valA = a.modified || a.ts || 0; valB = b.modified || b.ts || 0; }
     let comparison = 0;
     if (typeof valA === 'string' && typeof valB === 'string') {
       comparison = valA.localeCompare(valB, 'de');
@@ -894,7 +885,7 @@ function filtered(){
 function renderHistory(){
   historyBody.innerHTML=''; 
   updateSortIcons();
-  const arr=filtered();
+  const arr=filtered('fix');
   for(const e of arr){
     const ok=autoComplete(e); const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const modified=e.modified? new Date(e.modified).toLocaleString('de-DE'): e.ts? new Date(e.ts).toLocaleString('de-DE'): '–';
@@ -911,7 +902,7 @@ function renderHistory(){
 }
 omniSearch.addEventListener('input', renderHistory);
 
-document.querySelectorAll('#viewUebersicht th.sortable').forEach(th => {
+document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.sort;
     if (currentSort.key === key) {
@@ -925,49 +916,63 @@ document.querySelectorAll('#viewUebersicht th.sortable').forEach(th => {
 });
 
 function updateSortIcons() {
-  document.querySelectorAll('#viewUebersicht th.sortable .sort-icon').forEach(icon => icon.textContent = '');
-  const activeTh = document.querySelector(`#viewUebersicht th[data-sort="${currentSort.key}"] .sort-icon`);
+  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => icon.textContent = '');
+  const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${currentSort.key}"] .sort-icon`);
   if (activeTh) {
     activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
     activeTh.style.opacity = 1;
   }
 }
 
+async function handleDeleteClick(id) {
+  const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
+  if (pw !== 'imapadmin') {
+    if (pw !== null) showToast('Falsches Passwort.', 'bad');
+    return;
+  }
+  pendingDeleteId = id;
+  document.getElementById('confirmDlg').showModal();
+}
+
 historyBody.addEventListener('click', async(ev)=>{
   const btn=ev.target.closest('button[data-act]'); if(!btn) return;
   const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
   if(act==='edit'){
-    const e=entries.find(x=>x.id===id); if(!e) return;
-    const st={ source:e.source||'manuell', editingId:e.id,
-      input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
-              rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
-              weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
-    saveState(st); initFromState(true);
-    showView('erfassung');
-    return;
+    editEntry(id);
+  } else if(act==='del'){ 
+    handleDeleteClick(id); 
   }
-  if(act==='del'){ pendingDeleteId=id; document.getElementById('confirmDlg').showModal(); }
 });
+
+function editEntry(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  const st={ source:e.source||'manuell', editingId:e.id,
+    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
+            rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
+            weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
+  saveState(st); initFromState(true);
+  showView('erfassung');
+}
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 document.getElementById('btnYes').addEventListener('click',async()=>{
   const id=pendingDeleteId; pendingDeleteId=null; document.getElementById('confirmDlg').close();
   if(!id) return;
   showLoader();
-  try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ showToast('Eintrag gelöscht.', 'ok'); entries=entries.filter(x=>x.id!==id); renderHistory(); } else { throw new Error(await r.text()); } } catch(e){ showToast('Löschen fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
+  try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ showToast('Eintrag gelöscht.', 'ok'); entries=entries.filter(x=>x.id!==id); renderHistory(); renderFrameworkContracts(); } else { throw new Error(await r.text()); } } catch(e){ showToast('Löschen fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
 });
 
 
 /* Export XLSX */
 btnXlsx.addEventListener('click',()=>{
-  const arr=filtered().map(e=>({
+  const arr=filtered('fix').map(e=>({
     Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
     Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
     Zuletzt_bearbeitet: e.modified? new Date(e.modified).toISOString() : (e.ts? new Date(e.ts).toISOString():'')
   }));
   const ws=XLSX.utils.json_to_sheet(arr);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Übersicht");
-  XLSX.writeFile(wb, "uebersicht_export.xlsx");
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
+  XLSX.writeFile(wb, "fixauftraege_export.xlsx");
 });
 
 /* Rahmenverträge */
@@ -978,28 +983,43 @@ let currentUpdateEntryId = null;
 
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
-  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => b.ts - a.ts);
+  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
   for (const e of rahmenEntries) {
+    const modified = e.modified ? new Date(e.modified).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
       <td>${e.title || '–'}</td>
       <td>${e.client || '–'}</td>
       <td>${e.amount ? fmtCurr2.format(e.amount) : '–'}</td>
-      <td><button class="btn" data-id="${e.id}">Wert aktualisieren</button></td>
+      <td>${modified}</td>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="btn primary" data-act="update-val" data-id="${e.id}">Wert</button>
+        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </td>
     `;
     rahmenBody.appendChild(tr);
   }
 }
 rahmenBody.addEventListener('click', (e) => {
-  if (e.target.tagName === 'BUTTON') {
-    currentUpdateEntryId = e.target.dataset.id;
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const id = btn.dataset.id;
+  
+  if (act === 'update-val') {
+    currentUpdateEntryId = id;
     const entry = entries.find(en => en.id === currentUpdateEntryId);
     if (entry) {
       document.getElementById('updateValueTitle').textContent = `Wert für "${entry.title}"`;
       newValueInput.value = entry.amount > 0 ? formatAmountInput(entry.amount) : '';
       updateValueDlg.showModal();
     }
+  } else if (act === 'edit') {
+    editEntry(id);
+  } else if (act === 'del') {
+    handleDeleteClick(id);
   }
 });
 document.getElementById('btnUpdateCancel').addEventListener('click', () => updateValueDlg.close());
@@ -1013,21 +1033,17 @@ document.getElementById('btnUpdateSave').addEventListener('click', async () => {
   const entry = entries.find(en => en.id === currentUpdateEntryId);
   if (!entry) return;
   
-  // Create a minimal payload for update
-  const payload = { amount: newAmount, modified: Date.now() };
+  entry.amount = newAmount;
+  entry.modified = Date.now();
 
   showLoader();
   try {
     const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentUpdateEntryId)}`, {
-      method: 'PATCH', // Using PATCH for partial update
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(entry)
     });
     if (!r.ok) throw new Error(await r.text());
-    
-    // Update local data
-    entry.amount = newAmount;
-    entry.modified = payload.modified;
     
     showToast('Wert aktualisiert', 'ok');
     renderFrameworkContracts();
@@ -1035,6 +1051,8 @@ document.getElementById('btnUpdateSave').addEventListener('click', async () => {
   } catch(err) {
     showToast('Update fehlgeschlagen', 'bad');
     console.error(err);
+    // Rollback local change if API call fails
+    entry.amount = parseAmountInput(document.getElementById('newValueInput').value);
   } finally {
     hideLoader();
   }
@@ -1112,7 +1130,7 @@ function renderAnalytics() {
 
   const per = new Map();
   entries.forEach(e => {
-    const when = e.closedate ?? e.ts ?? 0;
+    const when = e.closedate ?? e.modified ?? e.ts ?? 0;
     if (!(when >= start && when < end)) return;
     const amount = e.amount || 0; if (amount <= 0) return;
     if (Array.isArray(e.list)) {
@@ -1170,8 +1188,7 @@ function drawBars(hostId, items) {
     labelV.setAttribute('font-size', '14');
     labelV.textContent = fmtCurr0.format(it.val);
     
-    // Position label inside or outside based on bar length
-    if(len < 100) {
+    if(len < 120) {
       labelV.setAttribute('x', String(barStartX + len + 8));
       labelV.setAttribute('fill', '#cbd5e1');
     } else {
@@ -1214,7 +1231,7 @@ function initFromState(isEditing = false){
 window.addEventListener('beforeunload', (e) => {
   if (hasUnsavedChanges) {
     e.preventDefault();
-    e.returnValue = ''; // Standard in den meisten Browsern
+    e.returnValue = '';
   }
 });
 
