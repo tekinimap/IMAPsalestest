@@ -92,7 +92,7 @@
     "complete": true,
     "client": "Stadt Düsseldorf",
     "title": "Change-Begleitung",
-    "amount": 100,
+    "amount": 10000,
     "rows": [
       {
         "personId": "p_oe_bul_06",
@@ -127,22 +127,22 @@
       {
         "name": "Niklas Villwock",
         "pct": 30.000000000000004,
-        "money": 30
+        "money": 3000
       },
       {
         "name": "Ralf Fischer",
         "pct": 28.000000000000004,
-        "money": 28
+        "money": 2800
       },
       {
         "name": "Katharina Rapp",
         "pct": 24,
-        "money": 24
+        "money": 2400
       },
       {
         "name": "Merlin Klein",
         "pct": 18,
-        "money": 18
+        "money": 1800
       }
     ],
     "totals": {
@@ -166,7 +166,7 @@
     ],
     "submittedBy": "Abdi Tekin",
     "projectNumber": "PP-220",
-    "ts": 1759935416032,
+    "ts": 1760000282316,
     "id": "4e049245-809f-4728-996f-88958e16341a"
   }
 ]
