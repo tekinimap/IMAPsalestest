@@ -174,7 +174,7 @@
     "complete": false,
     "client": "BARMER GEK",
     "title": "Führungskräfteentwicklung",
-    "amount": 50000,
+    "amount": 100000,
     "projectType": "rahmen",
     "rows": [
       {
@@ -242,6 +242,6 @@
     "projectNumber": "",
     "ts": 1760018532625,
     "id": "5240a3d6-603c-420f-8cf4-9dac937feb68",
-    "modified": 1760019302517
+    "modified": 1760019598094
   }
 ]
