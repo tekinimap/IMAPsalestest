@@ -314,7 +314,7 @@
       </div>
       
       <div class="hr"></div>
-      <h3>Transaktions-Historie</h3>
+      <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
        <div class="table-wrapper">
         <table style="min-width:auto;">
           <thead><tr><th>Datum</th><th>Typ</th><th>Titel/Notiz</th><th>Wert</th><th>Aktionen</th></tr></thead>
@@ -409,7 +409,7 @@
         </div>
 
         <div id="editHunterTransView" class="hide">
-            <div class="grid-3">
+            <div class="grid-2">
                 <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
                 <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount" inputmode="decimal"></div>
             </div>
@@ -422,7 +422,7 @@
              <div class="hr"></div>
             <div class="actions"><span class="tag">Personen & Verteilung</span><button class="btn" id="editBtnAddRow" style="width:auto;">+ Zeile</button></div>
             <div class="table-wrapper" style="margin-top:14px">
-                <table>
+                <table style="min-width:auto;">
                     <thead><tr><th>Person</th><th>CS</th><th>Konzept</th><th>Pitch</th><th>Aktion</th></tr></thead>
                     <tbody id="editTbody"></tbody>
                 </table>
@@ -433,6 +433,33 @@
         <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button class="btn" onclick="document.getElementById('editTransactionDlg').close()">Abbrechen</button>
             <button class="btn ok" id="btnSaveTransaction">Speichern</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="editFrameworkContractDlg" style="min-width: 800px;">
+    <div class="hd">
+        <h1>Rahmenvertrag bearbeiten</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div class="grid-3">
+            <div><label for="editFwClient">Auftraggeber</label><input type="text" id="editFwClient"></div>
+            <div><label for="editFwTitle">Projekttitel</label><input type="text" id="editFwTitle"></div>
+            <div><label for="editFwProjectNumber">Projektnummer</label><input type="text" id="editFwProjectNumber"></div>
+        </div>
+        <div class="hr"></div>
+        <div class="actions"><span class="tag">Gründer-Team & initiale Verteilung</span><button class="btn" id="editFwBtnAddRow" style="width:auto;">+ Zeile</button></div>
+        <div class="table-wrapper" style="margin-top:14px">
+            <table style="min-width:auto;">
+                <thead><tr><th>Person</th><th>CS</th><th>Konzept</th><th>Pitch</th><th>Aktion</th></tr></thead>
+                <tbody id="editFwTbody"></tbody>
+            </table>
+        </div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('editFrameworkContractDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnSaveFrameworkContract">Speichern</button>
         </div>
     </div>
 </dialog>
@@ -1158,6 +1185,8 @@ function renderFrameworkContracts() {
   const rahmenEntries = filteredFrameworks();
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
+    tr.classList.add('clickable');
+    tr.dataset.id = e.id;
     const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
@@ -1177,26 +1206,33 @@ function renderFrameworkContracts() {
 
 rahmenBody.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-act]');
-  if (!btn) return;
-  const act = btn.dataset.act;
-  const id = btn.dataset.id;
-  currentFrameworkEntryId = id;
-  const entry = entries.find(en => en.id === id);
-  if (!entry) return;
-  
-  if (act === 'founder-plus') {
-    saveState({ source: 'manuell', isAbrufMode: false, parentEntry: entry, input:{} });
-    initFromState();
-    showView('erfassung');
-  } else if (act === 'hunter-plus') {
-    saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
-    initFromState();
-    showView('erfassung');
-  } else if (act === 'details') {
-    renderRahmenDetails(id);
-    showView('rahmenDetails');
-  } else if (act === 'del') {
-    handleDeleteClick(id, 'entry');
+  if (btn) {
+    e.stopPropagation(); // Stop click from bubbling to the row
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+    const entry = entries.find(en => en.id === id);
+    if (!entry) return;
+    
+    if (act === 'founder-plus') {
+      openEditTransactionModal({type:'founder'}, entry);
+    } else if (act === 'hunter-plus') {
+      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
+      initFromState();
+      showView('erfassung');
+    } else if (act === 'details') {
+      renderRahmenDetails(id);
+      showView('rahmenDetails');
+    } else if (act === 'del') {
+      handleDeleteClick(id, 'entry');
+    }
+    return;
+  }
+
+  const row = e.target.closest('tr.clickable');
+  if (row) {
+    const id = row.dataset.id;
+    const entry = entries.find(en => en.id === id);
+    if (entry) openEditFrameworkContractModal(entry);
   }
 });
 
@@ -1335,6 +1371,7 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
     const delBtn = ev.target.closest('button[data-act="del-trans"]');
     
     if (delBtn) {
+        ev.stopPropagation();
         const transId = delBtn.dataset.id;
         handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
         return;
@@ -1346,11 +1383,11 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
         if (!parentEntry) return;
         const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
         if (!transaction) return;
-        openEditTransactionModal(transaction);
+        openEditTransactionModal(transaction, parentEntry);
     }
 });
 
-/* ---------- Edit Transaction Modal ---------- */
+/* ---------- Edit Modals ---------- */
 const editTransactionDlg = document.getElementById('editTransactionDlg');
 const editFounderTransView = document.getElementById('editFounderTransView');
 const editHunterTransView = document.getElementById('editHunterTransView');
@@ -1362,12 +1399,15 @@ const editW_cs = document.getElementById('editW_cs');
 const editW_konzept = document.getElementById('editW_konzept');
 const editW_pitch = document.getElementById('editW_pitch');
 const editTbody = document.getElementById('editTbody');
+const editFrameworkContractDlg = document.getElementById('editFrameworkContractDlg');
 
-function openEditTransactionModal(transaction) {
-    editingTransactionId = transaction.id;
+function openEditTransactionModal(transaction, parentEntry) {
+    currentFrameworkEntryId = parentEntry.id;
+    editingTransactionId = transaction.id || null; // null for new founder transaction
+    
     if (transaction.type === 'founder') {
-        editTransDlgTitle.textContent = "Passiven Abruf bearbeiten";
-        editFounderValueInput.value = formatAmountInput(transaction.amount);
+        editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
+        editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
         editFounderTransView.classList.remove('hide');
         editHunterTransView.classList.add('hide');
     } else { // hunter
@@ -1381,7 +1421,7 @@ function openEditTransactionModal(transaction) {
         editW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
         
         editTbody.innerHTML = '';
-        (transaction.rows || []).forEach(r => addEditRow(r));
+        (transaction.rows || []).forEach(r => addEditRow(r, '#editTbody'));
 
         editHunterTransView.classList.remove('hide');
         editFounderTransView.classList.add('hide');
@@ -1389,7 +1429,9 @@ function openEditTransactionModal(transaction) {
     editTransactionDlg.showModal();
 }
 
-function addEditRow(rowData = {}) {
+function addEditRow(rowData = {}, tbodySelector) {
+    const tbodyEl = document.querySelector(tbodySelector);
+    if (!tbodyEl) return;
     const tr = document.createElement('tr');
     tr.innerHTML = `
         <td><input type="text" class="name" value="${rowData.name || ''}" list="peopleList"></td>
@@ -1399,21 +1441,19 @@ function addEditRow(rowData = {}) {
         <td><button class="delrow">X</button></td>
     `;
     tr.querySelector('.delrow').addEventListener('click', () => tr.remove());
-    editTbody.appendChild(tr);
+    tbodyEl.appendChild(tr);
 }
-document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow());
+document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow({}, '#editTbody'));
 
 document.getElementById('btnSaveTransaction').addEventListener('click', async () => {
     const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
     if (!parentEntry) return;
-    const transIndex = parentEntry.transactions.findIndex(t => t.id === editingTransactionId);
-    if (transIndex === -1) return;
 
-    const transaction = parentEntry.transactions[transIndex];
+    const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
+    
+    const transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
 
-    if (transaction.type === 'founder') {
-        transaction.amount = parseAmountInput(editFounderValueInput.value);
-    } else { // hunter
+    if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
         const rows = [];
         editTbody.querySelectorAll('tr').forEach(tr => {
             rows.push({
@@ -1437,6 +1477,15 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         transaction.rows = rows;
         transaction.weights = weights;
         transaction.list = resultData.list;
+
+    } else { // Saving a Founder transaction
+        transaction.amount = parseAmountInput(editFounderValueInput.value);
+        if (transIndex === -1) { // New founder transaction
+            transaction.id = `trans_${Date.now()}`;
+            transaction.ts = Date.now();
+            transaction.type = 'founder';
+            parentEntry.transactions.push(transaction);
+        }
     }
     
     parentEntry.modified = Date.now();
@@ -1449,6 +1498,63 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         showToast('Abruf aktualisiert', 'ok');
         editTransactionDlg.close();
         renderRahmenDetails(currentFrameworkEntryId);
+        renderFrameworkContracts();
+    } catch (e) {
+        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+    } finally {
+        hideLoader();
+    }
+});
+
+const editFwClient = document.getElementById('editFwClient');
+const editFwTitle = document.getElementById('editFwTitle');
+const editFwProjectNumber = document.getElementById('editFwProjectNumber');
+const editFwTbody = document.getElementById('editFwTbody');
+document.getElementById('editFwBtnAddRow').addEventListener('click', () => addEditRow({}, '#editFwTbody'));
+
+function openEditFrameworkContractModal(entry) {
+    currentFrameworkEntryId = entry.id;
+    editFwClient.value = entry.client || '';
+    editFwTitle.value = entry.title || '';
+    editFwProjectNumber.value = entry.projectNumber || '';
+    editFwTbody.innerHTML = '';
+    (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
+    editFrameworkContractDlg.showModal();
+}
+
+document.getElementById('btnSaveFrameworkContract').addEventListener('click', async () => {
+    const entry = entries.find(e => e.id === currentFrameworkEntryId);
+    if (!entry) return;
+
+    const rows = [];
+    editFwTbody.querySelectorAll('tr').forEach(tr => {
+        rows.push({
+            name: tr.querySelector('.name').value.trim(),
+            cs: toInt0(tr.querySelector('.cs').value),
+            konzept: toInt0(tr.querySelector('.konzept').value),
+            pitch: toInt0(tr.querySelector('.pitch').value),
+        });
+    });
+    
+    // We assume the original weights for the main entry. These aren't editable in the modal for now.
+    const resultData = compute(rows, entry.weights, entry.amount);
+
+    entry.client = editFwClient.value.trim();
+    entry.title = editFwTitle.value.trim();
+    entry.projectNumber = editFwProjectNumber.value.trim();
+    entry.rows = rows;
+    entry.list = resultData.list;
+    entry.modified = Date.now();
+
+    showLoader();
+    try {
+        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Rahmenvertrag aktualisiert', 'ok');
+        editFrameworkContractDlg.close();
+        renderFrameworkContracts();
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
