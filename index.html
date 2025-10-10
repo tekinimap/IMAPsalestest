@@ -107,6 +107,8 @@
   dialog::backdrop {background:rgba(0,0,0,.5); backdrop-filter: blur(4px);}
   dialog .hd { position: relative; }
   dialog .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; }
+  dialog .validation-summary { color: var(--warn); font-size: 13px; margin-top: -10px; margin-bottom: 10px; }
+
 
   /* --- Responsive Design --- */
   @media(max-width: 768px){
@@ -403,6 +405,7 @@
         <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
     </div>
     <div class="ct">
+        <div id="editTransValidationSummary" class="validation-summary"></div>
         <div id="editFounderTransView">
             <label for="editFounderValueInput">Wert (EUR)</label>
             <input type="text" id="editFounderValueInput" inputmode="decimal">
@@ -443,10 +446,17 @@
         <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
     </div>
     <div class="ct">
+        <div id="editFwValidationSummary" class="validation-summary"></div>
         <div class="grid-3">
             <div><label for="editFwClient">Auftraggeber</label><input type="text" id="editFwClient"></div>
             <div><label for="editFwTitle">Projekttitel</label><input type="text" id="editFwTitle"></div>
             <div><label for="editFwProjectNumber">Projektnummer</label><input type="text" id="editFwProjectNumber"></div>
+        </div>
+        <div class="hr"></div>
+        <div class="grid-3">
+            <div><label>Gewicht: CS (%)</label><input type="number" id="editFwW_cs" value="50"></div>
+            <div><label>Gewicht: Konzept (%)</label><input type="number" id="editFwW_konzept" value="30"></div>
+            <div><label>Gewicht: Pitch (%)</label><input type="number" id="editFwW_pitch" value="20"></div>
         </div>
         <div class="hr"></div>
         <div class="actions"><span class="tag">Gründer-Team & initiale Verteilung</span><button class="btn" id="editFwBtnAddRow" style="width:auto;">+ Zeile</button></div>
@@ -627,8 +637,8 @@ function bindRow(tr){
   tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); hasUnsavedChanges = true; saveCurrentInputState(); recalc();});
 }
 function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();saveCurrentInputState(); recalc();}
-function readRows(){
-  const rows=[]; tbody.querySelectorAll('tr').forEach(tr=>{
+function readRows(tbodySelector = '#tbody'){
+  const rows=[]; document.querySelector(tbodySelector).querySelectorAll('tr').forEach(tr=>{
     rows.push({
       personId: tr.querySelector('.name').dataset.personId || null,
       name: (tr.querySelector('.name').value||'').trim(),
@@ -1405,6 +1415,8 @@ function openEditTransactionModal(transaction, parentEntry) {
     currentFrameworkEntryId = parentEntry.id;
     editingTransactionId = transaction.id || null; // null for new founder transaction
     
+    document.getElementById('editTransValidationSummary').textContent = '';
+    
     if (transaction.type === 'founder') {
         editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
         editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
@@ -1451,41 +1463,39 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
 
     const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
     
-    const transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
+    let transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
 
     if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
-        const rows = [];
-        editTbody.querySelectorAll('tr').forEach(tr => {
-            rows.push({
-                name: tr.querySelector('.name').value.trim(),
-                cs: toInt0(tr.querySelector('.cs').value),
-                konzept: toInt0(tr.querySelector('.konzept').value),
-                pitch: toInt0(tr.querySelector('.pitch').value),
-            });
-        });
+        const rows = readRows('#editTbody');
         const weights = [
             {key:'cs', weight: toInt0(editW_cs.value)},
             {key:'konzept', weight: toInt0(editW_konzept.value)},
             {key:'pitch', weight: toInt0(editW_pitch.value)}
         ];
+        
+        const errors = validateModalInput(rows, weights);
+        if (Object.keys(errors).length > 0) {
+            document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
+            return;
+        }
+
         const amount = parseAmountInput(editHunterAmount.value);
         const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
         const resultData = compute(rows, weights, hunterShareAmount);
         
-        transaction.title = editHunterTitle.value.trim();
-        transaction.amount = amount;
-        transaction.rows = rows;
-        transaction.weights = weights;
-        transaction.list = resultData.list;
+        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list };
 
     } else { // Saving a Founder transaction
         transaction.amount = parseAmountInput(editFounderValueInput.value);
-        if (transIndex === -1) { // New founder transaction
-            transaction.id = `trans_${Date.now()}`;
-            transaction.ts = Date.now();
-            transaction.type = 'founder';
-            parentEntry.transactions.push(transaction);
-        }
+    }
+    
+    if (transIndex === -1) { // New founder transaction
+        transaction.id = `trans_${Date.now()}`;
+        transaction.ts = Date.now();
+        transaction.type = 'founder';
+        parentEntry.transactions.push(transaction);
+    } else {
+        parentEntry.transactions[transIndex] = transaction;
     }
     
     parentEntry.modified = Date.now();
@@ -1510,13 +1520,24 @@ const editFwClient = document.getElementById('editFwClient');
 const editFwTitle = document.getElementById('editFwTitle');
 const editFwProjectNumber = document.getElementById('editFwProjectNumber');
 const editFwTbody = document.getElementById('editFwTbody');
+const editFwW_cs = document.getElementById('editFwW_cs');
+const editFwW_konzept = document.getElementById('editFwW_konzept');
+const editFwW_pitch = document.getElementById('editFwW_pitch');
 document.getElementById('editFwBtnAddRow').addEventListener('click', () => addEditRow({}, '#editFwTbody'));
 
 function openEditFrameworkContractModal(entry) {
     currentFrameworkEntryId = entry.id;
+    document.getElementById('editFwValidationSummary').textContent = '';
     editFwClient.value = entry.client || '';
     editFwTitle.value = entry.title || '';
     editFwProjectNumber.value = entry.projectNumber || '';
+
+    const weights = entry.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+    editFwW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+    editFwW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+    editFwW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+
     editFwTbody.innerHTML = '';
     (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
     editFrameworkContractDlg.showModal();
@@ -1526,23 +1547,26 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     const entry = entries.find(e => e.id === currentFrameworkEntryId);
     if (!entry) return;
 
-    const rows = [];
-    editFwTbody.querySelectorAll('tr').forEach(tr => {
-        rows.push({
-            name: tr.querySelector('.name').value.trim(),
-            cs: toInt0(tr.querySelector('.cs').value),
-            konzept: toInt0(tr.querySelector('.konzept').value),
-            pitch: toInt0(tr.querySelector('.pitch').value),
-        });
-    });
+    const rows = readRows('#editFwTbody');
+    const weights = [
+        {key:'cs', weight: toInt0(editFwW_cs.value)},
+        {key:'konzept', weight: toInt0(editFwW_konzept.value)},
+        {key:'pitch', weight: toInt0(editFwW_pitch.value)}
+    ];
+
+    const errors = validateModalInput(rows, weights);
+    if (Object.keys(errors).length > 0) {
+        document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
+        return;
+    }
     
-    // We assume the original weights for the main entry. These aren't editable in the modal for now.
-    const resultData = compute(rows, entry.weights, entry.amount);
+    const resultData = compute(rows, weights, entry.amount);
 
     entry.client = editFwClient.value.trim();
     entry.title = editFwTitle.value.trim();
     entry.projectNumber = editFwProjectNumber.value.trim();
     entry.rows = rows;
+    entry.weights = weights;
     entry.list = resultData.list;
     entry.modified = Date.now();
 
@@ -1562,6 +1586,22 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     }
 });
 
+function validateModalInput(rows, weights) {
+    const errors = {};
+    const t = totals(rows);
+    let categoryErrors = [];
+    weights.forEach(w => {
+        if (w.weight > 0 && t[w.key] !== 100) {
+            categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+        }
+    });
+    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+
+    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+    if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    
+    return errors;
+}
 
 /* ---------- Admin ---------- */
 const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
