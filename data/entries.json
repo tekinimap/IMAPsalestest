@@ -294,16 +294,14 @@
     "projectType": "rahmen",
     "rows": [
       {
-        "personId": "p_pi_vp_08",
         "name": "Daniel Bartel",
         "cs": 50,
         "konzept": 50,
         "pitch": 100
       },
       {
-        "personId": "p_oe_skv_03",
         "name": "Lotta Burron",
-        "cs": 50,
+        "cs": 51,
         "konzept": 50,
         "pitch": 0
       }
@@ -312,13 +310,13 @@
       {
         "key": "Daniel Bartel",
         "name": "Daniel Bartel",
-        "pct": 60.00000000000001,
+        "pct": 59.752475247524764,
         "money": 60
       },
       {
         "key": "Lotta Burron",
         "name": "Lotta Burron",
-        "pct": 40,
+        "pct": 40.24752475247525,
         "money": 40
       }
     ],
@@ -439,6 +437,6 @@
       }
     ],
     "id": "d7cfd053-066d-4181-a817-90e80c2d1493",
-    "modified": 1760100191792
+    "modified": 1760106921202
   }
 ]
