@@ -85,7 +85,8 @@
 
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn:hover{background:var(--panel2);}
-  .iconbtn[data-act="del"] svg{stroke-width:1.5;fill:rgba(239,68,68,.8)}
+  .iconbtn svg { width: 20px; height: 20px; }
+  .iconbtn[data-act="del"] svg{stroke-width:1.5;stroke:rgba(239,68,68,.8)}
   .iconbtn[data-act="edit"] svg{stroke-width:1.5}
 
   .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:14px}
@@ -167,7 +168,7 @@
       <div class="grid-3" style="margin-top:10px">
         <div>
           <label for="submittedBy">Einschätzung abgegeben von *</label>
-          <input id="submittedBy" list="peopleList" placeholder="Namen eintippen oder auswählen...">
+          <input id="submittedBy" list="peopleList" placeholder="Namen eintippen oder auswählen..." style="background-color: #0b1120;">
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
         <div id="projectTypeWrapper">
@@ -264,6 +265,9 @@
   <div class="card hide" id="viewRahmen">
     <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p></div>
     <div class="ct">
+      <div class="search-wrapper">
+        <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
+      </div>
        <div class="table-wrapper">
         <table>
           <thead><tr>
@@ -366,7 +370,7 @@
 <dialog id="confirmDlg">
   <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
   <div class="ct" style="padding:16px">
-    <p>Wollen Sie den Eintrag wirklich löschen?</p>
+    <p id="confirmDlgText">Wollen Sie den Eintrag wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="btn" id="btnNo">Abbrechen</button>
       <button class="btn danger" id="btnYes">Löschen</button>
@@ -774,6 +778,8 @@ function loadInputForm(inputData, isEditing = false) {
         auftraggeber.value = st.parentEntry.client;
         auftraggeber.disabled = true;
         projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        projectNumber.disabled = true;
     } else {
         abrufInfo.classList.add('hide');
         erfsfassungSub.textContent = "Neuen Auftrag oder Rahmenvertrag anlegen.";
@@ -781,6 +787,9 @@ function loadInputForm(inputData, isEditing = false) {
         auftraggeber.value = inputData.client || '';
         auftraggeber.disabled = false;
         projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        if (isEditing) { projectNumber.removeAttribute('disabled'); projectNumber.placeholder = 'Projektnummer eintragen'; }
+        else { projectNumber.setAttribute('disabled', 'true'); projectNumber.placeholder = 'Wird später eingetragen'; }
     }
 
     auftragswertBekannt.checked = inputData.amountKnown !== false;
@@ -788,9 +797,7 @@ function loadInputForm(inputData, isEditing = false) {
     auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
     submittedBy.value = inputData.submittedBy || '';
     document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
-    projectNumber.value = inputData.projectNumber || '';
-    if (isEditing) { projectNumber.removeAttribute('disabled'); projectNumber.placeholder = 'Projektnummer eintragen'; }
-    else { projectNumber.setAttribute('disabled', 'true'); projectNumber.placeholder = 'Wird später eingetragen'; }
+
     const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
     const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
     w_cs.value = String(clamp01(toInt0(m.cs??DEFAULT_WEIGHTS.cs)));
@@ -875,9 +882,10 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 /* ---------- Übersicht & Rahmenverträge ---------- */
 const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
+const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
 let entries=[]; 
-let pendingDeleteId=null;
+let pendingDelete = { id: null, type: 'entry' }; // { id, type: 'entry'|'transaction', parentId? }
 let currentSort = { key: 'ts', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
@@ -962,6 +970,7 @@ function renderHistory(){
   }
 }
 omniSearch.addEventListener('input', renderHistory);
+rahmenSearch.addEventListener('input', renderFrameworkContracts);
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -985,13 +994,14 @@ function updateSortIcons() {
   }
 }
 
-async function handleDeleteClick(id) {
+function handleDeleteClick(id, type = 'entry', parentId = null) {
   const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
   if (pw !== 'imapadmin') {
     if (pw !== null) showToast('Falsches Passwort.', 'bad');
     return;
   }
-  pendingDeleteId = id;
+  pendingDelete = { id, type, parentId };
+  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
   document.getElementById('confirmDlg').showModal();
 }
 
@@ -1001,7 +1011,7 @@ historyBody.addEventListener('click', async(ev)=>{
   if(act==='edit'){
     editEntry(id);
   } else if(act==='del'){ 
-    handleDeleteClick(id); 
+    handleDeleteClick(id, 'entry'); 
   }
 });
 
@@ -1017,10 +1027,38 @@ function editEntry(id) {
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 document.getElementById('btnYes').addEventListener('click',async()=>{
-  const id=pendingDeleteId; pendingDeleteId=null; document.getElementById('confirmDlg').close();
-  if(!id) return;
-  showLoader();
-  try{ const r=await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`,{method:'DELETE'}); if(r.ok){ showToast('Eintrag gelöscht.', 'ok'); entries=entries.filter(x=>x.id!==id); renderHistory(); renderFrameworkContracts(); } else { throw new Error(await r.text()); } } catch(e){ showToast('Löschen fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
+    const { id, type, parentId } = pendingDelete;
+    document.getElementById('confirmDlg').close();
+    if (!id) return;
+    
+    showLoader();
+    try {
+        if (type === 'entry') {
+            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error(await r.text());
+            showToast('Eintrag gelöscht.', 'ok');
+            entries = entries.filter(x => x.id !== id);
+            renderHistory();
+            renderFrameworkContracts();
+        } else if (type === 'transaction') {
+            const entry = entries.find(e => e.id === parentId);
+            if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+            entry.transactions = entry.transactions.filter(t => t.id !== id);
+            entry.modified = Date.now();
+            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+            });
+            if (!r.ok) throw new Error(await r.text());
+            showToast('Abruf gelöscht.', 'ok');
+            renderRahmenDetails(parentId);
+        }
+    } catch (e) {
+        showToast('Löschen fehlgeschlagen.', 'bad');
+        console.error(e);
+    } finally {
+        hideLoader();
+        pendingDelete = { id: null, type: 'entry' };
+    }
 });
 
 
@@ -1042,9 +1080,32 @@ const addFounderValueDlg = document.getElementById('addFounderValueDlg');
 const founderValueInput = document.getElementById('founderValueInput');
 let currentFrameworkEntryId = null;
 
+function filteredFrameworks() {
+    let arr = entries.filter(e => e.projectType === 'rahmen');
+    const query = rahmenSearch.value.trim().toLowerCase();
+    if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+
+    return arr.filter(e => {
+      if (String(e.title || '').toLowerCase().includes(query)) return true;
+      if (String(e.client || '').toLowerCase().includes(query)) return true;
+      if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+
+      if (Array.isArray(e.transactions)) {
+        for (const trans of e.transactions) {
+          if (trans.type === 'hunter') {
+            if (String(trans.title || '').toLowerCase().includes(query)) return true;
+            if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+          }
+        }
+      }
+      return false;
+    }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+}
+
+
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
-  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+  const rahmenEntries = filteredFrameworks();
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
     const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, e.amount || 0);
@@ -1057,11 +1118,13 @@ function renderFrameworkContracts() {
         <button class="btn ok" data-act="founder-plus" data-id="${e.id}" title="Passiver Abruf">+ Founder</button>
         <button class="btn primary" data-act="hunter-plus" data-id="${e.id}" title="Aktiver Abruf">+ Hunter</button>
         <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten/Details"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>
     `;
     rahmenBody.appendChild(tr);
   }
 }
+
 rahmenBody.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
@@ -1075,14 +1138,17 @@ rahmenBody.addEventListener('click', (e) => {
     founderValueInput.value = '';
     addFounderValueDlg.showModal();
   } else if (act === 'hunter-plus') {
-    saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{} });
+    saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
     initFromState();
     showView('erfassung');
   } else if (act === 'edit') {
     renderRahmenDetails(id);
     showView('rahmenDetails');
+  } else if (act === 'del') {
+    handleDeleteClick(id, 'entry');
   }
 });
+
 document.getElementById('btnFounderCancel').addEventListener('click', () => addFounderValueDlg.close());
 document.getElementById('btnFounderSave').addEventListener('click', async () => {
     const addedAmount = parseAmountInput(founderValueInput.value);
@@ -1159,10 +1225,12 @@ async function saveHunterAbruf(st) {
 }
 
 /* Rahmenvertrag Details */
+const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody');
 document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
 function renderRahmenDetails(id) {
     const entry = entries.find(e => e.id === id);
     if (!entry) return;
+    currentFrameworkEntryId = id;
 
     document.getElementById('rahmenDetailsTitle').textContent = entry.title;
     document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''}`;
@@ -1175,20 +1243,35 @@ function renderRahmenDetails(id) {
         foundersBody.appendChild(tr);
     });
 
-    const transBody = document.getElementById('rahmenTransaktionenBody');
-    transBody.innerHTML = '';
-    (entry.transactions || []).forEach(trans => {
+    
+    rahmenTransaktionenBody.innerHTML = '';
+    (entry.transactions || []).sort((a,b) => b.ts - a.ts).forEach(trans => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${new Date(trans.ts).toLocaleDateString('de-DE')}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
             <td>${fmtCurr2.format(trans.amount)}</td>
-            <td>-</td> 
-        `; // Edit/Delete for transactions to be implemented
-        transBody.appendChild(tr);
+            <td style="display:flex;gap:8px;align-items:center">
+                <button class="iconbtn" data-act="edit-trans" data-id="${trans.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </td>
+        `;
+        rahmenTransaktionenBody.appendChild(tr);
     });
 }
+
+rahmenTransaktionenBody.addEventListener('click', (ev) => {
+    const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+    const transId=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
+    
+    if (act === 'del-trans') {
+        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+    } else if (act === 'edit-trans') {
+        // Edit logic to be implemented. For now, we can show an alert.
+        showToast('Bearbeiten von Abrufen ist noch nicht implementiert.', 'warn');
+    }
+});
 
 
 /* ---------- Admin ---------- */
@@ -1208,8 +1291,8 @@ function renderPeopleAdmin(){
       <td><input type="text" value="${p.name}"></td>
       <td><select>${TEAMS.map(t=>`<option value="${t}" ${p.team===t?'selected':''}>${t}</option>`).join('')}</select></td>
       <td style="display:flex;gap:8px">
-        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="3"/></svg></button>
-        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>`;
     admBody.appendChild(tr);
   });
@@ -1263,35 +1346,41 @@ function renderAnalytics() {
   const per = new Map();
   entries.forEach(e => {
     if(e.projectType === 'fix') {
-        const when = e.ts || 0;
+        const when = e.modified || e.ts || 0;
         if (!(when >= start && when < end)) return;
         const amount = e.amount || 0; if (amount <= 0) return;
         if (Array.isArray(e.list)) {
-          e.list.forEach(x => { const key = x.name || 'Unbekannt'; const money = Math.round(amount * (x.pct || 0) / 100); per.set(key, (per.get(key) || 0) + money); });
+          e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
         }
     } else if (e.projectType === 'rahmen') {
-        // Founder share from initial amount
-        const initialWhen = e.ts || 0;
-        if (initialWhen >= start && initialWhen < end && e.amount > 0) {
-            e.list.forEach(x => { const key = x.name; const money = Math.round(e.amount * (x.pct / 100)); per.set(key, (per.get(key) || 0) + money); });
-        }
-        // Transactions
         (e.transactions || []).forEach(trans => {
             const transWhen = trans.ts || 0;
             if (!(transWhen >= start && transWhen < end)) return;
+            if (trans.amount <= 0) return;
+
             if (trans.type === 'founder') {
-                e.list.forEach(x => { const key = x.name; const money = Math.round(trans.amount * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+                e.list.forEach(founder => { 
+                    const money = Math.round(trans.amount * (founder.pct/100));
+                    per.set(founder.name, (per.get(founder.name) || 0) + money); 
+                });
             } else if (trans.type === 'hunter') {
                 const founderShare = trans.amount * (FOUNDER_SHARE_PCT / 100);
                 const hunterShare = trans.amount - founderShare;
-                e.list.forEach(x => { const key = x.name; const money = Math.round(founderShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
-                trans.list.forEach(x => { const key = x.name; const money = Math.round(hunterShare * (x.pct/100)); per.set(key, (per.get(key) || 0) + money); });
+                
+                e.list.forEach(founder => {
+                    const money = Math.round(founderShare * (founder.pct/100));
+                    per.set(founder.name, (per.get(founder.name) || 0) + money);
+                });
+                (trans.list || []).forEach(hunter => {
+                    const money = hunter.money; // Money is pre-calculated on hunterShare
+                    per.set(hunter.name, (per.get(hunter.name) || 0) + money);
+                });
             }
         });
     }
   });
   
-  const perArr = Array.from(per, ([name, val]) => ({ name, val })).sort((a, b) => b.val - a.val).slice(0, 20);
+  const perArr = Array.from(per, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val).slice(0, 20);
   drawBars('chartPersons', perArr);
   analyticsData.persons = perArr;
 
@@ -1301,7 +1390,7 @@ function renderAnalytics() {
     const team = byNameTeam.get(name) || 'Ohne Team';
     teamMap.set(team, (teamMap.get(team) || 0) + val);
   });
-  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).sort((a, b) => b.val - a.val);
+  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val);
   drawBars('chartTeams', teamArr);
   analyticsData.teams = teamArr;
 }
