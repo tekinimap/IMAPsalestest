@@ -27,6 +27,7 @@
   .ct{padding:20px 22px 24px}
 
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   label{display:block;font-weight:600;margin:8px 0 6px}
   input[type="text"],input[type="number"],select{
     width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
@@ -52,6 +53,7 @@
   thead th{position:sticky;top:0;background:#0d162a;border-bottom:1px solid var(--border);padding:12px;text-align:left;font-size:13px}
   tbody td{border-top:1px solid var(--border);padding:10px 12px; vertical-align: middle;}
   tbody tr:hover{background:#0c1426}
+  tbody tr.clickable { cursor: pointer; }
   .delrow{background:#13203b;border:1px solid #21314f;color:#cbd5e1;border-radius:8px;padding:6px 8px;cursor:pointer}
 
   .sumchips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -101,15 +103,17 @@
   .loader{position:fixed;top:20px;right:20px;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;z-index:10000;}
   @keyframes spin{to{transform:rotate(360deg)}}
   
-  dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius);}
-  dialog::backdrop {background:rgba(0,0,0,.5);}
+  dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius); max-width: 90vw; }
+  dialog::backdrop {background:rgba(0,0,0,.5); backdrop-filter: blur(4px);}
+  dialog .hd { position: relative; }
+  dialog .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; }
 
   /* --- Responsive Design --- */
   @media(max-width: 768px){
     .container{margin:16px auto; padding:0 12px;}
     .hd{padding:16px 18px 4px} .hd h1{font-size:20px} .hd p{font-size:13px}
     .ct{padding:16px 18px 20px}
-    .grid-3{grid-template-columns:1fr;}
+    .grid-3, .grid-2 {grid-template-columns:1fr;}
     .topbar{flex-direction:column; gap:10px; align-items:flex-start;}
     .main-nav {width: 100%; justify-content: space-around;}
     .actions{flex-direction:column; align-items:stretch; gap:12px;}
@@ -287,13 +291,28 @@
     <div class="hd"><h1 id="rahmenDetailsTitle"></h1><p id="rahmenDetailsSub"></p></div>
     <div class="ct">
       <button class="btn" id="backToRahmen" style="margin-bottom: 16px;">← Zurück zur Übersicht</button>
-      <h3>Gründer-Team (initiale Verteilung)</h3>
-      <div class="table-wrapper">
-        <table style="min-width:auto;">
-          <thead><tr><th>Person</th><th>Anteil</th></tr></thead>
-          <tbody id="rahmenFoundersBody"></tbody>
-        </table>
+      
+      <div class="grid-2">
+        <div>
+          <h3>Gründer-Team (initiale Verteilung)</h3>
+          <div class="table-wrapper">
+            <table style="min-width:auto;">
+              <thead><tr><th>Person</th><th>Anteil</th></tr></thead>
+              <tbody id="rahmenFoundersBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>Tatsächliche Gesamtverteilung</h3>
+          <div class="table-wrapper">
+            <table style="min-width:auto;">
+              <thead><tr><th>Person</th><th>Anteil</th><th>Wert</th></tr></thead>
+              <tbody id="rahmenActualBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
+      
       <div class="hr"></div>
       <h3>Transaktions-Historie</h3>
        <div class="table-wrapper">
@@ -378,14 +397,42 @@
   </div>
 </dialog>
 
-<dialog id="addFounderValueDlg">
-    <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong id="founderDlgTitle">Passiven Abruf hinzufügen</strong></div>
-    <div class="ct" style="padding:16px">
-        <label for="founderValueInput">Wert (EUR)</label>
-        <input type="text" id="founderValueInput" inputmode="decimal">
-        <div style="display:flex;gap:10px;justify-content:flex-end; margin-top: 16px;">
-            <button class="btn" id="btnFounderCancel">Abbrechen</button>
-            <button class="btn ok" id="btnFounderSave">Speichern</button>
+<dialog id="editTransactionDlg" style="min-width: 800px;">
+    <div class="hd">
+        <h1 id="editTransDlgTitle">Abruf bearbeiten</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="editFounderTransView">
+            <label for="editFounderValueInput">Wert (EUR)</label>
+            <input type="text" id="editFounderValueInput" inputmode="decimal">
+        </div>
+
+        <div id="editHunterTransView" class="hide">
+            <div class="grid-3">
+                <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
+                <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount" inputmode="decimal"></div>
+            </div>
+            <div class="hr"></div>
+            <div class="grid-3">
+                <div><label>Gewicht: CS (%)</label><input type="number" id="editW_cs" value="50"></div>
+                <div><label>Gewicht: Konzept (%)</label><input type="number" id="editW_konzept" value="30"></div>
+                <div><label>Gewicht: Pitch (%)</label><input type="number" id="editW_pitch" value="20"></div>
+            </div>
+             <div class="hr"></div>
+            <div class="actions"><span class="tag">Personen & Verteilung</span><button class="btn" id="editBtnAddRow" style="width:auto;">+ Zeile</button></div>
+            <div class="table-wrapper" style="margin-top:14px">
+                <table>
+                    <thead><tr><th>Person</th><th>CS</th><th>Konzept</th><th>Pitch</th><th>Aktion</th></tr></thead>
+                    <tbody id="editTbody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('editTransactionDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnSaveTransaction">Speichern</button>
         </div>
     </div>
 </dialog>
@@ -1081,12 +1128,8 @@ btnXlsx.addEventListener('click',()=>{
 
 /* Rahmenverträge */
 const rahmenBody = document.getElementById('rahmenBody');
-const addFounderValueDlg = document.getElementById('addFounderValueDlg');
-const founderValueInput = document.getElementById('founderValueInput');
-const founderDlgTitle = document.getElementById('founderDlgTitle');
 let currentFrameworkEntryId = null;
 let editingTransactionId = null;
-
 
 function filteredFrameworks() {
     let arr = entries.filter(e => e.projectType === 'rahmen');
@@ -1110,13 +1153,12 @@ function filteredFrameworks() {
     }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 }
 
-
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
   const rahmenEntries = filteredFrameworks();
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
-    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, e.amount || 0);
+    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
       <td>${e.title || '–'}</td>
@@ -1143,10 +1185,9 @@ rahmenBody.addEventListener('click', (e) => {
   if (!entry) return;
   
   if (act === 'founder-plus') {
-    editingTransactionId = null;
-    founderDlgTitle.textContent = "Passiven Abruf hinzufügen";
-    founderValueInput.value = '';
-    addFounderValueDlg.showModal();
+    saveState({ source: 'manuell', isAbrufMode: false, parentEntry: entry, input:{} });
+    initFromState();
+    showView('erfassung');
   } else if (act === 'hunter-plus') {
     saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
     initFromState();
@@ -1159,44 +1200,6 @@ rahmenBody.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('btnFounderCancel').addEventListener('click', () => addFounderValueDlg.close());
-document.getElementById('btnFounderSave').addEventListener('click', async () => {
-    const addedAmount = parseAmountInput(founderValueInput.value);
-    if (addedAmount <= 0) { return showToast('Bitte einen Wert > 0 eingeben.', 'bad'); }
-    
-    const entry = entries.find(en => en.id === currentFrameworkEntryId);
-    if (!entry) return;
-
-    if (!Array.isArray(entry.transactions)) { entry.transactions = []; }
-    
-    if (editingTransactionId) { // Editing existing founder transaction
-        const trans = entry.transactions.find(t => t.id === editingTransactionId);
-        if (trans) trans.amount = addedAmount;
-    } else { // Adding new founder transaction
-        entry.transactions.push({
-            id: `trans_${Date.now()}`, type: 'founder', amount: addedAmount, ts: Date.now()
-        });
-    }
-    entry.modified = Date.now();
-
-    showLoader();
-    try {
-        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(currentFrameworkEntryId)}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-        });
-        if (!r.ok) throw new Error(await r.text());
-        showToast(`Passiver Abruf ${editingTransactionId ? 'aktualisiert' : 'hinzugefügt'}`, 'ok');
-        renderFrameworkContracts();
-        if(views.rahmenDetails.classList.contains('hide') === false) renderRahmenDetails(currentFrameworkEntryId);
-        addFounderValueDlg.close();
-    } catch(err) {
-        showToast('Update fehlgeschlagen', 'bad');
-        // Simple rollback might be complex, server should be source of truth. Reloading might be better.
-        console.error(err);
-    } finally {
-        hideLoader();
-    }
-});
 
 async function saveHunterAbruf(st) {
     const parentEntry = entries.find(e => e.id === st.parentEntry.id);
@@ -1249,7 +1252,42 @@ async function saveHunterAbruf(st) {
 
 /* Rahmenvertrag Details */
 const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody');
+const rahmenActualBody = document.getElementById('rahmenActualBody');
 document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
+
+function calculateActualDistribution(entry) {
+    const personTotals = new Map();
+    const transactions = entry.transactions || [];
+    let totalVolume = 0;
+
+    transactions.forEach(trans => {
+        totalVolume += trans.amount;
+        if (trans.type === 'founder') {
+            (entry.list || []).forEach(founder => {
+                const money = trans.amount * (founder.pct / 100);
+                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+            });
+        } else if (trans.type === 'hunter') {
+            const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
+            (entry.list || []).forEach(founder => {
+                const money = founderShareAmount * (founder.pct / 100);
+                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+            });
+            (trans.list || []).forEach(hunter => {
+                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
+            });
+        }
+    });
+    
+    if (totalVolume === 0) return [];
+    
+    return Array.from(personTotals, ([name, money]) => ({
+        name,
+        money,
+        pct: (money / totalVolume) * 100
+    })).sort((a, b) => b.money - a.money);
+}
+
 function renderRahmenDetails(id) {
     const entry = entries.find(e => e.id === id);
     if (!entry) return;
@@ -1260,23 +1298,31 @@ function renderRahmenDetails(id) {
     
     const foundersBody = document.getElementById('rahmenFoundersBody');
     foundersBody.innerHTML = '';
-    entry.list.forEach(founder => {
+    (entry.list || []).forEach(founder => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
         foundersBody.appendChild(tr);
     });
-
     
+    const actualDistribution = calculateActualDistribution(entry);
+    rahmenActualBody.innerHTML = '';
+    actualDistribution.forEach(person => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct)} %</td><td>${fmtCurr0.format(person.money)}</td>`;
+        rahmenActualBody.appendChild(tr);
+    });
+
     rahmenTransaktionenBody.innerHTML = '';
     (entry.transactions || []).sort((a,b) => b.ts - a.ts).forEach(trans => {
         const tr = document.createElement('tr');
+        tr.classList.add('clickable');
+        tr.dataset.transId = trans.id;
         tr.innerHTML = `
             <td>${new Date(trans.ts).toLocaleDateString('de-DE')}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
             <td>${fmtCurr2.format(trans.amount)}</td>
             <td style="display:flex;gap:8px;align-items:center">
-                <button class="iconbtn" data-act="edit-trans" data-id="${trans.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
                 <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
             </td>
         `;
@@ -1284,50 +1330,129 @@ function renderRahmenDetails(id) {
     });
 }
 
-function editHunterTransaction(parentEntry, transaction) {
-    saveState({
-        source: 'manuell',
-        isAbrufMode: true,
-        isEditingTransaction: true,
-        editingTransactionId: transaction.id,
-        parentEntry: parentEntry,
-        input: {
-            title: transaction.title || '',
-            amount: transaction.amount || 0,
-            amountKnown: (transaction.amount || 0) > 0,
-            submittedBy: transaction.submittedBy || '',
-            rows: transaction.rows || [],
-            weights: transaction.weights || [],
-            projectNumber: parentEntry.projectNumber || ''
-        }
-    });
-    initFromState();
-    showView('erfassung');
-}
-
-function editFounderTransaction(transaction) {
-    editingTransactionId = transaction.id;
-    founderDlgTitle.textContent = "Passiven Abruf bearbeiten";
-    founderValueInput.value = formatAmountInput(transaction.amount);
-    addFounderValueDlg.showModal();
-}
-
 rahmenTransaktionenBody.addEventListener('click', (ev) => {
-    const btn=ev.target.closest('button[data-act]'); if(!btn) return;
-    const transId=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
+    const row = ev.target.closest('tr.clickable');
+    const delBtn = ev.target.closest('button[data-act="del-trans"]');
+    
+    if (delBtn) {
+        const transId = delBtn.dataset.id;
+        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+        return;
+    }
+
+    if (row) {
+        const transId = row.dataset.transId;
+        const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+        if (!parentEntry) return;
+        const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
+        if (!transaction) return;
+        openEditTransactionModal(transaction);
+    }
+});
+
+/* ---------- Edit Transaction Modal ---------- */
+const editTransactionDlg = document.getElementById('editTransactionDlg');
+const editFounderTransView = document.getElementById('editFounderTransView');
+const editHunterTransView = document.getElementById('editHunterTransView');
+const editTransDlgTitle = document.getElementById('editTransDlgTitle');
+const editFounderValueInput = document.getElementById('editFounderValueInput');
+const editHunterTitle = document.getElementById('editHunterTitle');
+const editHunterAmount = document.getElementById('editHunterAmount');
+const editW_cs = document.getElementById('editW_cs');
+const editW_konzept = document.getElementById('editW_konzept');
+const editW_pitch = document.getElementById('editW_pitch');
+const editTbody = document.getElementById('editTbody');
+
+function openEditTransactionModal(transaction) {
+    editingTransactionId = transaction.id;
+    if (transaction.type === 'founder') {
+        editTransDlgTitle.textContent = "Passiven Abruf bearbeiten";
+        editFounderValueInput.value = formatAmountInput(transaction.amount);
+        editFounderTransView.classList.remove('hide');
+        editHunterTransView.classList.add('hide');
+    } else { // hunter
+        editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
+        editHunterTitle.value = transaction.title || '';
+        editHunterAmount.value = formatAmountInput(transaction.amount);
+        const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+        const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+        editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+        editW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+        editW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+        
+        editTbody.innerHTML = '';
+        (transaction.rows || []).forEach(r => addEditRow(r));
+
+        editHunterTransView.classList.remove('hide');
+        editFounderTransView.classList.add('hide');
+    }
+    editTransactionDlg.showModal();
+}
+
+function addEditRow(rowData = {}) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="name" value="${rowData.name || ''}" list="peopleList"></td>
+        <td><input type="number" class="cs" value="${rowData.cs || 0}"></td>
+        <td><input type="number" class="konzept" value="${rowData.konzept || 0}"></td>
+        <td><input type="number" class="pitch" value="${rowData.pitch || 0}"></td>
+        <td><button class="delrow">X</button></td>
+    `;
+    tr.querySelector('.delrow').addEventListener('click', () => tr.remove());
+    editTbody.appendChild(tr);
+}
+document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow());
+
+document.getElementById('btnSaveTransaction').addEventListener('click', async () => {
     const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
     if (!parentEntry) return;
-    const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
-    if (!transaction) return;
+    const transIndex = parentEntry.transactions.findIndex(t => t.id === editingTransactionId);
+    if (transIndex === -1) return;
+
+    const transaction = parentEntry.transactions[transIndex];
+
+    if (transaction.type === 'founder') {
+        transaction.amount = parseAmountInput(editFounderValueInput.value);
+    } else { // hunter
+        const rows = [];
+        editTbody.querySelectorAll('tr').forEach(tr => {
+            rows.push({
+                name: tr.querySelector('.name').value.trim(),
+                cs: toInt0(tr.querySelector('.cs').value),
+                konzept: toInt0(tr.querySelector('.konzept').value),
+                pitch: toInt0(tr.querySelector('.pitch').value),
+            });
+        });
+        const weights = [
+            {key:'cs', weight: toInt0(editW_cs.value)},
+            {key:'konzept', weight: toInt0(editW_konzept.value)},
+            {key:'pitch', weight: toInt0(editW_pitch.value)}
+        ];
+        const amount = parseAmountInput(editHunterAmount.value);
+        const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
+        const resultData = compute(rows, weights, hunterShareAmount);
+        
+        transaction.title = editHunterTitle.value.trim();
+        transaction.amount = amount;
+        transaction.rows = rows;
+        transaction.weights = weights;
+        transaction.list = resultData.list;
+    }
     
-    if (act === 'del-trans') {
-        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
-    } else if (act === 'edit-trans') {
-        if(transaction.type === 'hunter') {
-            editHunterTransaction(parentEntry, transaction);
-        } else if (transaction.type === 'founder') {
-            editFounderTransaction(transaction);
-        }
+    parentEntry.modified = Date.now();
+    showLoader();
+    try {
+        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Abruf aktualisiert', 'ok');
+        editTransactionDlg.close();
+        renderRahmenDetails(currentFrameworkEntryId);
+    } catch (e) {
+        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+    } finally {
+        hideLoader();
     }
 });
 
@@ -1411,28 +1536,9 @@ function renderAnalytics() {
           e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
         }
     } else if (e.projectType === 'rahmen') {
-        (e.transactions || []).forEach(trans => {
-            const transWhen = trans.ts || 0;
-            if (!(transWhen >= start && transWhen < end)) return;
-            if (trans.amount <= 0) return;
-
-            if (trans.type === 'founder') {
-                e.list.forEach(founder => { 
-                    const money = Math.round(trans.amount * (founder.pct/100));
-                    per.set(founder.name, (per.get(founder.name) || 0) + money); 
-                });
-            } else if (trans.type === 'hunter') {
-                (trans.list || []).forEach(hunter => {
-                    const money = hunter.money; // Money is pre-calculated on hunterShare
-                    per.set(hunter.name, (per.get(hunter.name) || 0) + money);
-                });
-                // Founder share from hunter transactions
-                const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
-                e.list.forEach(founder => {
-                  const money = Math.round(founderShareAmount * (founder.pct/100));
-                  per.set(founder.name, (per.get(founder.name) || 0) + money);
-                });
-            }
+        const actualDistribution = calculateActualDistribution(e);
+        actualDistribution.forEach(p => {
+            per.set(p.name, (per.get(p.name) || 0) + p.money);
         });
     }
   });
