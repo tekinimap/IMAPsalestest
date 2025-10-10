@@ -344,7 +344,55 @@
     "submittedBy": "Benedict Bueb",
     "projectNumber": "",
     "ts": 1760097375997,
-    "transactions": [],
-    "id": "d7cfd053-066d-4181-a817-90e80c2d1493"
+    "transactions": [
+      {
+        "id": "trans_1760097640731",
+        "type": "hunter",
+        "title": "Abruf 02",
+        "amount": 500000,
+        "ts": 1760097640731,
+        "submittedBy": "Benedict Bueb",
+        "rows": [
+          {
+            "personId": "p_pi_ev_10",
+            "name": "Sophia Braun",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          },
+          {
+            "personId": null,
+            "name": "",
+            "cs": 0,
+            "konzept": 0,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Sophia Braun",
+            "name": "Sophia Braun",
+            "pct": 100,
+            "money": 400000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 100
+          },
+          {
+            "key": "konzept",
+            "weight": 0
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ]
+      }
+    ],
+    "id": "d7cfd053-066d-4181-a817-90e80c2d1493",
+    "modified": 1760097640731
   }
 ]
