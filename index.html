@@ -327,12 +327,12 @@
   </div>
 
   <div class="card hide" id="viewAdmin">
-    <div class="hd"><h1>Admin: Personen & Teams</h1><p>Anlegen, Bearbeiten, Löschen.</p></div>
+    <div class="hd"><h1>Admin</h1><p>Verwaltung von Personen, Teams und Datenimport.</p></div>
     <div class="ct">
+      <h3>Personen & Teams</h3>
       <div class="search-wrapper">
         <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
       </div>
-      <div class="hr"></div>
       <div class="grid-3">
         <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
         <div><label for="adm_team">Team</label>
@@ -352,15 +352,20 @@
         </div>
         <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button></div>
       </div>
-
-      <div class="hr"></div>
-
-      <div class="table-wrapper">
+      <div class="table-wrapper" style="margin-top:14px;">
         <table>
           <thead><tr><th style="width:40%">Name</th><th style="width:40%">Team</th><th style="width:20%">Aktionen</th></tr></thead>
           <tbody id="adm_body"></tbody>
         </table>
       </div>
+      <div class="hr"></div>
+      <h3>ERP-Abgleich per Excel-Import</h3>
+      <p class="note" style="font-size: 14px; margin-bottom: 12px;">Laden Sie hier die Excel-Datei aus dem ERP-System hoch. Das System wird bestehende Abrufe (via KV-Nummer) aktualisieren, neue Abrufe zu bestehenden Rahmenverträgen (via Projektnummer) hinzufügen oder neue Fixaufträge anlegen.</p>
+      <div class="search-wrapper">
+        <input type="file" id="erpFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
+        <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
+      </div>
+      <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
     </div>
   </div>
 
@@ -1655,6 +1660,113 @@ async function adminCreate(){
     showToast('Person angelegt.', 'ok'); admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
 }
+
+/* ---------- ERP Import ---------- */
+const btnErpImport = document.getElementById('btnErpImport');
+btnErpImport.addEventListener('click', handleErpImport);
+
+async function handleErpImport() {
+    const fileInput = document.getElementById('erpFile');
+    if (fileInput.files.length === 0) {
+        showToast('Bitte eine Datei auswählen.', 'bad');
+        return;
+    }
+    const file = fileInput.files[0];
+    showLoader();
+    try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        let updatedCount = 0;
+        let addedToFrameworkCount = 0;
+        let newFixCount = 0;
+
+        rows.forEach(row => {
+            const kvNummer = row['KV-Nummer'];
+            const projektNummer = row['Projekt Projektnummer'];
+            const amount = parseFloat(String(row['Agenturleistung netto']).replace(',', '.')) || 0;
+
+            if (!kvNummer) return;
+
+            // Check if transaction with KV-Nummer already exists
+            let found = false;
+            for (const entry of entries) {
+                if (entry.transactions) {
+                    const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
+                    if (trans) {
+                        if (trans.amount !== amount) {
+                            trans.amount = amount;
+                            entry.modified = Date.now();
+                            updatedCount++;
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                // Not found, so it's new. Check for matching framework contract by Projektnummer
+                const parentEntry = entries.find(e => e.projectType === 'rahmen' && e.projectNumber === projektNummer);
+                if (parentEntry) {
+                    if (!parentEntry.transactions) parentEntry.transactions = [];
+                    parentEntry.transactions.push({
+                        id: `trans_${Date.now()}_${kvNummer}`,
+                        kv_nummer: kvNummer,
+                        type: 'founder',
+                        amount: amount,
+                        ts: Date.now()
+                    });
+                    parentEntry.modified = Date.now();
+                    addedToFrameworkCount++;
+                } else {
+                    // No framework contract found, create new Fixauftrag
+                    const newEntry = {
+                        id: `entry_${Date.now()}_${kvNummer}`,
+                        source: 'erp-import',
+                        projectType: 'fix',
+                        client: row['Projekt Etat Kunde Name'] || '',
+                        title: row['Titel'] || '',
+                        projectNumber: projektNummer || '',
+                        amount: amount,
+                        list: [], // No distribution info in ERP export
+                        rows: [],
+                        weights: [],
+                        ts: Date.now(),
+                        complete: false // Marked as incomplete as distribution is missing
+                    };
+                    entries.push(newEntry);
+                    newFixCount++;
+                }
+            }
+        });
+
+        // After processing all rows, save the entire updated entries array back to the worker
+        const r = await fetch(`${WORKER_BASE}/entries`, {
+            method: 'POST', // Using POST to overwrite the entire dataset for simplicity
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entries)
+        });
+        if (!r.ok) throw new Error('Fehler beim Speichern der importierten Daten.');
+        
+        const resultMsg = `Import abgeschlossen: ${updatedCount} Abrufe aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+        document.getElementById('importResult').textContent = resultMsg;
+        document.getElementById('importResult').classList.remove('hide');
+        showToast('ERP-Daten erfolgreich importiert', 'ok');
+        await loadHistory();
+
+    } catch (e) {
+        showToast('Fehler beim Importieren der Datei.', 'bad');
+        console.error(e);
+        document.getElementById('importResult').textContent = 'Fehler: ' + e.message;
+        document.getElementById('importResult').classList.remove('hide');
+    } finally {
+        hideLoader();
+    }
+}
+
 
 /* ---------- Auswertung ---------- */
 const anaYear = document.getElementById('anaYear');
