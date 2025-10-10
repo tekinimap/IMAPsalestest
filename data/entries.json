@@ -390,9 +390,55 @@
             "weight": 0
           }
         ]
+      },
+      {
+        "id": "trans_1760100191792",
+        "type": "hunter",
+        "title": "Führungsfeedback",
+        "amount": 5000,
+        "ts": 1760100191792,
+        "submittedBy": "Benedict Bueb",
+        "rows": [
+          {
+            "personId": "p_oe_skv_03",
+            "name": "Lotta Burron",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          },
+          {
+            "personId": null,
+            "name": "",
+            "cs": 0,
+            "konzept": 0,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Lotta Burron",
+            "name": "Lotta Burron",
+            "pct": 100,
+            "money": 4000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 100
+          },
+          {
+            "key": "konzept",
+            "weight": 0
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ]
       }
     ],
     "id": "d7cfd053-066d-4181-a817-90e80c2d1493",
-    "modified": 1760097640731
+    "modified": 1760100191792
   }
 ]
