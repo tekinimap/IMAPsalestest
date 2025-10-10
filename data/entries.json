@@ -294,14 +294,16 @@
     "projectType": "rahmen",
     "rows": [
       {
+        "personId": null,
         "name": "Daniel Bartel",
         "cs": 50,
         "konzept": 50,
         "pitch": 100
       },
       {
+        "personId": null,
         "name": "Lotta Burron",
-        "cs": 51,
+        "cs": 50,
         "konzept": 50,
         "pitch": 0
       }
@@ -310,13 +312,13 @@
       {
         "key": "Daniel Bartel",
         "name": "Daniel Bartel",
-        "pct": 59.752475247524764,
+        "pct": 60.00000000000001,
         "money": 60
       },
       {
         "key": "Lotta Burron",
         "name": "Lotta Burron",
-        "pct": 40.24752475247525,
+        "pct": 40,
         "money": 40
       }
     ],
@@ -340,7 +342,7 @@
       }
     ],
     "submittedBy": "Benedict Bueb",
-    "projectNumber": "",
+    "projectNumber": "2025-Düsseldorf",
     "ts": 1760097375997,
     "transactions": [
       {
@@ -437,6 +439,6 @@
       }
     ],
     "id": "d7cfd053-066d-4181-a817-90e80c2d1493",
-    "modified": 1760106921202
+    "modified": 1760122952735
   }
 ]
