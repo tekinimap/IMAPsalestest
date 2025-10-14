@@ -103,9 +103,61 @@
         "id": "trans_1760433538747",
         "ts": 1760433538747,
         "type": "founder"
+      },
+      {
+        "id": "trans_1760433579705",
+        "type": "hunter",
+        "title": "Abruf 01",
+        "amount": 50000,
+        "ts": 1760433579705,
+        "submittedBy": "Thomas Gebhardt",
+        "rows": [
+          {
+            "personId": "p_oe_bul_05",
+            "name": "Thomas Gebhardt",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          },
+          {
+            "personId": "p_oe_bul_04",
+            "name": "Robin Dewald",
+            "cs": 0,
+            "konzept": 100,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Thomas Gebhardt",
+            "name": "Thomas Gebhardt",
+            "pct": 50,
+            "money": 20000
+          },
+          {
+            "key": "Robin Dewald",
+            "name": "Robin Dewald",
+            "pct": 50,
+            "money": 20000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 50
+          },
+          {
+            "key": "konzept",
+            "weight": 50
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ]
       }
     ],
     "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
-    "modified": 1760433538747
+    "modified": 1760433579705
   }
 ]
