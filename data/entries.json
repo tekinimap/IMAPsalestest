@@ -298,5 +298,66 @@
     "projectNumber": "RNK-001",
     "ts": 1760433709176,
     "id": "2389057d-10d1-40ce-adf7-f03352cd7b42"
+  },
+  {
+    "source": "manuell",
+    "complete": true,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Führungskräfteentwicklung",
+    "amount": 100000,
+    "projectType": "fix",
+    "rows": [
+      {
+        "personId": "p_oe_skv_04",
+        "name": "Nana Hengelhaupt",
+        "cs": 50,
+        "konzept": 50,
+        "pitch": 50
+      },
+      {
+        "personId": "p_oe_head_02",
+        "name": "Merlin Klein",
+        "cs": 50,
+        "konzept": 50,
+        "pitch": 50
+      }
+    ],
+    "list": [
+      {
+        "key": "Nana Hengelhaupt",
+        "name": "Nana Hengelhaupt",
+        "pct": 50,
+        "money": 50000
+      },
+      {
+        "key": "Merlin Klein",
+        "name": "Merlin Klein",
+        "pct": 50,
+        "money": 50000
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "submittedBy": "Daniel Bartel",
+    "projectNumber": "",
+    "ts": 1760444474905,
+    "id": "1d8dc3f6-8734-4387-87f1-cbfac0765207"
   }
 ]
