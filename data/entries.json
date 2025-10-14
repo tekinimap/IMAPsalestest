@@ -8,35 +8,35 @@
     "projectType": "rahmen",
     "rows": [
       {
-        "personId": "p_oe_komm_03",
+        "personId": null,
         "name": "Christopher van den Hövel",
         "cs": 100,
         "konzept": 0,
         "pitch": 20
       },
       {
-        "personId": "p_oe_skv_04",
+        "personId": null,
         "name": "Nana Hengelhaupt",
         "cs": 0,
         "konzept": 100,
         "pitch": 0
       },
       {
-        "personId": "p_oe_skv_01",
+        "personId": null,
         "name": "Eva Wollschläger",
         "cs": 0,
         "konzept": 0,
         "pitch": 20
       },
       {
-        "personId": "p_oe_head_02",
+        "personId": null,
         "name": "Merlin Klein",
         "cs": 0,
         "konzept": 0,
         "pitch": 20
       },
       {
-        "personId": "p_oe_bul_03",
+        "personId": null,
         "name": "Katharina Rapp",
         "cs": 0,
         "konzept": 0,
@@ -95,15 +95,9 @@
       }
     ],
     "submittedBy": "Merlin Klein",
-    "projectNumber": "",
+    "projectNumber": "DRV-Bund-001",
     "ts": 1760433529194,
     "transactions": [
-      {
-        "amount": 50000,
-        "id": "trans_1760433538747",
-        "ts": 1760433538747,
-        "type": "founder"
-      },
       {
         "id": "trans_1760433579705",
         "type": "hunter",
@@ -155,9 +149,15 @@
             "weight": 0
           }
         ]
+      },
+      {
+        "amount": 50000,
+        "id": "trans_1760433538747",
+        "ts": 1760433538747,
+        "type": "founder"
       }
     ],
     "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
-    "modified": 1760433579705
+    "modified": 1760433627914
   }
 ]
