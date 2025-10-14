@@ -161,10 +161,56 @@
         "id": "trans_1760434696594",
         "ts": 1760434696594,
         "type": "founder"
+      },
+      {
+        "id": "trans_1760434736764",
+        "type": "hunter",
+        "title": "Abruf 02",
+        "amount": 100000,
+        "ts": 1760434736764,
+        "submittedBy": "Felix Birkner",
+        "rows": [
+          {
+            "personId": "p_oe_skv_02",
+            "name": "Gunhild Busch",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          },
+          {
+            "personId": null,
+            "name": "",
+            "cs": 0,
+            "konzept": 0,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Gunhild Busch",
+            "name": "Gunhild Busch",
+            "pct": 100,
+            "money": 80000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 100
+          },
+          {
+            "key": "konzept",
+            "weight": 0
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ]
       }
     ],
     "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
-    "modified": 1760434696594
+    "modified": 1760434736764
   },
   {
     "source": "manuell",
