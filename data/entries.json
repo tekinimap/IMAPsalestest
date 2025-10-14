@@ -97,7 +97,15 @@
     "submittedBy": "Merlin Klein",
     "projectNumber": "",
     "ts": 1760433529194,
-    "transactions": [],
-    "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1"
+    "transactions": [
+      {
+        "amount": 50000,
+        "id": "trans_1760433538747",
+        "ts": 1760433538747,
+        "type": "founder"
+      }
+    ],
+    "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
+    "modified": 1760433538747
   }
 ]
