@@ -155,10 +155,16 @@
         "id": "trans_1760433538747",
         "ts": 1760433538747,
         "type": "founder"
+      },
+      {
+        "amount": 100000,
+        "id": "trans_1760434696594",
+        "ts": 1760434696594,
+        "type": "founder"
       }
     ],
     "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
-    "modified": 1760433627914
+    "modified": 1760434696594
   },
   {
     "source": "manuell",
