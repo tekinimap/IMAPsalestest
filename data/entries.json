@@ -1,1 +1,103 @@
-[]
+[
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Führungskräfteentwicklung",
+    "amount": 0,
+    "projectType": "rahmen",
+    "rows": [
+      {
+        "personId": "p_oe_komm_03",
+        "name": "Christopher van den Hövel",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 20
+      },
+      {
+        "personId": "p_oe_skv_04",
+        "name": "Nana Hengelhaupt",
+        "cs": 0,
+        "konzept": 100,
+        "pitch": 0
+      },
+      {
+        "personId": "p_oe_skv_01",
+        "name": "Eva Wollschläger",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 20
+      },
+      {
+        "personId": "p_oe_head_02",
+        "name": "Merlin Klein",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 20
+      },
+      {
+        "personId": "p_oe_bul_03",
+        "name": "Katharina Rapp",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 40
+      }
+    ],
+    "list": [
+      {
+        "key": "Christopher van den Hövel",
+        "name": "Christopher van den Hövel",
+        "pct": 54,
+        "money": 0
+      },
+      {
+        "key": "Nana Hengelhaupt",
+        "name": "Nana Hengelhaupt",
+        "pct": 30,
+        "money": 0
+      },
+      {
+        "key": "Katharina Rapp",
+        "name": "Katharina Rapp",
+        "pct": 8.000000000000002,
+        "money": 0
+      },
+      {
+        "key": "Eva Wollschläger",
+        "name": "Eva Wollschläger",
+        "pct": 4.000000000000001,
+        "money": 0
+      },
+      {
+        "key": "Merlin Klein",
+        "name": "Merlin Klein",
+        "pct": 4.000000000000001,
+        "money": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "submittedBy": "Merlin Klein",
+    "projectNumber": "",
+    "ts": 1760433529194,
+    "transactions": [],
+    "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1"
+  }
+]
