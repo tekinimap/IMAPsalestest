@@ -359,5 +359,40 @@
     "projectNumber": "",
     "ts": 1760444474905,
     "id": "1d8dc3f6-8734-4387-87f1-cbfac0765207"
+  },
+  {
+    "id": "b4bf844e-97b3-423b-adaf-50d61886f0a9",
+    "ts": 1760708876536,
+    "source": "hubspot",
+    "complete": false,
+    "title": "Change-Begleitung",
+    "client": "IMAP GmbH",
+    "amount": 250000,
+    "submittedBy": "Merlin Klein",
+    "rows": [
+      {
+        "name": "Merlin Klein",
+        "cs": 34,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "cs": 33,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Jens Maaßen",
+        "cs": 33,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "hubspotId": "45326972175",
+    "pipeline": "default",
+    "dealstage": "closedwon",
+    "closedate": 1760708875203,
+    "modified": 1760708875203
   }
 ]
