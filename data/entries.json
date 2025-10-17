@@ -403,5 +403,20 @@
     "projectType": "rahmen",
     "projectNumber": "GIZ-54-001",
     "transactions": []
+  },
+  {
+    "id": "entry_1760713178785_KV20250158",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Oberhavel",
+    "title": "Prozessbegleitung zur Erarbeitung strategischer Optionen",
+    "projectNumber": "LAO-01-001",
+    "kv_nummer": "KV-2025-0158",
+    "amount": 54600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1760713178785,
+    "complete": false
   }
 ]
