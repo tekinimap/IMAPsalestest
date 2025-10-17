@@ -403,20 +403,5 @@
     "projectType": "rahmen",
     "projectNumber": "GIZ-54-001",
     "transactions": []
-  },
-  {
-    "id": "entry_1760713047256_KV20250229",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landkreis Göttingen",
-    "title": "Seminare zum Thema „Interkulturelle Kompetenz“",
-    "projectNumber": "LK Göttingen-04-001",
-    "kv_nummer": "KV-2025-0229",
-    "amount": 6500,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760713047256,
-    "complete": false
   }
 ]
