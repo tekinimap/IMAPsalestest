@@ -404,20 +404,5 @@
     "weights": [],
     "ts": 1760712027371,
     "complete": false
-  },
-  {
-    "id": "entry_1760712027372_KV20250061",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "04. - 05.04.2025 in Frankfurt - Workshop „DAB Meeting“",
-    "projectNumber": "GS GmbH-03-001",
-    "kv_nummer": "KV-2025-0061",
-    "amount": 3600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760712027372,
-    "complete": false
   }
 ]
