@@ -404,5 +404,20 @@
     "weights": [],
     "ts": 1760712027370,
     "complete": false
+  },
+  {
+    "id": "entry_1760712027372_KV20250121",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Rahmenvertrag Miniwettbewerb für ekom21",
+    "projectNumber": "ekom21-06-001",
+    "kv_nummer": "KV-2025-0121",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1760712027372,
+    "complete": false
   }
 ]
