@@ -892,6 +892,8 @@ function loadInputForm(inputData, isEditing = false) {
         projectNumber.disabled = true;
         kvNummer.value = inputData.kvNummer || '';
         kvNummer.disabled = false;
+        kvNummer.placeholder = 'KV-Nummer des Abrufs';
+
     } else {
         // Neue Erfassung oder Bearbeitung
         erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
