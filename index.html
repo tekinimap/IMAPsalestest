@@ -687,9 +687,8 @@ function validateInput(forLive = false) {
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
         
-        // KV-Nummer ist nur erforderlich, wenn das Feld aktiv ist (also bei Bearbeitung oder Abrufen)
-        if (!kvNummer.disabled && !kvNummer.value.trim()) {
-            errors.kvNummer = 'KV-Nummer ist erforderlich.';
+        if (st.isAbrufMode && !kvNummer.value.trim()) {
+            errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
         }
 
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
@@ -877,6 +876,11 @@ function loadInputForm(inputData, isEditing = false) {
     const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
     
+    // Reset all fields first
+    auftraggeber.disabled = false;
+    projectNumber.disabled = true;
+    kvNummer.disabled = true;
+
     if (st.isAbrufMode && st.parentEntry) {
         // Hunter Abruf
         erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
@@ -893,7 +897,6 @@ function loadInputForm(inputData, isEditing = false) {
         erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
         projectTypeWrapper.classList.remove('hide');
         auftraggeber.value = inputData.client || '';
-        auftraggeber.disabled = false;
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
         kvNummer.value = inputData.kvNummer || '';
