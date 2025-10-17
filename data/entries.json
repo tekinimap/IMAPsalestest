@@ -389,20 +389,5 @@
     "weights": [],
     "ts": 1760712027370,
     "complete": false
-  },
-  {
-    "id": "entry_1760712027371_KV20250169",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Juli/2025 Rahmenvertrag Moderation von Führungskräfteveranstaltungen",
-    "projectNumber": "DRV Bund-17-001",
-    "kv_nummer": "KV-2025-0169",
-    "amount": 8250,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760712027371,
-    "complete": false
   }
 ]
