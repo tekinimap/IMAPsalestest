@@ -177,12 +177,7 @@
           <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
-        <div>
-           <label for="kvNummer">KV-Nummer *</label>
-           <input id="kvNummer" type="text">
-           <div class="field-error" data-validation-for="kvNummer"></div>
-        </div>
-        <div id="projectTypeWrapper">
+         <div id="projectTypeWrapper">
           <label>Projekttyp *</label>
           <div class="radio-group">
             <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
@@ -190,7 +185,7 @@
           </div>
         </div>
       </div>
-
+      
       <div class="hr"></div>
 
       <div class="grid-3">
@@ -237,11 +232,19 @@
       <div class="hr"></div>
 
       <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
-        <div style="flex-grow: 0; min-width: auto;">
-          <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
-          <input id="projectNumber" type="text" placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions" style="padding: 8px 12px; width: 200px;">
+        <div style="display:flex; gap:10px; flex-grow: 1;">
+            <div>
+              <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
+              <input id="projectNumber" type="text" style="padding: 8px 12px; width: 200px;">
+              <div class="field-error" data-validation-for="projectNumber"></div>
+            </div>
+            <div>
+              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer *</label>
+              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 200px;">
+               <div class="field-error" data-validation-for="kvNummer"></div>
+            </div>
         </div>
-        <div style="display:flex;gap:10px; flex-grow: 1; justify-content: flex-end;">
+        <div style="display:flex;gap:10px; justify-content: flex-end;">
           <button class="btn primary disabled" id="btnSave">Speichern</button>
         </div>
       </div>
@@ -1503,6 +1506,10 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
     } else { // Saving a Founder transaction
         transaction.amount = parseAmountInput(editFounderValueInput.value);
         transaction.kv_nummer = editFounderKvNummer.value.trim();
+        if(!transaction.kv_nummer) {
+            document.getElementById('editTransValidationSummary').innerHTML = 'KV-Nummer ist erforderlich.';
+            return;
+        }
     }
     
     if (transIndex === -1) { // New founder transaction
@@ -1676,6 +1683,12 @@ async function adminCreate(){
 const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
+function getVal(row, keyName) {
+    const keys = Object.keys(row);
+    const foundKey = keys.find(k => k.trim().toLowerCase() === keyName.toLowerCase());
+    return foundKey ? row[foundKey] : undefined;
+}
+
 async function handleErpImport() {
     const fileInput = document.getElementById('erpFile');
     if (fileInput.files.length === 0) {
@@ -1699,14 +1712,13 @@ async function handleErpImport() {
         const newFixEntries = [];
 
         for (const row of rows) {
-            const kvNummer = row['KV-Nummer'];
-            const projektNummer = row['Projekt Projektnummer'];
-            const amount = parseFloat(String(row['Agenturleistung netto'] || '0').replace(',', '.')) || 0;
+            const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
+            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
+            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
 
             if (!kvNummer) continue;
 
             let found = false;
-            // Check existing entries (fix and framework transactions)
             for (const entry of entries) {
                  if (entry.projectType === 'fix' && entry.kv_nummer === kvNummer) {
                     if (entry.amount !== amount) {
@@ -1738,25 +1750,20 @@ async function handleErpImport() {
                 if (parentEntry) {
                     if (!parentEntry.transactions) parentEntry.transactions = [];
                     parentEntry.transactions.push({
-                        id: `trans_${Date.now()}_${String(kvNummer).replace(/\s/g,'')}`,
-                        kv_nummer: kvNummer,
-                        type: 'founder',
-                        amount: amount,
-                        ts: Date.now()
+                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g,'')}`,
+                        kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
                     });
                     parentEntry.modified = Date.now();
                     addedToFrameworkCount++;
                     changedFrameworks.set(parentEntry.id, parentEntry);
                 } else {
                     const newEntry = {
-                        id: `entry_${Date.now()}_${String(kvNummer).replace(/\s/g,'')}`,
-                        source: 'erp-import',
-                        projectType: 'fix',
-                        client: row['Projekt Etat Kunde Name'] || '',
-                        title: row['Titel'] || '',
-                        projectNumber: projektNummer || '',
-                        kv_nummer: kvNummer,
-                        amount: amount,
+                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g,'')}`,
+                        source: 'erp-import', projectType: 'fix',
+                        client: getVal(row, 'Projekt Etat Kunde Name') || '',
+                        title: getVal(row, 'Titel') || '',
+                        projectNumber: projektNummer,
+                        kv_nummer: kvNummer, amount: amount,
                         list: [], rows: [], weights: [], ts: Date.now(),
                         complete: false 
                     };
@@ -1770,14 +1777,15 @@ async function handleErpImport() {
         changedFrameworks.forEach(entry => {
             promises.push(fetch(`${WORKER_BASE}/entries/${entry.id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-            }).then(r => { if (!r.ok) throw new Error(`Failed to update ${entry.id}`); }));
+            }).then(r => { if (!r.ok) throw new Error(`Update für ${entry.id} fehlgeschlagen.`); }));
         });
         
-        newFixEntries.forEach(newEntry => {
-             promises.push(fetch(`${WORKER_BASE}/entries`, {
+        for(const newEntry of newFixEntries) {
+            const r = await fetch(`${WORKER_BASE}/entries`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newEntry)
-            }).then(r => { if (!r.ok) throw new Error(`Failed to create ${newEntry.id}`); }));
-        });
+            });
+            if (!r.ok) throw new Error(`Erstellung für ${newEntry.id} fehlgeschlagen.`);
+        }
         
         await Promise.all(promises);
         
