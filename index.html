@@ -1691,15 +1691,45 @@ async function adminCreate(){
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
 }
 
-/* ---------- ERP Import ---------- */
+/* ---------- ERP Import (mit Logik von ChatGPT erweitert) ---------- */
 const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
-function getVal(row, keyName) {
-    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+const HEADER_ALIASES = {
+    kvNummer: ['kv-nummer','kvnummer','kv nr','kvnr','kv_nummer','kostenvoranschlagsnummer','kosten-voranschlagsnummer'],
+    projektProjektnummer: ['projekt projektnummer','projektnummer','projekt-nr','projektnr','projekt_nr','projekt id','projektid'],
+    titel: ['titel','projekttitel','bezeichnung','auftragsbezeichnung'],
+    agenturleistungNetto: ['agenturleistung netto','betrag netto','netto','auftragswert netto','wert netto','agenturleistungnetto'],
+    kundeName: ['kunde','kundename','auftraggeber','projekt etat kunde name','client']
+};
+
+function normalizeKey(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9äöüß]/g,''); }
+
+function getVal(row, canonical){
+    const wanted = HEADER_ALIASES[canonical] || [canonical];
     const keys = Object.keys(row);
-    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedKeyName);
-    return foundKey ? row[foundKey] : undefined;
+    const normMap = new Map(keys.map(k => [normalizeKey(k), k]));
+    for (const alias of wanted){
+        const norm = normalizeKey(alias);
+        if (normMap.has(norm)) return row[normMap.get(norm)];
+    }
+    const fallback = keys.find(k => normalizeKey(k) === normalizeKey(canonical));
+    return fallback ? row[fallback] : undefined;
+}
+
+function parseEuro(val){
+    if (val == null) return 0;
+    let s = String(val).trim();
+    s = s.replace(/[^0-9,.-]+/g,'').replace(/\s+/g,'');
+    const comma = s.lastIndexOf(',');
+    const dot = s.lastIndexOf('.');
+    if (comma > dot) {
+        s = s.replace(/\./g,'').replace(',', '.');
+    } else {
+        s = s.replace(',', '.');
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
 }
 
 async function handleErpImport() {
@@ -1711,7 +1741,7 @@ async function handleErpImport() {
     const file = fileInput.files[0];
     showLoader();
     try {
-        await loadHistory(); // Ensure we have the latest data
+        await loadHistory();
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheetName = workbook.SheetNames[0];
@@ -1720,23 +1750,23 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
-
-        const allEntries = JSON.parse(JSON.stringify(entries)); // Deep copy to avoid side effects
-        const changesToPush = [];
+        
+        const allEntries = JSON.parse(JSON.stringify(entries)); // Tiefe Kopie für sichere Bearbeitung
+        const changesToPush = new Map();
 
         for (const row of rows) {
-            const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
+            const kvNummer = String(getVal(row, 'kvNummer') || '').trim();
             if (!kvNummer) continue;
 
-            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
-            const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
-            const title = getVal(row, 'Titel') || '';
+            const projektNummer = String(getVal(row, 'projektProjektnummer') || '').trim();
+            const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
+            const clientName = getVal(row, 'kundeName') || '';
+            const title = getVal(row, 'titel') || '';
 
             let entryToUpdate = null;
             let transactionToUpdate = null;
 
-            // Search for existing KV-Nummer
+            // Suche nach bestehender KV-Nummer in allen Einträgen
             for (const entry of allEntries) {
                 if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
                     entryToUpdate = entry;
@@ -1752,7 +1782,7 @@ async function handleErpImport() {
                 }
             }
 
-            if (entryToUpdate) { // Case A: KV-Nummer found
+            if (entryToUpdate) { // Fall A: KV-Nummer gefunden
                 const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
                 if (originalAmount !== amount) {
                     if (transactionToUpdate) {
@@ -1761,10 +1791,10 @@ async function handleErpImport() {
                         entryToUpdate.amount = amount;
                     }
                     entryToUpdate.modified = Date.now();
-                    changesToPush.push(entryToUpdate);
+                    changesToPush.set(entryToUpdate.id, entryToUpdate);
                     updatedCount++;
                 }
-            } else { // Case B: KV-Nummer is new
+            } else { // Fall B: KV-Nummer ist neu
                 const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
                 if (parentFramework) {
                     if (!Array.isArray(parentFramework.transactions)) {
@@ -1772,55 +1802,39 @@ async function handleErpImport() {
                     }
                     parentFramework.transactions.push({
                         id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        kv_nummer: kvNummer,
-                        type: 'founder',
-                        amount: amount,
-                        ts: Date.now()
+                        kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
                     });
                     parentFramework.modified = Date.now();
-                    changesToPush.push(parentFramework);
+                    changesToPush.set(parentFramework.id, parentFramework);
                     addedToFrameworkCount++;
                 } else {
                     const newFixEntry = {
                         id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        source: 'erp-import',
-                        projectType: 'fix',
-                        client: clientName,
-                        title: title,
-                        projectNumber: projektNummer,
-                        kv_nummer: kvNummer,
-                        amount: amount,
-                        list: [],
-                        rows: [],
-                        weights: [],
-                        ts: Date.now(),
-                        complete: false
+                        source: 'erp-import', projectType: 'fix',
+                        client: clientName, title: title, projectNumber: projektNummer,
+                        kv_nummer: kvNummer, amount: amount,
+                        list: [], rows: [], weights: [], ts: Date.now(),
+                        complete: false 
                     };
-                    allEntries.push(newFixEntry);
-                    changesToPush.push(newFixEntry);
+                    allEntries.push(newFixEntry); // Füge zur lokalen Kopie hinzu, falls es in der gleichen Datei referenziert wird
+                    changesToPush.set(newFixEntry.id, newFixEntry);
                     newFixCount++;
                 }
             }
         }
 
-        const uniqueChanges = Array.from(new Map(changesToPush.map(item => [item.id, item])).values());
-
-        const updatePromises = uniqueChanges.map(entry => {
+        const promises = [];
+        changesToPush.forEach(entry => {
             const isNew = !entries.some(e => e.id === entry.id);
             const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
             const method = isNew ? 'POST' : 'PUT';
-            return fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entry)
-            }).then(r => {
-                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}`);
-                return r.json();
-            });
+            promises.push(fetch(url, {
+                method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+            }).then(r => { if (!r.ok) throw new Error(`Speichern für ${entry.id} fehlgeschlagen.`); }));
         });
-
-        await Promise.all(updatePromises);
-
+        
+        await Promise.all(promises);
+        
         const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
         document.getElementById('importResult').innerHTML = resultMsg;
         document.getElementById('importResult').classList.remove('hide');
@@ -1836,7 +1850,6 @@ async function handleErpImport() {
         hideLoader();
     }
 }
-
 
 
 /* ---------- Auswertung ---------- */
