@@ -1720,87 +1720,107 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
-        
-        const changedFrameworks = new Map();
-        const newFixEntries = [];
+
+        const allEntries = JSON.parse(JSON.stringify(entries)); // Deep copy to avoid side effects
+        const changesToPush = [];
 
         for (const row of rows) {
             const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
-            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
-
             if (!kvNummer) continue;
 
-            let found = false;
-            for (const entry of entries) {
-                 if (entry.projectType === 'fix' && entry.kv_nummer === kvNummer) {
-                    if (entry.amount !== amount) {
-                        entry.amount = amount;
-                        entry.modified = Date.now();
-                        updatedCount++;
-                        changedFrameworks.set(entry.id, entry);
-                    }
-                    found = true;
+            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
+            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
+            const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
+            const title = getVal(row, 'Titel') || '';
+
+            let entryToUpdate = null;
+            let transactionToUpdate = null;
+
+            // Search for existing KV-Nummer
+            for (const entry of allEntries) {
+                if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
+                    entryToUpdate = entry;
                     break;
                 }
-                if (entry.transactions) {
+                if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
                     const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
                     if (trans) {
-                        if (trans.amount !== amount) {
-                            trans.amount = amount;
-                            entry.modified = Date.now();
-                            updatedCount++;
-                            changedFrameworks.set(entry.id, entry);
-                        }
-                        found = true;
+                        entryToUpdate = entry;
+                        transactionToUpdate = trans;
                         break;
                     }
                 }
             }
 
-            if (!found) {
-                const parentEntry = entries.find(e => e.projectType === 'rahmen' && e.projectNumber === projektNummer);
-                if (parentEntry) {
-                    if (!parentEntry.transactions) parentEntry.transactions = [];
-                    parentEntry.transactions.push({
-                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g,'')}`,
-                        kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
+            if (entryToUpdate) { // Case A: KV-Nummer found
+                const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
+                if (originalAmount !== amount) {
+                    if (transactionToUpdate) {
+                        transactionToUpdate.amount = amount;
+                    } else {
+                        entryToUpdate.amount = amount;
+                    }
+                    entryToUpdate.modified = Date.now();
+                    changesToPush.push(entryToUpdate);
+                    updatedCount++;
+                }
+            } else { // Case B: KV-Nummer is new
+                const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
+                if (parentFramework) {
+                    if (!Array.isArray(parentFramework.transactions)) {
+                        parentFramework.transactions = [];
+                    }
+                    parentFramework.transactions.push({
+                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                        kv_nummer: kvNummer,
+                        type: 'founder',
+                        amount: amount,
+                        ts: Date.now()
                     });
-                    parentEntry.modified = Date.now();
+                    parentFramework.modified = Date.now();
+                    changesToPush.push(parentFramework);
                     addedToFrameworkCount++;
-                    changedFrameworks.set(parentEntry.id, parentEntry);
                 } else {
-                    const newEntry = {
-                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g,'')}`,
-                        source: 'erp-import', projectType: 'fix',
-                        client: getVal(row, 'Projekt Etat Kunde Name') || '',
-                        title: getVal(row, 'Titel') || '',
+                    const newFixEntry = {
+                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                        source: 'erp-import',
+                        projectType: 'fix',
+                        client: clientName,
+                        title: title,
                         projectNumber: projektNummer,
-                        kv_nummer: kvNummer, amount: amount,
-                        list: [], rows: [], weights: [], ts: Date.now(),
-                        complete: false 
+                        kv_nummer: kvNummer,
+                        amount: amount,
+                        list: [],
+                        rows: [],
+                        weights: [],
+                        ts: Date.now(),
+                        complete: false
                     };
-                    newFixEntries.push(newEntry);
+                    allEntries.push(newFixEntry);
+                    changesToPush.push(newFixEntry);
                     newFixCount++;
                 }
             }
         }
 
-        const promises = [];
-        changedFrameworks.forEach(entry => {
-            promises.push(fetch(`${WORKER_BASE}/entries/${entry.id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-            }).then(r => { if (!r.ok) throw new Error(`Update für ${entry.id} fehlgeschlagen.`); }));
+        const uniqueChanges = Array.from(new Map(changesToPush.map(item => [item.id, item])).values());
+
+        const updatePromises = uniqueChanges.map(entry => {
+            const isNew = !entries.some(e => e.id === entry.id);
+            const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
+            const method = isNew ? 'POST' : 'PUT';
+            return fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entry)
+            }).then(r => {
+                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}`);
+                return r.json();
+            });
         });
-        
-        for(const newEntry of newFixEntries) {
-            promises.push(fetch(`${WORKER_BASE}/entries`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newEntry)
-            }).then(r => { if (!r.ok) throw new Error(`Erstellung für ${newEntry.id} fehlgeschlagen.`); }));
-        }
-        
-        await Promise.all(promises);
-        
+
+        await Promise.all(updatePromises);
+
         const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
         document.getElementById('importResult').innerHTML = resultMsg;
         document.getElementById('importResult').classList.remove('hide');
@@ -1816,6 +1836,7 @@ async function handleErpImport() {
         hideLoader();
     }
 }
+
 
 
 /* ---------- Auswertung ---------- */
