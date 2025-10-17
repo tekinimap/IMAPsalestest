@@ -405,21 +405,6 @@
     "transactions": []
   },
   {
-    "id": "entry_1760713047256_KV20250216",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Schlüsselqualifikationen für Internationale Zusammenarbeit",
-    "projectNumber": "GIZ-58-001",
-    "kv_nummer": "KV-2025-0216",
-    "amount": 14950,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760713047256,
-    "complete": false
-  },
-  {
     "id": "entry_1760713047256_KV20250229",
     "source": "erp-import",
     "projectType": "fix",
