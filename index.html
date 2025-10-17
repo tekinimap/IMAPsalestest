@@ -1695,11 +1695,14 @@ async function adminCreate(){
 const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
+function getVal(row, keyName) {
+    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const keys = Object.keys(row);
+    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedKeyName);
+    return foundKey ? row[foundKey] : undefined;
+}
 
-// --------- Header-Aliase (Deutsch) ---------
-const HEADER_ALIASES = {
-  kvNummer: ['kv-nummer','kvnummer','kv nr','kvnr','kv_nummer','kostenvoranschlagsnummer','kosten-voranschlagsnummer'],
-  projektProjektnummer: ['projekt projektnummer','projektnummer','projekt-nr','projektnr','projekt_nr','projekt iasync function handleErpImport() {
+async function handleErpImport() {
     const fileInput = document.getElementById('erpFile');
     if (fileInput.files.length === 0) {
         showToast('Bitte eine Datei auswählen.', 'bad');
@@ -1709,7 +1712,10 @@ const HEADER_ALIASES = {
     showLoader();
     try {
         await loadHistory(); // Ensure we have the latest data
-        const rows = await readSheetToJson(file);
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
@@ -1723,7 +1729,7 @@ const HEADER_ALIASES = {
             if (!kvNummer) continue;
 
             const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-            const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
+            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
             const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
             const title = getVal(row, 'Titel') || '';
 
@@ -1762,74 +1768,6 @@ const HEADER_ALIASES = {
                 const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
                 if (parentFramework) {
                     if (!Array.isArray(parentFramework.transactions)) {
-                        parentFramework.transactions = [];
-                    }
-                    parentFramework.transactions.push({
-                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        kv_nummer: kvNummer,
-                        type: 'founder',
-                        amount: amount,
-                        ts: Date.now()
-                    });
-                    parentFramework.modified = Date.now();
-                    changesToPush.push(parentFramework);
-                    addedToFrameworkCount++;
-                } else {
-                    const newFixEntry = {
-                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        source: 'erp-import',
-                        projectType: 'fix',
-                        client: clientName,
-                        title: title,
-                        projectNumber: projektNummer,
-                        kv_nummer: kvNummer,
-                        amount: amount,
-                        list: [],
-                        rows: [],
-                        weights: [],
-                        ts: Date.now(),
-                        complete: false
-                    };
-                    allEntries.push(newFixEntry);
-                    changesToPush.push(newFixEntry);
-                    newFixCount++;
-                }
-            }
-        }
-
-        const uniqueChanges = Array.from(new Map(changesToPush.map(item => [item.id, item])).values());
-
-        const updatePromises = uniqueChanges.map(entry => {
-            const isNew = !entries.some(e => e.id === entry.id);
-            const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
-            const method = isNew ? 'POST' : 'PUT';
-            return fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entry)
-            }).then(r => {
-                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}`);
-                return r.json();
-            });
-        });
-
-        await Promise.all(updatePromises);
-
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
-        document.getElementById('importResult').innerHTML = resultMsg;
-        document.getElementById('importResult').classList.remove('hide');
-        showToast('ERP-Daten erfolgreich importiert', 'ok');
-        await loadHistory();
-
-    } catch (e) {
-        showToast('Fehler beim Importieren der Datei.', 'bad');
-        console.error(e);
-        document.getElementById('importResult').textContent = 'Fehler: ' + e.message;
-        document.getElementById('importResult').classList.remove('hide');
-    } finally {
-        hideLoader();
-    }
-}transactions)) {
                         parentFramework.transactions = [];
                     }
                     parentFramework.transactions.push({
