@@ -1585,8 +1585,8 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     const rows = readRows('#editFwTbody');
     const weights = [
         {key:'cs', weight: toInt0(editFwW_cs.value)},
-        {key:'konzept', weight: toInt0(editFwW_konzept.value)},
-        {key:'pitch', weight: toInt0(editFwW_pitch.value)}
+        {key:'konzept', weight: toInt0(editW_konzept.value)},
+        {key:'pitch', weight: toInt0(editW_pitch.value)}
     ];
 
     const errors = validateModalInput(rows, weights);
@@ -1750,23 +1750,27 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
+        let skippedCount = 0;
         
-        const allEntries = JSON.parse(JSON.stringify(entries)); // Tiefe Kopie für sichere Bearbeitung
+        const allEntries = JSON.parse(JSON.stringify(entries));
         const changesToPush = new Map();
 
         for (const row of rows) {
             const kvNummer = String(getVal(row, 'kvNummer') || '').trim();
-            if (!kvNummer) continue;
+            const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
+
+            if (!kvNummer || amount <= 0) {
+                if (amount <= 0) skippedCount++;
+                continue;
+            }
 
             const projektNummer = String(getVal(row, 'projektProjektnummer') || '').trim();
-            const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
             const clientName = getVal(row, 'kundeName') || '';
             const title = getVal(row, 'titel') || '';
 
             let entryToUpdate = null;
             let transactionToUpdate = null;
 
-            // Suche nach bestehender KV-Nummer in allen Einträgen
             for (const entry of allEntries) {
                 if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
                     entryToUpdate = entry;
@@ -1782,7 +1786,7 @@ async function handleErpImport() {
                 }
             }
 
-            if (entryToUpdate) { // Fall A: KV-Nummer gefunden
+            if (entryToUpdate) {
                 const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
                 if (originalAmount !== amount) {
                     if (transactionToUpdate) {
@@ -1794,12 +1798,10 @@ async function handleErpImport() {
                     changesToPush.set(entryToUpdate.id, entryToUpdate);
                     updatedCount++;
                 }
-            } else { // Fall B: KV-Nummer ist neu
+            } else {
                 const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
                 if (parentFramework) {
-                    if (!Array.isArray(parentFramework.transactions)) {
-                        parentFramework.transactions = [];
-                    }
+                    if (!Array.isArray(parentFramework.transactions)) parentFramework.transactions = [];
                     parentFramework.transactions.push({
                         id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
                         kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
@@ -1810,13 +1812,22 @@ async function handleErpImport() {
                 } else {
                     const newFixEntry = {
                         id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        source: 'erp-import', projectType: 'fix',
-                        client: clientName, title: title, projectNumber: projektNummer,
-                        kv_nummer: kvNummer, amount: amount,
-                        list: [], rows: [], weights: [], ts: Date.now(),
+                        source: 'erp-import',
+                        projectType: 'fix',
+                        client: clientName,
+                        title: title,
+                        projectNumber: projektNummer,
+                        kv_nummer: kvNummer,
+                        amount: amount,
+                        list: [],
+                        rows: [],
+                        weights: [],
+                        totals: { cs: 0, konzept: 0, pitch: 0 },
+                        submittedBy: 'ERP-Import',
+                        ts: Date.now(),
                         complete: false 
                     };
-                    allEntries.push(newFixEntry); // Füge zur lokalen Kopie hinzu, falls es in der gleichen Datei referenziert wird
+                    allEntries.push(newFixEntry);
                     changesToPush.set(newFixEntry.id, newFixEntry);
                     newFixCount++;
                 }
@@ -1830,12 +1841,21 @@ async function handleErpImport() {
             const method = isNew ? 'POST' : 'PUT';
             promises.push(fetch(url, {
                 method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-            }).then(r => { if (!r.ok) throw new Error(`Speichern für ${entry.id} fehlgeschlagen.`); }));
+            }).then(async (r) => { 
+                if (!r.ok) {
+                    const errorText = await r.text();
+                    console.error(`Speichern für ${entry.id} fehlgeschlagen:`, errorText);
+                    throw new Error(`Speichern für ${entry.id} fehlgeschlagen.`);
+                }
+            }));
         });
         
         await Promise.all(promises);
         
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+        let resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+        if (skippedCount > 0) {
+            resultMsg += ` ${skippedCount} Zeilen wurden übersprungen (Betrag <= 0).`;
+        }
         document.getElementById('importResult').innerHTML = resultMsg;
         document.getElementById('importResult').classList.remove('hide');
         showToast('ERP-Daten erfolgreich importiert', 'ok');
@@ -1850,6 +1870,7 @@ async function handleErpImport() {
         hideLoader();
     }
 }
+
 
 
 /* ---------- Auswertung ---------- */
