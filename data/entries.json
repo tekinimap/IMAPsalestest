@@ -362,7 +362,7 @@
   },
   {
     "id": "02aebf8c-5645-496f-a0f3-a8c196dfe012",
-    "ts": 1760692288588,
+    "ts": 1760704580652,
     "source": "hubspot",
     "complete": false,
     "title": "Change-Begleitung",
@@ -371,7 +371,7 @@
     "hubspotId": "45326972175",
     "pipeline": "default",
     "dealstage": "closedwon",
-    "closedate": null,
-    "modified": null
+    "closedate": 1760704579809,
+    "modified": 1760704579809
   }
 ]
