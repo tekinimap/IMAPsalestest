@@ -433,5 +433,20 @@
     "weights": [],
     "ts": 1760713178785,
     "complete": false
+  },
+  {
+    "id": "entry_1760713178787_KV20250129",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Führen von Projektteams",
+    "projectNumber": "MGladbach-03-002",
+    "kv_nummer": "KV-2025-0129",
+    "amount": 437.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1760713178787,
+    "complete": false
   }
 ]
