@@ -177,7 +177,7 @@
           <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
-         <div id="projectTypeWrapper">
+         <div id="projectTypeWrapper" style="grid-column: span 2;">
           <label>Projekttyp *</label>
           <div class="radio-group">
             <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
@@ -232,14 +232,14 @@
       <div class="hr"></div>
 
       <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
-        <div style="display:flex; gap:10px; flex-grow: 1;">
+        <div style="display:flex; gap:10px;">
             <div>
               <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
               <input id="projectNumber" type="text" style="padding: 8px 12px; width: 200px;">
               <div class="field-error" data-validation-for="projectNumber"></div>
             </div>
             <div>
-              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer *</label>
+              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer</label>
               <input id="kvNummer" type="text" style="padding: 8px 12px; width: 200px;">
                <div class="field-error" data-validation-for="kvNummer"></div>
             </div>
@@ -686,7 +686,12 @@ function validateInput(forLive = false) {
         if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
-        if (!kvNummer.value.trim()) errors.kvNummer = 'KV-Nummer ist erforderlich.';
+        
+        // KV-Nummer ist nur erforderlich, wenn das Feld aktiv ist (also bei Bearbeitung oder Abrufen)
+        if (!kvNummer.disabled && !kvNummer.value.trim()) {
+            errors.kvNummer = 'KV-Nummer ist erforderlich.';
+        }
+
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
         if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
     }
@@ -871,13 +876,10 @@ function loadInputForm(inputData, isEditing = false) {
     const abrufInfo = document.getElementById('abrufInfo');
     const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
-    projectNumber.disabled = false;
-
+    
     if (st.isAbrufMode && st.parentEntry) {
-        const isEditingTrans = st.isEditingTransaction;
-        abrufInfo.classList.remove('hide');
-        abrufInfo.innerHTML = `Sie ${isEditingTrans ? 'bearbeiten einen' : 'erfassen einen neuen'} <b>aktiven Abruf</b> für: <b>${st.parentEntry.title}</b>.`;
-        erfsfassungSub.textContent = isEditingTrans ? "Aktiven Abruf bearbeiten." : "Neuen aktiven Abruf erfassen.";
+        // Hunter Abruf
+        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
         projectTypeWrapper.classList.add('hide');
         auftraggeber.value = st.parentEntry.client;
         auftraggeber.disabled = true;
@@ -885,8 +887,9 @@ function loadInputForm(inputData, isEditing = false) {
         projectNumber.value = inputData.projectNumber || '';
         projectNumber.disabled = true;
         kvNummer.value = inputData.kvNummer || '';
+        kvNummer.disabled = false;
     } else {
-        abrufInfo.classList.add('hide');
+        // Neue Erfassung oder Bearbeitung
         erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
         projectTypeWrapper.classList.remove('hide');
         auftraggeber.value = inputData.client || '';
@@ -894,7 +897,11 @@ function loadInputForm(inputData, isEditing = false) {
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
         kvNummer.value = inputData.kvNummer || '';
-        projectNumber.placeholder = 'Projektnummer eintragen';
+
+        projectNumber.disabled = !isEditing;
+        kvNummer.disabled = !isEditing;
+        projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
+        kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
     }
 
     auftragswertBekannt.checked = inputData.amountKnown !== false;
@@ -1684,8 +1691,9 @@ const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
 function getVal(row, keyName) {
+    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const keys = Object.keys(row);
-    const foundKey = keys.find(k => k.trim().toLowerCase() === keyName.toLowerCase());
+    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedKeyName);
     return foundKey ? row[foundKey] : undefined;
 }
 
@@ -1781,10 +1789,9 @@ async function handleErpImport() {
         });
         
         for(const newEntry of newFixEntries) {
-            const r = await fetch(`${WORKER_BASE}/entries`, {
+            promises.push(fetch(`${WORKER_BASE}/entries`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newEntry)
-            });
-            if (!r.ok) throw new Error(`Erstellung für ${newEntry.id} fehlgeschlagen.`);
+            }).then(r => { if (!r.ok) throw new Error(`Erstellung für ${newEntry.id} fehlgeschlagen.`); }));
         }
         
         await Promise.all(promises);
