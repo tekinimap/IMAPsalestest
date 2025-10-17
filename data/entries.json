@@ -359,20 +359,5 @@
     "projectNumber": "",
     "ts": 1760444474905,
     "id": "1d8dc3f6-8734-4387-87f1-cbfac0765207"
-  },
-  {
-    "id": "entry_1760712027370_KV20250159",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Juli/25  Erbringung von unternehmensweiten systemischen und psychodynamischen Beratungs-, Coaching-, Supervisions- und Moderationsleistunge",
-    "projectNumber": "Barmer-02-001",
-    "kv_nummer": "KV-2025-0159",
-    "amount": 0,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760712027370,
-    "complete": false
   }
 ]
