@@ -2,362 +2,406 @@
   {
     "source": "manuell",
     "complete": false,
-    "client": "Deutsche Rentenversicherung Bund",
-    "title": "Führungskräfteentwicklung",
-    "amount": 0,
+    "client": "Barmer GEK",
+    "title": "FKE 2024",
     "projectType": "rahmen",
-    "rows": [
-      {
-        "personId": null,
-        "name": "Christopher van den Hövel",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 20
-      },
-      {
-        "personId": null,
-        "name": "Nana Hengelhaupt",
-        "cs": 0,
-        "konzept": 100,
-        "pitch": 0
-      },
-      {
-        "personId": null,
-        "name": "Eva Wollschläger",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 20
-      },
-      {
-        "personId": null,
-        "name": "Merlin Klein",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 20
-      },
-      {
-        "personId": null,
-        "name": "Katharina Rapp",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 40
-      }
-    ],
-    "list": [
-      {
-        "key": "Christopher van den Hövel",
-        "name": "Christopher van den Hövel",
-        "pct": 54,
-        "money": 0
-      },
-      {
-        "key": "Nana Hengelhaupt",
-        "name": "Nana Hengelhaupt",
-        "pct": 30,
-        "money": 0
-      },
-      {
-        "key": "Katharina Rapp",
-        "name": "Katharina Rapp",
-        "pct": 8.000000000000002,
-        "money": 0
-      },
-      {
-        "key": "Eva Wollschläger",
-        "name": "Eva Wollschläger",
-        "pct": 4.000000000000001,
-        "money": 0
-      },
-      {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
-        "pct": 4.000000000000001,
-        "money": 0
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 100
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 50
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 20
-      }
-    ],
-    "submittedBy": "Merlin Klein",
-    "projectNumber": "DRV-Bund-001",
-    "ts": 1760433529194,
-    "transactions": [
-      {
-        "id": "trans_1760433579705",
-        "type": "hunter",
-        "title": "Abruf 01",
-        "amount": 50000,
-        "ts": 1760433579705,
-        "submittedBy": "Thomas Gebhardt",
-        "rows": [
-          {
-            "personId": "p_oe_bul_05",
-            "name": "Thomas Gebhardt",
-            "cs": 100,
-            "konzept": 0,
-            "pitch": 0
-          },
-          {
-            "personId": "p_oe_bul_04",
-            "name": "Robin Dewald",
-            "cs": 0,
-            "konzept": 100,
-            "pitch": 0
-          }
-        ],
-        "list": [
-          {
-            "key": "Thomas Gebhardt",
-            "name": "Thomas Gebhardt",
-            "pct": 50,
-            "money": 20000
-          },
-          {
-            "key": "Robin Dewald",
-            "name": "Robin Dewald",
-            "pct": 50,
-            "money": 20000
-          }
-        ],
-        "weights": [
-          {
-            "key": "cs",
-            "weight": 50
-          },
-          {
-            "key": "konzept",
-            "weight": 50
-          },
-          {
-            "key": "pitch",
-            "weight": 0
-          }
-        ]
-      },
-      {
-        "amount": 50000,
-        "id": "trans_1760433538747",
-        "ts": 1760433538747,
-        "type": "founder"
-      },
-      {
-        "amount": 100000,
-        "id": "trans_1760434696594",
-        "ts": 1760434696594,
-        "type": "founder"
-      },
-      {
-        "id": "trans_1760434736764",
-        "type": "hunter",
-        "title": "Abruf 02",
-        "amount": 100000,
-        "ts": 1760434736764,
-        "submittedBy": "Felix Birkner",
-        "rows": [
-          {
-            "personId": "p_oe_skv_02",
-            "name": "Gunhild Busch",
-            "cs": 100,
-            "konzept": 0,
-            "pitch": 0
-          },
-          {
-            "personId": null,
-            "name": "",
-            "cs": 0,
-            "konzept": 0,
-            "pitch": 0
-          }
-        ],
-        "list": [
-          {
-            "key": "Gunhild Busch",
-            "name": "Gunhild Busch",
-            "pct": 100,
-            "money": 80000
-          }
-        ],
-        "weights": [
-          {
-            "key": "cs",
-            "weight": 100
-          },
-          {
-            "key": "konzept",
-            "weight": 0
-          },
-          {
-            "key": "pitch",
-            "weight": 0
-          }
-        ]
-      }
-    ],
-    "id": "d36704d7-8be5-4e37-ad8e-af0c221b74a1",
-    "modified": 1760434736764
+    "projectNumber": "Barmer-02-001",
+    "transactions": []
   },
   {
     "source": "manuell",
-    "complete": true,
-    "client": "Rhein-Neckar-Kreis",
-    "title": "Führungskräfteentwicklung",
-    "amount": 100000,
-    "projectType": "fix",
-    "rows": [
-      {
-        "personId": "p_oe_cp_03",
-        "name": "Ralf Böttcher",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_bul_04",
-        "name": "Robin Dewald",
-        "cs": 0,
-        "konzept": 100,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_komm_08",
-        "name": "Ralf Fischer",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 50
-      },
-      {
-        "personId": "p_oe_cp_02",
-        "name": "Kristin Delf",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 50
-      }
-    ],
-    "list": [
-      {
-        "key": "Ralf Böttcher",
-        "name": "Ralf Böttcher",
-        "pct": 50,
-        "money": 50000
-      },
-      {
-        "key": "Robin Dewald",
-        "name": "Robin Dewald",
-        "pct": 30,
-        "money": 30000
-      },
-      {
-        "key": "Ralf Fischer",
-        "name": "Ralf Fischer",
-        "pct": 10,
-        "money": 10000
-      },
-      {
-        "key": "Kristin Delf",
-        "name": "Kristin Delf",
-        "pct": 10,
-        "money": 10000
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 100
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 50
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 20
-      }
-    ],
-    "submittedBy": "Robin Dewald",
-    "projectNumber": "RNK-001",
-    "ts": 1760433709176,
-    "id": "2389057d-10d1-40ce-adf7-f03352cd7b42"
+    "complete": false,
+    "client": "BGRCI",
+    "title": "Dienstliche Beurteilung",
+    "projectType": "rahmen",
+    "projectNumber": "BGRCI-02-003",
+    "transactions": []
   },
   {
     "source": "manuell",
-    "complete": true,
+    "complete": false,
+    "client": "Bundesakademie für öffentliche Verwaltung",
+    "title": "Seminare & Webinare im Bereich Prozessmanagement & Organisation",
+    "projectType": "rahmen",
+    "projectNumber": "BÖV-08-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Bundesministerium für Bildung und Forschung",
+    "title": "Personalentwicklungsprogramm für Referent*innen",
+    "projectType": "rahmen",
+    "projectNumber": "BMBF-01-002",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Bundesministerium für Digitales und Verkehr",
+    "title": "Organisation und Durchführung Teamklausuren",
+    "projectType": "rahmen",
+    "projectNumber": "BMDV-01-002",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Das Deutsche Zentrum für Luft- & Raumfahrt e. V. (DLR)",
+    "title": "Schulungsleistungen & Prozessbegleitung",
+    "projectType": "rahmen",
+    "projectNumber": "DLR-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Das Deutsche Zentrum für Luft- & Raumfahrt e. V. (DLR)",
+    "title": "Pool für Coaching Maßnahmen",
+    "projectType": "rahmen",
+    "projectNumber": "DLR-02-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Baden-Württemberg",
+    "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung",
+    "projectType": "rahmen",
+    "projectNumber": "DRV BaWü-02-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
-    "title": "Führungskräfteentwicklung",
-    "amount": 100000,
-    "projectType": "fix",
-    "rows": [
-      {
-        "personId": "p_oe_skv_04",
-        "name": "Nana Hengelhaupt",
-        "cs": 50,
-        "konzept": 50,
-        "pitch": 50
-      },
-      {
-        "personId": "p_oe_head_02",
-        "name": "Merlin Klein",
-        "cs": 50,
-        "konzept": 50,
-        "pitch": 50
-      }
-    ],
-    "list": [
-      {
-        "key": "Nana Hengelhaupt",
-        "name": "Nana Hengelhaupt",
-        "pct": 50,
-        "money": 50000
-      },
-      {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
-        "pct": 50,
-        "money": 50000
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 100
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 50
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 20
-      }
-    ],
-    "submittedBy": "Daniel Bartel",
-    "projectNumber": "",
-    "ts": 1760444474905,
-    "id": "1d8dc3f6-8734-4387-87f1-cbfac0765207"
+    "title": "Grundlagen der Führung A19102",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-02-006",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Interkulturelle Kommunikation A20001",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-03-009",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Entwicklungsdialog A20057",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-04-007",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Sozialversicherungsfachwirt A20063",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-05-005",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Förderkreise Los 4 (mit Kienbaum) A20065",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-06-006",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Next Campus - Bildungsleistung/FKE",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-09-005",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Teamentwicklung",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-12-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Zusammenlegung Konzeption und Veranstaltungsorganisation Abteilung 21",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-14-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Abteilung 50 - Digitalstrategie",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-15-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Abteilung 30 - Veränderungs- und Prozessmanagement",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-16-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Moderation von Führungskräfteveranstaltungen",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Bund-17-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Knappschaft-Bahn-See",
+    "title": "Führungskräftequalifizierung II A21083",
+    "projectType": "rahmen",
+    "projectNumber": "DRV KBS-03-007",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Knappschaft-Bahn-See",
+    "title": "Führungskräftequalifizierung I - Basismodule",
+    "projectType": "rahmen",
+    "projectNumber": "DRV KBS-05-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Mitteldeutschland",
+    "title": "externe Moderationsleistungen",
+    "projectType": "rahmen",
+    "projectNumber": "DRV MD-04-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Deutsche Rentenversicherung Rheinland",
+    "title": "Moderation Workshops LOS 3",
+    "projectType": "rahmen",
+    "projectNumber": "DRV Rheinland-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "DFS Deutsche Flugsicherung GmbH",
+    "title": "Führungskräftetrainings",
+    "projectType": "rahmen",
+    "projectNumber": "DFS-01-002",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "ekom21 – Kommunales Gebietsrechenzentrum Hessen",
+    "title": "RV Spezialprogramm ekom21",
+    "projectType": "rahmen",
+    "projectNumber": "ekom21-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "ekom21 – Kommunales Gebietsrechenzentrum Hessen",
+    "title": "Rahmenvertrag Unterstützungsleistungen Los 6",
+    "projectType": "rahmen",
+    "projectNumber": "ekom21-02-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "ekom21 – Kommunales Gebietsrechenzentrum Hessen",
+    "title": "Rahmenvertrag Unterstützungsleistungen Los 7",
+    "projectType": "rahmen",
+    "projectNumber": "ekom21-03-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Goethe-Institut",
+    "title": "Durchführung von Teamentwicklung und Team-Coaching (Los 2)",
+    "projectType": "rahmen",
+    "projectNumber": "Goethe-10-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Komm.ONE AöR",
+    "title": "Führungskräfteentwicklungsprogramm Los 1",
+    "projectType": "rahmen",
+    "projectNumber": "K.One-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadt Bochum",
+    "title": "Teamentwicklung",
+    "projectType": "rahmen",
+    "projectNumber": "Stadt Bochum-05-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadt Koblenz",
+    "title": "Begleitung von Teamentwicklungsmaßnahmen",
+    "projectType": "rahmen",
+    "projectNumber": "ST KO-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadt Köln",
+    "title": "3. FZ Leitlinienprozess 2022-2026",
+    "projectType": "rahmen",
+    "projectNumber": "Köln-08",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadt Mönchengladbach",
+    "title": "Führungskräfteentwicklung A21082",
+    "projectType": "rahmen",
+    "projectNumber": "MGladbach-01-007",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Dataport",
+    "title": "Teamentwicklung",
+    "projectType": "rahmen",
+    "projectNumber": "DAA-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadt Köln",
+    "title": "Qualifizierung kompakt",
+    "projectType": "rahmen",
+    "projectNumber": "Köln-27-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Stadtentwässerungsbetriebe Köln",
+    "title": "Changeprozesse",
+    "projectType": "rahmen",
+    "projectNumber": "STK-01-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "ekom21",
+    "title": "Miniwettbewerb",
+    "projectType": "rahmen",
+    "projectNumber": "ekom21-06-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "WDR",
+    "title": "Changemanagement und Führungs-Beratungsleistungen",
+    "projectType": "rahmen",
+    "projectNumber": "WDR Köln-07-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "EwfL Deutsch & Englisch",
+    "projectType": "rahmen",
+    "projectNumber": "GIZ-51-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "EwfL Französisch",
+    "projectType": "rahmen",
+    "projectNumber": "GIZ-52-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "Kooperation und Steuerung",
+    "projectType": "rahmen",
+    "projectNumber": "GIZ-50-001",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "AIZ",
+    "title": "Agile Veranstaltungsbegleitung",
+    "projectType": "rahmen",
+    "projectNumber": "GIZ-16-002",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "OE-Rahmenvertrag",
+    "projectType": "rahmen",
+    "projectNumber": "n.a.",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "SME Loop Facility",
+    "projectType": "rahmen",
+    "projectNumber": "n.a.",
+    "transactions": []
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "GIZ",
+    "title": "Partnering in Business with Germany",
+    "projectType": "rahmen",
+    "projectNumber": "GIZ-54-001",
+    "transactions": []
   }
 ]
