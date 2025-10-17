@@ -374,5 +374,20 @@
     "weights": [],
     "ts": 1760712027370,
     "complete": false
+  },
+  {
+    "id": "entry_1760712027374_KV20250104",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Seminar zum Thema Generationsmanagement",
+    "projectNumber": "S.I.N.N.-04-001",
+    "kv_nummer": "KV-2025-0104",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1760712027374,
+    "complete": false
   }
 ]
