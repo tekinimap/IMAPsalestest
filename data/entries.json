@@ -421,21 +421,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760712027373_KV20250145",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Integrationsarbeit lokal vor Ort gestalten",
-    "projectNumber": "KreisGL-06-001",
-    "kv_nummer": "KV-2025-0145",
-    "amount": 1625,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760712027373,
-    "complete": false
-  },
-  {
     "id": "entry_1760712027372_KV20250061",
     "source": "erp-import",
     "projectType": "fix",
