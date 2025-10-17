@@ -177,6 +177,11 @@
           <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
           <div class="field-error" data-validation-for="submittedBy"></div>
         </div>
+        <div>
+           <label for="kvNummer">KV-Nummer *</label>
+           <input id="kvNummer" type="text">
+           <div class="field-error" data-validation-for="kvNummer"></div>
+        </div>
         <div id="projectTypeWrapper">
           <label>Projekttyp *</label>
           <div class="radio-group">
@@ -234,7 +239,7 @@
       <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
         <div style="flex-grow: 0; min-width: auto;">
           <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
-          <input id="projectNumber" type="text" disabled placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions" style="padding: 8px 12px; width: 200px;">
+          <input id="projectNumber" type="text" placeholder="Wird später eingetragen" aria-label="Projektnummer, auszufüllen von Corporate Functions" style="padding: 8px 12px; width: 200px;">
         </div>
         <div style="display:flex;gap:10px; flex-grow: 1; justify-content: flex-end;">
           <button class="btn primary disabled" id="btnSave">Speichern</button>
@@ -319,7 +324,7 @@
       <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
        <div class="table-wrapper">
         <table style="min-width:auto;">
-          <thead><tr><th>Datum</th><th>Typ</th><th>Titel/Notiz</th><th>Wert</th><th>Aktionen</th></tr></thead>
+          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Aktionen</th></tr></thead>
           <tbody id="rahmenTransaktionenBody"></tbody>
         </table>
       </div>
@@ -414,12 +419,15 @@
         <div id="editFounderTransView">
             <label for="editFounderValueInput">Wert (EUR)</label>
             <input type="text" id="editFounderValueInput" inputmode="decimal">
+             <label for="editFounderKvNummer">KV-Nummer</label>
+            <input type="text" id="editFounderKvNummer">
         </div>
 
         <div id="editHunterTransView" class="hide">
-            <div class="grid-2">
+             <div class="grid-3">
                 <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
                 <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount" inputmode="decimal"></div>
+                <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer"></div>
             </div>
             <div class="hr"></div>
             <div class="grid-3">
@@ -610,6 +618,7 @@ const auftragswert = document.getElementById('auftragswert');
 const auftragswertBekannt = document.getElementById('auftragswertBekannt');
 const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
+const kvNummer = document.getElementById('kvNummer');
 const w_cs = document.getElementById('w_cs');
 const w_konzept = document.getElementById('w_konzept');
 const w_pitch = document.getElementById('w_pitch');
@@ -674,6 +683,7 @@ function validateInput(forLive = false) {
         if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!kvNummer.value.trim()) errors.kvNummer = 'KV-Nummer ist erforderlich.';
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
         if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
     }
@@ -774,14 +784,14 @@ function saveCurrentInputState() {
         rows: readRows(),
         weights: currentWeights(),
         submittedBy: submittedBy.value,
-        projectNumber: projectNumber.disabled ? stPrev?.input?.projectNumber || '' : projectNumber.value.trim()
+        projectNumber: projectNumber.value.trim(),
+        kvNummer: kvNummer.value.trim()
     };
     saveState({ ...stPrev, input: currentInput });
 }
 
-[auftraggeber, projekttitel, auftragswert, submittedBy].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
-projectNumber.addEventListener('input', () => { if(!projectNumber.disabled) { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); } });
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
     if(!auftragswertBekannt.checked) auftragswert.value = '';
@@ -832,7 +842,7 @@ async function saveNewEntry(st) {
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', ts:Date.now(), id:st.editingId||undefined,
+    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, ts:Date.now(), id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
   showLoader();
@@ -858,6 +868,7 @@ function loadInputForm(inputData, isEditing = false) {
     const abrufInfo = document.getElementById('abrufInfo');
     const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+    projectNumber.disabled = false;
 
     if (st.isAbrufMode && st.parentEntry) {
         const isEditingTrans = st.isEditingTransaction;
@@ -870,6 +881,7 @@ function loadInputForm(inputData, isEditing = false) {
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
         projectNumber.disabled = true;
+        kvNummer.value = inputData.kvNummer || '';
     } else {
         abrufInfo.classList.add('hide');
         erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
@@ -878,8 +890,8 @@ function loadInputForm(inputData, isEditing = false) {
         auftraggeber.disabled = false;
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
-        if (isEditing) { projectNumber.removeAttribute('disabled'); projectNumber.placeholder = 'Projektnummer eintragen'; }
-        else { projectNumber.setAttribute('disabled', 'true'); projectNumber.placeholder = 'Wird später eingetragen'; }
+        kvNummer.value = inputData.kvNummer || '';
+        projectNumber.placeholder = 'Projektnummer eintragen';
     }
 
     auftragswertBekannt.checked = inputData.amountKnown !== false;
@@ -1108,7 +1120,7 @@ historyBody.addEventListener('click', async(ev)=>{
 function editEntry(id) {
   const e=entries.find(x=>x.id===id); if(!e) return;
   const st={ source:e.source||'manuell', editingId:e.id,
-    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'',
+    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummer: e.kv_nummer || '',
             rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
   saveState(st); initFromState(true);
@@ -1261,26 +1273,20 @@ async function saveHunterAbruf(st) {
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
 
-    if(st.isEditingTransaction && st.editingTransactionId) {
-        const transIndex = parentEntry.transactions.findIndex(t => t.id === st.editingTransactionId);
-        if(transIndex > -1) {
-            const oldTrans = parentEntry.transactions[transIndex];
-            parentEntry.transactions[transIndex] = {
-                ...oldTrans,
-                title: st.input.title,
-                amount: abrufAmount,
-                submittedBy: st.input.submittedBy,
-                rows: st.input.rows,
-                list: resultData.list,
-                weights: resultData.effectiveWeights
-            };
-        }
-    } else {
-        parentEntry.transactions.push({
-            id: `trans_${Date.now()}`, type: 'hunter', title: st.input.title, amount: abrufAmount, ts: Date.now(),
-            submittedBy: st.input.submittedBy, rows: st.input.rows, list: resultData.list, weights: resultData.effectiveWeights
-        });
-    }
+    const newTransaction = {
+        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
+        kv_nummer: st.input.kvNummer,
+        type: 'hunter', 
+        title: st.input.title, 
+        amount: abrufAmount, 
+        ts: Date.now(),
+        submittedBy: st.input.submittedBy, 
+        rows: st.input.rows, 
+        list: resultData.list, 
+        weights: resultData.effectiveWeights
+    };
+    
+    parentEntry.transactions.push(newTransaction);
     parentEntry.modified = Date.now();
 
     showLoader();
@@ -1289,7 +1295,7 @@ async function saveHunterAbruf(st) {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
         });
         if (!r.ok) throw new Error(await r.text());
-        showToast(`Aktiver Abruf ${st.isEditingTransaction ? 'aktualisiert' : 'hinzugefügt'}`, 'ok');
+        showToast(`Aktiver Abruf hinzugefügt`, 'ok');
         clearInputFields();
         renderFrameworkContracts();
         showView('rahmen');
@@ -1369,7 +1375,7 @@ function renderRahmenDetails(id) {
         tr.classList.add('clickable');
         tr.dataset.transId = trans.id;
         tr.innerHTML = `
-            <td>${new Date(trans.ts).toLocaleDateString('de-DE')}</td>
+            <td>${trans.kv_nummer || '–'}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
             <td>${fmtCurr2.format(trans.amount)}</td>
@@ -1408,8 +1414,10 @@ const editFounderTransView = document.getElementById('editFounderTransView');
 const editHunterTransView = document.getElementById('editHunterTransView');
 const editTransDlgTitle = document.getElementById('editTransDlgTitle');
 const editFounderValueInput = document.getElementById('editFounderValueInput');
+const editFounderKvNummer = document.getElementById('editFounderKvNummer');
 const editHunterTitle = document.getElementById('editHunterTitle');
 const editHunterAmount = document.getElementById('editHunterAmount');
+const editHunterKvNummer = document.getElementById('editHunterKvNummer');
 const editW_cs = document.getElementById('editW_cs');
 const editW_konzept = document.getElementById('editW_konzept');
 const editW_pitch = document.getElementById('editW_pitch');
@@ -1425,12 +1433,14 @@ function openEditTransactionModal(transaction, parentEntry) {
     if (transaction.type === 'founder') {
         editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
         editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
+        editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
         editFounderTransView.classList.remove('hide');
         editHunterTransView.classList.add('hide');
     } else { // hunter
         editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
         editHunterTitle.value = transaction.title || '';
         editHunterAmount.value = formatAmountInput(transaction.amount);
+        editHunterKvNummer.value = transaction.kv_nummer || '';
         const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
         const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
         editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
@@ -1488,14 +1498,15 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
         const resultData = compute(rows, weights, hunterShareAmount);
         
-        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list };
+        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim() };
 
     } else { // Saving a Founder transaction
         transaction.amount = parseAmountInput(editFounderValueInput.value);
+        transaction.kv_nummer = editFounderKvNummer.value.trim();
     }
     
     if (transIndex === -1) { // New founder transaction
-        transaction.id = `trans_${Date.now()}`;
+        transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g,'')}`;
         transaction.ts = Date.now();
         transaction.type = 'founder';
         parentEntry.transactions.push(transaction);
@@ -1674,6 +1685,7 @@ async function handleErpImport() {
     const file = fileInput.files[0];
     showLoader();
     try {
+        await loadHistory(); // Ensure we have the latest data
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheetName = workbook.SheetNames[0];
@@ -1682,17 +1694,30 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
+        
+        const changedFrameworks = new Map();
+        const newFixEntries = [];
 
-        rows.forEach(row => {
+        for (const row of rows) {
             const kvNummer = row['KV-Nummer'];
             const projektNummer = row['Projekt Projektnummer'];
-            const amount = parseFloat(String(row['Agenturleistung netto']).replace(',', '.')) || 0;
+            const amount = parseFloat(String(row['Agenturleistung netto'] || '0').replace(',', '.')) || 0;
 
-            if (!kvNummer) return;
+            if (!kvNummer) continue;
 
-            // Check if transaction with KV-Nummer already exists
             let found = false;
+            // Check existing entries (fix and framework transactions)
             for (const entry of entries) {
+                 if (entry.projectType === 'fix' && entry.kv_nummer === kvNummer) {
+                    if (entry.amount !== amount) {
+                        entry.amount = amount;
+                        entry.modified = Date.now();
+                        updatedCount++;
+                        changedFrameworks.set(entry.id, entry);
+                    }
+                    found = true;
+                    break;
+                }
                 if (entry.transactions) {
                     const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
                     if (trans) {
@@ -1700,6 +1725,7 @@ async function handleErpImport() {
                             trans.amount = amount;
                             entry.modified = Date.now();
                             updatedCount++;
+                            changedFrameworks.set(entry.id, entry);
                         }
                         found = true;
                         break;
@@ -1708,12 +1734,11 @@ async function handleErpImport() {
             }
 
             if (!found) {
-                // Not found, so it's new. Check for matching framework contract by Projektnummer
                 const parentEntry = entries.find(e => e.projectType === 'rahmen' && e.projectNumber === projektNummer);
                 if (parentEntry) {
                     if (!parentEntry.transactions) parentEntry.transactions = [];
                     parentEntry.transactions.push({
-                        id: `trans_${Date.now()}_${kvNummer}`,
+                        id: `trans_${Date.now()}_${String(kvNummer).replace(/\s/g,'')}`,
                         kv_nummer: kvNummer,
                         type: 'founder',
                         amount: amount,
@@ -1721,38 +1746,43 @@ async function handleErpImport() {
                     });
                     parentEntry.modified = Date.now();
                     addedToFrameworkCount++;
+                    changedFrameworks.set(parentEntry.id, parentEntry);
                 } else {
-                    // No framework contract found, create new Fixauftrag
                     const newEntry = {
-                        id: `entry_${Date.now()}_${kvNummer}`,
+                        id: `entry_${Date.now()}_${String(kvNummer).replace(/\s/g,'')}`,
                         source: 'erp-import',
                         projectType: 'fix',
                         client: row['Projekt Etat Kunde Name'] || '',
                         title: row['Titel'] || '',
                         projectNumber: projektNummer || '',
+                        kv_nummer: kvNummer,
                         amount: amount,
-                        list: [], // No distribution info in ERP export
-                        rows: [],
-                        weights: [],
-                        ts: Date.now(),
-                        complete: false // Marked as incomplete as distribution is missing
+                        list: [], rows: [], weights: [], ts: Date.now(),
+                        complete: false 
                     };
-                    entries.push(newEntry);
+                    newFixEntries.push(newEntry);
                     newFixCount++;
                 }
             }
-        });
+        }
 
-        // After processing all rows, save the entire updated entries array back to the worker
-        const r = await fetch(`${WORKER_BASE}/entries`, {
-            method: 'POST', // Using POST to overwrite the entire dataset for simplicity
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(entries)
+        const promises = [];
+        changedFrameworks.forEach(entry => {
+            promises.push(fetch(`${WORKER_BASE}/entries/${entry.id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+            }).then(r => { if (!r.ok) throw new Error(`Failed to update ${entry.id}`); }));
         });
-        if (!r.ok) throw new Error('Fehler beim Speichern der importierten Daten.');
         
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Abrufe aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
-        document.getElementById('importResult').textContent = resultMsg;
+        newFixEntries.forEach(newEntry => {
+             promises.push(fetch(`${WORKER_BASE}/entries`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newEntry)
+            }).then(r => { if (!r.ok) throw new Error(`Failed to create ${newEntry.id}`); }));
+        });
+        
+        await Promise.all(promises);
+        
+        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+        document.getElementById('importResult').innerHTML = resultMsg;
         document.getElementById('importResult').classList.remove('hide');
         showToast('ERP-Daten erfolgreich importiert', 'ok');
         await loadHistory();
