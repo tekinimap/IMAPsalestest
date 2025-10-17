@@ -448,20 +448,5 @@
     "weights": [],
     "ts": 1760713047258,
     "complete": false
-  },
-  {
-    "id": "entry_1760713047264_KV20250033",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "AstraZeneca AZH03 Workshop/Training/Moderation",
-    "projectNumber": "ChangePartner-19-001",
-    "kv_nummer": "KV-2025-0033",
-    "amount": 6401.25,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1760713047264,
-    "complete": false
   }
 ]
