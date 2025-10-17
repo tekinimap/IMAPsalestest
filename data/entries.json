@@ -359,19 +359,5 @@
     "projectNumber": "",
     "ts": 1760444474905,
     "id": "1d8dc3f6-8734-4387-87f1-cbfac0765207"
-  },
-  {
-    "id": "77d307a5-dd74-42fc-beab-36a022600542",
-    "ts": 1760445190099,
-    "source": "hubspot",
-    "complete": false,
-    "title": "Change-Begleitung",
-    "client": "",
-    "amount": 250000,
-    "hubspotId": "45326972175",
-    "pipeline": "default",
-    "dealstage": "closedwon",
-    "closedate": null,
-    "modified": null
   }
 ]
