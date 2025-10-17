@@ -362,16 +362,16 @@
   },
   {
     "id": "02aebf8c-5645-496f-a0f3-a8c196dfe012",
-    "ts": 1760704580652,
+    "ts": 1760705146157,
     "source": "hubspot",
     "complete": false,
     "title": "Change-Begleitung",
-    "client": "",
+    "client": "IMAP GmbH",
     "amount": 250000,
     "hubspotId": "45326972175",
     "pipeline": "default",
     "dealstage": "closedwon",
-    "closedate": 1760704579809,
-    "modified": 1760704579809
+    "closedate": 1760705145192,
+    "modified": 1760705145785
   }
 ]
