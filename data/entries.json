@@ -433,5 +433,20 @@
     "weights": [],
     "ts": 1760713047256,
     "complete": false
+  },
+  {
+    "id": "entry_1760713047258_KV20250196",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Change Management und Transformation",
+    "projectNumber": "DRV-18-001",
+    "kv_nummer": "KV-2025-0196",
+    "amount": 7500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1760713047258,
+    "complete": false
   }
 ]
