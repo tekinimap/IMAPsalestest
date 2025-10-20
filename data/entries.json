@@ -951,7 +951,30 @@
     "projectNumber": "DRV KBS-03-007",
     "kv_nummer": "",
     "ts": 1761032940019,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709372_KV20250109",
+        "kv_nummer": "KV-2025-0109",
+        "type": "founder",
+        "amount": 3600,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709373_KV20250072",
+        "kv_nummer": "KV-2025-0072",
+        "type": "founder",
+        "amount": 3200,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709374_KV20250041",
+        "kv_nummer": "KV-2025-0041",
+        "type": "founder",
+        "amount": 2800,
+        "ts": 1760970709374
+      }
+    ],
+    "modified": 1760970709374
   },
   {
     "id": "manuell_drv_kbs_fk_qual_i_basis",
