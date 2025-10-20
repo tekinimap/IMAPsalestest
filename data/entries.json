@@ -3377,5 +3377,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709371,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709371_KV20250138_99",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stiftung Universität Hildesheim",
+    "title": "Input & Co-Moderation von zwei Workshops zum Thema \"Nutzerorientierte Digitalisierung von Ausländerbehörden\"",
+    "projectNumber": "SUH-01-001",
+    "kv_nummer": "KV-2025-0138",
+    "amount": 200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709371,
+    "complete": false
   }
 ]
