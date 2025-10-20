@@ -1700,27 +1700,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760968634799_KV20250235_4",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Strategisches Coaching",
-    "projectNumber": "ARD ZDF-04-001",
-    "kv_nummer": "KV-2025-0235",
-    "amount": 6705,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760968634799,
-    "complete": false
-  },
-  {
     "id": "entry_1760968634806_KV20250057_216",
     "source": "erp-import",
     "projectType": "fix",
