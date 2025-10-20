@@ -3200,5 +3200,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709371,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709371_KV20250152_87",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Köln",
+    "title": "Frank Pfeuffer - SK Rahmenvertrag 3. FZ Leitlinienprozess",
+    "projectNumber": "Köln-08-020",
+    "kv_nummer": "KV-2025-0152",
+    "amount": 360,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709371,
+    "complete": false
   }
 ]
