@@ -463,5 +463,62 @@
     "weights": [],
     "ts": 1760713178791,
     "complete": false
+  },
+  {
+    "source": "manuell",
+    "complete": false,
+    "client": "Test",
+    "title": "Test",
+    "amount": 0,
+    "projectType": "rahmen",
+    "rows": [
+      {
+        "personId": "p_oe_bul_04",
+        "name": "Robin Dewald",
+        "cs": 0,
+        "konzept": 100,
+        "pitch": 0
+      },
+      {
+        "personId": null,
+        "name": "",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "list": [
+      {
+        "key": "Robin Dewald",
+        "name": "Robin Dewald",
+        "pct": 100,
+        "money": 0
+      }
+    ],
+    "totals": {
+      "cs": 0,
+      "konzept": 100,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 0
+      },
+      {
+        "key": "konzept",
+        "weight": 100
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "submittedBy": "Abdi Tekin",
+    "projectNumber": "",
+    "kv_nummer": "",
+    "ts": 1760945076878,
+    "transactions": [],
+    "id": "4cb35eec-eef5-4bfc-87ff-fdd67c06bfa0"
   }
 ]
