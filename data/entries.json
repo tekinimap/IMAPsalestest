@@ -5212,5 +5212,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709375,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709375_KV20250014_231",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landeshauptstadt München",
+    "title": "Teamentwicklung - Strategietagung Baureferat",
+    "projectNumber": "LHSM-03-001",
+    "kv_nummer": "KV-2025-0014",
+    "amount": 2400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709375,
+    "complete": false
   }
 ]
