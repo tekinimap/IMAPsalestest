@@ -3776,5 +3776,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250112_130",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Niedersächsisches Ministerium für Soziales, Arbeit, Gesundheit und Gleichstellung",
+    "title": "Vorstellung Schwerpunktbericht DJIHT Messeforum",
+    "projectNumber": "NSMfSAGG-03-001",
+    "kv_nummer": "KV-2025-0112",
+    "amount": 1200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
