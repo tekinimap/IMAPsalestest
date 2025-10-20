@@ -3142,5 +3142,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709371,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709371_KV20250190_84",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Einzelcoaching Daniel Schmidt",
+    "projectNumber": "BG Verkehr-04-001",
+    "kv_nummer": "KV-2025-0190",
+    "amount": 2940,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709371,
+    "complete": false
   }
 ]
