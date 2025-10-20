@@ -1447,7 +1447,16 @@
     "projectNumber": "GIZ-52-001",
     "kv_nummer": "",
     "ts": 1761032940039,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709368_KV20250227",
+        "kv_nummer": "KV-2025-0227",
+        "type": "founder",
+        "amount": 17600,
+        "ts": 1760970709368
+      }
+    ],
+    "modified": 1760970709368
   },
   {
     "id": "manuell_giz_koop_steuerung",
