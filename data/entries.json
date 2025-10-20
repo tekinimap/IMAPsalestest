@@ -1650,5 +1650,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760968566267,
     "complete": false
+  },
+  {
+    "id": "entry_1760968566269_KV20250216_141",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Schlüsselqualifikationen für Internationale Zusammenarbeit",
+    "projectNumber": "GIZ-58-001",
+    "kv_nummer": "KV-2025-0216",
+    "amount": 14950,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760968566269,
+    "complete": false
   }
 ]
