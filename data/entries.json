@@ -2163,5 +2163,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709369_KV20250220_21",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Dermapharm DPH04 Strategieworkshop 10./11. Sep 2025",
+    "projectNumber": "ChangePartner-35-001",
+    "kv_nummer": "KV-2025-0220",
+    "amount": 5070,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709369,
+    "complete": false
   }
 ]
