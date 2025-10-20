@@ -1616,27 +1616,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760968566266_KV20250220_55",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Dermapharm DPH04 Strategieworkshop 10./11. Sep 2025",
-    "projectNumber": "ChangePartner-35-001",
-    "kv_nummer": "KV-2025-0220",
-    "amount": 5070,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760968566266,
-    "complete": false
-  },
-  {
     "id": "entry_1760968566267_KV20250202_77",
     "source": "erp-import",
     "projectType": "fix",
