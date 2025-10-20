@@ -4750,5 +4750,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709374_KV20250044_201",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Antidiskriminierungsstelle des Bundes",
+    "title": "Durchführung der Replikation der Studie  „Diskriminierungserfahrungen in Deutschland“",
+    "projectNumber": "ADS-03-001",
+    "kv_nummer": "KV-2025-0044",
+    "amount": 337837.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709374,
+    "complete": false
   }
 ]
