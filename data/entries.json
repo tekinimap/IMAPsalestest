@@ -5128,5 +5128,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709374_KV20250022_226",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
+    "title": "Projektschmiede KEPS 2025",
+    "projectNumber": "BAMF-12-002",
+    "kv_nummer": "KV-2025-0022",
+    "amount": 173608.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709374,
+    "complete": false
   }
 ]
