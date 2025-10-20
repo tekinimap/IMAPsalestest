@@ -1660,27 +1660,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760968634806_KV20250228_207",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Interkulturelle Kompetenz und Kommunikation",
-    "projectNumber": "S.I.N.N.-05-001",
-    "kv_nummer": "KV-2025-0228",
-    "amount": 1600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760968634806,
-    "complete": false
-  },
-  {
     "id": "entry_1760969145888_KV20250149_45",
     "source": "erp-import",
     "projectType": "fix",
