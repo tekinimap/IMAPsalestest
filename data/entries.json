@@ -5046,27 +5046,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709375_KV20250010_227",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Ministerium für Heimat, Kommunales, Bau und Digitalisierung NRW",
-    "title": "Rahmenvertrag Regionalforen und virtuellen kollegialen Fallberatungen sowie Pflege und Aktualisierung des Online-Leitfadens „Prima.Klima.Wohnen“ 2025",
-    "projectNumber": "MHKBD.NRW-01-002",
-    "kv_nummer": "KV-2025-0010",
-    "amount": 17585,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709375,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709375_KV20250012_229",
     "source": "erp-import",
     "projectType": "fix",
