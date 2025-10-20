@@ -2828,5 +2828,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709370,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709370_KV20250176_65",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "AstraZeneca AZH05 Entwicklungscoaching Niklas Gerkau",
+    "projectNumber": "ChangePartner-29-001",
+    "kv_nummer": "KV-2025-0176",
+    "amount": 1323,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709370,
+    "complete": false
   }
 ]
