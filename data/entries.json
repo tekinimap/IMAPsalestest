@@ -582,7 +582,58 @@
     "projectNumber": "DRV Bund-12-001",
     "kv_nummer": "",
     "ts": 1761032940014,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709370_KV20250182",
+        "kv_nummer": "KV-2025-0182",
+        "type": "founder",
+        "amount": 1200,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709371_KV20250140",
+        "kv_nummer": "KV-2025-0140",
+        "type": "founder",
+        "amount": 2400,
+        "ts": 1760970709371
+      },
+      {
+        "id": "trans_1760970709372_KV20250106",
+        "kv_nummer": "KV-2025-0106",
+        "type": "founder",
+        "amount": 2400,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709373_KV20250075",
+        "kv_nummer": "KV-2025-0075",
+        "type": "founder",
+        "amount": 10800,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709373_KV20250063",
+        "kv_nummer": "KV-2025-0063",
+        "type": "founder",
+        "amount": 31200,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709374_KV20250039",
+        "kv_nummer": "KV-2025-0039",
+        "type": "founder",
+        "amount": 4800,
+        "ts": 1760970709374
+      },
+      {
+        "id": "trans_1760970709374_KV20250030",
+        "kv_nummer": "KV-2025-0030",
+        "type": "founder",
+        "amount": 7200,
+        "ts": 1760970709374
+      }
+    ],
+    "modified": 1760970709374
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
