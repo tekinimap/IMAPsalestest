@@ -1824,5 +1824,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760969145888,
     "complete": false
+  },
+  {
+    "id": "entry_1760969145887_KV20250100_18",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Praxisbegleitung für Führungsverantwortliche",
+    "projectNumber": "BG Verkehr-03-001",
+    "kv_nummer": "KV-2025-0100",
+    "amount": 5250,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760969145887,
+    "complete": false
   }
 ]
