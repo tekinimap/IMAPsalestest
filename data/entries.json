@@ -2642,5 +2642,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709370,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709370_KV20250187_55",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Barmer GEK",
+    "title": "Begleitung Teamentwicklung - Team Lern- und Entwicklungsmanagement",
+    "projectNumber": "Barmer-05-001",
+    "kv_nummer": "KV-2025-0187",
+    "amount": 3718.75,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709370,
+    "complete": false
   }
 ]
