@@ -9,8 +9,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "Barmer-02-001",
     "kv_nummer": "",
@@ -23,12 +40,29 @@
     "complete": false,
     "client": "BGRCI",
     "title": "Dienstliche Beurteilung",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "BGRCI-02-003",
     "kv_nummer": "",
@@ -36,17 +70,34 @@
     "transactions": []
   },
   {
-     "id": "manuell_baköv_seminare",
+    "id": "manuell_baköv_seminare",
     "source": "manuell",
     "complete": false,
     "client": "Bundesakademie für öffentliche Verwaltung",
     "title": "Seminare & Webinare im Bereich Prozessmanagement & Organisation",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "BÖV-08-001",
     "kv_nummer": "",
@@ -63,29 +114,63 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "BMBF-01-002",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940003,
     "transactions": []
   },
   {
-     "id": "manuell_bmdv_teamklausuren",
+    "id": "manuell_bmdv_teamklausuren",
     "source": "manuell",
     "complete": false,
     "client": "Bundesministerium für Digitales und Verkehr",
     "title": "Organisation und Durchführung Teamklausuren",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "BMDV-01-002",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940004,
     "transactions": []
   },
@@ -99,8 +184,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DLR-01-001",
     "kv_nummer": "",
@@ -108,42 +210,76 @@
     "transactions": []
   },
   {
-     "id": "manuell_dlr_coaching_pool",
+    "id": "manuell_dlr_coaching_pool",
     "source": "manuell",
     "complete": false,
     "client": "Das Deutsche Zentrum für Luft- & Raumfahrt e. V. (DLR)",
     "title": "Pool für Coaching Maßnahmen",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DLR-02-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940006,
     "transactions": []
   },
   {
-     "id": "manuell_drv_bawü_training",
+    "id": "manuell_drv_bawü_training",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Baden-Württemberg",
     "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV BaWü-02-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940007,
     "transactions": []
   },
-   {
+  {
     "id": "manuell_drv_bund_grundl_fuehr",
     "source": "manuell",
     "complete": false,
@@ -153,8 +289,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-02-006",
     "kv_nummer": "",
@@ -162,38 +315,72 @@
     "transactions": []
   },
   {
-     "id": "manuell_drv_bund_interkult_komm",
+    "id": "manuell_drv_bund_interkult_komm",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Interkulturelle Kommunikation A20001",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-03-009",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940009,
     "transactions": []
   },
   {
-     "id": "manuell_drv_bund_entwickl_dialog",
+    "id": "manuell_drv_bund_entwickl_dialog",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Entwicklungsdialog A20057",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-04-007",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940010,
     "transactions": []
   },
@@ -207,8 +394,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-05-005",
     "kv_nummer": "",
@@ -225,8 +429,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-06-006",
     "kv_nummer": "",
@@ -234,38 +455,72 @@
     "transactions": []
   },
   {
-     "id": "manuell_drv_bund_next_campus",
+    "id": "manuell_drv_bund_next_campus",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Next Campus - Bildungsleistung/FKE",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-09-005",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940013,
     "transactions": []
   },
-   {
-     "id": "manuell_drv_bund_teamentw",
+  {
+    "id": "manuell_drv_bund_teamentw",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Teamentwicklung",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-12-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940014,
     "transactions": []
   },
@@ -279,8 +534,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-14-001",
     "kv_nummer": "",
@@ -297,8 +569,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-15-001",
     "kv_nummer": "",
@@ -315,8 +604,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-16-001",
     "kv_nummer": "",
@@ -324,38 +630,72 @@
     "transactions": []
   },
   {
-     "id": "manuell_drv_bund_mod_fuehr_veranst",
+    "id": "manuell_drv_bund_mod_fuehr_veranst",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Moderation von Führungskräfteveranstaltungen",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Bund-17-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940018,
     "transactions": []
   },
   {
-     "id": "manuell_drv_kbs_fk_qual_ii",
+    "id": "manuell_drv_kbs_fk_qual_ii",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Knappschaft-Bahn-See",
     "title": "Führungskräftequalifizierung II A21083",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV KBS-03-007",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940019,
     "transactions": []
   },
@@ -369,8 +709,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV KBS-05-001",
     "kv_nummer": "",
@@ -378,56 +735,107 @@
     "transactions": []
   },
   {
-     "id": "manuell_drv_md_ext_mod",
+    "id": "manuell_drv_md_ext_mod",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Mitteldeutschland",
     "title": "externe Moderationsleistungen",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV MD-04-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940021,
     "transactions": []
   },
   {
-     "id": "manuell_drv_rheinland_mod_workshops",
+    "id": "manuell_drv_rheinland_mod_workshops",
     "source": "manuell",
     "complete": false,
     "client": "Deutsche Rentenversicherung Rheinland",
     "title": "Moderation Workshops LOS 3",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DRV Rheinland-01-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940022,
     "transactions": []
   },
   {
-     "id": "manuell_dfs_fk_trainings",
+    "id": "manuell_dfs_fk_trainings",
     "source": "manuell",
     "complete": false,
     "client": "DFS Deutsche Flugsicherung GmbH",
     "title": "Führungskräftetrainings",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DFS-01-002",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940023,
     "transactions": []
   },
@@ -441,8 +849,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "ekom21-01-001",
     "kv_nummer": "",
@@ -459,8 +884,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "ekom21-02-001",
     "kv_nummer": "",
@@ -477,8 +919,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "ekom21-03-001",
     "kv_nummer": "",
@@ -486,20 +945,37 @@
     "transactions": []
   },
   {
-     "id": "manuell_goethe_team_coach_los2",
+    "id": "manuell_goethe_team_coach_los2",
     "source": "manuell",
     "complete": false,
     "client": "Goethe-Institut",
     "title": "Durchführung von Teamentwicklung und Team-Coaching (Los 2)",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "Goethe-10-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940027,
     "transactions": []
   },
@@ -513,8 +989,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "K.One-01-001",
     "kv_nummer": "",
@@ -522,20 +1015,37 @@
     "transactions": []
   },
   {
-     "id": "manuell_stadt_bochum_teamentw",
+    "id": "manuell_stadt_bochum_teamentw",
     "source": "manuell",
     "complete": false,
     "client": "Stadt Bochum",
     "title": "Teamentwicklung",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "Stadt Bochum-05-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940029,
     "transactions": []
   },
@@ -549,8 +1059,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "ST KO-01-001",
     "kv_nummer": "",
@@ -567,8 +1094,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "Köln-08",
     "kv_nummer": "",
@@ -585,8 +1129,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "MGladbach-01-007",
     "kv_nummer": "",
@@ -603,8 +1164,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "DAA-01-001",
     "kv_nummer": "",
@@ -612,20 +1190,37 @@
     "transactions": []
   },
   {
-     "id": "manuell_stadt_koeln_quali_kompakt",
+    "id": "manuell_stadt_koeln_quali_kompakt",
     "source": "manuell",
     "complete": false,
     "client": "Stadt Köln",
     "title": "Qualifizierung kompakt",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "Köln-27-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940034,
     "transactions": []
   },
@@ -639,8 +1234,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "STK-01-001",
     "kv_nummer": "",
@@ -657,8 +1269,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "ekom21-06-001",
     "kv_nummer": "",
@@ -666,20 +1295,37 @@
     "transactions": []
   },
   {
-     "id": "manuell_wdr_change_fuehrung",
+    "id": "manuell_wdr_change_fuehrung",
     "source": "manuell",
     "complete": false,
     "client": "WDR",
     "title": "Changemanagement und Führungs-Beratungsleistungen",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "WDR Köln-07-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940037,
     "transactions": []
   },
@@ -693,8 +1339,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "GIZ-51-001",
     "kv_nummer": "",
@@ -702,20 +1365,37 @@
     "transactions": []
   },
   {
-     "id": "manuell_giz_ewfl_fr",
+    "id": "manuell_giz_ewfl_fr",
     "source": "manuell",
     "complete": false,
     "client": "GIZ",
     "title": "EwfL Französisch",
-     "amount": 0,
+    "amount": 0,
     "projectType": "rahmen",
-     "rows": [],
+    "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "GIZ-52-001",
-     "kv_nummer": "",
+    "kv_nummer": "",
     "ts": 1761032940039,
     "transactions": []
   },
@@ -729,8 +1409,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "GIZ-50-001",
     "kv_nummer": "",
@@ -747,8 +1444,25 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "GIZ-16-002",
     "kv_nummer": "",
@@ -765,12 +1479,50 @@
     "projectType": "rahmen",
     "rows": [],
     "list": [],
-    "totals": { "cs": 0, "konzept": 0, "pitch": 0 },
-    "weights": [{ "key": "cs", "weight": 50 }, { "key": "konzept", "weight": 30 }, { "key": "pitch", "weight": 20 }],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
     "submittedBy": "Manuell",
     "projectNumber": "GIZ-54-001",
     "kv_nummer": "",
     "ts": 1761032940044,
     "transactions": []
+  },
+  {
+    "id": "entry_1760956440766_KV20250234",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Viega VIE12 Fortsetzung Change Begleitung AI Initiative",
+    "projectNumber": "ChangePartner-37-001",
+    "kv_nummer": "KV-2025-0234",
+    "amount": 10850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760956440766,
+    "complete": false
   }
 ]
