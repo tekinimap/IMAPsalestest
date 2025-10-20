@@ -1291,7 +1291,16 @@
     "projectNumber": "K.One-01-001",
     "kv_nummer": "",
     "ts": 1761032940028,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709371_KV20250150",
+        "kv_nummer": "KV-2025-0150",
+        "type": "founder",
+        "amount": 4454.69,
+        "ts": 1760970709371
+      }
+    ],
+    "modified": 1760970709371
   },
   {
     "id": "manuell_stadt_bochum_teamentw",
