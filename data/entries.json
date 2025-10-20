@@ -2184,5 +2184,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709369_KV20250219_22",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "Coaching Herr Meinen",
+    "projectNumber": "Lahn-Dill-02-001",
+    "kv_nummer": "KV-2025-0219",
+    "amount": 246,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709369,
+    "complete": false
   }
 ]
