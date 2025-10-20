@@ -104,7 +104,16 @@
     "projectNumber": "BGRCI-02-003",
     "kv_nummer": "",
     "ts": 1761032940001,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709373_KV20250062",
+        "kv_nummer": "KV-2025-0062",
+        "type": "founder",
+        "amount": 4200,
+        "ts": 1760970709373
+      }
+    ],
+    "modified": 1760970709373
   },
   {
     "id": "manuell_baköv_seminare",
