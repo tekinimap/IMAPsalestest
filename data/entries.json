@@ -2507,5 +2507,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709369_KV20250222_45",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Hessisches Ministerium für Soziales und Integration",
+    "title": "Runder Tisch zum Hessischen Aktionsplan für Akzeptanz und Vielfalt",
+    "projectNumber": "HMSI-12-001",
+    "kv_nummer": "KV-2025-0222",
+    "amount": 2600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709369,
+    "complete": false
   }
 ]
