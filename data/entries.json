@@ -3976,5 +3976,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250099_143",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundeszentrale für politische Bildung",
+    "title": "Wissenschaftliche Begleitung der fünften Programmphase des Programms „Zusammenhalt  durch Teilhabe“",
+    "projectNumber": "BPB-03-001",
+    "kv_nummer": "KV-2025-0099",
+    "amount": 656075,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
