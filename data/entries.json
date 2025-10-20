@@ -1576,27 +1576,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760956440767_KV20250086",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Entwicklung Führungskultur: Teil II: Entwicklung der SOLL-Kultur",
-    "projectNumber": "DRV Hessen-03-002",
-    "kv_nummer": "KV-2025-0086",
-    "amount": 53987.49,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760956440767,
-    "complete": false
-  },
-  {
     "id": "entry_1760968566267_KV20250202_77",
     "source": "erp-import",
     "projectType": "fix",
