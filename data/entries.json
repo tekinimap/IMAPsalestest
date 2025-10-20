@@ -3997,5 +3997,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250098_144",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Coach e.V.",
+    "title": "Moderation",
+    "projectNumber": "Coach-03-001",
+    "kv_nummer": "KV-2025-0098",
+    "amount": 1250,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
