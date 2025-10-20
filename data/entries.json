@@ -2242,5 +2242,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709369_KV20250214_26",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Spring School 2",
+    "projectNumber": "GIZ-59-001",
+    "kv_nummer": "KV-2025-0214",
+    "amount": 63850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709369,
+    "complete": false
   }
 ]
