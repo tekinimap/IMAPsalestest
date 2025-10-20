@@ -3047,5 +3047,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709370,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709370_KV20250162_80",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Hilden",
+    "title": "Coaching und Begleitung eines Workshops",
+    "projectNumber": "Stadt Hilden-02-001",
+    "kv_nummer": "KV-2025-0162",
+    "amount": 4700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709370,
+    "complete": false
   }
 ]
