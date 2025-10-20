@@ -4855,5 +4855,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709374_KV20250035_209",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Bayern Süd",
+    "title": "Dozentenleistung „Bürokratieabbau“",
+    "projectNumber": "DRV Bayern Süd-07-001",
+    "kv_nummer": "KV-2025-0035",
+    "amount": 1387.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709374,
+    "complete": false
   }
 ]
