@@ -32,7 +32,44 @@
     "projectNumber": "Barmer-02-001",
     "kv_nummer": "",
     "ts": 1761032940000,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709371_KV20250159",
+        "kv_nummer": "KV-2025-0159",
+        "type": "founder",
+        "amount": 2800,
+        "ts": 1760970709371
+      },
+      {
+        "id": "trans_1760970709371_KV20250126",
+        "kv_nummer": "KV-2025-0126",
+        "type": "founder",
+        "amount": 8050,
+        "ts": 1760970709371
+      },
+      {
+        "id": "trans_1760970709372_KV20250123",
+        "kv_nummer": "KV-2025-0123",
+        "type": "founder",
+        "amount": 175,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709372_KV20250095",
+        "kv_nummer": "KV-2025-0095",
+        "type": "founder",
+        "amount": 4200,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709374_KV20250028",
+        "kv_nummer": "KV-2025-0028",
+        "type": "founder",
+        "amount": 5425,
+        "ts": 1760970709374
+      }
+    ],
+    "modified": 1760970709374
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
