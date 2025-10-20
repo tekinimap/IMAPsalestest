@@ -1803,5 +1803,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760968634806,
     "complete": false
+  },
+  {
+    "id": "entry_1760969145888_KV20250149_45",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Dermapharm DPH03 Strategie Workshop  10./11.09.2025",
+    "projectNumber": "ChangePartner-25-001",
+    "kv_nummer": "KV-2025-0149",
+    "amount": 6500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760969145888,
+    "complete": false
   }
 ]
