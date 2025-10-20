@@ -2579,5 +2579,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709370_KV20250192_52",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "Workshop Bereich 8",
+    "projectNumber": "Lahn-Dill-04-001",
+    "kv_nummer": "KV-2025-0192",
+    "amount": 2400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709370,
+    "complete": false
   }
 ]
