@@ -5023,5 +5023,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709374_KV20250017_221",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Managerfortbildung 2024.01 - Modul 5",
+    "projectNumber": "GIZ-41-001",
+    "kv_nummer": "KV-2025-0017",
+    "amount": 10775,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709374,
+    "complete": false
   }
 ]
