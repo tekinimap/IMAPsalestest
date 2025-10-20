@@ -3692,5 +3692,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250125_118",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadtverwaltung Leichlingen",
+    "title": "Beteiligungsformate Leichlinger Zukunfts Büffet Planung",
+    "projectNumber": "STL-01-001",
+    "kv_nummer": "KV-2025-0125",
+    "amount": 28461.12,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
