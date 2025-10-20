@@ -652,7 +652,16 @@
     "projectNumber": "DRV Bund-15-001",
     "kv_nummer": "",
     "ts": 1761032940016,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709370_KV20250188",
+        "kv_nummer": "KV-2025-0188",
+        "type": "founder",
+        "amount": 100000,
+        "ts": 1760970709370
+      }
+    ],
+    "modified": 1760970709370
   },
   {
     "id": "manuell_drv_bund_abt30_veraend",
