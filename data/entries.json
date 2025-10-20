@@ -1868,5 +1868,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709368,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709368_KV20250240_5",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Bundesbank",
+    "title": "Design und Durchführung einer Teamentwicklung im Großgruppenformat",
+    "projectNumber": "DEB-01-001",
+    "kv_nummer": "KV-2025-0240",
+    "amount": 18900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709368,
+    "complete": false
   }
 ]
