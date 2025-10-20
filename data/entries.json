@@ -3566,5 +3566,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250127_112",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Digitales Führungskräftecoaching",
+    "projectNumber": "MGladbach-03-001",
+    "kv_nummer": "KV-2025-0127",
+    "amount": 234.38,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
