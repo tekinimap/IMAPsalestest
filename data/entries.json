@@ -172,7 +172,58 @@
     "projectNumber": "BMDV-01-002",
     "kv_nummer": "",
     "ts": 1761032940004,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709369_KV20250175",
+        "kv_nummer": "KV-2025-0175",
+        "type": "founder",
+        "amount": 5150,
+        "ts": 1760970709369
+      },
+      {
+        "id": "trans_1760970709370_KV20250184",
+        "kv_nummer": "KV-2025-0184",
+        "type": "founder",
+        "amount": 1150,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709370_KV20250165",
+        "kv_nummer": "KV-2025-0165",
+        "type": "founder",
+        "amount": 15000,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709371_KV20250135",
+        "kv_nummer": "KV-2025-0135",
+        "type": "founder",
+        "amount": 3150,
+        "ts": 1760970709371
+      },
+      {
+        "id": "trans_1760970709372_KV20250097",
+        "kv_nummer": "KV-2025-0097",
+        "type": "founder",
+        "amount": 3800,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709373_KV20250049",
+        "kv_nummer": "KV-2025-0049",
+        "type": "founder",
+        "amount": 15945,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709375_KV20250015",
+        "kv_nummer": "KV-2025-0015",
+        "type": "founder",
+        "amount": 9050,
+        "ts": 1760970709375
+      }
+    ],
+    "modified": 1760970709375
   },
   {
     "id": "manuell_dlr_schulung_prozess",
