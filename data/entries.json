@@ -671,7 +671,72 @@
     "projectNumber": "DRV Bund-17-001",
     "kv_nummer": "",
     "ts": 1761032940018,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760970709369_KV20250223",
+        "kv_nummer": "KV-2025-0223",
+        "type": "founder",
+        "amount": 18650,
+        "ts": 1760970709369
+      },
+      {
+        "id": "trans_1760970709370_KV20250181",
+        "kv_nummer": "KV-2025-0181",
+        "type": "founder",
+        "amount": 28980,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709370_KV20250169",
+        "kv_nummer": "KV-2025-0169",
+        "type": "founder",
+        "amount": 8250,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709371_KV20250136",
+        "kv_nummer": "KV-2025-0136",
+        "type": "founder",
+        "amount": 33120,
+        "ts": 1760970709371
+      },
+      {
+        "id": "trans_1760970709372_KV20250113",
+        "kv_nummer": "KV-2025-0113",
+        "type": "founder",
+        "amount": 37050,
+        "ts": 1760970709372
+      },
+      {
+        "id": "trans_1760970709373_KV20250076",
+        "kv_nummer": "KV-2025-0076",
+        "type": "founder",
+        "amount": 15670,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709373_KV20250056",
+        "kv_nummer": "KV-2025-0056",
+        "type": "founder",
+        "amount": 13980,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709373_KV20250050",
+        "kv_nummer": "KV-2025-0050",
+        "type": "founder",
+        "amount": 18360,
+        "ts": 1760970709373
+      },
+      {
+        "id": "trans_1760970709375_KV20250008",
+        "kv_nummer": "KV-2025-0008",
+        "type": "founder",
+        "amount": 35940,
+        "ts": 1760970709375
+      }
+    ],
+    "modified": 1760970709375
   },
   {
     "id": "manuell_drv_kbs_fk_qual_ii",
