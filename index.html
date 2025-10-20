@@ -43,6 +43,8 @@
   .btn.disabled{opacity:.5;pointer-events:none}
   .btn.ok{background:var(--ok);border-color:transparent}
   .btn.danger{background:var(--bad);border-color:transparent}
+  .btn.warn{background:var(--warn); border-color:transparent;} /* Added for warn button */
+  .btn.small{padding: 6px 12px; font-size: 13px;} /* Added for smaller buttons */
   .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px}
   
   .radio-group {display:flex; gap:12px; margin-top: 8px;}
@@ -53,7 +55,8 @@
   thead th{position:sticky;top:0;background:#0d162a;border-bottom:1px solid var(--border);padding:12px;text-align:left;font-size:13px}
   tbody td{border-top:1px solid var(--border);padding:10px 12px; vertical-align: middle;}
   tbody tr:hover{background:#0c1426}
-  tbody tr.clickable { cursor: pointer; }
+  /* Make rows clickable for editing Framework contracts */
+  #rahmenBody tr td:not(:first-child):not(:last-child) { cursor: pointer; }
   tbody tr.selected-row { background-color: rgba(59, 130, 246, 0.15) !important; } /* Highlight selected rows */
   .delrow{background:#13203b;border:1px solid #21314f;color:#cbd5e1;border-radius:8px;padding:6px 8px;cursor:pointer}
 
@@ -73,7 +76,7 @@
   
   .search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
   .search-wrapper input {width:100%;}
-  .batch-actions { margin-top: 12px; display: flex; justify-content: flex-end; } /* For delete button */
+  .batch-actions { margin-top: -10px; margin-bottom: 12px; display: flex; justify-content: flex-end; } /* For delete button */
 
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
@@ -82,7 +85,7 @@
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
-  th input[type="checkbox"] { vertical-align: middle; } /* Align header checkbox */
+  th input[type="checkbox"] { vertical-align: middle; margin-right: 5px;} /* Align header checkbox */
   td input[type="checkbox"] { vertical-align: middle; } /* Align row checkbox */
   
   .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
@@ -1017,52 +1020,72 @@ let entries=[];
 let pendingDelete = { ids: [], type: 'entry' }; // Updated for multi-delete
 let currentSort = { key: 'ts', direction: 'desc' };
 
-async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
+async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); renderFrameworkContracts(); return entries; } // Render both tables
 function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 
 function filtered(type = 'fix'){
   let arr = entries.filter(e => (e.projectType || 'fix') === type);
-  const query = omniSearch.value.trim().toLowerCase();
-  const terms = query.split(/\s+/);
+  const query = (type === 'fix' ? omniSearch.value : rahmenSearch.value).trim().toLowerCase(); // Use correct search input
   
-  const filters = [];
-  const searchTerms = [];
+  if (type === 'fix') {
+      const terms = query.split(/\s+/);
+      const filters = [];
+      const searchTerms = [];
 
-  terms.forEach(term => {
-    if (term.includes(':')) {
-      const [key, ...value] = term.split(':');
-      if (value.length > 0) {
-        filters.push({ key, value: value.join(':') });
+      terms.forEach(term => {
+        if (term.includes(':')) {
+          const [key, ...value] = term.split(':');
+          if (value.length > 0) {
+            filters.push({ key, value: value.join(':') });
+          }
+        } else {
+          searchTerms.push(term);
+        }
+      });
+
+      const searchText = searchTerms.join(' ');
+      if (searchText) {
+        arr = arr.filter(e => 
+          String(e.title || '').toLowerCase().includes(searchText) || 
+          String(e.client || '').toLowerCase().includes(searchText)
+        );
       }
-    } else {
-      searchTerms.push(term);
-    }
-  });
 
-  const searchText = searchTerms.join(' ');
-  if (searchText) {
-    arr = arr.filter(e => 
-      String(e.title || '').toLowerCase().includes(searchText) || 
-      String(e.client || '').toLowerCase().includes(searchText)
-    );
+      filters.forEach(({ key, value }) => {
+        if (key === 'status') {
+          const wantOk = value.startsWith('v') || value.startsWith('o');
+          arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+        }
+        if (key === 'quelle' || key === 'source') {
+          arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
+        }
+        if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
+          const num = parseFloat(value.substring(1));
+          if (!isNaN(num)) {
+            if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
+            if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
+          }
+        }
+      });
+  } else { // Filter logic for framework contracts
+       if (query) {
+           arr = arr.filter(e => {
+              if (String(e.title || '').toLowerCase().includes(query)) return true;
+              if (String(e.client || '').toLowerCase().includes(query)) return true;
+              if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true; // Check founders
+               if (Array.isArray(e.transactions)) { // Check hunters in transactions
+                 for (const trans of e.transactions) {
+                   if (trans.type === 'hunter') {
+                     if (String(trans.title || '').toLowerCase().includes(query)) return true;
+                     if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+                   }
+                 }
+               }
+               return false;
+           });
+       }
   }
 
-  filters.forEach(({ key, value }) => {
-    if (key === 'status') {
-      const wantOk = value.startsWith('v') || value.startsWith('o');
-      arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
-    }
-    if (key === 'quelle' || key === 'source') {
-      arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
-    }
-    if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
-      const num = parseFloat(value.substring(1));
-      if (!isNaN(num)) {
-        if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
-        if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
-      }
-    }
-  });
 
   arr.sort((a,b) => {
     let valA = a[currentSort.key] || '';
@@ -1080,7 +1103,7 @@ function filtered(type = 'fix'){
   return arr;
 }
 
-function renderHistory(){
+function renderHistory(){ // Renders Fixaufträge
   historyBody.innerHTML=''; 
   updateSortIcons();
   const arr=filtered('fix');
@@ -1103,7 +1126,7 @@ function renderHistory(){
   }
 }
 omniSearch.addEventListener('input', renderHistory);
-rahmenSearch.addEventListener('input', renderFrameworkContracts);
+rahmenSearch.addEventListener('input', renderFrameworkContracts); // Link search input
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -1134,40 +1157,54 @@ function handleDeleteClick(id, type = 'entry', parentId = null) {
     return;
   }
   pendingDelete = { ids: [id], type }; // Always use array for consistency
-  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} "${id}" wirklich löschen?`;
+  const itemText = type === 'transaction' ? 'Abruf' : 'Eintrag';
+  document.getElementById('confirmDlgText').textContent = `Wollen Sie ${ids.length > 1 ? `die ${ids.length} ausgewählten Einträge` : `den ${itemText} "${ids[0]}"`} wirklich löschen?`; // Dynamic text
   document.getElementById('confirmDlg').showModal();
 }
 
 //--- Batch Delete Logic ---
-function getSelectedIds(viewType) {
-    return Array.from(document.querySelectorAll(`.select-entry-${viewType}:checked`)).map(cb => cb.dataset.id);
+function getSelectedIds(viewTypeSuffix) {
+    // Corrected selector to match class names
+    return Array.from(document.querySelectorAll(`.select-entry-${viewTypeSuffix.toLowerCase()}:checked`)).map(cb => cb.dataset.id);
 }
 
-function updateDeleteButtonVisibility(viewType) {
-    const btn = document.getElementById(`btnDeleteSelected${viewType}`);
-    const checkboxes = document.querySelectorAll(`.select-entry-${viewType}`);
+function updateDeleteButtonVisibility(viewTypeSuffix) {
+    const btn = document.getElementById(`btnDeleteSelected${viewTypeSuffix}`);
+    // Corrected selector to match class names
+    const checkboxes = document.querySelectorAll(`.select-entry-${viewTypeSuffix.toLowerCase()}`);
     const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-    if (anyChecked) {
-        btn.classList.remove('hide');
-    } else {
-        btn.classList.add('hide');
+    if (btn) { // Ensure button exists
+        if (anyChecked) {
+            btn.classList.remove('hide');
+        } else {
+            btn.classList.add('hide');
+        }
     }
 }
 
+
 document.getElementById('selectAllFix').addEventListener('change', (e) => {
-    document.querySelectorAll('.select-entry-fix').forEach(cb => cb.checked = e.target.checked);
+    document.querySelectorAll('.select-entry-fix').forEach(cb => {
+        cb.checked = e.target.checked;
+        cb.closest('tr').classList.toggle('selected-row', e.target.checked); // Highlight/unhighlight all
+    });
     updateDeleteButtonVisibility('Fix');
 });
 
 document.getElementById('selectAllRahmen').addEventListener('change', (e) => {
-    document.querySelectorAll('.select-entry-rahmen').forEach(cb => cb.checked = e.target.checked);
+    document.querySelectorAll('.select-entry-rahmen').forEach(cb => {
+         cb.checked = e.target.checked;
+         cb.closest('tr').classList.toggle('selected-row', e.target.checked); // Highlight/unhighlight all
+    });
     updateDeleteButtonVisibility('Rahmen');
 });
 
 document.getElementById('historyBody').addEventListener('change', (e) => {
     if (e.target.classList.contains('select-entry-fix')) {
         updateDeleteButtonVisibility('Fix');
-        document.getElementById('selectAllFix').checked = document.querySelectorAll('.select-entry-fix:not(:checked)').length === 0;
+        // Check if all are checked to update the header checkbox
+        const allFixCheckboxes = document.querySelectorAll('.select-entry-fix');
+        document.getElementById('selectAllFix').checked = Array.from(allFixCheckboxes).every(cb => cb.checked);
          // Highlight row
         e.target.closest('tr').classList.toggle('selected-row', e.target.checked);
     }
@@ -1176,11 +1213,14 @@ document.getElementById('historyBody').addEventListener('change', (e) => {
 document.getElementById('rahmenBody').addEventListener('change', (e) => {
     if (e.target.classList.contains('select-entry-rahmen')) {
         updateDeleteButtonVisibility('Rahmen');
-        document.getElementById('selectAllRahmen').checked = document.querySelectorAll('.select-entry-rahmen:not(:checked)').length === 0;
+         // Check if all are checked to update the header checkbox
+        const allRahmenCheckboxes = document.querySelectorAll('.select-entry-rahmen');
+        document.getElementById('selectAllRahmen').checked = Array.from(allRahmenCheckboxes).every(cb => cb.checked);
          // Highlight row
         e.target.closest('tr').classList.toggle('selected-row', e.target.checked);
     }
 });
+
 
 document.getElementById('btnDeleteSelectedFix').addEventListener('click', () => {
     handleBatchDelete('Fix');
@@ -1190,8 +1230,8 @@ document.getElementById('btnDeleteSelectedRahmen').addEventListener('click', () 
     handleBatchDelete('Rahmen');
 });
 
-function handleBatchDelete(viewType) {
-    const idsToDelete = getSelectedIds(viewType.toLowerCase());
+function handleBatchDelete(viewTypeSuffix) {
+    const idsToDelete = getSelectedIds(viewTypeSuffix); // Pass 'Fix' or 'Rahmen'
     if (idsToDelete.length === 0) {
         showToast('Keine Einträge ausgewählt.', 'warn');
         return;
@@ -1203,7 +1243,7 @@ function handleBatchDelete(viewType) {
         return;
     }
 
-    pendingDelete = { ids: idsToDelete, type: 'entry' };
+    pendingDelete = { ids: idsToDelete, type: 'entry' }; // Set pending delete for multiple IDs
     document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${idsToDelete.length} ausgewählten Einträge wirklich löschen?`;
     document.getElementById('confirmDlg').showModal();
 }
@@ -1246,8 +1286,8 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             
             showToast(`${ids.length} Eintrag/Einträge gelöscht.`, 'ok');
             entries = entries.filter(x => !ids.includes(x.id)); // Remove deleted entries from local state
-            renderHistory();
-            renderFrameworkContracts();
+            renderHistory(); // Rerender Fixaufträge
+            renderFrameworkContracts(); // Rerender Rahmenverträge
         } else if (type === 'transaction') { // Assuming single transaction delete for now
              if (ids.length !== 1) throw new Error("Transaktionslöschung unterstützt nur einzelne IDs.");
              const idToDelete = ids[0];
@@ -1264,7 +1304,12 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
               throw new Error(await r.text());
             }
             showToast('Abruf gelöscht.', 'ok');
-            renderRahmenDetails(parentId);
+             // Update the details view if currently showing the affected contract
+            if (!views.rahmenDetails.classList.contains('hide') && currentFrameworkEntryId === parentId) {
+                 renderRahmenDetails(parentId);
+             }
+             // Also update the main list view
+             renderFrameworkContracts();
         }
     } catch (e) {
         showToast('Löschen fehlgeschlagen.', 'bad');
@@ -1272,11 +1317,13 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
     } finally {
         hideLoader();
         pendingDelete = { ids: [], type: 'entry' }; // Reset pending delete
-        // Reset checkboxes and button visibility after delete
+        // Reset checkboxes and button visibility after delete attempt
         document.querySelectorAll('.select-entry-fix, .select-entry-rahmen').forEach(cb => cb.checked = false);
         document.querySelectorAll('#selectAllFix, #selectAllRahmen').forEach(cb => cb.checked = false);
         updateDeleteButtonVisibility('Fix');
         updateDeleteButtonVisibility('Rahmen');
+         // Unhighlight rows
+        document.querySelectorAll('.selected-row').forEach(row => row.classList.remove('selected-row'));
     }
 });
 
@@ -1298,38 +1345,17 @@ const rahmenBody = document.getElementById('rahmenBody');
 let currentFrameworkEntryId = null;
 let editingTransactionId = null;
 
-function filteredFrameworks() {
-    let arr = entries.filter(e => e.projectType === 'rahmen');
-    const query = rahmenSearch.value.trim().toLowerCase();
-    if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+// Combined filter function is now handled by filtered('rahmen')
 
-    return arr.filter(e => {
-      if (String(e.title || '').toLowerCase().includes(query)) return true;
-      if (String(e.client || '').toLowerCase().includes(query)) return true;
-      if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
-
-      if (Array.isArray(e.transactions)) {
-        for (const trans of e.transactions) {
-          if (trans.type === 'hunter') {
-            if (String(trans.title || '').toLowerCase().includes(query)) return true;
-            if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
-          }
-        }
-      }
-      return false;
-    }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
-}
-
-function renderFrameworkContracts() {
+function renderFrameworkContracts() { // Renders Rahmenverträge
   rahmenBody.innerHTML = '';
-  const rahmenEntries = filteredFrameworks();
+  const rahmenEntries = filtered('rahmen'); // Use the unified filter function
   document.getElementById('selectAllRahmen').checked = false; // Reset select all
   updateDeleteButtonVisibility('Rahmen'); // Update button visibility initially
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
-    // tr.classList.add('clickable'); // Remove clickable class if selecting via checkbox is preferred
     tr.dataset.id = e.id;
-    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
+    const totalValue = (Array.isArray(e.transactions) ? e.transactions : []).reduce((sum, trans) => sum + (trans.amount || 0), 0); // Safer reduce
     tr.innerHTML = `
       <td><input type="checkbox" class="select-entry-rahmen" data-id="${e.id}"></td>
       <td>${e.projectNumber || '–'}</td>
@@ -1348,36 +1374,40 @@ function renderFrameworkContracts() {
 }
 
 rahmenBody.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-act]');
-  if (btn) {
-    e.stopPropagation(); // Stop click from bubbling to the row if button is clicked
-    const act = btn.dataset.act;
-    const id = btn.dataset.id;
-    const entry = entries.find(en => en.id === id);
-    if (!entry) return;
-    
-    if (act === 'founder-plus') {
-      openEditTransactionModal({type:'founder'}, entry);
-    } else if (act === 'hunter-plus') {
-      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
-      initFromState();
-      showView('erfassung');
-    } else if (act === 'details') {
-      renderRahmenDetails(id);
-      showView('rahmenDetails');
-    } else if (act === 'del') {
-      handleDeleteClick(id, 'entry');
-    }
-    return;
-  }
+    const btn = e.target.closest('button[data-act]');
+    const rowCell = e.target.closest('td'); // Get the clicked cell
+    const row = e.target.closest('tr[data-id]'); // Get the clicked row
 
-  // Optional: Clicking anywhere on the row except buttons could open the edit modal
-  // const row = e.target.closest('tr[data-id]');
-  // if (row && !e.target.closest('input[type="checkbox"]')) {
-  //   const id = row.dataset.id;
-  //   const entry = entries.find(en => en.id === id);
-  //   if (entry) openEditFrameworkContractModal(entry);
-  // }
+    if (btn) { // If a button inside the action cell was clicked
+        e.stopPropagation(); // Stop click from bubbling further
+        const act = btn.dataset.act;
+        const id = btn.dataset.id;
+        const entry = entries.find(en => en.id === id);
+        if (!entry) return;
+        
+        if (act === 'founder-plus') {
+            openEditTransactionModal({type:'founder'}, entry);
+        } else if (act === 'hunter-plus') {
+            saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
+            initFromState();
+            showView('erfassung');
+        } else if (act === 'details') {
+            renderRahmenDetails(id);
+            showView('rahmenDetails');
+        } else if (act === 'del') {
+            handleDeleteClick(id, 'entry');
+        }
+        return; // Handled button click
+    }
+
+    // If the click was on a row cell, but NOT the first (checkbox) or last (actions) cell
+    if (row && rowCell && rowCell.cellIndex > 0 && rowCell.cellIndex < row.cells.length - 1) {
+         const id = row.dataset.id;
+         const entry = entries.find(en => en.id === id);
+         if (entry) {
+             openEditFrameworkContractModal(entry); // Open edit modal
+         }
+     }
 });
 
 
@@ -1414,6 +1444,7 @@ async function saveHunterAbruf(st) {
         if (!r.ok) throw new Error(await r.text());
         showToast(`Aktiver Abruf hinzugefügt`, 'ok');
         clearInputFields();
+        await loadHistory(); // Reload data after save
         renderFrameworkContracts();
         showView('rahmen');
     } catch (e) {
@@ -1431,24 +1462,25 @@ document.getElementById('backToRahmen').addEventListener('click', () => showView
 
 function calculateActualDistribution(entry) {
     const personTotals = new Map();
-    const transactions = entry.transactions || [];
+    const transactions = Array.isArray(entry.transactions) ? entry.transactions : []; // Ensure transactions is an array
     let totalVolume = 0;
 
     transactions.forEach(trans => {
-        totalVolume += trans.amount;
+        totalVolume += (trans.amount || 0); // Use 0 if amount is missing
         if (trans.type === 'founder') {
             (entry.list || []).forEach(founder => {
-                const money = trans.amount * (founder.pct / 100);
+                const money = (trans.amount || 0) * ((founder.pct || 0) / 100); // Use 0 if pct is missing
                 personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
             });
         } else if (trans.type === 'hunter') {
-            const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
+            const founderShareAmount = (trans.amount || 0) * (FOUNDER_SHARE_PCT / 100);
             (entry.list || []).forEach(founder => {
-                const money = founderShareAmount * (founder.pct / 100);
+                const money = founderShareAmount * ((founder.pct || 0) / 100); // Use 0 if pct is missing
                 personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
             });
             (trans.list || []).forEach(hunter => {
-                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
+                // hunter.money should already be calculated correctly by compute()
+                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + (hunter.money || 0));
             });
         }
     });
@@ -1474,7 +1506,7 @@ function renderRahmenDetails(id) {
     foundersBody.innerHTML = '';
     (entry.list || []).forEach(founder => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
+        tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct || 0)} %</td>`; // Default to 0 if pct missing
         foundersBody.appendChild(tr);
     });
     
@@ -1482,12 +1514,12 @@ function renderRahmenDetails(id) {
     rahmenActualBody.innerHTML = '';
     actualDistribution.forEach(person => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct)} %</td><td>${fmtCurr0.format(person.money)}</td>`;
+        tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct || 0)} %</td><td>${fmtCurr0.format(person.money || 0)}</td>`; // Default to 0
         rahmenActualBody.appendChild(tr);
     });
 
     rahmenTransaktionenBody.innerHTML = '';
-    (entry.transactions || []).sort((a,b) => b.ts - a.ts).forEach(trans => {
+    (Array.isArray(entry.transactions) ? entry.transactions : []).sort((a,b) => (b.ts || 0) - (a.ts || 0)).forEach(trans => { // Safer sort and iteration
         const tr = document.createElement('tr');
         tr.classList.add('clickable');
         tr.dataset.transId = trans.id;
@@ -1495,7 +1527,7 @@ function renderRahmenDetails(id) {
             <td>${trans.kv_nummer || '–'}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
-            <td>${fmtCurr2.format(trans.amount)}</td>
+            <td>${fmtCurr2.format(trans.amount || 0)}</td>
             <td style="display:flex;gap:8px;align-items:center">
                 <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
             </td>
@@ -1519,7 +1551,7 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
         const transId = row.dataset.transId;
         const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
         if (!parentEntry) return;
-        const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
+        const transaction = (Array.isArray(parentEntry.transactions) ? parentEntry.transactions : []).find(t => t.id === transId); // Safer find
         if (!transaction) return;
         openEditTransactionModal(transaction, parentEntry);
     }
@@ -1593,6 +1625,9 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
     const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
     if (!parentEntry) return;
 
+    // Ensure parentEntry.transactions is an array before finding index
+     if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = [];
+
     const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
     
     let transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
@@ -1644,8 +1679,11 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         if (!r.ok) throw new Error(await r.text());
         showToast('Abruf aktualisiert', 'ok');
         editTransactionDlg.close();
-        renderRahmenDetails(currentFrameworkEntryId);
-        renderFrameworkContracts();
+        await loadHistory(); // Reload data
+        if (!views.rahmenDetails.classList.contains('hide')) { // Update details if open
+             renderRahmenDetails(currentFrameworkEntryId);
+        }
+        renderFrameworkContracts(); // Update main list
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
@@ -1676,7 +1714,8 @@ function openEditFrameworkContractModal(entry) {
     editFwW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
 
     editFwTbody.innerHTML = '';
-    (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
+    // Use entry.rows for the initial founder distribution
+    (Array.isArray(entry.rows) ? entry.rows : []).forEach(r => addEditRow(r, '#editFwTbody'));
     editFrameworkContractDlg.showModal();
 }
 
@@ -1684,27 +1723,30 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     const entry = entries.find(e => e.id === currentFrameworkEntryId);
     if (!entry) return;
 
-    const rows = readRows('#editFwTbody');
+    const rows = readRows('#editFwTbody'); // Read founder rows from modal
     const weights = [
         {key:'cs', weight: toInt0(editFwW_cs.value)},
         {key:'konzept', weight: toInt0(editFwW_konzept.value)},
         {key:'pitch', weight: toInt0(editFwW_pitch.value)}
     ];
 
-    const errors = validateModalInput(rows, weights);
+    const errors = validateModalInput(rows, weights); // Validate founder distribution
     if (Object.keys(errors).length > 0) {
         document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
         return;
     }
     
-    const resultData = compute(rows, weights, entry.amount);
+    // Recalculate the initial percentage list based on the updated rows/weights
+    // Use amount=0 because the initial split is just percentage-based
+    const resultData = compute(rows, weights, 0); 
 
     entry.client = editFwClient.value.trim();
     entry.title = editFwTitle.value.trim();
     entry.projectNumber = editFwProjectNumber.value.trim();
-    entry.rows = rows;
-    entry.weights = weights;
-    entry.list = resultData.list;
+    entry.rows = rows; // Save the updated founder rows
+    entry.weights = weights; // Save the updated weights
+    entry.list = resultData.list; // Save the recalculated initial percentage list
+    entry.totals = resultData.totals; // Update totals based on founder rows
     entry.modified = Date.now();
 
     showLoader();
@@ -1715,7 +1757,11 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
         if (!r.ok) throw new Error(await r.text());
         showToast('Rahmenvertrag aktualisiert', 'ok');
         editFrameworkContractDlg.close();
-        renderFrameworkContracts();
+        await loadHistory(); // Reload data
+        renderFrameworkContracts(); // Refresh list
+        if (!views.rahmenDetails.classList.contains('hide')) { // Update details if open
+             renderRahmenDetails(currentFrameworkEntryId);
+        }
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
@@ -1728,14 +1774,21 @@ function validateModalInput(rows, weights) {
     const t = totals(rows);
     let categoryErrors = [];
     weights.forEach(w => {
-        if (w.weight > 0 && t[w.key] !== 100) {
+        // Validation for founder rows: Allow 0 points, but if > 0, must sum to 100 for weighted categories
+        if (w.weight > 0 && t[w.key] > 0 && t[w.key] !== 100) {
             categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
         }
+         // Allow total 0 points in a category, even if weighted
+         // Allow > 100 temporarily during editing is fine, final validation happens on compute if needed
     });
     if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
 
     const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
     if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    
+    if (!rows.some(r => r.cs > 0 || r.konzept > 0 || r.pitch > 0)) {
+         errors.rows = 'Mindestens eine Person muss Punkte im Gründer-Team haben.'
+    }
     
     return errors;
 }
@@ -1825,19 +1878,20 @@ function parseEuro(val){
     s = s.replace(/[^0-9,.-]+/g,'').replace(/\s+/g,'');
     const comma = s.lastIndexOf(',');
     const dot = s.lastIndexOf('.');
-    if (comma > dot) {
+    if (comma > dot) { // German format likely
         s = s.replace(/\./g,'').replace(',', '.');
-    } else {
-        s = s.replace(',', '.');
+    } else { // US/UK format likely or no decimals/thousands separators
+         s = s.replace(/,/g,''); // Remove thousand separators if any
     }
     const n = Number(s);
     return Number.isFinite(n) ? n : 0;
 }
 
+
 // Function to download error log
 function downloadErrorLog(errorKVs) {
-    const textContent = "Folgende KV-Nummern konnten nicht importiert werden:\n\n" + errorKVs.join('\n');
-    const blob = new Blob([textContent], { type: 'text/plain' });
+    const textContent = "Folgende KV-Nummern konnten nicht importiert/gespeichert werden oder verursachten einen Fehler:\n\n" + errorKVs.join('\n');
+    const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' }); // Added charset
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1858,6 +1912,9 @@ async function handleErpImport() {
     const file = fileInput.files[0];
     showLoader();
     let errorKVs = []; // Array to store KV numbers of rows causing errors
+    const importResultDiv = document.getElementById('importResult'); // Get result div
+    importResultDiv.innerHTML = ''; // Clear previous results/button
+
     try {
         await loadHistory();
         const data = await file.arrayBuffer();
@@ -1871,11 +1928,11 @@ async function handleErpImport() {
         let skippedAmountCount = 0; // Count skipped due to amount <= 0
         
         const allEntries = JSON.parse(JSON.stringify(entries));
-        const changesToPush = new Map();
+        const changesToPush = new Map(); // Use Map to automatically handle uniqueness by ID
 
-        for (const row of rows) {
+        for (const [index, row] of rows.entries()) { // Added index for better error logging
              const kvNummer = String(getVal(row, 'kvNummer') || '').trim();
-             let currentKV = kvNummer || 'Unbekannt'; // For error reporting
+             let currentKV = kvNummer || `Zeile ${index + 2}`; // Use Excel row number for context if KV missing
              try { // Wrap row processing in try...catch
                 const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
 
@@ -1892,13 +1949,14 @@ async function handleErpImport() {
                 let entryToUpdate = null;
                 let transactionToUpdate = null;
 
+                // Find existing entry (case-insensitive KV check might be safer if needed)
                 for (const entry of allEntries) {
-                    if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
+                    if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer && entry.kv_nummer.toLowerCase() === kvNummer.toLowerCase()) {
                         entryToUpdate = entry;
                         break;
                     }
                     if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                        const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
+                        const trans = entry.transactions.find(t => t.kv_nummer && t.kv_nummer.toLowerCase() === kvNummer.toLowerCase());
                         if (trans) {
                             entryToUpdate = entry;
                             transactionToUpdate = trans;
@@ -1907,9 +1965,10 @@ async function handleErpImport() {
                     }
                 }
 
-                if (entryToUpdate) {
+                if (entryToUpdate) { // Case A: KV found
                     const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
-                    if (originalAmount !== amount) {
+                     // Compare amounts with a small tolerance for floating point issues if necessary
+                    if (Math.abs((originalAmount || 0) - amount) > 0.001) { // Check difference > 0.1 cent
                         if (transactionToUpdate) {
                             transactionToUpdate.amount = amount;
                         } else {
@@ -1917,24 +1976,37 @@ async function handleErpImport() {
                         }
                         entryToUpdate.modified = Date.now();
                         if(entryToUpdate.id) changesToPush.set(entryToUpdate.id, entryToUpdate);
-                         else console.warn("Versuch, Eintrag ohne ID zu aktualisieren:", entryToUpdate); // Added check
+                         else {
+                             console.warn(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${kvNummer}):`, entryToUpdate);
+                              if (!errorKVs.includes(`${kvNummer} (Update fehlgeschlagen - Eintrag ohne ID)`)) {
+                                errorKVs.push(`${kvNummer} (Update fehlgeschlagen - Eintrag ohne ID)`);
+                            }
+                         }
                         updatedCount++;
                     }
-                } else {
-                    const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
-                    if (parentFramework) {
+                } else { // Case B: KV is new
+                    const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber.toLowerCase() === projektNummer.toLowerCase());
+                    if (parentFramework) { // Add as transaction to existing framework
                         if (!Array.isArray(parentFramework.transactions)) parentFramework.transactions = [];
-                        parentFramework.transactions.push({
-                            id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                            kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
-                        });
-                        parentFramework.modified = Date.now();
-                         if(parentFramework.id) changesToPush.set(parentFramework.id, parentFramework);
-                         else console.warn("Versuch, Rahmenvertrag ohne ID zu aktualisieren:", parentFramework); // Added check
-                        addedToFrameworkCount++;
-                    } else {
+                        // Check if transaction with this KV already exists (e.g., added earlier in the same import)
+                        if (!parentFramework.transactions.some(t => t.kv_nummer && t.kv_nummer.toLowerCase() === kvNummer.toLowerCase())) {
+                            parentFramework.transactions.push({
+                                id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                                kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
+                            });
+                            parentFramework.modified = Date.now();
+                             if(parentFramework.id) changesToPush.set(parentFramework.id, parentFramework);
+                            else {
+                                 console.warn(`Versuch, Rahmenvertrag ohne ID zu aktualisieren (KV: ${kvNummer}, PN: ${projektNummer}):`, parentFramework);
+                                  if (!errorKVs.includes(`${kvNummer} (Zuordnung fehlgeschlagen - RV ohne ID)`)) {
+                                    errorKVs.push(`${kvNummer} (Zuordnung fehlgeschlagen - RV ohne ID)`);
+                                }
+                            }
+                            addedToFrameworkCount++;
+                        } // else: Transaction already added in this import run, skip duplicate add
+                    } else { // Create new fix entry
                         const newFixEntry = {
-                            id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}_${index}`, // Make ID more unique
                             source: 'erp-import', projectType: 'fix',
                             client: clientName, title: title || 'Unbenannter Auftrag', projectNumber: projektNummer,
                             kv_nummer: kvNummer, amount: amount,
@@ -1943,15 +2015,24 @@ async function handleErpImport() {
                             submittedBy: 'ERP-Import', // Ensure submittedBy exists
                             ts: Date.now(), complete: false 
                         };
-                        allEntries.push(newFixEntry);
-                        if(newFixEntry.id) changesToPush.set(newFixEntry.id, newFixEntry);
-                         else console.warn("Versuch, neuen Fixauftrag ohne ID zu erstellen:", newFixEntry); // Added check
+                         // Add to allEntries immediately in case it's referenced later in the same file as a framework? (unlikely but safer)
+                         allEntries.push(newFixEntry);
+                         // Add to changes list
+                         if(newFixEntry.id) changesToPush.set(newFixEntry.id, newFixEntry);
+                         else {
+                              console.error(`FEHLER: Neuer Fixauftrag ohne ID erstellt (KV: ${kvNummer})`, newFixEntry);
+                              if (!errorKVs.includes(`${kvNummer} (Erstellung fehlgeschlagen - keine ID)`)) {
+                                errorKVs.push(`${kvNummer} (Erstellung fehlgeschlagen - keine ID)`);
+                            }
+                         }
                         newFixCount++;
                     }
                 }
             } catch (rowError) {
-                 console.error(`Fehler beim Verarbeiten der Zeile für KV ${currentKV}:`, rowError, row);
-                 errorKVs.push(currentKV); // Add KV to error list
+                 console.error(`Fehler beim Verarbeiten der Zeile für KV ${currentKV} (Excel Zeile ${index + 2}):`, rowError, row);
+                 if (!errorKVs.includes(`${currentKV} (Client-Fehler: ${rowError.message})`)) {
+                     errorKVs.push(`${currentKV} (Client-Fehler: ${rowError.message})`); // Add KV to error list with reason
+                 }
             }
         } // End row loop
 
@@ -1959,9 +2040,9 @@ async function handleErpImport() {
         changesToPush.forEach(entry => {
             if (!entry || !entry.id) {
                 console.error('FEHLER: Versuch, Eintrag ohne gültige ID zu speichern:', entry);
-                // Optionally add associated KV to error list if possible
-                if(entry && entry.kv_nummer && !errorKVs.includes(entry.kv_nummer)) {
-                    errorKVs.push(entry.kv_nummer + " (Speicherfehler - keine ID)");
+                const kv = entry?.kv_nummer || 'Unbekannt';
+                if (!errorKVs.includes(`${kv} (Speicherfehler - keine ID)`)) {
+                    errorKVs.push(`${kv} (Speicherfehler - keine ID)`);
                 }
                 return; // Skip saving this entry
             }
@@ -1972,33 +2053,42 @@ async function handleErpImport() {
                 method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
             }).then(async (r) => { 
                 if (!r.ok) {
-                    const errorText = await r.text();
-                    console.error(`Speichern für ${entry.id} (KV: ${entry.kv_nummer || 'N/A'}) fehlgeschlagen:`, r.status, errorText, entry);
-                     if(entry.kv_nummer && !errorKVs.includes(entry.kv_nummer)) {
-                          errorKVs.push(entry.kv_nummer + ` (Speicherfehler ${r.status})`);
+                    const errorText = await r.text().catch(() => 'Fehler beim Lesen der Server-Antwort'); // Catch potential error reading text
+                    const kv = entry.kv_nummer || (entry.transactions && entry.transactions.length > 0 ? `RV ${entry.projectNumber}` : 'Unbekannt');
+                    console.error(`Speichern für ID ${entry.id} (KV/PN: ${kv}) fehlgeschlagen:`, r.status, errorText, entry);
+                     if (!errorKVs.includes(`${kv} (Speicherfehler ${r.status})`)) {
+                          errorKVs.push(`${kv} (Speicherfehler ${r.status})`);
                      }
-                    // Do not throw here, let Promise.allSettled handle it
-                    return { status: 'rejected', reason: `Speichern für ${entry.id} fehlgeschlagen.` };
+                    // Return rejected status for allSettled
+                    return { status: 'rejected', reason: `Speichern für ${entry.id} (KV/PN: ${kv}) fehlgeschlagen.` };
                 }
-                 return { status: 'fulfilled' }; // Indicate success
+                 return { status: 'fulfilled', value: entry.id }; // Indicate success
+            }).catch(networkError => { // Catch network errors during fetch
+                 const kv = entry.kv_nummer || (entry.transactions && entry.transactions.length > 0 ? `RV ${entry.projectNumber}` : 'Unbekannt');
+                 console.error(`Netzwerkfehler beim Speichern für ID ${entry.id} (KV/PN: ${kv}):`, networkError);
+                 if (!errorKVs.includes(`${kv} (Netzwerkfehler)`)) {
+                    errorKVs.push(`${kv} (Netzwerkfehler)`);
+                 }
+                 return { status: 'rejected', reason: `Netzwerkfehler beim Speichern für ${entry.id} (KV/PN: ${kv}).` };
             }));
         });
         
         // Use Promise.allSettled to wait for all promises, even if some fail
         const results = await Promise.allSettled(promises);
+        const successfulSaves = results.filter(r => r.status === 'fulfilled').length;
         const failedSaves = results.filter(r => r.status === 'rejected');
 
-        if (failedSaves.length > 0) {
-            console.error(`${failedSaves.length} Speicheroperationen sind fehlgeschlagen.`);
-            // Errors were already logged and KVs added to errorKVs within the fetch handler
-        }
+         // Adjust counts based on actual save results if there were failures
+         // This is complex as we don't know exactly which *type* of operation failed (update, addAbruf, createFix)
+         // For simplicity, we report initial counts but highlight failures.
         
-        let resultMsg = `Import (teilweise) abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+        let resultMsg = `Importversuch abgeschlossen: ${updatedCount} Updates versucht, ${addedToFrameworkCount} neue Abrufe versucht, ${newFixCount} neue Fixaufträge versucht. (${successfulSaves} erfolgreich gespeichert).`;
          if (skippedAmountCount > 0) {
             resultMsg += ` ${skippedAmountCount} Zeilen wurden übersprungen (Betrag <= 0).`;
         }
-        if (errorKVs.length > 0) {
-             resultMsg += ` ${errorKVs.length} Zeilen konnten wegen Fehlern nicht verarbeitet werden.`
+         // Consolidate client-side processing errors and save errors
+         if (errorKVs.length > 0) {
+             resultMsg += ` ${errorKVs.length} Zeilen/Einträge konnten wegen Fehlern nicht verarbeitet/gespeichert werden.`
              // Add button to download error log
              const downloadBtn = document.createElement('button');
              downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
@@ -2006,14 +2096,13 @@ async function handleErpImport() {
              downloadBtn.style.marginLeft = '10px';
              downloadBtn.onclick = () => downloadErrorLog(errorKVs);
              
-             const resultDiv = document.getElementById('importResult');
-             resultDiv.innerHTML = resultMsg; // Clear previous content
-             resultDiv.appendChild(downloadBtn); // Append the button
-             resultDiv.classList.remove('hide');
+             importResultDiv.innerHTML = resultMsg; // Clear previous content
+             importResultDiv.appendChild(downloadBtn); // Append the button
+             importResultDiv.classList.remove('hide');
              showToast(`${errorKVs.length} Fehler beim Import. Details im Protokoll.`, 'warn');
         } else {
-             document.getElementById('importResult').innerHTML = resultMsg;
-             document.getElementById('importResult').classList.remove('hide');
+             importResultDiv.innerHTML = resultMsg;
+             importResultDiv.classList.remove('hide');
              showToast('ERP-Daten erfolgreich importiert', 'ok');
         }
 
@@ -2022,15 +2111,15 @@ async function handleErpImport() {
     } catch (e) {
         showToast('Schwerwiegender Fehler beim Importieren der Datei.', 'bad');
         console.error("Gesamtfehler beim Import:", e);
-        document.getElementById('importResult').textContent = 'Fehler: ' + e.message;
-        document.getElementById('importResult').classList.remove('hide');
+        importResultDiv.textContent = 'Fehler: ' + e.message;
+        importResultDiv.classList.remove('hide');
          if (errorKVs.length > 0) { // Add download button even on general error if KVs were collected
              const downloadBtn = document.createElement('button');
              downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
              downloadBtn.className = 'btn warn small';
              downloadBtn.style.marginLeft = '10px';
              downloadBtn.onclick = () => downloadErrorLog(errorKVs);
-             document.getElementById('importResult').appendChild(downloadBtn);
+             importResultDiv.appendChild(downloadBtn);
          }
     } finally {
         hideLoader();
@@ -2057,17 +2146,28 @@ function renderAnalytics() {
 
   const per = new Map();
   entries.forEach(e => {
+    // Ensure entry has an amount before processing for analytics
+    const amount = e.amount || 0;
+    const when = e.modified || e.ts || 0;
+     if (!(when >= start && when < end)) return; // Skip if outside year
+     
     if(e.projectType === 'fix') {
-        const when = e.modified || e.ts || 0;
-        if (!(when >= start && when < end)) return;
-        const amount = e.amount || 0; if (amount <= 0) return;
+        if (amount <= 0) return; // Skip fix entries with no value
         if (Array.isArray(e.list)) {
           e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
         }
     } else if (e.projectType === 'rahmen') {
-        const actualDistribution = calculateActualDistribution(e);
+        // Calculate distribution based on transactions within the year? More complex.
+        // Current implementation uses *total* distribution, regardless of transaction year.
+        const actualDistribution = calculateActualDistribution(e); // Uses ALL transactions
+        // Filter transactions by year? Or assume distribution applies to the whole year?
+        // For simplicity, let's keep using the total distribution for now.
         actualDistribution.forEach(p => {
-            per.set(p.name, (per.get(p.name) || 0) + p.money);
+            // How to allocate yearly value? For now, we add the total person value if the *entry* was modified in the year.
+            // This isn't perfect, as transactions could be from other years.
+             if (p.money > 0) {
+                 per.set(p.name, (per.get(p.name) || 0) + p.money);
+             }
         });
     }
   });
