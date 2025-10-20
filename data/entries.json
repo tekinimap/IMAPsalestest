@@ -2047,5 +2047,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709368,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709368_KV20250229_17",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Göttingen",
+    "title": "Seminare zum Thema „Interkulturelle Kompetenz“",
+    "projectNumber": "LK Göttingen-04-001",
+    "kv_nummer": "KV-2025-0229",
+    "amount": 6500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709368,
+    "complete": false
   }
 ]
