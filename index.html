@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Sales-Beteiligung</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+    // Helper: promise-based delay
+    function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
+    </script>
 <style>
   :root{
     --bg:#0a0f16; --panel:#0f1724; --panel2:#0c1320; --text:#e6ebf3; --muted:#94a3b8; --border:#213044;
@@ -1278,17 +1281,29 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
     showLoader();
     try {
         if (type === 'entry') {
-            const deletePromises = ids.map(id => 
-                fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' })
-                .then(r => { if (!r.ok) throw new Error(`Löschen von ${id} fehlgeschlagen.`); })
-            );
-            await Promise.all(deletePromises);
-            
-            showToast(`${ids.length} Eintrag/Einträge gelöscht.`, 'ok');
-            entries = entries.filter(x => !ids.includes(x.id)); // Remove deleted entries from local state
-            renderHistory(); // Rerender Fixaufträge
-            renderFrameworkContracts(); // Rerender Rahmenverträge
-        } else if (type === 'transaction') { // Assuming single transaction delete for now
+    let okIds = [];
+    let failIds = [];
+    for (const id of ids) {
+        try {
+            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error(`Löschen von ${id} fehlgeschlagen.`);
+            okIds.push(id);
+        } catch (e) {
+            console.error(e);
+            failIds.push(id);
+        }
+        await wait(1200); // Drosselung: >1 s zwischen KV-Deletes
+    }
+    if (okIds.length > 0) {
+        showToast(`${okIds.length} Eintrag/Einträge gelöscht.`, failIds.length ? 'warn' : 'ok');
+        entries = entries.filter(x => !okIds.includes(x.id));
+        renderHistory();
+        renderFrameworkContracts();
+    }
+    if (failIds.length > 0) {
+        showToast(`${failIds.length} Löschvorgänge fehlgeschlagen. Siehe Konsole.`, 'warn');
+    }
+} else if (type === 'transaction') { // Assuming single transaction delete for now
              if (ids.length !== 1) throw new Error("Transaktionslöschung unterstützt nur einzelne IDs.");
              const idToDelete = ids[0];
             const entry = entries.find(e => e.id === parentId);
@@ -2043,107 +2058,45 @@ async function handleErpImport() {
             }
         } // End row loop
 
-        // --- Step 2: Send changes one by one with delay ---
-        let savePromises = [];
-        for (const entry of changesToPush.values()) {
-             if (!entry || !entry.id) {
-                console.error('FEHLER: Versuch, Eintrag ohne gültige ID zu speichern (in Sendeschleife):', entry);
-                 const kv = entry?.kv_nummer || 'Unbekannt';
-                 if (!errorKVs.includes(`${kv} (Speicherfehler - keine ID)`)) {
-                     errorKVs.push(`${kv} (Speicherfehler - keine ID)`);
-                 }
-                continue; // Skip saving this entry
-             }
-             
-            const isNew = !entries.some(e => e.id === entry.id); // Check against original entries
-            const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
-            const method = isNew ? 'POST' : 'PUT';
-            
-             // Create a promise for the fetch operation
-             const promise = fetch(url, {
-                method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-            }).then(async (r) => { 
-                if (!r.ok) {
-                    const errorText = await r.text().catch(() => 'Fehler beim Lesen der Server-Antwort');
-                    const kv = entry.kv_nummer || (entry.projectNumber || 'Unbekannt');
-                    console.error(`Speichern für ID ${entry.id} (KV/PN: ${kv}) fehlgeschlagen:`, r.status, errorText, entry);
-                     if (!errorKVs.includes(`${kv} (Speicherfehler ${r.status})`)) {
-                          errorKVs.push(`${kv} (Speicherfehler ${r.status})`);
-                     }
-                     // Indicate failure for this specific save
-                     return { status: 'rejected', reason: `Speichern für ${entry.id} (KV/PN: ${kv}) fehlgeschlagen.` };
-                }
-                 successfulSaves++; // Increment successful saves count
-                 return { status: 'fulfilled', value: entry.id }; // Indicate success
-            }).catch(networkError => { // Catch network errors during fetch
-                 const kv = entry.kv_nummer || (entry.projectNumber || 'Unbekannt');
-                 console.error(`Netzwerkfehler beim Speichern für ID ${entry.id} (KV/PN: ${kv}):`, networkError);
-                 if (!errorKVs.includes(`${kv} (Netzwerkfehler)`)) {
-                    errorKVs.push(`${kv} (Netzwerkfehler)`);
-                 }
-                 return { status: 'rejected', reason: `Netzwerkfehler beim Speichern für ${entry.id} (KV/PN: ${kv}).` };
-            });
-
-            savePromises.push(promise);
-
-             // Wait for slightly over a second AFTER initiating the fetch
-             // This allows fetches to run somewhat concurrently but throttles the start rate
-             await wait(1100); // Wait 1.1 seconds before starting the next fetch
-
-        } // End changes loop
-        
-        // Wait for all initiated fetches to complete (even though started sequentially)
-        const results = await Promise.allSettled(savePromises);
-        const failedSaves = results.filter(r => r.status === 'rejected');
-
-        if (failedSaves.length > 0) {
-             console.error(`${failedSaves.length} Speicheroperationen sind fehlgeschlagen.`);
-             // Detailed errors were logged and KVs added previously
-        }
-        
-        // Report results
-        let resultMsg = `Import abgeschlossen: ${successfulSaves} Einträge erfolgreich gespeichert (${updatedCount} Updates, ${addedToFrameworkCount} neue Abrufe, ${newFixCount} neue Fixaufträge initiiert).`;
-         if (skippedAmountCount > 0) {
-            resultMsg += ` ${skippedAmountCount} Zeilen wurden übersprungen (Betrag <= 0).`;
-        }
-        
-        if (errorKVs.length > 0) {
-             const failedCount = errorKVs.length; // Total includes client-side + server-side errors
-             resultMsg += ` ${failedCount} Zeilen/Einträge konnten wegen Fehlern nicht verarbeitet/gespeichert werden.`
-             const downloadBtn = document.createElement('button');
-             downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
-             downloadBtn.className = 'btn warn small';
-             downloadBtn.style.marginLeft = '10px';
-             downloadBtn.onclick = () => downloadErrorLog(errorKVs);
-             
-             importResultDiv.innerHTML = resultMsg;
-             importResultDiv.appendChild(downloadBtn);
-             importResultDiv.classList.remove('hide');
-             showToast(`${failedCount} Fehler beim Import. Details im Protokoll.`, 'warn');
-        } else {
-             importResultDiv.innerHTML = resultMsg;
-             importResultDiv.classList.remove('hide');
-             showToast('ERP-Daten erfolgreich importiert', 'ok');
-        }
-
-        await loadHistory(); // Reload data regardless of errors
-
-    } catch (e) { // Catch general errors (file reading etc.)
-        showToast('Schwerwiegender Fehler beim Importieren der Datei.', 'bad');
-        console.error("Gesamtfehler beim Import:", e);
-        importResultDiv.textContent = 'Fehler: ' + e.message;
-        importResultDiv.classList.remove('hide');
-         if (errorKVs.length > 0) { // Add download button even on general error if KVs were collected
-             const downloadBtn = document.createElement('button');
-             downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
-             downloadBtn.className = 'btn warn small';
-             downloadBtn.style.marginLeft = '10px';
-             downloadBtn.onclick = () => downloadErrorLog(errorKVs);
-             importResultDiv.appendChild(downloadBtn);
-         }
-    } finally {
-        hideLoader();
+        // --- Step 2: Send changes strictly one-by-one with delay ---
+let successfulSaves = typeof successfulSaves !== 'undefined' ? successfulSaves : 0;
+for (const entry of changesToPush.values()) {
+  if (!entry || !entry.id) {
+    console.error('FEHLER: Versuch, Eintrag ohne gültige ID zu speichern (in Sendeschleife):', entry);
+    const kv = entry?.kv_nummer || 'Unbekannt';
+    if (!errorKVs.includes(`${kv} (Speicherfehler - keine ID)`)) {
+      errorKVs.push(`${kv} (Speicherfehler - keine ID)`);
     }
+    continue;
+  }
+
+  const isNew = !entries.some(e => e.id === entry.id);
+  const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
+  const method = isNew ? 'POST' : 'PUT';
+
+  try {
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) });
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => 'Fehler beim Lesen der Server-Antwort');
+      const kv = entry.kv_nummer || (entry.projectNumber || 'Unbekannt');
+      console.error(`Speichern für ID ${entry.id} (KV/PN: ${kv}) fehlgeschlagen:`, r.status, errorText, entry);
+      if (!errorKVs.includes(`${kv} (Speicherfehler ${r.status})`)) {
+        errorKVs.push(`${kv} (Speicherfehler ${r.status})`);
+      }
+    } else {
+      successfulSaves++;
+    }
+  } catch (networkError) {
+    const kv = entry.kv_nummer || (entry.projectNumber || 'Unbekannt');
+    console.error(`Netzwerkfehler beim Speichern für ID ${entry.id} (KV/PN: ${kv}):`, networkError);
+    if (!errorKVs.includes(`${kv} (Netzwerkfehler)`)) {
+      errorKVs.push(`${kv} (Netzwerkfehler)`);
+    }
+  }
+
+  // KV Free plan: max. 1 write/sec -> nach JEDEM Request warten
+  await wait(1200);
+}
 }
 
 
