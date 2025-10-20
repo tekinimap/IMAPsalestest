@@ -54,6 +54,7 @@
   tbody td{border-top:1px solid var(--border);padding:10px 12px; vertical-align: middle;}
   tbody tr:hover{background:#0c1426}
   tbody tr.clickable { cursor: pointer; }
+  tbody tr.selected-row { background-color: rgba(59, 130, 246, 0.15) !important; } /* Highlight selected rows */
   .delrow{background:#13203b;border:1px solid #21314f;color:#cbd5e1;border-radius:8px;padding:6px 8px;cursor:pointer}
 
   .sumchips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -72,6 +73,7 @@
   
   .search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
   .search-wrapper input {width:100%;}
+  .batch-actions { margin-top: 12px; display: flex; justify-content: flex-end; } /* For delete button */
 
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
@@ -80,6 +82,8 @@
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
+  th input[type="checkbox"] { vertical-align: middle; } /* Align header checkbox */
+  td input[type="checkbox"] { vertical-align: middle; } /* Align row checkbox */
   
   .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
   input.invalid-field, select.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
@@ -258,10 +262,13 @@
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
         <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
       </div>
-
+       <div class="batch-actions">
+           <button class="btn danger hide" id="btnDeleteSelectedFix">Ausgewählte löschen</button>
+       </div>
       <div class="table-wrapper">
         <table>
           <thead><tr>
+            <th style="width:5%"><input type="checkbox" id="selectAllFix" title="Alle auswählen"></th>
             <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
@@ -282,12 +289,16 @@
       <div class="search-wrapper">
         <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
       </div>
+      <div class="batch-actions">
+           <button class="btn danger hide" id="btnDeleteSelectedRahmen">Ausgewählte löschen</button>
+       </div>
        <div class="table-wrapper">
         <table>
           <thead><tr>
+            <th style="width:5%"><input type="checkbox" id="selectAllRahmen" title="Alle auswählen"></th>
             <th style="width:15%">Projektnummer</th>
-            <th style="width:30%">Projekttitel</th>
-            <th style="width:20%">Kunde</th>
+            <th style="width:25%">Projekttitel</th>
+            <th style="width:15%">Kunde</th>
             <th style="width:15%">Gesamtwert</th>
             <th style="width:20%">Aktionen</th>
           </tr></thead>
@@ -848,7 +859,8 @@ async function saveNewEntry(st) {
     projectType: st.input.projectType || 'fix',
     rows: st.input.rows || [],
     list:resultData.list||[],
-    totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
+    totals:resultData.totals||{ cs: 0, konzept: 0, pitch: 0 }, // Ensure totals is always an object
+    weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
     projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, ts:Date.now(), id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
@@ -1002,7 +1014,7 @@ const omniSearch = document.getElementById('omniSearch');
 const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
 let entries=[]; 
-let pendingDelete = { id: null, type: 'entry' }; // { id, type: 'entry'|'transaction', parentId? }
+let pendingDelete = { ids: [], type: 'entry' }; // Updated for multi-delete
 let currentSort = { key: 'ts', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
@@ -1072,11 +1084,15 @@ function renderHistory(){
   historyBody.innerHTML=''; 
   updateSortIcons();
   const arr=filtered('fix');
+  document.getElementById('selectAllFix').checked = false; // Reset select all
+  updateDeleteButtonVisibility('Fix'); // Update button visibility initially
   for(const e of arr){
     const ok=autoComplete(e); const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const modified=e.modified? new Date(e.modified).toLocaleString('de-DE'): e.ts? new Date(e.ts).toLocaleString('de-DE'): '–';
     const tr=document.createElement('tr');
+    tr.dataset.id = e.id; // Add id for checkbox logic
     tr.innerHTML=`
+      <td><input type="checkbox" class="select-entry-fix" data-id="${e.id}"></td>
       <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${modified}</td>
       <td style="display:flex;gap:8px;align-items:center">
@@ -1117,10 +1133,81 @@ function handleDeleteClick(id, type = 'entry', parentId = null) {
     if (pw !== null) showToast('Falsches Passwort.', 'bad');
     return;
   }
-  pendingDelete = { id, type, parentId };
-  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
+  pendingDelete = { ids: [id], type }; // Always use array for consistency
+  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} "${id}" wirklich löschen?`;
   document.getElementById('confirmDlg').showModal();
 }
+
+//--- Batch Delete Logic ---
+function getSelectedIds(viewType) {
+    return Array.from(document.querySelectorAll(`.select-entry-${viewType}:checked`)).map(cb => cb.dataset.id);
+}
+
+function updateDeleteButtonVisibility(viewType) {
+    const btn = document.getElementById(`btnDeleteSelected${viewType}`);
+    const checkboxes = document.querySelectorAll(`.select-entry-${viewType}`);
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    if (anyChecked) {
+        btn.classList.remove('hide');
+    } else {
+        btn.classList.add('hide');
+    }
+}
+
+document.getElementById('selectAllFix').addEventListener('change', (e) => {
+    document.querySelectorAll('.select-entry-fix').forEach(cb => cb.checked = e.target.checked);
+    updateDeleteButtonVisibility('Fix');
+});
+
+document.getElementById('selectAllRahmen').addEventListener('change', (e) => {
+    document.querySelectorAll('.select-entry-rahmen').forEach(cb => cb.checked = e.target.checked);
+    updateDeleteButtonVisibility('Rahmen');
+});
+
+document.getElementById('historyBody').addEventListener('change', (e) => {
+    if (e.target.classList.contains('select-entry-fix')) {
+        updateDeleteButtonVisibility('Fix');
+        document.getElementById('selectAllFix').checked = document.querySelectorAll('.select-entry-fix:not(:checked)').length === 0;
+         // Highlight row
+        e.target.closest('tr').classList.toggle('selected-row', e.target.checked);
+    }
+});
+
+document.getElementById('rahmenBody').addEventListener('change', (e) => {
+    if (e.target.classList.contains('select-entry-rahmen')) {
+        updateDeleteButtonVisibility('Rahmen');
+        document.getElementById('selectAllRahmen').checked = document.querySelectorAll('.select-entry-rahmen:not(:checked)').length === 0;
+         // Highlight row
+        e.target.closest('tr').classList.toggle('selected-row', e.target.checked);
+    }
+});
+
+document.getElementById('btnDeleteSelectedFix').addEventListener('click', () => {
+    handleBatchDelete('Fix');
+});
+
+document.getElementById('btnDeleteSelectedRahmen').addEventListener('click', () => {
+    handleBatchDelete('Rahmen');
+});
+
+function handleBatchDelete(viewType) {
+    const idsToDelete = getSelectedIds(viewType.toLowerCase());
+    if (idsToDelete.length === 0) {
+        showToast('Keine Einträge ausgewählt.', 'warn');
+        return;
+    }
+
+    const pw = prompt(`Zum Löschen der ${idsToDelete.length} Einträge bitte Admin-Passwort eingeben:`);
+    if (pw !== 'imapadmin') {
+        if (pw !== null) showToast('Falsches Passwort.', 'bad');
+        return;
+    }
+
+    pendingDelete = { ids: idsToDelete, type: 'entry' };
+    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${idsToDelete.length} ausgewählten Einträge wirklich löschen?`;
+    document.getElementById('confirmDlg').showModal();
+}
+//--- End Batch Delete Logic ---
 
 historyBody.addEventListener('click', async(ev)=>{
   const btn=ev.target.closest('button[data-act]'); if(!btn) return;
@@ -1144,24 +1231,30 @@ function editEntry(id) {
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 document.getElementById('btnYes').addEventListener('click',async()=>{
-    const { id, type, parentId } = pendingDelete;
+    const { ids, type, parentId } = pendingDelete; // Use ids array
     document.getElementById('confirmDlg').close();
-    if (!id) return;
+    if (!ids || ids.length === 0) return;
     
     showLoader();
     try {
         if (type === 'entry') {
-            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
-            if (!r.ok) throw new Error(await r.text());
-            showToast('Eintrag gelöscht.', 'ok');
-            entries = entries.filter(x => x.id !== id);
+            const deletePromises = ids.map(id => 
+                fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' })
+                .then(r => { if (!r.ok) throw new Error(`Löschen von ${id} fehlgeschlagen.`); })
+            );
+            await Promise.all(deletePromises);
+            
+            showToast(`${ids.length} Eintrag/Einträge gelöscht.`, 'ok');
+            entries = entries.filter(x => !ids.includes(x.id)); // Remove deleted entries from local state
             renderHistory();
             renderFrameworkContracts();
-        } else if (type === 'transaction') {
+        } else if (type === 'transaction') { // Assuming single transaction delete for now
+             if (ids.length !== 1) throw new Error("Transaktionslöschung unterstützt nur einzelne IDs.");
+             const idToDelete = ids[0];
             const entry = entries.find(e => e.id === parentId);
             if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
             const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
-            entry.transactions = entry.transactions.filter(t => t.id !== id);
+            entry.transactions = entry.transactions.filter(t => t.id !== idToDelete);
             entry.modified = Date.now();
             const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
@@ -1178,7 +1271,12 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
         console.error(e);
     } finally {
         hideLoader();
-        pendingDelete = { id: null, type: 'entry' };
+        pendingDelete = { ids: [], type: 'entry' }; // Reset pending delete
+        // Reset checkboxes and button visibility after delete
+        document.querySelectorAll('.select-entry-fix, .select-entry-rahmen').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#selectAllFix, #selectAllRahmen').forEach(cb => cb.checked = false);
+        updateDeleteButtonVisibility('Fix');
+        updateDeleteButtonVisibility('Rahmen');
     }
 });
 
@@ -1225,12 +1323,15 @@ function filteredFrameworks() {
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
   const rahmenEntries = filteredFrameworks();
+  document.getElementById('selectAllRahmen').checked = false; // Reset select all
+  updateDeleteButtonVisibility('Rahmen'); // Update button visibility initially
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
-    tr.classList.add('clickable');
+    // tr.classList.add('clickable'); // Remove clickable class if selecting via checkbox is preferred
     tr.dataset.id = e.id;
     const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
     tr.innerHTML = `
+      <td><input type="checkbox" class="select-entry-rahmen" data-id="${e.id}"></td>
       <td>${e.projectNumber || '–'}</td>
       <td>${e.title || '–'}</td>
       <td>${e.client || '–'}</td>
@@ -1249,7 +1350,7 @@ function renderFrameworkContracts() {
 rahmenBody.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-act]');
   if (btn) {
-    e.stopPropagation(); // Stop click from bubbling to the row
+    e.stopPropagation(); // Stop click from bubbling to the row if button is clicked
     const act = btn.dataset.act;
     const id = btn.dataset.id;
     const entry = entries.find(en => en.id === id);
@@ -1270,12 +1371,13 @@ rahmenBody.addEventListener('click', (e) => {
     return;
   }
 
-  const row = e.target.closest('tr.clickable');
-  if (row) {
-    const id = row.dataset.id;
-    const entry = entries.find(en => en.id === id);
-    if (entry) openEditFrameworkContractModal(entry);
-  }
+  // Optional: Clicking anywhere on the row except buttons could open the edit modal
+  // const row = e.target.closest('tr[data-id]');
+  // if (row && !e.target.closest('input[type="checkbox"]')) {
+  //   const id = row.dataset.id;
+  //   const entry = entries.find(en => en.id === id);
+  //   if (entry) openEditFrameworkContractModal(entry);
+  // }
 });
 
 
@@ -1409,7 +1511,7 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
     if (delBtn) {
         ev.stopPropagation();
         const transId = delBtn.dataset.id;
-        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId); // Use existing delete mechanism
         return;
     }
 
@@ -1585,8 +1687,8 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     const rows = readRows('#editFwTbody');
     const weights = [
         {key:'cs', weight: toInt0(editFwW_cs.value)},
-        {key:'konzept', weight: toInt0(editW_konzept.value)},
-        {key:'pitch', weight: toInt0(editW_pitch.value)}
+        {key:'konzept', weight: toInt0(editFwW_konzept.value)},
+        {key:'pitch', weight: toInt0(editFwW_pitch.value)}
     ];
 
     const errors = validateModalInput(rows, weights);
@@ -1691,7 +1793,7 @@ async function adminCreate(){
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
 }
 
-/* ---------- ERP Import (mit Logik von ChatGPT erweitert) ---------- */
+/* ---------- ERP Import (mit Logik von ChatGPT erweitert & Fehlerbehandlung) ---------- */
 const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
@@ -1732,6 +1834,21 @@ function parseEuro(val){
     return Number.isFinite(n) ? n : 0;
 }
 
+// Function to download error log
+function downloadErrorLog(errorKVs) {
+    const textContent = "Folgende KV-Nummern konnten nicht importiert werden:\n\n" + errorKVs.join('\n');
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'import_fehlerprotokoll.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+
 async function handleErpImport() {
     const fileInput = document.getElementById('erpFile');
     if (fileInput.files.length === 0) {
@@ -1740,6 +1857,7 @@ async function handleErpImport() {
     }
     const file = fileInput.files[0];
     showLoader();
+    let errorKVs = []; // Array to store KV numbers of rows causing errors
     try {
         await loadHistory();
         const data = await file.arrayBuffer();
@@ -1750,92 +1868,103 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
-        let skippedCount = 0;
+        let skippedAmountCount = 0; // Count skipped due to amount <= 0
         
         const allEntries = JSON.parse(JSON.stringify(entries));
         const changesToPush = new Map();
 
         for (const row of rows) {
-            const kvNummer = String(getVal(row, 'kvNummer') || '').trim();
-            const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
+             const kvNummer = String(getVal(row, 'kvNummer') || '').trim();
+             let currentKV = kvNummer || 'Unbekannt'; // For error reporting
+             try { // Wrap row processing in try...catch
+                const amount = parseEuro(getVal(row, 'agenturleistungNetto'));
 
-            if (!kvNummer || amount <= 0) {
-                if (amount <= 0) skippedCount++;
-                continue;
-            }
-
-            const projektNummer = String(getVal(row, 'projektProjektnummer') || '').trim();
-            const clientName = getVal(row, 'kundeName') || '';
-            const title = getVal(row, 'titel') || '';
-
-            let entryToUpdate = null;
-            let transactionToUpdate = null;
-
-            for (const entry of allEntries) {
-                if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
-                    entryToUpdate = entry;
-                    break;
+                if (!kvNummer || amount <= 0) {
+                    if (amount <= 0 && kvNummer) skippedAmountCount++;
+                    continue; // Skip row if no KV or amount <= 0
                 }
-                if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                    const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
-                    if (trans) {
+                currentKV = kvNummer; // Update currentKV if valid
+
+                const projektNummer = String(getVal(row, 'projektProjektnummer') || '').trim();
+                const clientName = String(getVal(row, 'kundeName') || '').trim();
+                const title = String(getVal(row, 'titel') || '').trim();
+
+                let entryToUpdate = null;
+                let transactionToUpdate = null;
+
+                for (const entry of allEntries) {
+                    if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
                         entryToUpdate = entry;
-                        transactionToUpdate = trans;
                         break;
                     }
-                }
-            }
-
-            if (entryToUpdate) {
-                const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
-                if (originalAmount !== amount) {
-                    if (transactionToUpdate) {
-                        transactionToUpdate.amount = amount;
-                    } else {
-                        entryToUpdate.amount = amount;
+                    if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
+                        const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
+                        if (trans) {
+                            entryToUpdate = entry;
+                            transactionToUpdate = trans;
+                            break;
+                        }
                     }
-                    entryToUpdate.modified = Date.now();
-                    changesToPush.set(entryToUpdate.id, entryToUpdate);
-                    updatedCount++;
                 }
-            } else {
-                const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
-                if (parentFramework) {
-                    if (!Array.isArray(parentFramework.transactions)) parentFramework.transactions = [];
-                    parentFramework.transactions.push({
-                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
-                    });
-                    parentFramework.modified = Date.now();
-                    changesToPush.set(parentFramework.id, parentFramework);
-                    addedToFrameworkCount++;
+
+                if (entryToUpdate) {
+                    const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
+                    if (originalAmount !== amount) {
+                        if (transactionToUpdate) {
+                            transactionToUpdate.amount = amount;
+                        } else {
+                            entryToUpdate.amount = amount;
+                        }
+                        entryToUpdate.modified = Date.now();
+                        if(entryToUpdate.id) changesToPush.set(entryToUpdate.id, entryToUpdate);
+                         else console.warn("Versuch, Eintrag ohne ID zu aktualisieren:", entryToUpdate); // Added check
+                        updatedCount++;
+                    }
                 } else {
-                    const newFixEntry = {
-                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        source: 'erp-import',
-                        projectType: 'fix',
-                        client: clientName,
-                        title: title,
-                        projectNumber: projektNummer,
-                        kv_nummer: kvNummer,
-                        amount: amount,
-                        list: [],
-                        rows: [],
-                        weights: [],
-                        totals: { cs: 0, konzept: 0, pitch: 0 },
-                        submittedBy: 'ERP-Import',
-                        ts: Date.now(),
-                        complete: false 
-                    };
-                    allEntries.push(newFixEntry);
-                    changesToPush.set(newFixEntry.id, newFixEntry);
-                    newFixCount++;
+                    const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
+                    if (parentFramework) {
+                        if (!Array.isArray(parentFramework.transactions)) parentFramework.transactions = [];
+                        parentFramework.transactions.push({
+                            id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            kv_nummer: kvNummer, type: 'founder', amount: amount, ts: Date.now()
+                        });
+                        parentFramework.modified = Date.now();
+                         if(parentFramework.id) changesToPush.set(parentFramework.id, parentFramework);
+                         else console.warn("Versuch, Rahmenvertrag ohne ID zu aktualisieren:", parentFramework); // Added check
+                        addedToFrameworkCount++;
+                    } else {
+                        const newFixEntry = {
+                            id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            source: 'erp-import', projectType: 'fix',
+                            client: clientName, title: title || 'Unbenannter Auftrag', projectNumber: projektNummer,
+                            kv_nummer: kvNummer, amount: amount,
+                            list: [], rows: [], weights: [],
+                            totals: { cs: 0, konzept: 0, pitch: 0 }, // Ensure totals exists
+                            submittedBy: 'ERP-Import', // Ensure submittedBy exists
+                            ts: Date.now(), complete: false 
+                        };
+                        allEntries.push(newFixEntry);
+                        if(newFixEntry.id) changesToPush.set(newFixEntry.id, newFixEntry);
+                         else console.warn("Versuch, neuen Fixauftrag ohne ID zu erstellen:", newFixEntry); // Added check
+                        newFixCount++;
+                    }
                 }
+            } catch (rowError) {
+                 console.error(`Fehler beim Verarbeiten der Zeile für KV ${currentKV}:`, rowError, row);
+                 errorKVs.push(currentKV); // Add KV to error list
             }
-        }
+        } // End row loop
 
         const promises = [];
         changesToPush.forEach(entry => {
+            if (!entry || !entry.id) {
+                console.error('FEHLER: Versuch, Eintrag ohne gültige ID zu speichern:', entry);
+                // Optionally add associated KV to error list if possible
+                if(entry && entry.kv_nummer && !errorKVs.includes(entry.kv_nummer)) {
+                    errorKVs.push(entry.kv_nummer + " (Speicherfehler - keine ID)");
+                }
+                return; // Skip saving this entry
+            }
             const isNew = !entries.some(e => e.id === entry.id);
             const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
             const method = isNew ? 'POST' : 'PUT';
@@ -1844,28 +1973,65 @@ async function handleErpImport() {
             }).then(async (r) => { 
                 if (!r.ok) {
                     const errorText = await r.text();
-                    console.error(`Speichern für ${entry.id} fehlgeschlagen:`, errorText);
-                    throw new Error(`Speichern für ${entry.id} fehlgeschlagen.`);
+                    console.error(`Speichern für ${entry.id} (KV: ${entry.kv_nummer || 'N/A'}) fehlgeschlagen:`, r.status, errorText, entry);
+                     if(entry.kv_nummer && !errorKVs.includes(entry.kv_nummer)) {
+                          errorKVs.push(entry.kv_nummer + ` (Speicherfehler ${r.status})`);
+                     }
+                    // Do not throw here, let Promise.allSettled handle it
+                    return { status: 'rejected', reason: `Speichern für ${entry.id} fehlgeschlagen.` };
                 }
+                 return { status: 'fulfilled' }; // Indicate success
             }));
         });
         
-        await Promise.all(promises);
-        
-        let resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
-        if (skippedCount > 0) {
-            resultMsg += ` ${skippedCount} Zeilen wurden übersprungen (Betrag <= 0).`;
+        // Use Promise.allSettled to wait for all promises, even if some fail
+        const results = await Promise.allSettled(promises);
+        const failedSaves = results.filter(r => r.status === 'rejected');
+
+        if (failedSaves.length > 0) {
+            console.error(`${failedSaves.length} Speicheroperationen sind fehlgeschlagen.`);
+            // Errors were already logged and KVs added to errorKVs within the fetch handler
         }
-        document.getElementById('importResult').innerHTML = resultMsg;
-        document.getElementById('importResult').classList.remove('hide');
-        showToast('ERP-Daten erfolgreich importiert', 'ok');
-        await loadHistory();
+        
+        let resultMsg = `Import (teilweise) abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
+         if (skippedAmountCount > 0) {
+            resultMsg += ` ${skippedAmountCount} Zeilen wurden übersprungen (Betrag <= 0).`;
+        }
+        if (errorKVs.length > 0) {
+             resultMsg += ` ${errorKVs.length} Zeilen konnten wegen Fehlern nicht verarbeitet werden.`
+             // Add button to download error log
+             const downloadBtn = document.createElement('button');
+             downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
+             downloadBtn.className = 'btn warn small';
+             downloadBtn.style.marginLeft = '10px';
+             downloadBtn.onclick = () => downloadErrorLog(errorKVs);
+             
+             const resultDiv = document.getElementById('importResult');
+             resultDiv.innerHTML = resultMsg; // Clear previous content
+             resultDiv.appendChild(downloadBtn); // Append the button
+             resultDiv.classList.remove('hide');
+             showToast(`${errorKVs.length} Fehler beim Import. Details im Protokoll.`, 'warn');
+        } else {
+             document.getElementById('importResult').innerHTML = resultMsg;
+             document.getElementById('importResult').classList.remove('hide');
+             showToast('ERP-Daten erfolgreich importiert', 'ok');
+        }
+
+        await loadHistory(); // Reload data regardless of errors to show successful changes
 
     } catch (e) {
-        showToast('Fehler beim Importieren der Datei.', 'bad');
-        console.error(e);
+        showToast('Schwerwiegender Fehler beim Importieren der Datei.', 'bad');
+        console.error("Gesamtfehler beim Import:", e);
         document.getElementById('importResult').textContent = 'Fehler: ' + e.message;
         document.getElementById('importResult').classList.remove('hide');
+         if (errorKVs.length > 0) { // Add download button even on general error if KVs were collected
+             const downloadBtn = document.createElement('button');
+             downloadBtn.textContent = 'Fehlerprotokoll herunterladen';
+             downloadBtn.className = 'btn warn small';
+             downloadBtn.style.marginLeft = '10px';
+             downloadBtn.onclick = () => downloadErrorLog(errorKVs);
+             document.getElementById('importResult').appendChild(downloadBtn);
+         }
     } finally {
         hideLoader();
     }
