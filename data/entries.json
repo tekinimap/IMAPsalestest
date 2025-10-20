@@ -3713,5 +3713,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709372_KV20250119_120",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Herne",
+    "title": "Moderationsauftrag",
+    "projectNumber": "Stadt Herne-06-001",
+    "kv_nummer": "KV-2025-0119",
+    "amount": 1100,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709372,
+    "complete": false
   }
 ]
