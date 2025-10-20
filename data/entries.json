@@ -1889,5 +1889,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760969705773,
     "complete": false
+  },
+  {
+    "id": "entry_1760969705778_KV20250009_233",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Teamtage",
+    "projectNumber": "BG Verkehr-02-001",
+    "kv_nummer": "KV-2025-0009",
+    "amount": 3500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760969705778,
+    "complete": false
   }
 ]
