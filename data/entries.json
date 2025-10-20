@@ -872,7 +872,16 @@
     "projectNumber": "ekom21-01-001",
     "kv_nummer": "",
     "ts": 1761032940024,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1760968566269_KV20250096",
+        "kv_nummer": "KV-2025-0096",
+        "type": "founder",
+        "amount": 80456.25,
+        "ts": 1760968566269
+      }
+    ],
+    "modified": 1760968566269
   },
   {
     "id": "manuell_ekom21_unterst_los6",
