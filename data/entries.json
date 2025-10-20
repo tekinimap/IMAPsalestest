@@ -3230,5 +3230,26 @@
     "submittedBy": "ERP-Import",
     "ts": 1760970709371,
     "complete": false
+  },
+  {
+    "id": "entry_1760970709371_KV20250154_90",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Duisburg",
+    "title": "Workshop Jahresbericht BGM 2030",
+    "projectNumber": "STD-10-001",
+    "kv_nummer": "KV-2025-0154",
+    "amount": 1200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "ERP-Import",
+    "ts": 1760970709371,
+    "complete": false
   }
 ]
