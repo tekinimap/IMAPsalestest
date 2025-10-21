@@ -24,7 +24,1292 @@
 
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:18px}
   .hd{padding:20px 22px 8px}.hd h1{margin:0 0 8px;font-size:24px}.hd p{margin:0;color:var(--muted);font-size:14px}
+  .ct{padding:20px 22px 24p<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sales-Beteiligung</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0f16; --panel:#0f1724; --panel2:#0c1320; --text:#e6ebf3; --muted:#94a3b8; --border:#213044;
+    --accent:#3b82f6; --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
+  .container{max-width:1200px;margin:28px auto;padding:0 16px}
+  
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
+  .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
+  .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
+  .nav-link:hover{background-color: var(--panel2);}
+  .nav-link.active{background:var(--accent); color: var(--text); border-color: var(--accent);}
+  .nav-link.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(35%)}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:18px}
+  .hd{padding:20px 22px 8px}.hd h1{margin:0 0 8px;font-size:24px}.hd p{margin:0;color:var(--muted);font-size:14px}
   .ct{padding:20px 22px 24px}
+  
+  .sum-display { font-size: 18px; font-weight: 600; color: var(--muted); margin-top: -8px; margin-bottom: 8px; }
+  .sum-display span { color: var(--text); font-size: 20px; }
+
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  label{display:block;font-weight:600;margin:8px 0 6px}
+  input[type="text"],input[type="number"],input[type="date"],select{
+    width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:12px;outline:none; font-size:15px;
+  }
+  input:disabled { background-color: #0a0f16; opacity: 0.6; }
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+  .note{color:var(--muted);font-size:13px; margin-top: 8px;}
+  .info-box{background: var(--panel2); border: 1px solid var(--border); padding: 12px; border-radius: 10px; font-size: 13px; color: var(--muted); margin-bottom: 16px;}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+  .btn{appearance:none;border:1px solid var(--border);background:#0d1426;color:var(--text);padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600; font-size:15px;}
+  .btn.primary{background:var(--accent);border-color:transparent}
+  .btn.disabled{opacity:.5;pointer-events:none}
+  .btn.ok{background:var(--ok);border-color:transparent}
+  .btn.danger{background:var(--bad);border-color:transparent}
+  .btn.warn{background:var(--warn);border-color:transparent}
+  .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px}
+  
+  .radio-group {display:flex; gap:12px; margin-top: 8px;}
+  .radio-group label {display:flex; align-items:center; gap:6px; font-weight:normal; font-size:14px;}
+
+  .table-wrapper{width:100%;border:1px solid var(--border);border-radius:12px;overflow-x:auto;background:#0b1120}
+  table{width:100%;min-width:980px;border-collapse:collapse}
+  thead th{position:sticky;top:0;background:#0d162a;border-bottom:1px solid var(--border);padding:12px;text-align:left;font-size:13px}
+  tbody td{border-top:1px solid var(--border);padding:10px 12px; vertical-align: middle;}
+  tbody tr:hover{background:#0c1426}
+  tbody tr.clickable { cursor: pointer; }
+  .delrow{background:#13203b;border:1px solid #21314f;color:#cbd5e1;border-radius:8px;padding:6px 8px;cursor:pointer}
+
+  .sumchips{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .chip{background:#0b1220;border:1px solid var(--border);border-radius:999px;padding:8px 12px;font-size:12px;display:inline-flex;align-items:center;gap:8px}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
+  .chip.ok .dot{background:var(--ok)} .chip.bad .dot{background:var(--bad)} .chip.warn .dot{background:var(--warn)}
+  
+  .live-result{font-size:13px; font-weight: 600; color: var(--muted);}
+  .live-result .pct{color: var(--text); display: block; font-size: 15px;}
+  .live-result .money{font-size: 12px;}
+
+  .hr{height:1px;background:var(--border);margin:24px 0}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .small{font-size:12px}
+  .hide{display:none !important}
+  
+  .search-wrapper{display:flex; gap:10px; margin-bottom:12px; align-items: center; flex-wrap: wrap;}
+  .search-wrapper input {flex-grow:1;}
+  .batch-actions { display: flex; gap: 10px; }
+
+  .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
+  .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
+  
+  th.sortable{cursor:pointer;}
+  th.sortable:hover{background-color: var(--panel2);}
+  th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
+  th.col-check { width: 40px; padding: 12px 10px; text-align: center; }
+  td.col-check { text-align: center; }
+  
+  .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
+  input.invalid-field, select.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
+  .checkbox-wrapper{display:flex; align-items:center; gap:8px; margin-top: 8px;}
+
+  .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
+  .iconbtn:hover{background:var(--panel2);}
+  .iconbtn svg { width: 20px; height: 20px; }
+  .iconbtn[data-act="del"] svg{stroke-width:1.5;stroke:rgba(239,68,68,.8)}
+  .iconbtn[data-act="edit"] svg{stroke-width:1.5}
+
+  .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:14px}
+  .chart h3{margin:0 0 10px 0;font-size:15px;color:#cbd5e1}
+  .chart svg{width:100%;height:auto}
+  
+  .analytics-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .analytics-controls label { margin: 0; font-weight: 500; color: var(--muted); }
+  .analytics-controls input[type="date"], .analytics-controls select { padding: 8px 10px; font-size: 14px; width: auto; }
+  .analytics-controls .btn { padding: 8px 14px; font-size: 14px; }
+  
+  /* --- Feedback & Loader --- */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);color:var(--text);padding:12px 20px;border-radius:10px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9999;opacity:0;transition:opacity .3s, bottom .3s;font-weight:600;}
+  .toast.show{opacity:1;bottom:30px;}
+  .toast.ok{background:var(--ok);border-color:transparent;}
+  .toast.bad{background:var(--bad);border-color:transparent;}
+  .loader{position:fixed;top:20px;right:20px;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;z-index:10000;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  
+  /* --- Batch Progress Bar --- */
+  #batchProgress {
+    position: sticky; top: 10px; z-index: 9000;
+    margin: -10px auto 18px auto; max-width: 1200px; padding: 16px 22px;
+  }
+  #batchProgress h3 { margin: 0 0 10px; font-size: 16px; }
+  #batchProgress p { margin: 0; }
+  #batchProgress .note { margin-top: 6px; }
+  #batchProgressBar { width: 100%; height: 10px; margin: 8px 0 4px; }
+
+  dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius); max-width: 90vw; }
+  dialog::backdrop {background:rgba(0,0,0,.5); backdrop-filter: blur(4px);}
+  dialog .hd { position: relative; }
+  dialog .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; }
+  dialog .validation-summary { color: var(--warn); font-size: 13px; margin-top: -10px; margin-bottom: 10px; }
+
+
+  /* --- Responsive Design --- */
+  @media(max-width: 768px){
+    .container{margin:16px auto; padding:0 12px;}
+    .hd{padding:16px 18px 4px} .hd h1{font-size:20px} .hd p{font-size:13px}
+    .ct{padding:16px 18px 20px}
+    .grid-3, .grid-2 {grid-template-columns:1fr;}
+    .topbar{flex-direction:column; gap:10px; align-items:flex-start;}
+    .main-nav {width: 100%; justify-content: space-around;}
+    .actions{flex-direction:column; align-items:stretch; gap:12px;}
+    .btn{width:100%; text-align:center;}
+    .form-bottom-actions{flex-direction:column; align-items:stretch !important; gap:16px !important;}
+    .form-fields-group { flex-direction: column; gap: 10px !important; }
+    .form-fields-group > div { width: 100%; }
+    .form-fields-group input { width: 100% !important; }
+    .search-wrapper { flex-direction: column; align-items: stretch; }
+    .batch-actions { width: 100%; flex-direction: column; }
+    .analytics-controls { justify-content: center; }
+  }
+  @media(max-width: 980px){
+    table{min-width: 800px;}
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loader" class="loader hide"></div>
+<div id="toast" class="toast"></div>
+
+<div class="container">
+
+  <div class="topbar">
+    <div style="font-weight:700; font-size: 18px;">Sales-Beteiligung</div>
+    <div class="main-nav">
+      <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
+      <a href="#" class="nav-link" data-view="fixauftraege">Fixaufträge</a>
+      <a href="#" class="nav-link" data-view="rahmen">Rahmenverträge</a>
+      <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
+      <a href="#" class="nav-link" data-view="admin">Admin</a>
+    </div>
+  </div>
+  
+  <div id="batchProgress" class="card hide">
+    <h3 id="batchTitle">Verarbeitung läuft...</h3>
+    <p id="batchStatusLabel">Initialisiere...</p>
+    <progress id="batchProgressBar" max="100" value="0"></progress>
+    <p class="note small" id="batchThrottleNotice">Gedrosselter Schreibmodus aktiv, um Server-Limits einzuhalten. Dies kann einen Moment dauern.</p>
+  </div>
+
+  <div class="card" id="viewErfassung">
+    <div class="hd"><h1>Erfassung</h1><p id="erfassungSub">Neuen Auftrag oder Rahmenvertrag anlegen.</p></div>
+    <div class="ct">
+      <div id="abrufInfo" class="info-box hide"></div>
+      <div class="grid-3">
+        <div>
+          <label for="auftraggeber">Auftraggeber *</label>
+          <input id="auftraggeber" type="text" autocomplete="organization">
+          <div class="field-error" data-validation-for="auftraggeber"></div>
+        </div>
+        <div>
+          <label for="projekttitel">Projekttitel *</label>
+          <input id="projekttitel" type="text">
+          <div class="field-error" data-validation-for="projekttitel"></div>
+        </div>
+        <div>
+          <label for="auftragswert">Auftragswert *</label>
+          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="auftragswertBekannt" checked>
+            <label for="auftragswertBekannt" style="margin:0; font-weight:normal; font-size:13px;">Auftragswert bekannt?</label>
+          </div>
+          <div class="field-error" data-validation-for="auftragswert"></div>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:10px">
+        <div>
+          <label for="submittedBy">Einschätzung abgegeben von *</label>
+          <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
+          <div class="field-error" data-validation-for="submittedBy"></div>
+        </div>
+         <div id="projectTypeWrapper" style="grid-column: span 2;">
+          <label>Projekttyp *</label>
+          <div class="radio-group">
+            <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
+            <label><input type="radio" name="projectType" value="rahmen"> Rahmenvertrag</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hr"></div>
+
+      <div class="grid-3">
+        <div>
+          <label>Gewicht: Consultative Selling (%)</label>
+          <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
+        </div>
+        <div>
+          <label>Gewicht: Konzepterstellung (%)</label>
+          <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
+        </div>
+        <div>
+          <label>Gewicht: Pitch (%)</label>
+          <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
+        </div>
+      </div>
+      <div class="note mono" id="w_note" style="margin-top:6px">Summe Gewichte: 100 %</div>
+      <div class="field-error" data-validation-for="weights"></div>
+
+      <div class="hr"></div>
+
+      <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow" style="width:auto;">+ Zeile</button></div>
+      <div class="field-error" data-validation-for="rows"></div>
+
+      <datalist id="peopleList"></datalist>
+
+      <div class="table-wrapper" style="margin-top:14px">
+        <table>
+          <thead><tr>
+            <th style="width:25%">Person</th>
+            <th style="width:15%">Consultative Selling</th>
+            <th style="width:15%">Konzepterstellung</th>
+            <th style="width:15%">Pitch</th>
+            <th style="width:20%">Live-Anteil</th>
+            <th style="width:10%">Aktion</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="sumchips" id="sumchips"></div>
+      <div class="field-error" data-validation-for="categories"></div>
+
+      <div class="hr"></div>
+
+      <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
+        <div class="form-fields-group" style="display:flex; gap:10px; flex-wrap: wrap;">
+            <div>
+              <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
+              <input id="projectNumber" type="text" style="padding: 8px 12px; width: 170px;">
+              <div class="field-error" data-validation-for="projectNumber"></div>
+            </div>
+            <div>
+              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer</label>
+              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 170px;">
+               <div class="field-error" data-validation-for="kvNummer"></div>
+            </div>
+            <div>
+              <label for="freigabedatum" style="font-weight:500; font-size:13px; color: var(--muted);">Freigabedatum *</label>
+              <input id="freigabedatum" type="date" style="padding: 8px 12px; width: 170px;">
+               <div class="field-error" data-validation-for="freigabedatum"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px; justify-content: flex-end;">
+          <button class="btn primary disabled" id="btnSave">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hide" id="viewFixauftraege">
+    <div class="hd">
+        <h1>Fixaufträge</h1>
+        <div id="fixSumDisplay" class="sum-display">💰 Lade Summe...</div>
+        <p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p>
+    </div>
+    <div class="ct">
+      <div class="search-wrapper">
+        <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
+        <div class="batch-actions">
+            <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
+            <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
+            <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
+            <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
+            <th style="width:14%">Status</th>
+            <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
+            <th style="width:10%">Aktionen</th>
+          </tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card hide" id="viewRahmen">
+    <div class="hd">
+        <h1>Rahmenverträge</h1>
+        <div id="rahmenSumDisplay" class="sum-display">💰 Lade Summe...</div>
+        <p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p>
+    </div>
+    <div class="ct">
+      <div class="search-wrapper">
+        <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
+      </div>
+       <div class="table-wrapper">
+        <table>
+          <thead><tr>
+            <th style="width:15%">Projektnummer</th>
+            <th style="width:30%">Projekttitel</th>
+            <th style="width:20%">Kunde</th>
+            <th style="width:15%">Gesamtwert</th>
+            <th style="width:20%">Aktionen</th>
+          </tr></thead>
+          <tbody id="rahmenBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card hide" id="viewRahmenDetails">
+    <div class="hd"><h1 id="rahmenDetailsTitle"></h1><p id="rahmenDetailsSub"></p></div>
+    <div class="ct">
+      <button class="btn" id="backToRahmen" style="margin-bottom: 16px;">← Zurück zur Übersicht</button>
+      
+      <div class="grid-2">
+        <div>
+          <h3>Gründer-Team (initiale Verteilung)</h3>
+          <div class="table-wrapper">
+            <table style="min-width:auto;">
+              <thead><tr><th>Person</th><th>Anteil</th></tr></thead>
+              <tbody id="rahmenFoundersBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>Tatsächliche Gesamtverteilung</h3>
+          <div class="table-wrapper">
+            <table style="min-width:auto;">
+              <thead><tr><th>Person</th><th>Anteil</th><th>Wert</th></tr></thead>
+              <tbody id="rahmenActualBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hr"></div>
+      <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
+       <div class="table-wrapper">
+        <table style="min-width:auto;">
+          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Freigabe</th><th>Aktionen</th></tr></thead>
+          <tbody id="rahmenTransaktionenBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hide" id="viewAdmin">
+    <div class="hd"><h1>Admin</h1><p>Verwaltung von Personen, Teams und Datenimport.</p></div>
+    <div class="ct">
+      <h3>Personen & Teams</h3>
+      <div class="search-wrapper">
+        <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
+      </div>
+      <div class="grid-3">
+        <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
+        <div><label for="adm_team">Team</label>
+          <select id="adm_team">
+            <option value="">— bitte wählen —</option>
+            <option>Vielfalt+</option>
+            <option>Evaluation und Beteiligung</option>
+            <option>Nachhaltigkeit</option>
+            <option>Sozial- und Krankenversicherungen</option>
+            <option>ChangePartner</option>
+            <option>Bundes- und Landesbehörden</option>
+            <option>Kommunalverwaltungen</option>
+            <option>Internationale Zusammenarbeit</option>
+            <option>Head of Organisational Excellence</option>
+            <option>Head of Public Impact</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button></div>
+      </div>
+      <div class="table-wrapper" style="margin-top:14px;">
+        <table>
+          <thead><tr><th style="width:40%">Name</th><th style="width:40%">Team</th><th style="width:20%">Aktionen</th></tr></thead>
+          <tbody id="adm_body"></tbody>
+        </table>
+      </div>
+      <div class="hr"></div>
+      <h3>ERP-Abgleich per Excel-Import</h3>
+      <p class="note" style="font-size: 14px; margin-bottom: 12px;">Laden Sie hier die Excel-Datei aus dem ERP-System hoch. Das System wird bestehende Abrufe (via KV-Nummer) aktualisieren, neue Abrufe zu bestehenden Rahmenverträgen (via Projektnummer) hinzufügen oder neue Fixaufträge anlegen.</p>
+      <div class="search-wrapper">
+        <input type="file" id="erpFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
+        <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
+      </div>
+      <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
+    </div>
+  </div>
+
+  <div class="card hide" id="viewAnalytics">
+    <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Fixaufträge & Rahmenverträge.</p></div>
+    <div class="ct">
+      <div class="analytics-controls">
+        <label>Jahr</label>
+        <select id="anaYear" class="ipt"></select>
+        <button class="btn" id="anaRefresh">Aktualisieren</button>
+        <button class="btn" id="btnAnaXlsx">Export XLSX</button>
+      </div>
+      <div class="grid-3">
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Top Personen (monetär)</h3>
+          <div id="chartPersons"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Teams (monetär, aggregiert)</h3>
+          <div id="chartTeams"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Gesamtübersicht (monetär)</h3>
+          <div id="chartTotals"></div>
+        </div>
+      </div>
+      
+      <div class="hr"></div>
+      <h2>Aktivität Rahmenverträge</h2>
+      <div class="analytics-controls">
+        <label for="anaStartDate">Von</label>
+        <input type="date" id="anaStartDate">
+        <label for="anaEndDate">Bis</label>
+        <input type="date" id="anaEndDate">
+        <button class="btn" id="btnAnaThisYear">Dieses Jahr</button>
+        <button class="btn" id="btnAnaLastYear">Letztes Jahr</button>
+        <button class="btn primary" id="btnAnaRangeRefresh">Laden</button>
+      </div>
+      <div class="grid-3">
+         <div class="chart" style="grid-column:1/-1">
+          <h3 id="chartActivityTitle">Aktivste Rahmenverträge</h3>
+          <div id="chartActivity"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<dialog id="confirmDlg">
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong><span id="confirmDlgTitle">Eintrag löschen</span></strong></div>
+  <div class="ct" style="padding:16px">
+    <p id="confirmDlgText">Wollen Sie den Eintrag wirklich löschen?</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn" id="btnNo">Abbrechen</button>
+      <button class="btn danger" id="btnYes">Löschen</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="moveToFrameworkDlg" style="min-width: 500px;">
+    <div class="hd">
+        <h1>Aufträge zuweisen</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="moveValidationSummary" class="validation-summary"></div>
+        <p id="moveDlgCountLabel"></p>
+        <div>
+            <label for="moveTargetFramework">Ziel-Rahmenvertrag *</label>
+            <select id="moveTargetFramework">
+                <option value="">-- Bitte Rahmenvertrag wählen --</option>
+            </select>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>Abruf-Typ *</label>
+            <div class="radio-group">
+                <label><input type="radio" name="moveType" value="founder" checked> Passiver Abruf (Founder)</label>
+                <label><input type="radio" name="moveType" value="hunter"> Aktiver Abruf (Hunter)</label>
+            </div>
+            <p class="note small" style="margin-top: 10px;">
+                <b>Passiv (Founder):</b> Nur Betrag & KV-Nr. werden übernommen. Die Sales-Verteilung des Fixauftrags wird verworfen und stattdessen die Founder-Verteilung des Rahmenvertrags angewendet.
+                <br><br>
+                <b>Aktiv (Hunter):</b> Der komplette Eintrag inkl. Sales-Verteilung wird 1:1 als "Hunter"-Abruf übernommen. Dies geht nur, wenn der Fixauftrag vollständig (Status "ok") ist.
+            </p>
+        </div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="editTransactionDlg" style="min-width: 800px;">
+    <div class="hd">
+        <h1 id="editTransDlgTitle">Abruf bearbeiten</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="editTransValidationSummary" class="validation-summary"></div>
+        <div id="editFounderTransView">
+            <div class="grid-2">
+                <div>
+                    <label for="editFounderValueInput">Wert (EUR)</label>
+                    <input type="text" id="editFounderValueInput" inputmode="decimal">
+                </div>
+                 <div>
+                    <label for="editFounderKvNummer">KV-Nummer</label>
+                    <input type="text" id="editFounderKvNummer">
+                </div>
+            </div>
+             <div style="margin-top: 10px;">
+                <label for="editFounderFreigabedatum">Freigabedatum</label>
+                <input type="date" id="editFounderFreigabedatum">
+            </div>
+        </div>
+
+        <div id="editHunterTransView" class="hide">
+             <div class="grid-3">
+                <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
+                <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount" inputmode="decimal"></div>
+                <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer"></div>
+            </div>
+            <div style="margin-top: 10px;">
+                <label for="editHunterFreigabedatum">Freigabedatum</label>
+                <input type="date" id="editHunterFreigabedatum">
+            </div>
+            <div class="hr"></div>
+            <div class="grid-3">
+                <div><label>Gewicht: CS (%)</label><input type="number" id="editW_cs" value="50"></div>
+                <div><label>Gewicht: Konzept (%)</label><input type="number" id="editW_konzept" value="30"></div>
+                <div><label>Gewicht: Pitch (%)</label><input type="number" id="editW_pitch" value="20"></div>
+            </div>
+             <div class="hr"></div>
+            <div class="actions"><span class="tag">Personen & Verteilung</span><button class="btn" id="editBtnAddRow" style="width:auto;">+ Zeile</button></div>
+            <div class="table-wrapper" style="margin-top:14px">
+                <table style="min-width:auto;">
+                    <thead><tr><th>Person</th><th>CS</th><th>Konzept</th><th>Pitch</th><th>Aktion</th></tr></thead>
+                    <tbody id="editTbody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('editTransactionDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnSaveTransaction">Speichern</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="editFrameworkContractDlg" style="min-width: 800px;">
+    <div class="hd">
+        <h1>Rahmenvertrag bearbeiten</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="editFwValidationSummary" class="validation-summary"></div>
+        <div class="grid-3">
+            <div><label for="editFwClient">Auftraggeber</label><input type="text" id="editFwClient"></div>
+            <div><label for="editFwTitle">Projekttitel</label><input type="text" id="editFwTitle"></div>
+            <div><label for="editFwProjectNumber">Projektnummer</label><input type="text" id="editFwProjectNumber"></div>
+        </div>
+        <div class="hr"></div>
+        <div class="grid-3">
+            <div><label>Gewicht: CS (%)</label><input type="number" id="editFwW_cs" value="50"></div>
+            <div><label>Gewicht: Konzept (%)</label><input type="number" id="editFwW_konzept" value="30"></div>
+            <div><label>Gewicht: Pitch (%)</label><input type="number" id="editFwW_pitch" value="20"></div>
+        </div>
+        <div class="hr"></div>
+        <div class="actions"><span class="tag">Gründer-Team & initiale Verteilung</span><button class="btn" id="editFwBtnAddRow" style="width:auto;">+ Zeile</button></div>
+        <div class="table-wrapper" style="margin-top:14px">
+            <table style="min-width:auto;">
+                <thead><tr><th>Person</th><th>CS</th><th>Konzept</th><th>Pitch</th><th>Aktion</th></tr></thead>
+                <tbody id="editFwTbody"></tbody>
+            </table>
+        </div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('editFrameworkContractDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnSaveFrameworkContract">Speichern</button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+/* ---------- Konfiguration ---------- */
+const WORKER_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
+const TEAMS = [
+  "Vielfalt+","Evaluation und Beteiligung","Nachhaltigkeit","Sozial- und Krankenversicherungen",
+  "ChangePartner","Bundes- und Landesbehörden","Kommunalverwaltungen",
+  "Internationale Zusammenarbeit","Head of Organisational Excellence","Head of Public Impact"
+];
+const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
+const CATEGORY_NAMES = {cs: "Consultative Selling", konzept: "Konzepterstellung", pitch: "Pitch"};
+const FOUNDER_SHARE_PCT = 20;
+const THROTTLE_MS = 400; // Latenz für Batch-Prozesse
+const RETRY_LIMIT = 2;
+const RETRY_BACKOFF_MS = 3000;
+
+
+/* ---------- Hilfsfunktionen & UI-Feedback ---------- */
+const loader = document.getElementById('loader');
+const toast = document.getElementById('toast');
+const batchProgress = document.getElementById('batchProgress');
+const batchTitle = document.getElementById('batchTitle');
+const batchStatusLabel = document.getElementById('batchStatusLabel');
+const batchProgressBar = document.getElementById('batchProgressBar');
+let hasUnsavedChanges = false;
+let isBatchRunning = false;
+
+function showLoader(){ loader.classList.remove('hide'); }
+function hideLoader(){ loader.classList.add('hide'); }
+function showToast(msg, type='ok', duration=3000){
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  setTimeout(() => { toast.className = 'toast'; }, duration);
+}
+
+function showBatchProgress(title, totalItems) {
+    isBatchRunning = true;
+    batchTitle.textContent = title;
+    batchProgressBar.max = totalItems;
+    batchProgressBar.value = 0;
+    batchStatusLabel.textContent = `Starte... (0 / ${totalItems})`;
+    batchProgress.classList.remove('hide');
+    window.scrollTo(0, 0);
+}
+function updateBatchProgress(currentItem, totalItems) {
+    batchProgressBar.value = currentItem;
+    batchStatusLabel.textContent = `Verarbeite ${currentItem} / ${totalItems}...`;
+}
+function hideBatchProgress() {
+    isBatchRunning = false;
+    batchProgress.classList.add('hide');
+}
+
+/* ---------- Formatter ---------- */
+const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
+const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
+const getTodayDate = () => new Date().toISOString().split('T')[0];
+const formatDateForInput = (ts) => {
+    if (!ts) return '';
+    try { 
+        // Handle potential invalid date timestamps from old data or bad imports
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toISOString().split('T')[0]; 
+    }
+    catch(e) { 
+        console.error("Error formatting date:", ts, e);
+        return ''; 
+    }
+};
+
+function clamp01(x){return Math.max(0,Math.min(100,x));}
+function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
+
+function parseAmountInput(str) {
+  // Handle null, undefined, or empty strings immediately
+  if (str === null || str === undefined || String(str).trim() === '') return 0;
+
+  // Convert input to string first, just in case it's already a number
+  let clean = String(str);
+
+  // Remove currency symbols (€, $, £ etc.) and any whitespace
+  clean = clean.replace(/[€$£\s]/g, '');
+
+  // Check for separators
+  const hasComma = clean.includes(',');
+  const hasDot = clean.includes('.');
+
+  let numberStr;
+
+  // Case 1: German format suspected (comma is the last separator)
+  if (hasComma && (!hasDot || clean.lastIndexOf(',') > clean.lastIndexOf('.'))) {
+      // Remove all dots (thousand separators), replace the last comma with a dot (decimal separator)
+      numberStr = clean.replace(/\./g, '').replace(',', '.');
+  }
+  // Case 2: International/English format suspected (dot is the last separator, or only dot exists)
+  else if (hasDot) {
+       // Remove all commas (thousand separators)
+      numberStr = clean.replace(/,/g, '');
+      // Dot is already the decimal separator, no replacement needed.
+  }
+   // Case 3: Only comma, assume decimal separator
+  else if (hasComma) {
+       numberStr = clean.replace(',', '.');
+  }
+  // Case 4: No separators, assume integer or simple float with dot already
+  else {
+      numberStr = clean;
+  }
+
+  // Final cleanup: Remove anything that's not a digit, the first minus sign, or the first decimal point
+  // This helps catch edge cases or slightly malformed inputs
+  let sign = '';
+  if (numberStr.startsWith('-')) {
+    sign = '-';
+    numberStr = numberStr.substring(1);
+  }
+  const parts = numberStr.split('.');
+  let integerPart = parts[0].replace(/[^\d]/g, '');
+  let decimalPart = parts.length > 1 ? parts[1].replace(/[^\d]/g, '') : '';
+  
+  if (decimalPart) {
+      numberStr = `${sign}${integerPart}.${decimalPart}`;
+  } else {
+       numberStr = `${sign}${integerPart}`;
+  }
+  
+  const n = Number(numberStr);
+  // *** DEBUGGING LINE KORRIGIERT (AUSKOMMENTIERT) ***
+  // console.log(`Original: "${str}", Cleaned: "${clean}", Parsed String: "${numberStr}", Final Number: ${n}`); 
+  return Number.isFinite(n) ? n : 0;
+}
+
+const LS_KEY="sales_state_v1";
+function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
+function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
+
+/* ---------- API Helper mit Retry/Latenz ---------- */
+async function throttle() {
+    await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
+}
+
+async function fetchWithRetry(url, options, retryCount = 0) {
+    try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+            return response;
+        }
+        // Nur bei 429 (Too Many Requests) oder 5xx (Server Error) erneut versuchen
+        if ((response.status === 429 || response.status >= 500) && retryCount < RETRY_LIMIT) {
+            showToast(`Serverfehler ${response.status}. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        // Bei anderen Client-Fehlern (z.B. 404, 400) nicht erneut versuchen
+        const errorText = await response.text();
+        console.error(`HTTP-Fehler ${response.status} für ${options.method} ${url}: ${errorText}`); // Mehr Debugging
+        throw new Error(`HTTP-Fehler ${response.status}: ${errorText}`);
+    } catch (e) {
+        // Bei Netzwerkfehlern ebenfalls erneut versuchen
+        if (retryCount < RETRY_LIMIT && !(e instanceof Error && e.message.startsWith('HTTP-Fehler'))) { // Nur bei Netzwerkfehlern
+            showToast(`Netzwerkfehler. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        console.error("Finaler Fehler nach Retries:", e);
+        throw e; // Finaler Fehler nach Retries oder bei nicht-wiederholbaren HTTP-Fehlern
+    }
+}
+
+/* ---------- Navigation ---------- */
+const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
+const navLinks = document.querySelectorAll('.nav-link');
+
+function showView(viewName) {
+  if (isBatchRunning) {
+      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+      return;
+  }
+  Object.values(views).forEach(v => v.classList.add('hide'));
+  navLinks.forEach(l => l.classList.remove('active'));
+  hideBatchProgress();
+  
+  if (views[viewName]) {
+    views[viewName].classList.remove('hide');
+    const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
+    if (activeLink) activeLink.classList.add('active');
+  }
+  window.scrollTo(0,0);
+}
+
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (isBatchRunning) {
+        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+        return;
+    }
+    const viewName = e.target.getAttribute('data-view');
+    
+    if (viewName === 'fixauftraege') {
+      loadHistory().then(() => showView('fixauftraege'));
+    } else if (viewName === 'rahmen') {
+      loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
+    } else if (viewName === 'analytics') {
+      loadHistory().then(() => { initAnalytics(); showView('analytics'); });
+    } else if (viewName === 'admin') {
+      handleAdminClick();
+    } else if (viewName === 'erfassung') {
+      if (hasUnsavedChanges && !document.querySelector('#viewErfassung').classList.contains('hide')) {
+        if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
+          clearInputFields();
+          initFromState();
+          showView('erfassung');
+        }
+      } else {
+        clearInputFields();
+        initFromState();
+        showView('erfassung');
+      }
+    }
+  });
+});
+
+async function handleAdminClick() {
+  const pw = prompt("Bitte Passwort für Admin eingeben:");
+  const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
+  if (!ok) { showToast('Falsches Passwort.', 'bad'); return; }
+  try { 
+    showLoader();
+    await loadPeople(); 
+    renderPeopleAdmin(); 
+    showView('admin'); 
+  }
+  catch(e){ console.error('Admin init failed',e); showToast('Konnte Admin-Daten nicht laden.', 'bad'); }
+  finally { hideLoader(); }
+}
+
+
+/* ---------- People ---------- */
+let people = [];
+const peopleList = document.getElementById('peopleList');
+async function loadPeople(){
+  showLoader();
+  try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
+  catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
+  finally { hideLoader(); }
+  people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
+  
+  if (peopleList){
+    peopleList.innerHTML='';
+    people.forEach(p=>{ 
+      const o = document.createElement('option'); 
+      o.value=p.name; 
+      peopleList.appendChild(o);
+    });
+  }
+}
+function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
+
+/* ---------- Erfassung ---------- */
+const tbody = document.getElementById('tbody');
+const sumchips = document.getElementById('sumchips');
+const auftraggeber = document.getElementById('auftraggeber');
+const projekttitel = document.getElementById('projekttitel');
+const auftragswert = document.getElementById('auftragswert');
+const auftragswertBekannt = document.getElementById('auftragswertBekannt');
+const submittedBy  = document.getElementById('submittedBy');
+const projectNumber = document.getElementById('projectNumber');
+const kvNummer = document.getElementById('kvNummer');
+const freigabedatum = document.getElementById('freigabedatum');
+const w_cs = document.getElementById('w_cs');
+const w_konzept = document.getElementById('w_konzept');
+const w_pitch = document.getElementById('w_pitch');
+const w_note = document.getElementById('w_note');
+const btnAddRow = document.getElementById('btnAddRow');
+const btnSave = document.getElementById('btnSave');
+
+function rowTemplate(){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input type="text" class="name" placeholder="Namen eintippen oder auswählen..." list="peopleList"></td>
+    <td><input type="number" class="cs" min="0" max="100" step="1" value="0"></td>
+    <td><input type="number" class="konzept" min="0" max="100" step="1" value="0"></td>
+    <td><input type="number" class="pitch" min="0" max="100" step="1" value="0"></td>
+    <td><div class="live-result"><span class="pct">- %</span><span class="money">- €</span></div></td>
+    <td><button class="delrow">Entfernen</button></td>`;
+  return tr;
+}
+function bindRow(tr){
+  tr.addEventListener('input',(ev)=>{
+    hasUnsavedChanges = true;
+    if (ev.target.matches('input[type="number"]')) ev.target.value=String(clamp01(toInt0(ev.target.value)));
+    if (ev.target.classList.contains('name')){
+      const p=findPersonByName(ev.target.value);
+      if(p) ev.target.dataset.personId=p.id; else delete ev.target.dataset.personId;
+    }
+    saveCurrentInputState();
+    recalc();
+  });
+  tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); hasUnsavedChanges = true; saveCurrentInputState(); recalc();});
+}
+function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();saveCurrentInputState(); recalc();}
+function readRows(tbodySelector = '#tbody'){
+  const rows=[]; document.querySelector(tbodySelector).querySelectorAll('tr').forEach(tr=>{
+    rows.push({
+      personId: tr.querySelector('.name').dataset.personId || null,
+      name: (tr.querySelector('.name').value||'').trim(),
+      cs: toInt0(tr.querySelector('.cs').value),
+      konzept: toInt0(tr.querySelector('.konzept').value),
+      pitch: toInt0(tr.querySelector('.pitch').value),
+    });
+  }); return rows;
+}
+function totals(rows){ return rows.reduce((a,r)=>{a.cs+=r.cs;a.konzept+=r.konzept;a.pitch+=r.pitch;return a;},{cs:0,konzept:0,pitch:0}); }
+function renderChips(t){
+  sumchips.innerHTML='';
+  [["cs","Consultative Selling"],["konzept","Konzepterstellung"],["pitch","Pitch"]].forEach(([k,label])=>{
+    const x=t[k]; const div=document.createElement('div');div.className='chip';
+    const dot=document.createElement('span');dot.className='dot';
+    const txt=document.createElement('span');txt.innerHTML=`<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
+    if(x===0 || x===100) div.classList.add('ok'); else if(x>100) div.classList.add('bad'); else div.classList.add('warn');
+    div.appendChild(dot);div.appendChild(txt);sumchips.appendChild(div);
+  });
+}
+function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
+function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
+
+function validateInput(forLive = false) {
+    const errors = {};
+    const st = loadState() || {};
+    if (!forLive) {
+        if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+        if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
+        if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!freigabedatum.value && !freigabedatum.disabled) errors.freigabedatum = 'Freigabedatum ist erforderlich.'; // Check disabled status
+        
+        if (st.isAbrufMode && !kvNummer.value.trim()) {
+            errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
+        }
+
+        // Allow saving entries without rows initially
+        // if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
+        
+        if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
+    }
+
+    const t = totals(readRows());
+    const weights = currentWeights();
+    let categoryErrors = [];
+    weights.forEach(w => {
+        if (forLive) {
+            // Allow totals over 100 for live calculation preview
+            // if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
+        } else {
+             // Only validate non-zero weight categories that have *some* points entered but not 100
+            if (w.weight > 0 && t[w.key] > 0 && t[w.key] !== 100) {
+                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+            }
+            // Ensure 0-weight categories are either 0 or 100 (for full assignment overrides)
+            if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+            }
+        }
+    });
+    // Only add category error if rows have been entered and have points
+    if (readRows().some(r => r.cs + r.konzept + r.pitch > 0) && categoryErrors.length > 0) {
+         errors.categories = categoryErrors.join(' | ');
+    }
+
+
+    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+    if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    if (forLive && sumW === 0 && readRows().some(r => r.cs + r.konzept + r.pitch > 0)) { // Only show error if weights are 0 AND rows have points
+         errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+    }
+    
+    return errors;
+}
+
+function clearValidation(){
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
+}
+
+function displayValidation(errors){
+    clearValidation();
+    Object.keys(errors).forEach(key => {
+        const el = document.querySelector(`[data-validation-for="${key}"]`);
+        if (el) el.textContent = errors[key];
+        
+        const input = document.getElementById(key);
+        if(input) input.classList.add('invalid-field');
+    });
+}
+
+function recalc(){
+  const liveErrors = validateInput(true);
+  const liveAmount = parseAmountInput(auftragswert.value);
+  // Always calculate live results if possible, even with >100 points temporarily
+  if (!liveErrors.weights) { // Only check for 0 weights error
+    const result = compute(readRows(), currentWeights(), liveAmount, true);
+    updateLiveResults(result.list);
+  } else {
+    updateLiveResults([]); // Clear if weights are zero
+  }
+  
+  const finalErrors = validateInput(false);
+  displayValidation(finalErrors);
+  renderChips(totals(readRows()));
+
+  if (Object.keys(finalErrors).length === 0) { 
+    btnSave.classList.remove('disabled'); 
+    btnSave.removeAttribute('aria-disabled'); 
+  } else { 
+    btnSave.classList.add('disabled'); 
+    btnSave.setAttribute('aria-disabled', 'true'); 
+  }
+}
+
+function updateLiveResults(resultList) {
+  const resultByKey = new Map(resultList.map(item => [item.key, item]));
+  document.querySelectorAll('#tbody tr').forEach((tr, index) => {
+    const name = tr.querySelector('.name').value.trim();
+    const resultEl = tr.querySelector('.live-result');
+    const key = name || `_temp_${index}`;
+    const resultData = resultByKey.get(key);
+
+    if (resultData && auftragswertBekannt.checked && parseAmountInput(auftragswert.value) > 0) {
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
+    } else if (resultData) { // Show percentage even if amount is unknown/zero
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+    else {
+      resultEl.querySelector('.pct').textContent = `- %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+  });
+}
+
+function saveCurrentInputState() {
+    const stPrev = loadState() || {};
+    const currentInput = {
+        client: auftraggeber.value.trim(),
+        title: projekttitel.value.trim(),
+        amount: parseAmountInput(auftragswert.value),
+        amountKnown: auftragswertBekannt.checked,
+        projectType: document.querySelector('input[name="projectType"]:checked').value,
+        rows: readRows(),
+        weights: currentWeights(),
+        submittedBy: submittedBy.value,
+        projectNumber: projectNumber.value.trim(),
+        kvNummer: kvNummer.value.trim(),
+        freigabedatum: freigabedatum.value || getTodayDate() // Save current value or default
+    };
+    saveState({ ...stPrev, input: currentInput });
+}
+
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
+auftragswertBekannt.addEventListener('change', () => {
+    auftragswert.disabled = !auftragswertBekannt.checked;
+    if(!auftragswertBekannt.checked) auftragswert.value = '';
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+});
+
+auftragswert.addEventListener('blur',()=>{
+    const raw=parseAmountInput(auftragswert.value);
+    auftragswert.value=raw > 0 ? formatAmountInput(raw) : '';
+    saveCurrentInputState(); recalc();
+});
+[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{
+    el.value=String(clamp01(toInt0(el.value)));
+    hasUnsavedChanges=true; updateWeightNote(); saveCurrentInputState(); recalc();
+}));
+btnAddRow.addEventListener('click',()=>addRow(true));
+
+btnSave.addEventListener('click', async () => {
+  const errors = validateInput(); 
+  if (Object.keys(errors).length > 0) {
+    displayValidation(errors);
+    return;
+  }
+  hasUnsavedChanges = false;
+  
+  const st = loadState(); if(!st?.input) return;
+
+  if (st.isAbrufMode) {
+    // Save as a "Hunter" transaction on a framework contract
+    await saveHunterAbruf(st);
+  } else {
+    // Save as a new Fixauftrag or Rahmenvertrag
+    await saveNewEntry(st);
+  }
+});
+
+async function saveNewEntry(st) {
+  const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+  // Calculate final distribution only if amount > 0 and rows exist with points
+  const resultData = (finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0)) 
+                     ? compute(st.input.rows, st.input.weights, finalAmount) 
+                     : { list: [], totals: {cs:0, konzept:0, pitch:0}, effectiveWeights: st.input.weights || [] };
+
+  // Determine completeness based on minimum requirements and points assigned
+   const hasPointsAssigned = st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0);
+   const totalsMatch = Object.entries(resultData.totals || {}).every(([key, total]) => {
+        const weight = (resultData.effectiveWeights || []).find(w => w.key === key)?.weight || 0;
+        return weight === 0 || total === 100 || total === 0; // Allow 0 total if weight is 0
+   });
+  const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && hasPointsAssigned && totalsMatch);
+  
+  const date = getTimestamp(st.input.freigabedatum); // Convert date string to timestamp
+  const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
+
+  const payload={
+    source:st.source||'manuell', 
+    complete:isComplete, 
+    client:st.input.client||'',
+    title:st.input.title||'', 
+    amount:finalAmount, 
+    projectType: st.input.projectType || 'fix',
+    rows: st.input.rows || [], // Always save rows
+    list:resultData.list||[],
+    totals:resultData.totals||{}, 
+    weights:resultData.effectiveWeights||[], 
+    submittedBy:st.input.submittedBy||'',
+    projectNumber: st.input.projectNumber || '', 
+    kv_nummer: st.input.kvNummer, 
+    freigabedatum: date || undefined, // Save timestamp or undefined if invalid
+    ts: ts,
+    modified: st.editingId ? Date.now() : undefined, // Only set modified on update
+    id:st.editingId||undefined,
+    transactions: st.input.projectType === 'rahmen' ? [] : undefined
+  };
+  showLoader();
+  try{
+    const method = st.editingId ? 'PUT' : 'POST';
+    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
+    const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error(await r.text());
+    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
+    clearInputFields();
+    if(payload.projectType === 'rahmen') {
+        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
+    } else {
+        loadHistory().then(()=>showView('fixauftraege'));
+    }
+  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
+  finally{ hideLoader(); }
+}
+
+
+function loadInputForm(inputData, isEditing = false) {
+    const st = loadState() || {};
+    const abrufInfo = document.getElementById('abrufInfo');
+    const erfsfassungSub = document.getElementById('erfassungSub');
+    const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+    const selectedProjectType = inputData.projectType || document.querySelector('input[name="projectType"]:checked')?.value || 'fix';
+
+    // Reset all fields first
+    auftraggeber.disabled = false;
+    projectNumber.disabled = true;
+    kvNummer.disabled = true;
+    freigabedatum.disabled = false;
+    freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+
+    if (st.isAbrufMode && st.parentEntry) {
+        // Hunter Abruf
+        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
+        projectTypeWrapper.classList.add('hide');
+        auftraggeber.value = st.parentEntry.client;
+        auftraggeber.disabled = true;
+        projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        projectNumber.disabled = true;
+        kvNummer.value = inputData.kvNummer || '';
+        kvNummer.disabled = false;
+        kvNummer.placeholder = 'KV-Nummer des Abrufs';
+        freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+        freigabedatum.disabled = false; // Always enabled for Abruf
+
+    } else {
+        // Neue Erfassung oder Bearbeitung
+        erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
+        projectTypeWrapper.classList.remove('hide');
+        auftraggeber.value = inputData.client || '';
+        projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        kvNummer.value = inputData.kvNummer || '';
+
+        projectNumber.disabled = !isEditing;
+        kvNummer.disabled = !isEditing;
+        // Freigabedatum nur bei NEUEM Rahmenvertrag deaktivieren
+        freigabedatum.disabled = (!isEditing && selectedProjectType === 'rahmen'); 
+        
+        projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
+        kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
+         // Set default date if disabled and empty
+        if (freigabedatum.disabled && !freigabedatum.value) {
+            freigabedatum.value = getTodayDate();
+        }
+    }
+
+    auftragswertBekannt.checked = inputData.amountKnown !== false;
+    auftragswert.disabled = !auftragswertBekannt.checked;
+    auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
+    submittedBy.value = inputData.submittedBy || '';
+    document.querySelector(`input[name="projectType"][value="${selectedProjectType}"]`).checked = true;
+
+    const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+    w_cs.value = String(clamp01(toInt0(m.cs??DEFAULT_WEIGHTS.cs)));
+    w_konzept.value = String(clamp01(toInt0(m.konzept??DEFAULT_WEIGHTS.konzept)));
+    w_pitch.value = String(clamp01(toInt0(m.pitch??DEFAULT_WEIGHTS.pitch)));
+    tbody.innerHTML = '';
+    const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
+    if(rows.length > 0){
+      rows.forEach(r=>{
+        const tr=rowTemplate(); tbody.appendChild(tr); bindRow(tr);
+        const nm=r.name||''; tr.querySelector('.name').value=nm; 
+        const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
+        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0)));
+        tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0)));
+        tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
+      });
+    } else { addRow(true); addRow(false); } // Start with two rows
+    hasUnsavedChanges = false;
+    recalc();
+}
+
+// Disable/Enable freigabedatum when Project Type changes on NEW entry
+document.querySelectorAll('input[name="projectType"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const st = loadState();
+        const isNewEntry = !st?.editingId && !st?.isAbrufMode;
+        freigabedatum.disabled = (isNewEntry && e.target.value === 'rahmen');
+        // Set default date if enabling, clear if disabling
+        if (!freigabedatum.disabled && !freigabedatum.value) freigabedatum.value = getTodayDate(); 
+        if (freigabedatum.disabled) freigabedatum.value = ''; 
+        
+        hasUnsavedChanges = true;
+        saveCurrentInputState(); // Save new projectType
+        recalc();
+    });
+});
+
+
+function clearInputFields() {
+    saveState({ source: 'manuell' });
+    loadInputForm({}, false);
+}
+
+/* ---------- Berechnungslogik ---------- */
+// ... (compute, normalizeWeightsForUsed remain the same) ...
+
+/* ---------- Übersicht & Rahmenverträge ---------- */
+// ... (rest of the code, including filtered, renderHistory, etc.) ...
+
+// *** PASTE THE REST OF THE JAVASCRIPT CODE FROM THE PREVIOUS VERSION HERE ***
+// (Starting from /* ---------- Übersicht & Rahmenverträge ---------- */ )
+
+</script>
+</body>
+</html>x}
   
   .sum-display { font-size: 18px; font-weight: 600; color: var(--muted); margin-top: -8px; margin-bottom: 8px; }
   .sum-display span { color: var(--text); font-size: 20px; }
