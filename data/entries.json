@@ -1661,18 +1661,26 @@
         "id": "trans_1760970709369_KV20250218",
         "kv_nummer": "KV-2025-0218",
         "type": "founder",
-        "amount": 2943.75,
+        "amount": 294375,
         "ts": 1760970709369
       },
       {
         "id": "trans_1760970709369_KV20250195",
         "kv_nummer": "KV-2025-0195",
         "type": "founder",
-        "amount": 5362.5,
+        "amount": 53625,
         "ts": 1760970709369
+      },
+      {
+        "id": "trans_1761042132127_KV20250122",
+        "kv_nummer": "KV-2025-0122",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761042132127,
+        "freigabedatum": 1748469600000
       }
     ],
-    "modified": 1760970709369
+    "modified": 1761042132127
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
