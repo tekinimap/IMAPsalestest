@@ -5013,7 +5013,7 @@
     "title": "Einzelcoaching für Führungsverantwortliche",
     "projectNumber": "BG Verkehr-04-001",
     "kv_nummer": "KV-2025-0019",
-    "amount": 2867.5,
+    "amount": 28675,
     "list": [],
     "rows": [],
     "weights": [],
@@ -5024,7 +5024,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709374_KV20250020_224",
