@@ -2364,16 +2364,24 @@ async function handleErpImport() {
                 count++;
                 updateBatchProgress(count, changesToPush.length);
                 
-                const isNew = !entries.some(e => e.id === entry.id);
-                const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
-                const method = isNew ? 'POST' : 'PUT';
-                
+// *** KORREKTUR HIER: Prüfe gegen den *ursprünglichen* entries-Array ***
+                const originalEntryExists = entries.some(originalEntry => originalEntry.id === entry.id);
+                const url = !originalEntryExists ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
+                const method = !originalEntryExists ? 'POST' : 'PUT';
+
+                // Stelle sicher, dass für PUT eine ID vorhanden ist
+                if(method === 'PUT' && !entry.id) {
+                     throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
+                }
+
+                console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`); // Debugging-Ausgabe
+
                 const r = await fetchWithRetry(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(entry)
                 });
-                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}: ${await r.text()}`);
+                if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+entry.kv_nummer+')')}: ${await r.text()}`);
                 await throttle();
             }
         }
