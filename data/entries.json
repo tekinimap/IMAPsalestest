@@ -5294,5 +5294,21 @@
     "ts": 1761042132126,
     "freigabedatum": 1756072800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761042132127_KV20250104",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "StudienInstitut NiederrheiN",
+    "title": "Seminar zum Thema Generationsmanagement",
+    "projectNumber": "S.I.N.N.-04-001",
+    "kv_nummer": "KV-2025-0104",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761042132127,
+    "freigabedatum": 1738710000000,
+    "complete": false
   }
 ]
