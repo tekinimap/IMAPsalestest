@@ -4429,5 +4429,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1757368800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250219",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "Coaching Herr Meinen",
+    "projectNumber": "Lahn-Dill-02-001",
+    "kv_nummer": "KV-2025-0219",
+    "amount": 246,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1744149600000,
+    "complete": false
   }
 ]
