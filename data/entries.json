@@ -2190,7 +2190,7 @@
     "title": "Qualifizierung kommunaler Antidiskriminierungsstellen Aufstockung",
     "projectNumber": "ST HD-01-002",
     "kv_nummer": "KV-2025-0057",
-    "amount": 20137.5,
+    "amount": 201375,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2201,7 +2201,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760968634806,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760969145888_KV20250149_45",
