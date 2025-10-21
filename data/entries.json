@@ -2154,22 +2154,6 @@
     "transactions": []
   },
   {
-    "id": "entry_1761046591567_KV20250233",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Alice Bauer  - FK Rahmenvertrag 3. FZ Leitlinienprozess (Kopie) (Kopie)",
-    "projectNumber": "Köln-08-026",
-    "kv_nummer": "KV-2025-0233",
-    "amount": 0,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591567,
-    "freigabedatum": 1758146400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591567_KV20250235",
     "source": "erp-import",
     "projectType": "fix",
