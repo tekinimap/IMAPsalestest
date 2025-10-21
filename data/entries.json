@@ -2573,5 +2573,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1753308000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250198",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Workshops Change Management und Transformation",
+    "projectNumber": "DRV-18-001",
+    "kv_nummer": "KV-2025-0198",
+    "amount": 12500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1756245600000,
+    "complete": false
   }
 ]
