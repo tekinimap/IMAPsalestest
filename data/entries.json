@@ -4624,27 +4624,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709374_KV20250048_195",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Vereinten Dienstleistungsgewerkschaft (ver.di)",
-    "title": "Systemische Coachings",
-    "projectNumber": "ver.di-01-001",
-    "kv_nummer": "KV-2025-0048",
-    "amount": 2880,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709374,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709374_KV20250042_196",
     "source": "erp-import",
     "projectType": "fix",
