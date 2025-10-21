@@ -14,7 +14,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
   .container{max-width:1200px;margin:28px auto;padding:0 16px}
-
+  
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
   .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
   .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
@@ -25,7 +25,7 @@
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:18px}
   .hd{padding:20px 22px 8px}.hd h1{margin:0 0 8px;font-size:24px}.hd p{margin:0;color:var(--muted);font-size:14px}
   .ct{padding:20px 22px 24px}
-
+  
   .sum-display { font-size: 18px; font-weight: 600; color: var(--muted); margin-top: -8px; margin-bottom: 8px; }
   .sum-display span { color: var(--text); font-size: 20px; }
 
@@ -48,7 +48,7 @@
   .btn.danger{background:var(--bad);border-color:transparent}
   .btn.warn{background:var(--warn);border-color:transparent}
   .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px}
-
+  
   .radio-group {display:flex; gap:12px; margin-top: 8px;}
   .radio-group label {display:flex; align-items:center; gap:6px; font-weight:normal; font-size:14px;}
 
@@ -107,6 +107,7 @@
   .analytics-controls input[type="date"], .analytics-controls select { padding: 8px 10px; font-size: 14px; width: auto; }
   .analytics-controls .btn { padding: 8px 14px; font-size: 14px; }
   
+  /* --- Feedback & Loader --- */
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);color:var(--text);padding:12px 20px;border-radius:10px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9999;opacity:0;transition:opacity .3s, bottom .3s;font-weight:600;}
   .toast.show{opacity:1;bottom:30px;}
   .toast.ok{background:var(--ok);border-color:transparent;}
@@ -114,7 +115,11 @@
   .loader{position:fixed;top:20px;right:20px;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;z-index:10000;}
   @keyframes spin{to{transform:rotate(360deg)}}
   
-  #batchProgress { position: sticky; top: 10px; z-index: 9000; margin: -10px auto 18px auto; max-width: 1200px; padding: 16px 22px; }
+  /* --- Batch Progress Bar --- */
+  #batchProgress {
+    position: sticky; top: 10px; z-index: 9000;
+    margin: -10px auto 18px auto; max-width: 1200px; padding: 16px 22px;
+  }
   #batchProgress h3 { margin: 0 0 10px; font-size: 16px; }
   #batchProgress p { margin: 0; }
   #batchProgress .note { margin-top: 6px; }
@@ -126,6 +131,8 @@
   dialog .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; }
   dialog .validation-summary { color: var(--warn); font-size: 13px; margin-top: -10px; margin-bottom: 10px; }
 
+
+  /* --- Responsive Design --- */
   @media(max-width: 768px){
     .container{margin:16px auto; padding:0 12px;}
     .hd{padding:16px 18px 4px} .hd h1{font-size:20px} .hd p{font-size:13px}
@@ -146,6 +153,7 @@
   @media(max-width: 980px){
     table{min-width: 800px;}
   }
+
 </style>
 </head>
 <body>
@@ -166,7 +174,7 @@
     </div>
   </div>
   
-  <div id="batchProgress" class="card hide"> 
+  <div id="batchProgress" class="card hide">
     <h3 id="batchTitle">Verarbeitung läuft...</h3>
     <p id="batchStatusLabel">Initialisiere...</p>
     <progress id="batchProgressBar" max="100" value="0"></progress>
@@ -286,7 +294,7 @@
   <div class="card hide" id="viewFixauftraege">
     <div class="hd">
         <h1>Fixaufträge</h1>
-        <div id="fixSumDisplay" class="sum-display">💰 Summe: <span>0,00 €</span></div>
+        <div id="fixSumDisplay" class="sum-display">💰 Lade Summe...</div>
         <p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p>
     </div>
     <div class="ct">
@@ -311,7 +319,7 @@
             <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
             <th style="width:10%">Aktionen</th>
           </tr></thead>
-          <tbody id="historyBody"><tr><td colspan="8" class="small" style="color:var(--muted); padding:12px;">Keine Daten.</td></tr></tbody>
+          <tbody id="historyBody"></tbody>
         </table>
       </div>
     </div>
@@ -320,7 +328,7 @@
   <div class="card hide" id="viewRahmen">
     <div class="hd">
         <h1>Rahmenverträge</h1>
-        <div id="rahmenSumDisplay" class="sum-display">💰 Summe: <span>0,00 €</span></div>
+        <div id="rahmenSumDisplay" class="sum-display">💰 Lade Summe...</div>
         <p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p>
     </div>
     <div class="ct">
@@ -336,7 +344,7 @@
             <th style="width:15%">Gesamtwert</th>
             <th style="width:20%">Aktionen</th>
           </tr></thead>
-          <tbody id="rahmenBody"><tr><td colspan="5" class="small" style="color:var(--muted); padding:12px;">Keine Daten.</td></tr></tbody>
+          <tbody id="rahmenBody"></tbody>
         </table>
       </div>
     </div>
@@ -346,6 +354,7 @@
     <div class="hd"><h1 id="rahmenDetailsTitle"></h1><p id="rahmenDetailsSub"></p></div>
     <div class="ct">
       <button class="btn" id="backToRahmen" style="margin-bottom: 16px;">← Zurück zur Übersicht</button>
+      
       <div class="grid-2">
         <div>
           <h3>Gründer-Team (initiale Verteilung)</h3>
@@ -366,6 +375,7 @@
           </div>
         </div>
       </div>
+      
       <div class="hr"></div>
       <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
        <div class="table-wrapper">
@@ -406,7 +416,7 @@
       <div class="table-wrapper" style="margin-top:14px;">
         <table>
           <thead><tr><th style="width:40%">Name</th><th style="width:40%">Team</th><th style="width:20%">Aktionen</th></tr></thead>
-          <tbody id="adm_body"><tr><td colspan="3" class="small" style="color:var(--muted); padding:12px;">Keine Personen angelegt.</td></tr></tbody>
+          <tbody id="adm_body"></tbody>
         </table>
       </div>
       <div class="hr"></div>
@@ -429,18 +439,21 @@
         <button class="btn" id="anaRefresh">Aktualisieren</button>
         <button class="btn" id="btnAnaXlsx">Export XLSX</button>
       </div>
-      <div class="chart" style="grid-column:1/-1">
-        <h3>Top Personen (monetär)</h3>
-        <div id="chartPersons" class="small" style="color:var(--muted)">Keine Daten.</div>
+      <div class="grid-3">
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Top Personen (monetär)</h3>
+          <div id="chartPersons"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Teams (monetär, aggregiert)</h3>
+          <div id="chartTeams"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Gesamtübersicht (monetär)</h3>
+          <div id="chartTotals"></div>
+        </div>
       </div>
-      <div class="chart" style="grid-column:1/-1">
-        <h3>Teams (monetär, aggregiert)</h3>
-        <div id="chartTeams" class="small" style="color:var(--muted)">Keine Daten.</div>
-      </div>
-      <div class="chart" style="grid-column:1/-1">
-        <h3>Gesamtübersicht (monetär)</h3>
-        <div id="chartTotals" class="small" style="color:var(--muted)">Keine Daten.</div>
-      </div>
+      
       <div class="hr"></div>
       <h2>Aktivität Rahmenverträge</h2>
       <div class="analytics-controls">
@@ -452,10 +465,13 @@
         <button class="btn" id="btnAnaLastYear">Letztes Jahr</button>
         <button class="btn primary" id="btnAnaRangeRefresh">Laden</button>
       </div>
-      <div class="chart" style="grid-column:1/-1">
-        <h3 id="chartActivityTitle">Aktivste Rahmenverträge</h3>
-        <div id="chartActivity" class="small" style="color:var(--muted)">Keine Daten.</div>
+      <div class="grid-3">
+         <div class="chart" style="grid-column:1/-1">
+          <h3 id="chartActivityTitle">Aktivste Rahmenverträge</h3>
+          <div id="chartActivity"></div>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -599,7 +615,6 @@
 </dialog>
 
 <script>
-try {
 /* ---------- Konfiguration ---------- */
 const WORKER_BASE = "https://imap-sales-worker.tekin-6af.workers.dev";
 const TEAMS = [
@@ -610,9 +625,10 @@ const TEAMS = [
 const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
 const CATEGORY_NAMES = {cs: "Consultative Selling", konzept: "Konzepterstellung", pitch: "Pitch"};
 const FOUNDER_SHARE_PCT = 20;
-const THROTTLE_MS = 400;
+const THROTTLE_MS = 400; // Latenz für Batch-Prozesse
 const RETRY_LIMIT = 2;
 const RETRY_BACKOFF_MS = 3000;
+
 
 /* ---------- Hilfsfunktionen & UI-Feedback ---------- */
 const loader = document.getElementById('loader');
@@ -624,16 +640,15 @@ const batchProgressBar = document.getElementById('batchProgressBar');
 let hasUnsavedChanges = false;
 let isBatchRunning = false;
 
-function showLoader(){ if(loader) loader.classList.remove('hide'); }
-function hideLoader(){ if(loader) loader.classList.add('hide'); }
+function showLoader(){ loader.classList.remove('hide'); }
+function hideLoader(){ loader.classList.add('hide'); }
 function showToast(msg, type='ok', duration=3000){
-  if (!toast) return;
   toast.textContent = msg;
   toast.className = `toast show ${type}`;
-  setTimeout(() => { if (toast) toast.className = 'toast'; }, duration);
+  setTimeout(() => { toast.className = 'toast'; }, duration);
 }
+
 function showBatchProgress(title, totalItems) {
-    if (!batchProgress || !batchTitle || !batchProgressBar || !batchStatusLabel) return;
     isBatchRunning = true;
     batchTitle.textContent = title;
     batchProgressBar.max = totalItems;
@@ -643,171 +658,134 @@ function showBatchProgress(title, totalItems) {
     window.scrollTo(0, 0);
 }
 function updateBatchProgress(currentItem, totalItems) {
-    if (!batchProgressBar || !batchStatusLabel) return;
     batchProgressBar.value = currentItem;
     batchStatusLabel.textContent = `Verarbeite ${currentItem} / ${totalItems}...`;
 }
 function hideBatchProgress() {
-    if (batchProgress && !batchProgress.classList.contains('hide')) {
-        isBatchRunning = false;
-        batchProgress.classList.add('hide');
-    }
+    isBatchRunning = false;
+    batchProgress.classList.add('hide');
 }
 
 /* ---------- Formatter ---------- */
 const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
-const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}); 
+const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
 const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 const formatDateForInput = (ts) => {
-  if (!ts) return '';
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${year}-${month}-${day}`;
+    if (!ts) return '';
+    try { 
+        // Handle potential invalid date timestamps from old data or bad imports
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toISOString().split('T')[0]; 
+    }
+    catch(e) { 
+        console.error("Error formatting date:", ts, e);
+        return ''; 
+    }
 };
+
 function clamp01(x){return Math.max(0,Math.min(100,x));}
-function toInt0(v){
-  const nComma = Number(String(v ?? '0').replace('.', '').replace(',', '.'));
-  if (Number.isFinite(nComma)) return Math.round(nComma);
-  const nDot = Number(String(v ?? '0').replace(',', ''));
-  return Number.isFinite(nDot)? Math.round(nDot) : 0;
-}
+function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
+
 function parseAmountInput(str) {
+  // Handle null, undefined, or empty strings immediately
   if (str === null || str === undefined || String(str).trim() === '') return 0;
-  let clean = String(str).replace(/[€$£\s]/g, '');
+
+  // Convert input to string first, just in case it's already a number
+  let clean = String(str);
+
+  // Remove currency symbols (€, $, £ etc.) and any whitespace
+  clean = clean.replace(/[€$£\s]/g, '');
+
+  // Check for separators
   const hasComma = clean.includes(',');
   const hasDot = clean.includes('.');
+
   let numberStr;
+
+  // Case 1: German format suspected (comma is the last separator)
   if (hasComma && (!hasDot || clean.lastIndexOf(',') > clean.lastIndexOf('.'))) {
-    numberStr = clean.replace(/\./g, '').replace(',', '.');
-  } else if (hasDot) {
-    numberStr = clean.replace(/,/g, '');
-  } else {
-    numberStr = clean;
+      // Remove all dots (thousand separators), replace the last comma with a dot (decimal separator)
+      numberStr = clean.replace(/\./g, '').replace(',', '.');
   }
-  numberStr = numberStr.replace(/[^\d.\-]/g, (m, i) => (m==='-'&&i===0)?'-':(m==='.'&&numberStr.indexOf('.')===i)?'.':'');
+  // Case 2: International/English format suspected (dot is the last separator, or only dot exists)
+  else if (hasDot) {
+       // Remove all commas (thousand separators)
+      numberStr = clean.replace(/,/g, '');
+      // Dot is already the decimal separator, no replacement needed.
+  }
+   // Case 3: Only comma, assume decimal separator
+  else if (hasComma) {
+       numberStr = clean.replace(',', '.');
+  }
+  // Case 4: No separators, assume integer or simple float with dot already
+  else {
+      numberStr = clean;
+  }
+
+  // Final cleanup: Remove anything that's not a digit, the first minus sign, or the first decimal point
+  // This helps catch edge cases or slightly malformed inputs
+  let sign = '';
+  if (numberStr.startsWith('-')) {
+    sign = '-';
+    numberStr = numberStr.substring(1);
+  }
+  const parts = numberStr.split('.');
+  let integerPart = parts[0].replace(/[^\d]/g, '');
+  let decimalPart = parts.length > 1 ? parts[1].replace(/[^\d]/g, '') : '';
+  
+  if (decimalPart) {
+      numberStr = `${sign}${integerPart}.${decimalPart}`;
+  } else {
+       numberStr = `${sign}${integerPart}`;
+  }
+  
   const n = Number(numberStr);
+  // console.log(`Original: "${str}", Cleaned: "${clean}", Parsed String: "${numberStr}", Final Number: ${n}`); // Debugging line
   return Number.isFinite(n) ? n : 0;
 }
-
-/* ---------- State ---------- */
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
-/* ---------- FEHLENDE FUNKTIONEN (Stubs, damit nichts crasht) ---------- */
-// People
-let PEOPLE = [];
-async function loadPeople(){
-  // Stub: leere Liste, Datalist leeren
-  PEOPLE = [];
-  const dl = document.getElementById('peopleList');
-  if (dl) dl.innerHTML = '';
-  return;
-}
-function findPersonByName(name){
-  return PEOPLE.find(p => (p.name||'').toLowerCase() === String(name||'').toLowerCase());
-}
-function renderPeopleAdmin(){
-  const body = document.getElementById('adm_body');
-  if (body) body.innerHTML = '<tr><td colspan="3" class="small" style="color:var(--muted); padding:12px;">Keine Personen angelegt.</td></tr>';
+/* ---------- API Helper mit Retry/Latenz ---------- */
+async function throttle() {
+    await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
 }
 
-// History / Fixaufträge
-let HISTORY = [];
-async function loadHistory(){
-  // Stub: nichts laden, nur UI zurücksetzen
-  const body = document.getElementById('historyBody');
-  if (body) body.innerHTML = '<tr><td colspan="8" class="small" style="color:var(--muted); padding:12px;">Keine Daten.</td></tr>';
-  const fixSum = document.getElementById('fixSumDisplay');
-  if (fixSum) fixSum.innerHTML = '💰 Summe: <span>0,00&nbsp;€</span>';
-  renderFrameworkContracts();
-  return;
-}
-
-// Rahmenverträge
-let FRAMEWORKS = [];
-function renderFrameworkContracts(){
-  const body = document.getElementById('rahmenBody');
-  const sum = document.getElementById('rahmenSumDisplay');
-  if (sum) sum.innerHTML = '💰 Summe: <span>0,00&nbsp;€</span>';
-  if (body) body.innerHTML = '<tr><td colspan="5" class="small" style="color:var(--muted); padding:12px;">Keine Daten.</td></tr>';
-}
-function renderRahmenDetails(){/* Stub, keine Aktion */}
-
-// Auswertung
-function initAnalytics(){
-  // Jahre füllen
-  const sel = document.getElementById('anaYear');
-  if (sel && !sel.options.length){
-    const year = new Date().getFullYear();
-    for (let y=year; y>=year-5; y--){
-      const opt = document.createElement('option');
-      opt.value = String(y);
-      opt.textContent = String(y);
-      sel.appendChild(opt);
+async function fetchWithRetry(url, options, retryCount = 0) {
+    try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+            return response;
+        }
+        // Nur bei 429 (Too Many Requests) oder 5xx (Server Error) erneut versuchen
+        if ((response.status === 429 || response.status >= 500) && retryCount < RETRY_LIMIT) {
+            showToast(`Serverfehler ${response.status}. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        // Bei anderen Client-Fehlern (z.B. 404, 400) nicht erneut versuchen
+        const errorText = await response.text();
+        console.error(`HTTP-Fehler ${response.status} für ${options.method} ${url}: ${errorText}`); // Mehr Debugging
+        throw new Error(`HTTP-Fehler ${response.status}: ${errorText}`);
+    } catch (e) {
+        // Bei Netzwerkfehlern ebenfalls erneut versuchen
+        if (retryCount < RETRY_LIMIT && !(e instanceof Error && e.message.startsWith('HTTP-Fehler'))) { // Nur bei Netzwerkfehlern
+            showToast(`Netzwerkfehler. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        console.error("Finaler Fehler nach Retries:", e);
+        throw e; // Finaler Fehler nach Retries oder bei nicht-wiederholbaren HTTP-Fehlern
     }
-  }
 }
-
-// Erfassung Mini-Logik
-function clearInputFields(){
-  document.getElementById('auftraggeber').value = '';
-  document.getElementById('projekttitel').value = '';
-  document.getElementById('auftragswert').value = '';
-  document.getElementById('submittedBy').value = '';
-  document.getElementById('projectNumber').value = '';
-  document.getElementById('kvNummer').value = '';
-  document.getElementById('freigabedatum').value = getTodayDate();
-  document.getElementById('w_cs').value = DEFAULT_WEIGHTS.cs;
-  document.getElementById('w_konzept').value = DEFAULT_WEIGHTS.konzept;
-  document.getElementById('w_pitch').value = DEFAULT_WEIGHTS.pitch;
-  updateWeightNote();
-}
-function loadInputForm(input={}, isEditing=false){
-  // Minimal: setze Felder, falls vorhanden
-  document.getElementById('auftraggeber').value = input.auftraggeber || '';
-  document.getElementById('projekttitel').value = input.projekttitel || '';
-  document.getElementById('auftragswert').value = input.auftragswert || '';
-  document.getElementById('submittedBy').value = input.submittedBy || '';
-  document.getElementById('projectNumber').value = input.projectNumber || '';
-  document.getElementById('kvNummer').value = input.kvNummer || '';
-  document.getElementById('freigabedatum').value = input.freigabedatum || getTodayDate();
-  document.getElementById('w_cs').value = input.w_cs ?? DEFAULT_WEIGHTS.cs;
-  document.getElementById('w_konzept').value = input.w_konzept ?? DEFAULT_WEIGHTS.konzept;
-  document.getElementById('w_pitch').value = input.w_pitch ?? DEFAULT_WEIGHTS.pitch;
-  updateWeightNote();
-}
-function updateWeightNote(){
-  const cs = Number(document.getElementById('w_cs').value||0);
-  const kz = Number(document.getElementById('w_konzept').value||0);
-  const pi = Number(document.getElementById('w_pitch').value||0);
-  const sum = cs + kz + pi;
-  const note = document.getElementById('w_note');
-  if (note) {
-    note.textContent = `Summe Gewichte: ${sum} %`;
-    note.style.color = (sum===100) ? 'var(--muted)' : 'var(--bad)';
-  }
-}
-
-// Placeholders für Modale/Imports/Edits (keine Fehler werfen)
-function calculateActualDistribution(){ return; }
-function handleAdminClickProtected(){ return; }
 
 /* ---------- Navigation ---------- */
-const views = { 
-  erfassung: document.getElementById('viewErfassung'), 
-  fixauftraege: document.getElementById('viewFixauftraege'), 
-  rahmen: document.getElementById('viewRahmen'), 
-  rahmenDetails: document.getElementById('viewRahmenDetails'), 
-  admin: document.getElementById('viewAdmin'), 
-  analytics: document.getElementById('viewAnalytics') 
-};
+const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
 function showView(viewName) {
@@ -818,6 +796,7 @@ function showView(viewName) {
   Object.values(views).forEach(v => v.classList.add('hide'));
   navLinks.forEach(l => l.classList.remove('active'));
   hideBatchProgress();
+  
   if (views[viewName]) {
     views[viewName].classList.remove('hide');
     const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
@@ -827,92 +806,1938 @@ function showView(viewName) {
 }
 
 navLinks.forEach(link => {
-  link.addEventListener('click', async (e) => {
+  link.addEventListener('click', (e) => {
     e.preventDefault();
-    if (isBatchRunning) { showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad'); return; }
-    const viewName = e.currentTarget.getAttribute('data-view');
-    try {
-      if (viewName === 'fixauftraege') {
-        await loadHistory(); 
-        showView('fixauftraege');
-      } else if (viewName === 'rahmen') {
-        await loadHistory();
-        renderFrameworkContracts();
-        showView('rahmen');
-      } else if (viewName === 'analytics') {
-        await loadHistory();
-        initAnalytics();
-        showView('analytics');
-      } else if (viewName === 'admin') {
-        const pw = prompt("Bitte Passwort für Admin eingeben:");
-        const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
-        if (!ok) { if (pw !== null) showToast('Falsches Passwort.', 'bad'); return; }
-        showLoader();
-        await loadPeople();
-        renderPeopleAdmin();
-        showView('admin');
-        hideLoader();
+    if (isBatchRunning) {
+        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+        return;
+    }
+    const viewName = e.target.getAttribute('data-view');
+    
+    if (viewName === 'fixauftraege') {
+      loadHistory().then(() => showView('fixauftraege'));
+    } else if (viewName === 'rahmen') {
+      loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
+    } else if (viewName === 'analytics') {
+      loadHistory().then(() => { initAnalytics(); showView('analytics'); });
+    } else if (viewName === 'admin') {
+      handleAdminClick();
+    } else if (viewName === 'erfassung') {
+      if (hasUnsavedChanges && !document.querySelector('#viewErfassung').classList.contains('hide')) {
+        if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
+          clearInputFields();
+          initFromState();
+          showView('erfassung');
+        }
       } else {
         clearInputFields();
+        initFromState();
         showView('erfassung');
       }
-    } catch(err){
-      console.error("Navigation error:", err);
-      showToast("Ein unerwarteter Fehler ist aufgetreten.", "bad");
     }
   });
 });
 
-/* ---------- Init ---------- */
-function initFromState(isEditing = false){
-  try {
-    const st = loadState();
-    if(st?.input){
-      const isEditFromHistory = !!st.editingId;
-      loadInputForm(st.input, isEditFromHistory);
-    } else {
-      loadInputForm({}, false);
+async function handleAdminClick() {
+  const pw = prompt("Bitte Passwort für Admin eingeben:");
+  const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
+  if (!ok) { showToast('Falsches Passwort.', 'bad'); return; }
+  try { 
+    showLoader();
+    await loadPeople(); 
+    renderPeopleAdmin(); 
+    showView('admin'); 
+  }
+  catch(e){ console.error('Admin init failed',e); showToast('Konnte Admin-Daten nicht laden.', 'bad'); }
+  finally { hideLoader(); }
+}
+
+
+/* ---------- People ---------- */
+let people = [];
+const peopleList = document.getElementById('peopleList');
+async function loadPeople(){
+  showLoader();
+  try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
+  catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
+  finally { hideLoader(); }
+  people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
+  
+  if (peopleList){
+    peopleList.innerHTML='';
+    people.forEach(p=>{ 
+      const o = document.createElement('option'); 
+      o.value=p.name; 
+      peopleList.appendChild(o);
+    });
+  }
+}
+function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
+
+/* ---------- Erfassung ---------- */
+const tbody = document.getElementById('tbody');
+const sumchips = document.getElementById('sumchips');
+const auftraggeber = document.getElementById('auftraggeber');
+const projekttitel = document.getElementById('projekttitel');
+const auftragswert = document.getElementById('auftragswert');
+const auftragswertBekannt = document.getElementById('auftragswertBekannt');
+const submittedBy  = document.getElementById('submittedBy');
+const projectNumber = document.getElementById('projectNumber');
+const kvNummer = document.getElementById('kvNummer');
+const freigabedatum = document.getElementById('freigabedatum');
+const w_cs = document.getElementById('w_cs');
+const w_konzept = document.getElementById('w_konzept');
+const w_pitch = document.getElementById('w_pitch');
+const w_note = document.getElementById('w_note');
+const btnAddRow = document.getElementById('btnAddRow');
+const btnSave = document.getElementById('btnSave');
+
+function rowTemplate(){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><input type="text" class="name" placeholder="Namen eintippen oder auswählen..." list="peopleList"></td>
+    <td><input type="number" class="cs" min="0" max="100" step="1" value="0"></td>
+    <td><input type="number" class="konzept" min="0" max="100" step="1" value="0"></td>
+    <td><input type="number" class="pitch" min="0" max="100" step="1" value="0"></td>
+    <td><div class="live-result"><span class="pct">- %</span><span class="money">- €</span></div></td>
+    <td><button class="delrow">Entfernen</button></td>`;
+  return tr;
+}
+function bindRow(tr){
+  tr.addEventListener('input',(ev)=>{
+    hasUnsavedChanges = true;
+    if (ev.target.matches('input[type="number"]')) ev.target.value=String(clamp01(toInt0(ev.target.value)));
+    if (ev.target.classList.contains('name')){
+      const p=findPersonByName(ev.target.value);
+      if(p) ev.target.dataset.personId=p.id; else delete ev.target.dataset.personId;
     }
-    updateWeightNote(); 
-  } catch (e) {
-    console.error("Error initializing from state:", e);
-    showToast("Fehler beim Laden des vorherigen Zustands.", "bad");
-    localStorage.removeItem(LS_KEY);
-    loadInputForm({}, false);
+    saveCurrentInputState();
+    recalc();
+  });
+  tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); hasUnsavedChanges = true; saveCurrentInputState(); recalc();});
+}
+function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();saveCurrentInputState(); recalc();}
+function readRows(tbodySelector = '#tbody'){
+  const rows=[]; document.querySelector(tbodySelector).querySelectorAll('tr').forEach(tr=>{
+    rows.push({
+      personId: tr.querySelector('.name').dataset.personId || null,
+      name: (tr.querySelector('.name').value||'').trim(),
+      cs: toInt0(tr.querySelector('.cs').value),
+      konzept: toInt0(tr.querySelector('.konzept').value),
+      pitch: toInt0(tr.querySelector('.pitch').value),
+    });
+  }); return rows;
+}
+function totals(rows){ return rows.reduce((a,r)=>{a.cs+=r.cs;a.konzept+=r.konzept;a.pitch+=r.pitch;return a;},{cs:0,konzept:0,pitch:0}); }
+function renderChips(t){
+  sumchips.innerHTML='';
+  [["cs","Consultative Selling"],["konzept","Konzepterstellung"],["pitch","Pitch"]].forEach(([k,label])=>{
+    const x=t[k]; const div=document.createElement('div');div.className='chip';
+    const dot=document.createElement('span');dot.className='dot';
+    const txt=document.createElement('span');txt.innerHTML=`<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
+    if(x===0 || x===100) div.classList.add('ok'); else if(x>100) div.classList.add('bad'); else div.classList.add('warn');
+    div.appendChild(dot);div.appendChild(txt);sumchips.appendChild(div);
+  });
+}
+function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
+function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
+
+function validateInput(forLive = false) {
+    const errors = {};
+    const st = loadState() || {};
+    if (!forLive) {
+        if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+        if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
+        if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!freigabedatum.value) errors.freigabedatum = 'Freigabedatum ist erforderlich.';
+        
+        if (st.isAbrufMode && !kvNummer.value.trim()) {
+            errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
+        }
+
+        // Allow saving entries without rows initially
+        // if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
+        
+        if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
+    }
+
+    const t = totals(readRows());
+    const weights = currentWeights();
+    let categoryErrors = [];
+    weights.forEach(w => {
+        if (forLive) {
+            // Allow totals over 100 for live calculation preview
+            // if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
+        } else {
+             // Only validate non-zero weight categories that have *some* points entered but not 100
+            if (w.weight > 0 && t[w.key] > 0 && t[w.key] !== 100) {
+                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+            }
+            // Ensure 0-weight categories are either 0 or 100 (for full assignment overrides)
+            if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+            }
+        }
+    });
+    // Only add category error if rows have been entered
+    if (readRows().some(r => r.cs + r.konzept + r.pitch > 0) && categoryErrors.length > 0) {
+         errors.categories = categoryErrors.join(' | ');
+    }
+
+
+    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+    if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    if (forLive && sumW === 0 && readRows().some(r => r.cs + r.konzept + r.pitch > 0)) { // Only show error if weights are 0 AND rows have points
+         errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+    }
+    
+    return errors;
+}
+
+function clearValidation(){
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
+}
+
+function displayValidation(errors){
+    clearValidation();
+    Object.keys(errors).forEach(key => {
+        const el = document.querySelector(`[data-validation-for="${key}"]`);
+        if (el) el.textContent = errors[key];
+        
+        const input = document.getElementById(key);
+        if(input) input.classList.add('invalid-field');
+    });
+}
+
+function recalc(){
+  const liveErrors = validateInput(true);
+  const liveAmount = parseAmountInput(auftragswert.value);
+  // Always calculate live results if possible, even with >100 points temporarily
+  if (!liveErrors.weights) { // Only check for 0 weights error
+    const result = compute(readRows(), currentWeights(), liveAmount, true);
+    updateLiveResults(result.list);
+  } else {
+    updateLiveResults([]); // Clear if weights are zero
+  }
+  
+  const finalErrors = validateInput(false);
+  displayValidation(finalErrors);
+  renderChips(totals(readRows()));
+
+  if (Object.keys(finalErrors).length === 0) { 
+    btnSave.classList.remove('disabled'); 
+    btnSave.removeAttribute('aria-disabled'); 
+  } else { 
+    btnSave.classList.add('disabled'); 
+    btnSave.setAttribute('aria-disabled', 'true'); 
   }
 }
 
+function updateLiveResults(resultList) {
+  const resultByKey = new Map(resultList.map(item => [item.key, item]));
+  document.querySelectorAll('#tbody tr').forEach((tr, index) => {
+    const name = tr.querySelector('.name').value.trim();
+    const resultEl = tr.querySelector('.live-result');
+    const key = name || `_temp_${index}`;
+    const resultData = resultByKey.get(key);
+
+    if (resultData && auftragswertBekannt.checked && parseAmountInput(auftragswert.value) > 0) {
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
+    } else if (resultData) { // Show percentage even if amount is unknown/zero
+      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+    else {
+      resultEl.querySelector('.pct').textContent = `- %`;
+      resultEl.querySelector('.money').textContent = `- €`;
+    }
+  });
+}
+
+function saveCurrentInputState() {
+    const stPrev = loadState() || {};
+    const currentInput = {
+        client: auftraggeber.value.trim(),
+        title: projekttitel.value.trim(),
+        amount: parseAmountInput(auftragswert.value),
+        amountKnown: auftragswertBekannt.checked,
+        projectType: document.querySelector('input[name="projectType"]:checked').value,
+        rows: readRows(),
+        weights: currentWeights(),
+        submittedBy: submittedBy.value,
+        projectNumber: projectNumber.value.trim(),
+        kvNummer: kvNummer.value.trim(),
+        freigabedatum: freigabedatum.value || getTodayDate()
+    };
+    saveState({ ...stPrev, input: currentInput });
+}
+
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
+auftragswertBekannt.addEventListener('change', () => {
+    auftragswert.disabled = !auftragswertBekannt.checked;
+    if(!auftragswertBekannt.checked) auftragswert.value = '';
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+});
+
+auftragswert.addEventListener('blur',()=>{
+    const raw=parseAmountInput(auftragswert.value);
+    auftragswert.value=raw > 0 ? formatAmountInput(raw) : '';
+    saveCurrentInputState(); recalc();
+});
+[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{
+    el.value=String(clamp01(toInt0(el.value)));
+    hasUnsavedChanges=true; updateWeightNote(); saveCurrentInputState(); recalc();
+}));
+btnAddRow.addEventListener('click',()=>addRow(true));
+
+btnSave.addEventListener('click', async () => {
+  const errors = validateInput(); 
+  if (Object.keys(errors).length > 0) {
+    displayValidation(errors);
+    return;
+  }
+  hasUnsavedChanges = false;
+  
+  const st = loadState(); if(!st?.input) return;
+
+  if (st.isAbrufMode) {
+    // Save as a "Hunter" transaction on a framework contract
+    await saveHunterAbruf(st);
+  } else {
+    // Save as a new Fixauftrag or Rahmenvertrag
+    await saveNewEntry(st);
+  }
+});
+
+async function saveNewEntry(st) {
+  const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+  // Calculate final distribution only if amount > 0 and rows exist
+  const resultData = (finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0)) 
+                     ? compute(st.input.rows, st.input.weights, finalAmount) 
+                     : { list: [], totals: {cs:0, konzept:0, pitch:0}, effectiveWeights: st.input.weights || [] };
+
+  // Determine completeness based on minimum requirements (client, title) and potential for later completion
+  const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && resultData.list.length > 0);
+  
+  const date = getTimestamp(st.input.freigabedatum); // Convert date string to timestamp
+  const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
+
+  const payload={
+    source:st.source||'manuell', 
+    complete:isComplete, 
+    client:st.input.client||'',
+    title:st.input.title||'', 
+    amount:finalAmount, 
+    projectType: st.input.projectType || 'fix',
+    rows: st.input.rows || [], // Always save rows, even if empty
+    list:resultData.list||[],
+    totals:resultData.totals||{}, 
+    weights:resultData.effectiveWeights||[], 
+    submittedBy:st.input.submittedBy||'',
+    projectNumber: st.input.projectNumber || '', 
+    kv_nummer: st.input.kvNummer, 
+    freigabedatum: date,
+    ts: ts,
+    modified: st.editingId ? Date.now() : undefined, // Only set modified on update
+    id:st.editingId||undefined,
+    transactions: st.input.projectType === 'rahmen' ? [] : undefined
+  };
+  showLoader();
+  try{
+    const method = st.editingId ? 'PUT' : 'POST';
+    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
+    const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error(await r.text());
+    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
+    clearInputFields();
+    if(payload.projectType === 'rahmen') {
+        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
+    } else {
+        loadHistory().then(()=>showView('fixauftraege'));
+    }
+  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
+  finally{ hideLoader(); }
+}
+
+
+function loadInputForm(inputData, isEditing = false) {
+    const st = loadState() || {};
+    const abrufInfo = document.getElementById('abrufInfo');
+    const erfsfassungSub = document.getElementById('erfassungSub');
+    const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+    
+    // Reset all fields first
+    auftraggeber.disabled = false;
+    projectNumber.disabled = true;
+    kvNummer.disabled = true;
+    freigabedatum.disabled = false;
+    freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+
+    if (st.isAbrufMode && st.parentEntry) {
+        // Hunter Abruf
+        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
+        projectTypeWrapper.classList.add('hide');
+        auftraggeber.value = st.parentEntry.client;
+        auftraggeber.disabled = true;
+        projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        projectNumber.disabled = true;
+        kvNummer.value = inputData.kvNummer || '';
+        kvNummer.disabled = false;
+        kvNummer.placeholder = 'KV-Nummer des Abrufs';
+        freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+
+    } else {
+        // Neue Erfassung oder Bearbeitung
+        erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
+        projectTypeWrapper.classList.remove('hide');
+        auftraggeber.value = inputData.client || '';
+        projekttitel.value = inputData.title || '';
+        projectNumber.value = inputData.projectNumber || '';
+        kvNummer.value = inputData.kvNummer || '';
+
+        projectNumber.disabled = !isEditing;
+        kvNummer.disabled = !isEditing;
+        // Freigabedatum immer editierbar, außer bei Anlage eines neuen Rahmenvertrags
+        freigabedatum.disabled = (!isEditing && (inputData.projectType === 'rahmen' || document.querySelector('input[name="projectType"]:checked')?.value === 'rahmen'));
+        
+        projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
+        kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
+    }
+
+    auftragswertBekannt.checked = inputData.amountKnown !== false;
+    auftragswert.disabled = !auftragswertBekannt.checked;
+    auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
+    submittedBy.value = inputData.submittedBy || '';
+    document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
+
+    const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+    w_cs.value = String(clamp01(toInt0(m.cs??DEFAULT_WEIGHTS.cs)));
+    w_konzept.value = String(clamp01(toInt0(m.konzept??DEFAULT_WEIGHTS.konzept)));
+    w_pitch.value = String(clamp01(toInt0(m.pitch??DEFAULT_WEIGHTS.pitch)));
+    tbody.innerHTML = '';
+    const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
+    if(rows.length > 0){
+      rows.forEach(r=>{
+        const tr=rowTemplate(); tbody.appendChild(tr); bindRow(tr);
+        const nm=r.name||''; tr.querySelector('.name').value=nm; 
+        const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
+        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0)));
+        tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0)));
+        tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
+      });
+    } else { addRow(true); addRow(false); } // Start with two rows
+    hasUnsavedChanges = false;
+    recalc();
+}
+
+// Disable freigabedatum when Rahmenvertrag is selected on new entry
+document.querySelectorAll('input[name="projectType"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const st = loadState();
+        const isNewEntry = !st?.editingId && !st?.isAbrufMode;
+        freigabedatum.disabled = (isNewEntry && e.target.value === 'rahmen');
+        if (freigabedatum.disabled) freigabedatum.value = ''; // Clear if disabled
+        hasUnsavedChanges = true;
+        saveCurrentInputState();
+        recalc();
+    });
+});
+
+
+function clearInputFields() {
+    saveState({ source: 'manuell' });
+    loadInputForm({}, false);
+}
+
+/* ---------- Berechnungslogik ---------- */
+function compute(rows, weights, amount, forLive=false){
+  const t = totals(rows); 
+  const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
+  const effWeights = (weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
+  
+  // Normalize weights only for final calculation (not live) if rows have points
+  const calcWeights = (forLive || !rows.some(r => r.cs + r.konzept + r.pitch > 0)) 
+                      ? effWeights 
+                      : normalizeWeightsForUsed(effWeights, usedKeys);
+  
+  const map=new Map();
+  rows.forEach((r, index)=>{
+    const act=r.cs+r.konzept+r.pitch>0;
+    const key = r.name.trim() || `_temp_${index}`; // Use temp key for unnamed rows
+    if (!r.name.trim() && !act) return; // Skip totally empty rows
+
+    const cur=map.get(key) || { name: r.name.trim(), cs:0, konzept:0, pitch:0 };
+    cur.cs+=r.cs; cur.konzept+=r.konzept; cur.pitch+=r.pitch;
+    map.set(key,cur);
+  });
+  
+  const wIdx = Object.fromEntries(calcWeights.map(w=>[w.key, w.weight / 100])); 
+  const list=[];
+
+  for(const [key, p] of map.entries()){
+    let pct=0;
+    // Avoid division by zero if total for a category is 0 but someone has points
+    const divCS = t.cs > 0 ? t.cs : 1; 
+    const divKonzept = t.konzept > 0 ? t.konzept : 1;
+    const divPitch = t.pitch > 0 ? t.pitch : 1;
+
+    // Apply weight only if the category total is > 0 OR if calculating live (allow preview)
+    if((usedKeys.includes('cs') || forLive) && wIdx.cs > 0) pct += wIdx.cs * (p.cs / (forLive ? 100 : divCS));
+    if((usedKeys.includes('konzept') || forLive) && wIdx.konzept > 0) pct += wIdx.konzept * (p.konzept / (forLive ? 100 : divKonzept));
+    if((usedKeys.includes('pitch') || forLive) && wIdx.pitch > 0) pct += wIdx.pitch * (p.pitch / (forLive ? 100 : divPitch));
+    
+    // Only add if name exists or points > 0
+    if (p.name || p.cs+p.konzept+p.pitch > 0) {
+       list.push({ key, name: p.name, pct: pct * 100 });
+    }
+  }
+  
+  list.sort((a,b)=>b.pct-a.pct); 
+  
+  // Redistribute rounding errors only for final calculation
+  if(!forLive && list.length > 0) {
+      const sum=list.reduce((a,x)=>a+x.pct,0);
+      const resid=100-sum; 
+      if(Math.abs(resid)>1e-9) list[0].pct+=resid; // Add remainder to top person
+  }
+  
+  list.forEach(x=>{if(x.pct<0)x.pct=0;}); // Ensure no negative percentages
+  
+  const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
+  return { totals:t, usedKeys, effectiveWeights: calcWeights, list:withMoney };
+}
+
+function normalizeWeightsForUsed(allWeights, usedKeys){
+  // Filter weights that are actually used (have points in rows)
+  const used = allWeights.filter(w => usedKeys.includes(w.key) && w.weight > 0); 
+  const sum = used.reduce((a, w) => a + w.weight, 0);
+
+  // If no used weights with value > 0, return original or default distribution based on non-zero weights
+  if (sum <= 0) {
+      const nonZeroWeights = allWeights.filter(w => w.weight > 0);
+      const nonZeroSum = nonZeroWeights.reduce((a,w) => a + w.weight, 0);
+      if (nonZeroSum <= 0) return allWeights; // Should not happen if default weights exist
+      const factor = 100 / nonZeroSum;
+      return allWeights.map(w => ({ key: w.key, weight: Math.round(w.weight * factor) }));
+  }
+
+  const factor = 100 / sum;
+  const out = allWeights.map(w => 
+      (usedKeys.includes(w.key) && w.weight > 0) 
+          ? { key: w.key, weight: w.weight * factor } 
+          : { key: w.key, weight: 0 }
+  );
+
+  // Adjust for rounding errors - find first used weight and add remainder
+  let roundedSum = out.reduce((a, w) => a + Math.round(w.weight), 0);
+  let rem = 100 - roundedSum; 
+  if (rem !== 0) {
+      const ix = out.findIndex(x => usedKeys.includes(x.key) && x.weight > 0); 
+      if (ix >= 0) out[ix].weight += rem;
+  }
+  
+  // Final rounded weights
+  return out.map(w => ({ key: w.key, weight: Math.round(w.weight) }));
+}
+
+
+/* ---------- Übersicht & Rahmenverträge ---------- */
+const historyBody=document.getElementById('historyBody');
+const omniSearch = document.getElementById('omniSearch');
+const rahmenSearch = document.getElementById('rahmenSearch');
+const btnXlsx=document.getElementById('btnXlsx');
+const btnBatchDelete=document.getElementById('btnBatchDelete');
+const btnMoveToFramework=document.getElementById('btnMoveToFramework');
+const checkAllFix=document.getElementById('checkAllFix');
+let entries=[]; 
+let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
+let currentSort = { key: 'freigabedatum', direction: 'desc' };
+
+async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
+// Completeness check now also considers if rows have been added, even if points are zero yet
+function autoComplete(e){ 
+    return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.rows) && e.rows.length > 0 && Array.isArray(e.list) && e.list.length > 0); 
+}
+
+
+function filtered(type = 'fix'){
+  let arr = entries.filter(e => (e.projectType || 'fix') === type);
+  const query = omniSearch.value.trim().toLowerCase();
+  
+  if (query) {
+      const terms = query.split(/\s+/);
+      const filters = [];
+      const searchTerms = [];
+
+      terms.forEach(term => {
+        if (term.includes(':')) {
+          const [key, ...value] = term.split(':');
+          if (value.length > 0) {
+            filters.push({ key, value: value.join(':') });
+          }
+        } else {
+          searchTerms.push(term);
+        }
+      });
+
+      const searchText = searchTerms.join(' ');
+      if (searchText) {
+        arr = arr.filter(e => 
+          String(e.title || '').toLowerCase().includes(searchText) || 
+          String(e.client || '').toLowerCase().includes(searchText) ||
+          String(e.projectNumber || '').toLowerCase().includes(searchText) || // Search project number
+          String(e.kv_nummer || '').toLowerCase().includes(searchText) // Search KV number
+        );
+      }
+
+      filters.forEach(({ key, value }) => {
+        if (key === 'status') {
+          const wantOk = value.startsWith('v') || value.startsWith('o');
+          arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+        }
+        if (key === 'quelle' || key === 'source') {
+          arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
+        }
+        if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
+          const num = parseFloat(value.substring(1));
+          if (!isNaN(num)) {
+            if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
+            if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
+          }
+        }
+        // Add date filter possibility? e.g., datum:>2025-01-01
+        if (key === 'datum' || key === 'freigabe') {
+            const dateVal = value.startsWith('>') || value.startsWith('<') ? value.substring(1) : value;
+            const dateTs = getTimestamp(dateVal);
+            if(dateTs > 0) {
+                if(value.startsWith('>')) arr = arr.filter(e => (e.freigabedatum || e.ts || 0) >= dateTs);
+                else if (value.startsWith('<')) arr = arr.filter(e => (e.freigabedatum || e.ts || 0) <= getTimestamp(dateVal + 'T23:59:59')); // <= end of day
+                else arr = arr.filter(e => formatDateForInput(e.freigabedatum || e.ts) === dateVal); // Exact match
+            }
+        }
+      });
+  }
+
+  // Sorting logic remains the same
+  arr.sort((a,b) => {
+    let valA, valB;
+    if (currentSort.key === 'ts') { 
+        valA = a.modified || a.ts || 0; 
+        valB = b.modified || b.ts || 0; 
+    } else if (currentSort.key === 'freigabedatum') {
+        valA = a.freigabedatum || a.ts || 0;
+        valB = b.freigabedatum || b.ts || 0;
+    } else {
+        valA = a[currentSort.key] || '';
+        valB = b[currentSort.key] || '';
+    }
+    
+    let comparison = 0;
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      comparison = valA.localeCompare(valB, 'de');
+    } else {
+      comparison = (valA || 0) - (valB || 0);
+    }
+    return currentSort.direction === 'asc' ? comparison : -comparison;
+  });
+
+  return arr;
+}
+
+function renderHistory(){
+  historyBody.innerHTML=''; 
+  updateSortIcons();
+  const arr = filtered('fix');
+  let totalSum = 0;
+  
+  for(const e of arr){
+    const ok = autoComplete(e); 
+    totalSum += (e.amount || 0);
+    const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
+    const datum = e.freigabedatum ? new Date(e.freigabedatum).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
+      <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
+      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </td>`;
+    historyBody.appendChild(tr);
+  }
+  
+  document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+  updateBatchButtons(); // Update button states after rendering
+}
+omniSearch.addEventListener('input', renderHistory);
+rahmenSearch.addEventListener('input', renderFrameworkContracts);
+
+function getSelectedFixIds() {
+    return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
+}
+
+function updateBatchButtons() {
+    const selectedIds = getSelectedFixIds();
+    const fixTableRows = document.querySelectorAll('#historyBody .row-check');
+    if (selectedIds.length > 0) {
+        btnBatchDelete.classList.remove('hide');
+        btnMoveToFramework.classList.remove('hide');
+        btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
+        btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
+    } else {
+        btnBatchDelete.classList.add('hide');
+        btnMoveToFramework.classList.add('hide');
+    }
+    // Check/uncheck "select all" checkbox
+    checkAllFix.checked = fixTableRows.length > 0 && selectedIds.length === fixTableRows.length;
+    checkAllFix.indeterminate = selectedIds.length > 0 && selectedIds.length < fixTableRows.length;
+}
+
+checkAllFix.addEventListener('change', () => {
+    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+        cb.checked = checkAllFix.checked;
+    });
+    updateBatchButtons();
+});
+
+historyBody.addEventListener('change', (ev) => {
+    if (ev.target.classList.contains('row-check')) {
+        updateBatchButtons();
+    }
+});
+
+document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (currentSort.key === key) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.key = key;
+      // Default sort direction based on column type
+      currentSort.direction = (key === 'title' || key === 'client' || key === 'source') ? 'asc' : 'desc';
+    }
+    renderHistory();
+  });
+});
+
+function updateSortIcons() {
+  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => {icon.textContent = ''; icon.style.opacity=0.5;});
+  const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${currentSort.key}"] .sort-icon`);
+  if (activeTh) {
+    activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+    activeTh.style.opacity = 1;
+  }
+}
+
+function handleDeleteClick(id, type = 'entry', parentId = null) {
+  const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
+  if (pw !== 'imapadmin') {
+    if (pw !== null) showToast('Falsches Passwort.', 'bad');
+    return;
+  }
+  pendingDelete = { id, type, parentId };
+  document.getElementById('confirmDlgTitle').textContent = `Eintrag löschen`;
+  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
+  document.getElementById('confirmDlg').showModal();
+}
+
+btnBatchDelete.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+    
+    const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
+    if (pw !== 'imapadmin') {
+        if (pw !== null) showToast('Falsches Passwort.', 'bad');
+        return;
+    }
+    
+    pendingDelete = { ids: selectedIds, type: 'batch-entry' };
+    document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
+    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+    document.getElementById('confirmDlg').showModal();
+});
+
+
+historyBody.addEventListener('click', async(ev)=>{
+  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+  // Prevent edit/delete if batch is running
+  if (isBatchRunning) {
+      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+      return;
+  }
+  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
+  if(act==='edit'){
+    editEntry(id);
+  } else if(act==='del'){ 
+    handleDeleteClick(id, 'entry'); 
+  }
+});
+
+function editEntry(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  const st={ source:e.source||'manuell', editingId:e.id,
+    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummer: e.kv_nummer || '',
+            freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
+            rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
+            weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
+  saveState(st); initFromState(true);
+  showView('erfassung');
+}
+
+document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
+document.getElementById('btnYes').addEventListener('click',async()=>{
+    const { id, ids, type, parentId } = pendingDelete;
+    document.getElementById('confirmDlg').close();
+    
+    showLoader(); // Show small loader initially
+    try {
+        if (type === 'entry') {
+            if (!id) return;
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error(await r.text());
+            showToast('Eintrag gelöscht.', 'ok');
+            entries = entries.filter(x => x.id !== id);
+            renderHistory();
+            renderFrameworkContracts();
+        } else if (type === 'batch-entry') {
+            if (!ids || ids.length === 0) return;
+            hideLoader(); // Hide small loader, show batch progress
+            showBatchProgress('Lösche Einträge...', ids.length);
+            let count = 0;
+            let errors = [];
+            for (const entryId of ids) {
+                count++;
+                updateBatchProgress(count, ids.length);
+                try {
+                    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+                     if (!r.ok) throw new Error(`Fehler beim Löschen von ${entryId}: ${await r.text()}`);
+                } catch(err) {
+                     errors.push(entryId);
+                     console.error(`Fehler beim Löschen von ${entryId}:`, err);
+                }
+                await throttle(); // Throttle even if error occurred
+            }
+            if (errors.length > 0) {
+                 showToast(`${ids.length - errors.length} Einträge gelöscht. ${errors.length} Fehler.`, 'warn');
+            } else {
+                showToast(`${count} Einträge gelöscht.`, 'ok');
+            }
+            await loadHistory(); // Reload all data
+            renderHistory();
+        } else if (type === 'transaction') {
+            if (!id || !parentId) return;
+            // Find the entry in the *current* in-memory `entries` array
+            const entryIndex = entries.findIndex(e => e.id === parentId);
+            if (entryIndex < 0 || !Array.isArray(entries[entryIndex].transactions)) throw new Error('Parent entry or transactions not found');
+            const entry = entries[entryIndex]; // Reference to the object in the array
+            
+            const transIndex = entry.transactions.findIndex(t => t.id === id);
+            if(transIndex < 0) throw new Error('Transaction not found in entry');
+
+            const originalTransactions = JSON.parse(JSON.stringify(entry.transactions)); // Backup
+            entry.transactions.splice(transIndex, 1); // Remove directly
+            entry.modified = Date.now();
+            
+            try {
+                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+                });
+                if (!r.ok) throw new Error(await r.text());
+                showToast('Abruf gelöscht.', 'ok');
+                // No need to reload history, just re-render details if visible
+                if (!document.getElementById('viewRahmenDetails').classList.contains('hide')) {
+                     renderRahmenDetails(parentId);
+                }
+            } catch (updateError) {
+                // Rollback on failure
+                entries[entryIndex].transactions = originalTransactions;
+                entries[entryIndex].modified = undefined; // Or original modified time if available
+                throw updateError; // Re-throw the error
+            }
+        }
+    } catch (e) {
+        showToast('Aktion fehlgeschlagen.', 'bad');
+        console.error("Fehler im Löschprozess:", e);
+    } finally {
+        hideLoader();
+        hideBatchProgress();
+        pendingDelete = { id: null, type: 'entry' };
+    }
+});
+
+
+/* Export XLSX */
+btnXlsx.addEventListener('click',()=>{
+  const arr=filtered('fix').map(e=>({
+    Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
+    Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
+    Freigabedatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
+  }));
+  const ws=XLSX.utils.json_to_sheet(arr);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
+  XLSX.writeFile(wb, "fixauftraege_export.xlsx");
+});
+
+/* Rahmenverträge */
+const rahmenBody = document.getElementById('rahmenBody');
+let currentFrameworkEntryId = null;
+let editingTransactionId = null;
+
+function filteredFrameworks() {
+    let arr = entries.filter(e => e.projectType === 'rahmen');
+    const query = rahmenSearch.value.trim().toLowerCase();
+    if (!query) return arr.sort((a, b) => (b.modified || b.ts || 0) - (a.modified || a.ts || 0)); // Add fallback 0
+
+    return arr.filter(e => {
+      if (String(e.title || '').toLowerCase().includes(query)) return true;
+      if (String(e.client || '').toLowerCase().includes(query)) return true;
+      if (String(e.projectNumber || '').toLowerCase().includes(query)) return true; // Search project number
+      if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+
+      if (Array.isArray(e.transactions)) {
+        for (const trans of e.transactions) {
+          if (String(trans.kv_nummer || '').toLowerCase().includes(query)) return true; // Search KV in transactions
+          if (trans.type === 'hunter') {
+            if (String(trans.title || '').toLowerCase().includes(query)) return true;
+            if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+          }
+        }
+      }
+      return false;
+    }).sort((a, b) => (b.modified || b.ts || 0) - (a.modified || a.ts || 0));
+}
+
+function renderFrameworkContracts() {
+  rahmenBody.innerHTML = '';
+  const rahmenEntries = filteredFrameworks();
+  let totalSum = 0;
+  for (const e of rahmenEntries) {
+    const tr = document.createElement('tr');
+    tr.classList.add('clickable');
+    tr.dataset.id = e.id;
+    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + (trans.amount || 0), 0); // Handle missing amount
+    totalSum += totalValue;
+    tr.innerHTML = `
+      <td>${e.projectNumber || '–'}</td>
+      <td>${e.title || '–'}</td>
+      <td>${e.client || '–'}</td>
+      <td>${fmtCurr2.format(totalValue)}</td>
+      <td style="display:flex;gap:8px;align-items:center">
+        <button class="btn ok" data-act="founder-plus" data-id="${e.id}" title="Passiver Abruf">+ Founder</button>
+        <button class="btn primary" data-act="hunter-plus" data-id="${e.id}" title="Aktiver Abruf">+ Hunter</button>
+        <button class="iconbtn" data-act="details" data-id="${e.id}" title="Details anzeigen"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </td>
+    `;
+    rahmenBody.appendChild(tr);
+  }
+  document.getElementById('rahmenSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (Summe aller Abrufe)`;
+}
+
+rahmenBody.addEventListener('click', (e) => {
+  // Prevent actions if batch is running
+  if (isBatchRunning) {
+      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+      return;
+  }
+  const btn = e.target.closest('button[data-act]');
+  if (btn) {
+    e.stopPropagation(); // Stop click from bubbling to the row
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+    const entry = entries.find(en => en.id === id);
+    if (!entry) return;
+    
+    if (act === 'founder-plus') {
+      openEditTransactionModal({type:'founder'}, entry);
+    } else if (act === 'hunter-plus') {
+      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
+      initFromState();
+      showView('erfassung');
+    } else if (act === 'details') {
+      renderRahmenDetails(id);
+      showView('rahmenDetails');
+    } else if (act === 'del') {
+      handleDeleteClick(id, 'entry');
+    }
+    return;
+  }
+
+  const row = e.target.closest('tr.clickable');
+  if (row) {
+    const id = row.dataset.id;
+    const entry = entries.find(en => en.id === id);
+    if (entry) openEditFrameworkContractModal(entry);
+  }
+});
+
+
+async function saveHunterAbruf(st) {
+    // Find parent in the current `entries` array
+    const parentEntryIndex = entries.findIndex(e => e.id === st.parentEntry.id);
+    if (parentEntryIndex < 0) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
+    const parentEntry = entries[parentEntryIndex]; // Reference to the object in the array
+    
+    const abrufAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+    // Calculate distribution only if amount > 0 and rows exist
+    const resultData = (abrufAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0)) 
+                     ? compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)))
+                     : { list: [], totals: {cs:0, konzept:0, pitch:0}, effectiveWeights: st.input.weights || [] };
+
+
+    if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
+    const date = getTimestamp(st.input.freigabedatum);
+
+    const newTransaction = {
+        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
+        kv_nummer: st.input.kvNummer,
+        type: 'hunter', 
+        title: st.input.title, 
+        amount: abrufAmount, 
+        ts: Date.now(),
+        freigabedatum: date,
+        submittedBy: st.input.submittedBy, 
+        rows: st.input.rows, 
+        list: resultData.list, 
+        weights: resultData.effectiveWeights
+    };
+    
+    parentEntry.transactions.push(newTransaction);
+    parentEntry.modified = Date.now();
+
+    showLoader();
+    try {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast(`Aktiver Abruf hinzugefügt`, 'ok');
+        clearInputFields();
+        // No full history reload needed, data is updated in memory
+        renderFrameworkContracts(); // Re-render list with updated sum
+        showView('rahmen');
+    } catch (e) {
+        showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
+        console.error(e);
+        // Potential rollback? If save fails, remove the transaction added locally?
+        // parentEntry.transactions.pop(); // Simple rollback if it was the last added
+    } finally {
+        hideLoader();
+    }
+}
+
+/* Rahmenvertrag Details */
+const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody');
+const rahmenActualBody = document.getElementById('rahmenActualBody');
+document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
+
+function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
+    const personTotals = new Map();
+    // Ensure startDate and endDate are valid numbers
+    const validStart = Number.isFinite(startDate) ? startDate : 0;
+    const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
+
+    const transactions = (entry.transactions || []).filter(t => {
+        const d = t.freigabedatum || t.ts || 0;
+        return d >= validStart && d <= validEnd;
+    });
+    let totalVolume = 0;
+
+    transactions.forEach(trans => {
+        totalVolume += (trans.amount || 0); // Handle potential missing amount
+        if (trans.type === 'founder') {
+            (entry.list || []).forEach(founder => {
+                const money = (trans.amount || 0) * (founder.pct / 100);
+                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+            });
+        } else if (trans.type === 'hunter') {
+            const founderShareAmount = (trans.amount || 0) * (FOUNDER_SHARE_PCT / 100);
+            (entry.list || []).forEach(founder => {
+                const money = founderShareAmount * (founder.pct / 100);
+                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+            });
+            (trans.list || []).forEach(hunter => {
+                // hunter.money should already be calculated correctly by compute()
+                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + (hunter.money || 0));
+            });
+        }
+    });
+    
+    if (totalVolume === 0) return { list: [], total: 0 };
+    
+    const list = Array.from(personTotals, ([name, money]) => ({
+        name,
+        money,
+        pct: (money / totalVolume) * 100
+    })).filter(p => p.money > 0.001) // Filter out negligible amounts
+      .sort((a, b) => b.money - a.money);
+    
+     // Adjust rounding for percentages if needed
+    if (list.length > 0) {
+        let pctSum = list.reduce((sum, p) => sum + p.pct, 0);
+        let diff = 100 - pctSum;
+        if (Math.abs(diff) > 1e-9) list[0].pct += diff;
+    }
+      
+    return { list, total: totalVolume };
+}
+
+function renderRahmenDetails(id) {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+    currentFrameworkEntryId = id;
+
+    document.getElementById('rahmenDetailsTitle').textContent = entry.title;
+    
+    // Calculate total based on ALL transactions for the header
+    const { total: totalValue } = calculateActualDistribution(entry); 
+    document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''} | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
+    
+    const foundersBody = document.getElementById('rahmenFoundersBody');
+    foundersBody.innerHTML = '';
+    (entry.list || []).forEach(founder => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
+        foundersBody.appendChild(tr);
+    });
+    
+    // Calculate distribution based on ALL transactions for the table
+    const { list: actualDistribution } = calculateActualDistribution(entry); 
+    rahmenActualBody.innerHTML = '';
+    actualDistribution.forEach(person => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct)} %</td><td>${fmtCurr0.format(person.money)}</td>`;
+        rahmenActualBody.appendChild(tr);
+    });
+
+    rahmenTransaktionenBody.innerHTML = '';
+    (entry.transactions || []).sort((a,b) => (b.freigabedatum || b.ts || 0) - (a.freigabedatum || a.ts || 0)).forEach(trans => { // Sort by freigabedatum desc
+        const tr = document.createElement('tr');
+        tr.classList.add('clickable');
+        tr.dataset.transId = trans.id;
+        const datum = trans.freigabedatum ? new Date(trans.freigabedatum).toLocaleDateString('de-DE') : (trans.ts ? new Date(trans.ts).toLocaleDateString('de-DE') : '–');
+        tr.innerHTML = `
+            <td>${trans.kv_nummer || '–'}</td>
+            <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
+            <td>${trans.title || '–'}</td>
+            <td>${fmtCurr2.format(trans.amount || 0)}</td>
+            <td>${datum}</td>
+            <td style="display:flex;gap:8px;align-items:center">
+                <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </td>
+        `;
+        rahmenTransaktionenBody.appendChild(tr);
+    });
+}
+
+rahmenTransaktionenBody.addEventListener('click', (ev) => {
+     // Prevent actions if batch is running
+    if (isBatchRunning) {
+        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+        return;
+    }
+    const row = ev.target.closest('tr.clickable');
+    const delBtn = ev.target.closest('button[data-act="del-trans"]');
+    
+    if (delBtn) {
+        ev.stopPropagation();
+        const transId = delBtn.dataset.id;
+        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+        return;
+    }
+
+    if (row) {
+        const transId = row.dataset.transId;
+        const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+        if (!parentEntry) return;
+        const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
+        if (!transaction) return;
+        openEditTransactionModal(transaction, parentEntry);
+    }
+});
+
+/* ---------- Move Fix-Order Modal ---------- */
+const moveToFrameworkDlg = document.getElementById('moveToFrameworkDlg');
+const moveValidationSummary = document.getElementById('moveValidationSummary');
+const moveTargetFramework = document.getElementById('moveTargetFramework');
+
+btnMoveToFramework.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+
+    moveValidationSummary.textContent = '';
+    document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
+    
+    const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a,b) => a.title.localeCompare(b.title));
+    moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+    rahmenEntries.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.title} (${e.client})`;
+        moveTargetFramework.appendChild(opt);
+    });
+    
+    moveToFrameworkDlg.showModal();
+});
+
+document.getElementById('btnConfirmMove').addEventListener('click', async () => {
+    const selectedIds = getSelectedFixIds();
+    const targetFrameworkId = moveTargetFramework.value;
+    const moveType = document.querySelector('input[name="moveType"]:checked').value;
+    
+    moveValidationSummary.textContent = '';
+    if (!targetFrameworkId) {
+        moveValidationSummary.textContent = 'Bitte einen Ziel-Rahmenvertrag auswählen.';
+        return;
+    }
+    
+    // Find target framework in the *current* in-memory `entries` array
+    const targetFrameworkIndex = entries.findIndex(e => e.id === targetFrameworkId);
+    if (targetFrameworkIndex < 0) {
+        moveValidationSummary.textContent = 'Ziel-Rahmenvertrag nicht gefunden.';
+        return;
+    }
+    const targetFramework = entries[targetFrameworkIndex]; // Reference to the object
+
+    const fixEntriesToMove = entries.filter(e => selectedIds.includes(e.id));
+    
+    // Pre-check for Hunter type
+    if (moveType === 'hunter') {
+        const incompleteEntries = fixEntriesToMove.filter(e => !autoComplete(e));
+        if (incompleteEntries.length > 0) {
+            moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => `"${e.title}"`).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
+            return;
+        }
+    }
+    
+    moveToFrameworkDlg.close();
+    showBatchProgress(`Verschiebe Aufträge...`, selectedIds.length);
+    
+    let count = 0;
+    let errors = [];
+    let updatedFrameworkData = JSON.parse(JSON.stringify(targetFramework)); // Work on a copy
+
+    try {
+        if (!Array.isArray(updatedFrameworkData.transactions)) {
+            updatedFrameworkData.transactions = [];
+        }
+
+        for (const entry of fixEntriesToMove) {
+            count++;
+            updateBatchProgress(count, selectedIds.length);
+            
+            // 1. Create new transaction object
+            let newTransaction;
+            if (moveType === 'founder') {
+                newTransaction = {
+                    id: `trans_${Date.now()}_${entry.kv_nummer?.replace(/\W/g, '') || count}`, // Add count fallback
+                    kv_nummer: entry.kv_nummer,
+                    type: 'founder',
+                    amount: entry.amount || 0, // Ensure amount is number
+                    ts: Date.now(),
+                    freigabedatum: entry.freigabedatum || entry.ts || Date.now() // Prioritize freigabedatum
+                };
+            } else { // hunter
+                // Create a clean copy for the transaction
+                const { id, projectType, transactions, source, hubspotId, pipeline, dealstage, closedate, ...restOfEntry } = entry;
+                newTransaction = {
+                    ...restOfEntry, // copy relevant data (title, client, amount, rows, list, weights, submittedBy, projectNumber, kv_nummer, freigabedatum)
+                    id: `trans_${Date.now()}_${entry.kv_nummer?.replace(/\W/g, '') || count}`,
+                    type: 'hunter',
+                    ts: Date.now() // new internal timestamp
+                };
+            }
+            
+            // Add transaction to the temporary framework copy
+            updatedFrameworkData.transactions.push(newTransaction);
+            updatedFrameworkData.modified = Date.now();
+            
+            // 2. Save the updated framework *only once at the end* for efficiency? No, needs save+delete per item for atomicity.
+
+            // 2a. Save target framework with the new transaction
+            const rPut = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(targetFramework.id)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedFrameworkData)
+            });
+            if (!rPut.ok) throw new Error(`Fehler beim Speichern von Rahmenvertrag ${targetFramework.id}: ${await rPut.text()}`);
+            
+            // 3. Delete original fix order *after* successful save
+            const rDel = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+            if (!rDel.ok) {
+                 // Try to rollback? Difficult. Log error and continue?
+                 console.error(`Konnte Fixauftrag ${entry.id} nach Zuweisung nicht löschen:`, await rDel.text());
+                 errors.push(entry.id + " (Löschfehler)");
+                 // Continue to next item? Or stop? Let's continue for now.
+            } else {
+                 // Remove from local 'entries' array after successful delete
+                 const idxToRemove = entries.findIndex(e => e.id === entry.id);
+                 if (idxToRemove > -1) entries.splice(idxToRemove, 1);
+            }
+
+            // Update the main in-memory framework object *after* successful save of this step
+            entries[targetFrameworkIndex] = JSON.parse(JSON.stringify(updatedFrameworkData));
+
+            await throttle();
+        }
+        
+        if (errors.length > 0) {
+             showToast(`${count - errors.length} Einträge verschoben. ${errors.length} Fehler (siehe Konsole).`, 'warn');
+        } else {
+             showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
+        }
+
+    } catch (e) {
+        showToast(`Fehler nach ${count} Einträgen: ${e.message}`, 'bad');
+        console.error("Fehler im Verschiebe-Prozess:", e);
+        // Maybe reload history here to get consistent state?
+        await loadHistory();
+    } finally {
+        hideBatchProgress();
+        // Re-render views with updated in-memory data
+        renderHistory();
+        renderFrameworkContracts();
+    }
+});
+
+
+/* ---------- Edit Modals ---------- */
+// ... (Modal code remains largely the same, ensure freigabedatum fields are handled) ...
+
+// ** Inside btnSaveTransaction click handler **
+// Ensure timestamp conversion for freigabedatum
+// ... existing validation ...
+        if (!editHunterFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
+        // ...
+        transaction = { /* ... */, freigabedatum: getTimestamp(editHunterFreigabedatum.value) }; // Use getTimestamp
+// ... founder part ...
+        if(!editFounderFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
+        // ...
+        transaction.freigabedatum = getTimestamp(editFounderFreigabedatum.value); // Use getTimestamp
+// ... rest of save logic ...
+
+
+// ** Inside btnSaveFrameworkContract click handler **
+// No freigabedatum needed here, but recalculate list correctly
+// ... existing validation ...
+    const resultData = compute(rows, weights, 100); // Use 100 to get percentages
+    // ...
+    entry.list = resultData.list.map(({key, name, pct}) => ({key, name, pct})); // Save only pct
+// ... rest of save logic ...
+
+
+/* ---------- Admin ---------- */
+// ... (Admin code remains the same) ...
+
+
+/* ---------- ERP Import ---------- */
+const btnErpImport = document.getElementById('btnErpImport');
+btnErpImport.addEventListener('click', handleErpImport);
+
+function getVal(row, keyName) {
+    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const keys = Object.keys(row);
+    // Finde den Schlüssel, der am besten passt (enthält statt exakt)
+    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
+    return foundKey ? row[foundKey] : undefined;
+}
+
+// Hilfsfunktion zum Parsen von Excel-Datumsangaben
+function parseExcelDate(excelDate) {
+    if (typeof excelDate === 'number') {
+        // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
+        // Fängt auch ungültige Excel-Daten ab (z.B. 0)
+        if (excelDate > 0) {
+             // Check if it's likely a date (e.g., > 30000 for dates after 1982)
+            if (excelDate > 30000) {
+                 return new Date((excelDate - 25569) * 86400 * 1000);
+            }
+        }
+    }
+    if (typeof excelDate === 'string') {
+        // Versucht, ein Standard-Datumsformat zu parsen (ISO, locale etc.)
+        const d = new Date(excelDate);
+        if (!isNaN(d.getTime())) {
+            return d;
+        }
+        // Versuch, DD.MM.YYYY oder MM/DD/YYYY zu parsen
+        const parts = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+        if (parts) {
+            // Annahme: DD.MM.YYYY zuerst (europäisch)
+            let d = new Date(parts[3], parts[2] - 1, parts[1]);
+            if (!isNaN(d.getTime())) return d;
+            // Annahme: MM/DD/YYYY (amerikanisch)
+            d = new Date(parts[3], parts[1] - 1, parts[2]);
+            if (!isNaN(d.getTime())) return d;
+        }
+         // Versuch YYYY-MM-DD
+         const isoParts = excelDate.match(/(\d{4})-(\d{2})-(\d{2})/);
+         if (isoParts) {
+             let d = new Date(isoParts[1], isoParts[2] - 1, isoParts[3]);
+             if (!isNaN(d.getTime())) return d;
+         }
+    }
+    return null; // Ungültiges Format oder Wert
+}
+
+
+async function handleErpImport() {
+    const fileInput = document.getElementById('erpFile');
+    const importResult = document.getElementById('importResult');
+    if (fileInput.files.length === 0) {
+        showToast('Bitte eine Datei auswählen.', 'bad');
+        return;
+    }
+    const file = fileInput.files[0];
+    showLoader();
+    importResult.classList.add('hide');
+    
+    try {
+        await loadHistory(); // Ensure we have the latest data before starting
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        let updatedCount = 0;
+        let addedToFrameworkCount = 0;
+        let newFixCount = 0;
+        let skippedCount = 0; // Zähler für übersprungene Zeilen
+
+        // Erstelle eine tiefe Kopie für die Bearbeitung, um Seiteneffekte zu managen
+        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
+        const changesToPush = []; // Collect IDs of entries that need saving
+        
+        // Erstelle schnelle Indizes aus der Kopie
+        const kvIndex = new Map();
+        allEntriesCopy.forEach(entry => {
+            if (entry.kv_nummer) {
+                // Store reference to the entry in the copy
+                kvIndex.set(entry.kv_nummer, { type: 'fix', entryRef: entry });
+            }
+            if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
+                entry.transactions.forEach(trans => {
+                    if (trans.kv_nummer) {
+                         // Store reference to parent entry and the transaction itself from the copy
+                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entryRef: entry, transactionRef: trans });
+                    }
+                });
+            }
+        });
+        
+        const frameworkProjectIndex = new Map();
+        allEntriesCopy.forEach(entry => {
+            if (entry.projectType === 'rahmen' && entry.projectNumber) {
+                 // Store reference to the entry in the copy
+                frameworkProjectIndex.set(entry.projectNumber, entry);
+            }
+        });
+
+        // Verarbeite jede Zeile aus der Excel-Datei
+        for (const row of rows) {
+            const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
+            const amountRaw = getVal(row, 'Agenturleistung netto');
+            const amount = parseAmountInput(amountRaw); // Korrigierte Funktion verwenden
+
+            // FILTER 1: Überspringe Zeile ohne KV-Nummer
+            if (!kvNummer) {
+                skippedCount++;
+                console.warn("Zeile übersprungen: Keine KV-Nummer gefunden.", row);
+                continue; // Nächste Zeile
+            }
+
+            // FILTER 2: Überspringe Zeile mit Betrag <= 0
+            if (amount <= 0) {
+                 skippedCount++;
+                 console.warn(`Zeile mit KV ${kvNummer} übersprungen: Betrag ist ${amount}€.`, row);
+                 continue; // Nächste Zeile
+            }
+
+            // --- Ab hier verarbeiten wir die gültige Zeile ---
+            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
+            const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
+            const title = getVal(row, 'Titel') || '';
+
+            // --- Datum verarbeiten (KORRIGIERT) ---
+            let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
+            const excelDateValue = getVal(row, 'Freigabedatum');
+            if (excelDateValue) {
+                const parsedDate = parseExcelDate(excelDateValue);
+                if (parsedDate && !isNaN(parsedDate.getTime())) { // Prüfe auf gültiges Datum
+                    freigabeTimestamp = parsedDate.getTime(); // Überschreibe Fallback mit Excel-Datum
+                } else {
+                     console.warn(`Ungültiges Freigabedatum für KV ${kvNummer}: "${excelDateValue}". Verwende Importdatum.`);
+                }
+            } else {
+                 console.warn(`Kein Freigabedatum für KV ${kvNummer} gefunden, verwende Importdatum.`);
+            }
+            // freigabeTimestamp enthält jetzt entweder das Excel-Datum oder das Importdatum
+
+            const existing = kvIndex.get(kvNummer);
+
+            if (existing) { // Fall A: KV-Nummer wurde gefunden -> Update in der Kopie
+                let currentAmount;
+                if (existing.type === 'transaction') {
+                    currentAmount = existing.transactionRef.amount;
+                } else {
+                    currentAmount = existing.entryRef.amount;
+                }
+
+                // Vergleiche Beträge mit kleiner Toleranz
+                if (Math.abs(currentAmount - amount) > 0.001) {
+                    if (existing.type === 'transaction') {
+                        existing.transactionRef.amount = amount;
+                        // Optional: Freigabedatum auch aktualisieren? Ja.
+                        existing.transactionRef.freigabedatum = freigabeTimestamp;
+                    } else {
+                        existing.entryRef.amount = amount;
+                         // Optional: Freigabedatum auch aktualisieren? Ja.
+                        existing.entryRef.freigabedatum = freigabeTimestamp;
+                    }
+                    existing.entryRef.modified = Date.now(); // Update modified timestamp of the parent entry
+                    // Füge die ID des geänderten *Haupteintrags* zur Speicherliste hinzu
+                    if (!changesToPush.includes(existing.entryRef.id)) {
+                        changesToPush.push(existing.entryRef.id);
+                    }
+                    updatedCount++;
+                } else {
+                    // Betrag ist gleich, nichts tun
+                    // skippedCount++; // Zählen wir nicht als übersprungen
+                }
+            } else { // Fall B: KV-Nummer ist neu -> Hinzufügen zur Kopie
+                const parentFrameworkRef = frameworkProjectIndex.get(projektNummer);
+                
+                if (parentFrameworkRef) { // Fall B1: Rahmenvertrag gefunden
+                    if (!Array.isArray(parentFrameworkRef.transactions)) {
+                        parentFrameworkRef.transactions = [];
+                    }
+                    // Prüfen ob die Transaktion (KV) nicht doch schon da ist
+                    if (!parentFrameworkRef.transactions.some(t => t.kv_nummer === kvNummer)) {
+                        parentFrameworkRef.transactions.push({
+                            id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            kv_nummer: kvNummer,
+                            type: 'founder', // Standard auf 'founder' (passiv)
+                            amount: amount,
+                            ts: Date.now(),
+                            freigabedatum: freigabeTimestamp
+                        });
+                        parentFrameworkRef.modified = Date.now();
+                        if (!changesToPush.includes(parentFrameworkRef.id)) {
+                            changesToPush.push(parentFrameworkRef.id);
+                        }
+                        addedToFrameworkCount++;
+                    } else {
+                         skippedCount++;
+                         console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFrameworkRef.id} vorhanden (Dopplung in Excel?), übersprungen.`);
+                    }
+                } else { // Fall B2: Neuer Fixauftrag
+                    const newFixEntry = {
+                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                        source: 'erp-import',
+                        projectType: 'fix',
+                        client: clientName,
+                        title: title,
+                        projectNumber: projektNummer,
+                        kv_nummer: kvNummer,
+                        amount: amount,
+                        list: [], rows: [], weights: [], // Leer initialisieren
+                        ts: Date.now(),
+                        freigabedatum: freigabeTimestamp,
+                        complete: false // Ist unvollständig
+                    };
+                    allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu
+                    kvIndex.set(kvNummer, {type: 'fix', entryRef: newFixEntry}); // Füge zum Index hinzu
+                    changesToPush.push(newFixEntry.id); // Füge ID zur Speicherliste hinzu
+                    newFixCount++;
+                }
+            }
+        } // Ende der for-Schleife
+
+        // Hole die tatsächlichen Entry-Objekte, die gespeichert werden müssen, aus der Kopie
+        const entriesToSave = allEntriesCopy.filter(entry => changesToPush.includes(entry.id));
+
+        hideLoader();
+        if (entriesToSave.length > 0) {
+            showBatchProgress('Speichere Import-Änderungen...', entriesToSave.length);
+            let count = 0;
+            for (const entry of entriesToSave) {
+                count++;
+                updateBatchProgress(count, entriesToSave.length);
+                
+                // Prüfe, ob der Eintrag *ursprünglich* existierte, um POST vs PUT zu entscheiden
+                const originalEntryExists = entries.some(originalEntry => originalEntry.id === entry.id);
+                const url = !originalEntryExists ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
+                const method = !originalEntryExists ? 'POST' : 'PUT';
+                
+                if (method === 'PUT' && !entry.id) {
+                     throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
+                }
+
+                console.log(`Sending ${method} request to ${url} for ID ${entry.id} (KV ${entry.kv_nummer})`); // Debugging
+
+                const r = await fetchWithRetry(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry) // Sende den aktualisierten Eintrag aus der Kopie
+                });
+                if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+entry.kv_nummer+')')}: ${await r.text()}`);
+                await throttle();
+            }
+        }
+
+        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (fehlende KV, Betrag <= 0 o.ä.).`;
+        importResult.innerHTML = resultMsg;
+        importResult.classList.remove('hide');
+        showToast('ERP-Daten erfolgreich importiert', 'ok');
+        await loadHistory(); // Lade die finale Version vom Server
+
+    } catch (e) {
+        showToast('Fehler beim Importieren der Datei.', 'bad');
+        console.error("Import Fehler:", e);
+        importResult.textContent = 'Fehler: ' + e.message;
+        importResult.classList.remove('hide');
+    } finally {
+        hideLoader();
+        hideBatchProgress();
+    }
+}
+
+
+
+/* ---------- Auswertung ---------- */
+const anaYear = document.getElementById('anaYear');
+const anaStartDate = document.getElementById('anaStartDate');
+const anaEndDate = document.getElementById('anaEndDate');
+const btnAnaThisYear = document.getElementById('btnAnaThisYear');
+const btnAnaLastYear = document.getElementById('btnAnaLastYear');
+const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
+
+function initAnalytics() {
+    // Fülle Jahres-Dropdown (für Top-Listen)
+    const currentYear = new Date().getFullYear();
+    anaYear.innerHTML = ''; // Clear previous options
+    for (let y = 2022; y <= currentYear + 1; y++) {
+      const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
+    }
+    anaYear.value = String(currentYear);
+    
+    // Setze Standard-Datum (für Aktivitäts-Chart)
+    setAnaDateRange('thisYear');
+    
+    // Führe beide Render-Funktionen aus
+    renderAnalytics(); // Jährliche Auswertung
+    renderActivityAnalytics(); // Zeitintervall-Auswertung
+}
+
+function setAnaDateRange(rangeType) {
+    const now = new Date();
+    let start, end;
+    if (rangeType === 'thisYear') {
+        start = new Date(now.getFullYear(), 0, 1); // 1. Jan
+        end = now; // Heute
+    } else { // lastYear
+        const lastYear = now.getFullYear() - 1;
+        start = new Date(lastYear, 0, 1); // 1. Jan letztes Jahr
+        end = new Date(lastYear, 11, 31); // 31. Dez letztes Jahr
+    }
+    anaStartDate.value = formatDateForInput(start.getTime());
+    anaEndDate.value = formatDateForInput(end.getTime());
+}
+
+btnAnaThisYear.addEventListener('click', () => {
+    setAnaDateRange('thisYear');
+    renderActivityAnalytics();
+});
+btnAnaLastYear.addEventListener('click', () => {
+    setAnaDateRange('lastYear');
+    renderActivityAnalytics();
+});
+btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
+
+document.getElementById('anaRefresh').addEventListener('click', renderAnalytics); // Jährliche Auswertung
+const btnAnaXlsx = document.getElementById('btnAnaXlsx');
+
+let analyticsData = { persons: [], teams: [], totals: [] };
+
+// Helper to get timestamp, ensuring it's a valid number or 0
+function getTimestamp(dateStr) {
+    try {
+        if (!dateStr) return 0; // Handle empty string
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
+    } catch { return 0; }
+}
+
+// Jährliche Top-Listen und Gesamtübersicht
+function renderAnalytics() {
+  const year = Number(anaYear.value);
+  // Definiere Start- und End-Timestamp für das gewählte Jahr
+  const startOfYear = getTimestamp(`${year}-01-01`);
+  // Ende des Jahres, sicherstellen, dass es den ganzen Tag umfasst
+  const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`); 
+
+  const per = new Map();
+  let fixTotal = 0;
+  let rahmenTotal = 0;
+  
+  entries.forEach(e => {
+    // Verwende Freigabedatum primär, fallback auf ts
+    const datum = e.freigabedatum || e.ts || 0; 
+    
+    // Prüfe, ob das Datum überhaupt gültig ist und im gewählten Jahr liegt
+    if (!datum || datum < startOfYear || datum > endOfYear) return; 
+
+    if(e.projectType === 'fix') {
+        const amount = e.amount || 0; if (amount <= 0) return;
+        fixTotal += amount;
+        // Zähle Personenbeiträge nur, wenn der Auftrag in diesem Jahr freigegeben wurde
+        if (Array.isArray(e.list)) {
+          e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
+        }
+    } else if (e.projectType === 'rahmen') {
+        // Berechne die Verteilung basierend auf Abrufen *innerhalb* des Jahres
+        const { list: actualDistribution, total: totalValueInYear } = calculateActualDistribution(e, startOfYear, endOfYear);
+        rahmenTotal += totalValueInYear;
+        actualDistribution.forEach(p => {
+            per.set(p.name, (per.get(p.name) || 0) + p.money);
+        });
+    }
+  });
+  
+  const perArr = Array.from(per, ([name, val]) => ({ name, val })).filter(x => x.val > 0.001).sort((a, b) => b.val - a.val).slice(0, 20);
+  drawBars('chartPersons', perArr);
+  analyticsData.persons = perArr;
+
+  const byNameTeam = new Map(people.map(p => [p.name, p.team || '']));
+  const teamMap = new Map();
+  per.forEach((val, name) => {
+    const team = byNameTeam.get(name) || 'Ohne Team';
+    teamMap.set(team, (teamMap.get(team) || 0) + val);
+  });
+  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0.001).sort((a, b) => b.val - a.val);
+  drawBars('chartTeams', teamArr);
+  analyticsData.teams = teamArr;
+  
+  const totalArr = [
+    { name: 'Fixaufträge', val: fixTotal },
+    { name: 'Rahmenverträge', val: rahmenTotal },
+    { name: 'Gesamt', val: fixTotal + rahmenTotal }
+  ];
+  drawBars('chartTotals', totalArr);
+  analyticsData.totals = totalArr;
+}
+
+// Zeitintervall-basierte Aktivität der Rahmenverträge
+function renderActivityAnalytics() {
+    const start = getTimestamp(anaStartDate.value);
+    // Ende des Tages für das Enddatum nehmen
+    const end = getTimestamp(anaEndDate.value + 'T23:59:59.999'); 
+    
+    if (!start || !end || end < start) {
+        showToast('Ungültiger Datumsbereich', 'bad');
+        drawBars('chartActivity', [], false); // Leere Grafik anzeigen
+        document.getElementById('chartActivityTitle').textContent = 'Aktivste Rahmenverträge (ungültiger Zeitraum)';
+        return;
+    }
+    
+    const rahmenMap = new Map();
+    entries.filter(e => e.projectType === 'rahmen').forEach(e => {
+        let total = 0;
+        let count = 0;
+        (e.transactions || []).forEach(t => {
+            // Freigabedatum primär, fallback auf ts
+            const datum = t.freigabedatum || t.ts || 0; 
+            if (datum >= start && datum <= end) {
+                total += (t.amount || 0); // Handle missing amount
+                count++;
+            }
+        });
+        if (total > 0.001) { // Nur hinzufügen, wenn Betrag > 0
+            // Speichere ID, um Duplikate zu vermeiden
+            rahmenMap.set(e.id, { id: e.id, name: e.title, val: total, count: count });
+        }
+    });
+    
+    const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10); // Top 10
+    const title = `Aktivste Rahmenverträge (${new Date(start).toLocaleDateString('de-DE')} - ${new Date(end).toLocaleDateString('de-DE')})`;
+    document.getElementById('chartActivityTitle').textContent = title;
+    drawBars('chartActivity', rahmenArr, true); // showCount = true
+}
+
+
+function drawBars(hostId, items, showCount = false) {
+  const host = document.getElementById(hostId);
+  host.innerHTML = ''; // Clear previous chart
+  const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1; // Avoid division by zero
+  const barH = 30, gap = 8, w = 1060; // Fixed width
+  const h = items.length > 0 ? (items.length * (barH + gap) + 10) : 50; // Dynamic height or fixed minimum
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet'); // Ensure it scales correctly if container width changes
+  
+  let y = 10;
+  const textWidth = 240, barStartX = textWidth;
+  const valueOffset = showCount ? 140 : 100; // More space for value label if count is shown
+
+  items.forEach(it => {
+    // Calculate bar length based on available space
+    const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - valueOffset)));
+    const g = document.createElementNS(svgNS, 'g');
+    
+    const titleText = `${it.name}: ${fmtCurr0.format(it.val)}` + (showCount && it.count ? ` (${it.count} Abrufe)` : '');
+    const title = document.createElementNS(svgNS, 'title');
+    title.textContent = titleText;
+    g.appendChild(title);
+
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', String(barStartX)); rect.setAttribute('y', String(y));
+    rect.setAttribute('rx', '6'); rect.setAttribute('ry', '6');
+    rect.setAttribute('width', String(len)); rect.setAttribute('height', String(barH));
+    rect.setAttribute('fill', '#3b82f6');
+
+    const labelL = document.createElementNS(svgNS, 'text');
+    labelL.setAttribute('x', '10'); labelL.setAttribute('y', String(y + barH * 0.68));
+    labelL.setAttribute('fill', '#cbd5e1'); labelL.setAttribute('font-size', '14');
+    labelL.textContent = it.name.length > 30 ? it.name.substring(0,28)+'...' : it.name;
+
+    const labelV = document.createElementNS(svgNS, 'text');
+    labelV.setAttribute('y', String(y + barH * 0.68));
+    labelV.setAttribute('font-weight', '700');
+    labelV.setAttribute('font-size', '14');
+    // Add count if requested
+    const valueText = fmtCurr0.format(it.val) + (showCount && it.count ? ` (${it.count})` : '');
+    labelV.textContent = valueText;
+    
+    // Position value label inside or outside based on bar length
+    const valueTextLengthEstimate = valueText.length * 8; // Rough estimate
+    if(len < valueTextLengthEstimate + 10) { // Place outside if bar is too short
+      labelV.setAttribute('x', String(barStartX + len + 8));
+      labelV.setAttribute('fill', '#cbd5e1');
+    } else { // Place inside
+      labelV.setAttribute('x', String(barStartX + 10));
+      labelV.setAttribute('fill', '#0a0f16');
+    }
+
+    g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV);
+    svg.appendChild(g);
+    y += barH + gap;
+  });
+  
+  // Display message if no data
+  if (items.length === 0) {
+      const noData = document.createElementNS(svgNS, 'text');
+      noData.setAttribute('x', '10'); noData.setAttribute('y', '30');
+      noData.setAttribute('fill', '#cbd5e1'); noData.setAttribute('font-size', '14');
+      noData.textContent = 'Für diesen Zeitraum/dieses Jahr liegen keine Daten vor.';
+      svg.appendChild(noData);
+  }
+  host.appendChild(svg);
+}
+
+btnAnaXlsx.addEventListener('click', () => {
+    const year = anaYear.value;
+    const wb = XLSX.utils.book_new();
+    
+    // Ensure data exists before creating sheets
+    if (analyticsData.persons && analyticsData.persons.length > 0) {
+        const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
+        const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
+        XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
+    }
+    if (analyticsData.teams && analyticsData.teams.length > 0) {
+        const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: t.val }));
+        const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
+        XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
+    }
+     if (analyticsData.totals && analyticsData.totals.length > 0) {
+        const ws3Arr = analyticsData.totals.map(t => ({ Typ: t.name, Betrag_EUR: t.val }));
+        const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
+        XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
+    }
+    
+    // Add activity data if available (based on the data used for the chart)
+    const start = anaStartDate.value;
+    const end = anaEndDate.value;
+    const startTs = getTimestamp(start);
+    const endTs = getTimestamp(end + 'T23:59:59.999');
+    
+    const activityMap = new Map();
+    entries.filter(e => e.projectType === 'rahmen').forEach(e => {
+        let total = 0;
+        let count = 0;
+        (e.transactions || []).forEach(t => {
+            const datum = t.freigabedatum || t.ts || 0;
+            if (datum >= startTs && datum <= endTs) {
+                total += (t.amount || 0);
+                count++;
+            }
+        });
+        if (total > 0.001) {
+            activityMap.set(e.id, { Rahmenvertrag: e.title, Betrag_EUR: total, Abrufe: count });
+        }
+    });
+    const activityItems = Array.from(activityMap.values()).sort((a,b) => b.Betrag_EUR - a.Betrag_EUR);
+
+    if(activityItems.length > 0) {
+         const ws4 = XLSX.utils.json_to_sheet(activityItems);
+         XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+    }
+
+
+    if(wb.SheetNames.length > 0) {
+      XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+    } else {
+        showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+    }
+});
+
+/* ---------- Init & Window Events ---------- */
+function initFromState(isEditing = false){
+  const st=loadState();
+  if(st?.input){
+    const isEditFromHistory = !!st.editingId;
+    loadInputForm(st.input, isEditFromHistory);
+  } else {
+    loadInputForm({}, false); // Ensure default freigabedatum is set
+  }
+  updateWeightNote(); 
+}
+
+// Warnung bei ungespeicherten Änderungen oder laufendem Batch
 window.addEventListener('beforeunload', (e) => {
   if (hasUnsavedChanges || isBatchRunning) {
     const msg = isBatchRunning ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
-    e.preventDefault();
-    e.returnValue = msg;
-    return msg;
+    e.preventDefault(); // Standard für die meisten Browser
+    e.returnValue = msg; // Für ältere Browser / Electron
+    return msg; // Für manche Browser
   }
 });
 
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    hideBatchProgress();
-    await loadPeople();         // existiert jetzt
-    initFromState();            // minimal vorhanden
-    showView('erfassung');      // initial
-    // Gewichtsfelder live prüfen
-    ['w_cs','w_konzept','w_pitch'].forEach(id=>{
-      const el = document.getElementById(id);
-      el && el.addEventListener('input', updateWeightNote);
-    });
-  } catch (err) {
-    console.error("Critical error during initial script execution:", err);
-    document.body.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">Ein kritischer Fehler ist beim Laden der Anwendung aufgetreten. Bitte laden Sie die Seite neu. Details: ' + err.message + '</div>';
-    hideLoader();
-  }
+// Initialisierung nach Laden der Personenliste
+loadPeople().then(()=>{ 
+    initFromState(); 
+    showView('erfassung'); 
 });
 
-} catch (err) {
-  console.error("Fehler beim Laden des Skripts:", err);
-  document.body.innerHTML = '<div style="font-family: sans-serif; padding: 20px; color: red; background: #fff; border: 2px solid red; margin: 20px;"><strong>Kritischer Fehler:</strong> Die Anwendung konnte nicht geladen werden. Bitte kontaktieren Sie den Support. Details: ' + err.message + '</div>';
+// Deep Link zu Admin (optional)
+if (location.hash === '#admin') { 
+    // Warte kurz, damit die UI bereit ist, bevor der Pw-Prompt kommt
+    setTimeout(handleAdminClick, 100); 
 }
+
+// Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
+document.addEventListener('keydown',(e)=>{ 
+    if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
+        e.preventDefault(); 
+    }
+});
 </script>
 </body>
 </html>
