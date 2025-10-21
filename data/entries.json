@@ -1984,22 +1984,6 @@
     "transactions": []
   },
   {
-    "id": "entry_1761046591571_KV20250023",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Rentenversicherung Bund",
-    "title": "Aufstockung 2025 Rahmenvertrag Abteilung 70 - Zusammenlegung der Abteilung 40 und 49",
-    "projectNumber": "DRV Bund-13-001",
-    "kv_nummer": "KV-2025-0023",
-    "amount": 21253257,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591571,
-    "freigabedatum": 1735686000000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591571_KV20240182",
     "source": "erp-import",
     "projectType": "fix",
