@@ -2973,5 +2973,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1752444000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250162",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Hilden",
+    "title": "Coaching und Begleitung eines Workshops",
+    "projectNumber": "Stadt Hilden-02-001",
+    "kv_nummer": "KV-2025-0162",
+    "amount": 4700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1752444000000,
+    "complete": false
   }
 ]
