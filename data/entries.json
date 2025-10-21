@@ -5232,5 +5232,40 @@
     "kv_nummer": "",
     "ts": 1761031565537,
     "id": "5a0520f3-baef-4e27-821c-894cefefde82"
+  },
+  {
+    "id": "0f237179-c2e0-4b0b-9299-45e2d145d9e0",
+    "ts": 1761031954040,
+    "source": "hubspot",
+    "complete": false,
+    "title": "Change-Begleitung",
+    "client": "IMAP GmbH",
+    "amount": 250000,
+    "submittedBy": "Merlin Klein",
+    "rows": [
+      {
+        "name": "Merlin Klein",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Jens Maaßen",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "hubspotId": "45326972175",
+    "pipeline": "default",
+    "dealstage": "closedwon",
+    "closedate": 1761031952639,
+    "modified": 1761031953162
   }
 ]
