@@ -1700,8 +1700,25 @@
     "projectNumber": "STK-01-001",
     "kv_nummer": "",
     "ts": 1761032940035,
-    "transactions": [],
-    "modified": 1761047523592
+    "transactions": [
+      {
+        "id": "trans_1761053193301_KV20250115",
+        "kv_nummer": "KV-2025-0115",
+        "type": "founder",
+        "amount": 9000,
+        "ts": 1761053193301,
+        "freigabedatum": 1747605600000
+      },
+      {
+        "id": "trans_1761053193302_KV20250168",
+        "kv_nummer": "KV-2025-0168",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761053193302,
+        "freigabedatum": 1736290800000
+      }
+    ],
+    "modified": 1761053193302
   },
   {
     "id": "manuell_ekom21_miniwettbewerb",
