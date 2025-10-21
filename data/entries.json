@@ -4173,5 +4173,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1756072800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250194",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Köln",
+    "title": "William Wolfgramm  - FK Rahmenvertrag 3. FZ Leitlinienprozess",
+    "projectNumber": "Köln-08-023",
+    "kv_nummer": "KV-2025-0194",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1756072800000,
+    "complete": false
   }
 ]
