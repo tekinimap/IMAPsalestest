@@ -426,20 +426,7 @@
         <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
       </div>
       <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
-
-      <div class="hr"></div>
-      <h3>Import: Sales-Beteiligung (Altdaten)</h3>
-      <p class="note" style="font-size: 14px; margin-bottom: 12px;">
-        Nur für Altdaten: Lädt eine Excel-Datei, die KV-Nummern und Team-Prozentsätze (als Zahlen von 0-1) enthält. 
-        Die Funktion <strong>überspringt KV-Nummern, die nicht gefunden werden</strong>, und erstellt <strong>keine</strong> neuen Aufträge.
-        Sie <strong>überschreibt</strong> die Sales-Verteilung für alle gefundenen Einträge.
-      </p>
-      <div class="search-wrapper">
-        <input type="file" id="legacySalesFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
-        <button class="btn warn" id="btnLegacySalesImport">Legacy-Sales-Import starten</button>
-      </div>
-      <div id="legacyImportResult" class="info-box hide" style="margin-top: 14px;"></div>
-      </div>
+    </div>
   </div>
 
   <div class="card hide" id="viewAnalytics">
@@ -2434,190 +2421,7 @@ async function handleErpImport() {
     }
 }
 
-// *** NEUE FUNKTION START ***
-/* ---------- Import: Legacy Sales (Team-Prozente) ---------- */
-async function handleLegacySalesImport() {
-    const fileInput = document.getElementById('legacySalesFile');
-    const importResult = document.getElementById('legacyImportResult');
-    if (fileInput.files.length === 0) {
-        showToast('Bitte eine Datei für den Legacy-Import auswählen.', 'bad');
-        return;
-    }
-    const file = fileInput.files[0];
-    showLoader();
-    importResult.classList.add('hide');
-    
-    // Dies ist die "Übersetzungs-Map".
-    // Links: Der Spaltenname in Ihrer CSV-Datei.
-    // Rechts: Der Name der "Dummy-Person", die Sie im Admin-Bereich erstellt haben.
-    const columnToPersonMap = {
-        "% Evaluation und Beteiligung": "Evaluation und Beteiligung Mitarbeiter:in",
-        "% Vielfalt+": "Vielfalt+ Mitarbeiter:in",
-        "% Nachhaltigkeit": "Nachhaltigkeit Mitarbeiter:in",
-        "% Sozial- und Krankenversicherungen": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "% ChangePartner": "ChangePartner Mitarbeiter:in",
-        "% Bundes- & Landesbehörden": "Bundes- und Landesbehörden Mitarbeiter:in", // Aus Ihrer CSV
-        "% Kommunalverwaltungen": "Kommunalverwaltungen Mitarbeiter:in",
-        "% Internationale Zusammenarbeit": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "% BU OE": "BU Lead OE",
-        "% BU PI": "BU Lead PI"
-    };
-    const percentageColumns = Object.keys(columnToPersonMap);
 
-    // Dies ist die "Workaround"-Logik, um eine einzelne Prozentzahl
-    // in das Drei-Phasen-Modell zu übersetzen.
-    const legacyWeights = [{key: 'cs', weight: 100}, {key: 'konzept', weight: 0}, {key: 'pitch', weight: 0}];
-    
-    try {
-        await loadHistory(); // 1. Aktuelle Daten vom Server laden
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const sheetName = workbook.SheetNames[0];
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        let updatedCount = 0;
-        let skippedCount = 0;
-        
-        // 2. Index aller bestehenden KV-Nummern erstellen (aus handleErpImport)
-        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
-        const changesToPush = [];
-        const kvIndex = new Map();
-        allEntriesCopy.forEach(entry => {
-            if (entry.kv_nummer) {
-                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
-            }
-            if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                entry.transactions.forEach(trans => {
-                    if (trans.kv_nummer) {
-                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
-                    }
-                });
-            }
-        });
-
-        // 3. Jede Zeile der Excel-Datei verarbeiten
-        for (const row of rows) {
-            
-            // 4. Sales-Daten aus der Zeile extrahieren
-            const newSalesRows = []; // Dies wird das 'rows'-Array für den Eintrag
-            let totalPoints = 0;
-            for (const colName of percentageColumns) {
-                const percentageValue = parseFloat(getVal(row, colName) || 0);
-                if (percentageValue > 0) {
-                    const personName = columnToPersonMap[colName];
-                    const points = percentageValue * 100; // 0.85 -> 85 Punkte, 1 -> 100 Punkte
-                    newSalesRows.push({ name: personName, cs: points, konzept: 0, pitch: 0 });
-                    totalPoints += points;
-                }
-            }
-
-            // Wenn diese Zeile keine Sales-Daten enthält, überspringen
-            if (newSalesRows.length === 0) {
-                continue; 
-            }
-            
-            // Validierung: Überspringen, wenn die Summe nicht 100 ist
-            if (Math.abs(totalPoints - 100) > 0.1) { // Toleranz für Fließkommazahlen
-                console.warn(`Übersprungen: Zeile mit KV ${getVal(row, 'KV-Nummer')} hat eine Punktesumme von ${totalPoints} (nicht 100).`);
-                skippedCount++;
-                continue;
-            }
-            
-            // 5. KV-Nummern aufteilen (Ihre Anforderung)
-            const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
-            if (!kvString) continue; // Zeile ohne KV-Nummer überspringen
-
-            const kvList = kvString.split(',')  // z.B. "KV-2025-0134, 0151"
-                                 .map(kv => kv.trim()) // "0151"
-                                 .filter(kv => kv.length > 0);
-            
-            // 6. "Schleife in der Schleife": Sales-Daten auf alle KVs anwenden
-            for (const kv of kvList) {
-                let kvToUpdate = kv;
-                // Logik, um Suffixe zu vervollständigen (z.B. 0151 -> KV-2025-0151)
-                if (!kvToUpdate.toLowerCase().startsWith('kv-')) {
-                    const firstKv = kvList[0];
-                     // Finde den ersten KV, der das volle Format hat
-                    const fullFormatKv = kvList.find(k => k.toLowerCase().startsWith('kv-')) || firstKv;
-                    if(fullFormatKv && fullFormatKv.includes('-')) {
-                        const prefix = fullFormatKv.substring(0, fullFormatKv.lastIndexOf('-') + 1); // z.B. "KV-2025-"
-                        kvToUpdate = prefix + kvToUpdate;
-                    } else {
-                        console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen. Überspringe.`);
-                        skippedCount++;
-                        continue; // Gehe zur nächsten KV in der Liste
-                    }
-                }
-
-                const existing = kvIndex.get(kvToUpdate);
-                
-                // 7. Nur bestehende Einträge aktualisieren (Ihre Anforderung)
-                if (existing) {
-                    // Wenden Sie die Workaround-Logik an
-                    const entryToUpdate = existing.entry; // Dies ist der Eintrag, der in allEntriesCopy lebt
-                    entryToUpdate.rows = newSalesRows;
-                    entryToUpdate.weights = legacyWeights;
-                    entryToUpdate.totals = {cs: 100, konzept: 0, pitch: 0}; // Berechnungs-Cache
-                    entryToUpdate.list = newSalesRows.map(r => ({ // Berechnungs-Cache
-                        key: r.name,
-                        name: r.name,
-                        pct: r.cs, // Da 100% CS, sind Punkte = Prozente
-                        money: Math.round((entryToUpdate.amount || 0) * r.cs / 100)
-                    }));
-                    entryToUpdate.complete = true; // Jetzt ist er vollständig
-                    entryToUpdate.modified = Date.now();
-                    
-                    // Zum Speichern vormerken (nur einmal)
-                    if (!changesToPush.some(item => item.id === entryToUpdate.id)) {
-                        changesToPush.push(entryToUpdate);
-                    }
-                    updatedCount++;
-                } else {
-                    // NICHTS TUN, WENN NICHT GEFUNDEN (Ihre Anforderung)
-                    console.warn(`Übersprungen: KV-Nummer ${kvToUpdate} nicht im System gefunden.`);
-                    skippedCount++;
-                }
-            }
-        }
-        
-        hideLoader();
-        
-        // 8. Speichern der Änderungen (Batch-Prozess)
-        if (changesToPush.length > 0) {
-            showBatchProgress('Speichere Sales-Daten (Altdaten)...', changesToPush.length);
-            let count = 0;
-            for (const entry of changesToPush) {
-                count++;
-                updateBatchProgress(count, changesToPush.length);
-                
-                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(entry)
-                });
-                if (!r.ok) throw new Error(`Fehler (PUT) für Eintrag ${entry.id}: ${await r.text()}`);
-                await throttle(); // Verlangsamt den Prozess, um Ratenlimits zu vermeiden
-            }
-        }
-
-        const resultMsg = `Legacy-Import abgeschlossen: ${updatedCount} Einträge erfolgreich mit Sales-Daten ergänzt. ${skippedCount} Einträge/KV-Nummern übersprungen (nicht gefunden oder fehlerhafte Summe).`;
-        importResult.innerHTML = resultMsg;
-        importResult.classList.remove('hide');
-        showToast('Sales-Daten (Altdaten) erfolgreich importiert', 'ok');
-        await loadHistory(); // Lade die finale Version vom Server
-
-    } catch (e) {
-        showToast('Fehler beim Importieren der Datei.', 'bad');
-        console.error(e);
-        importResult.textContent = 'Fehler: ' + e.message;
-        importResult.classList.remove('hide');
-    } finally {
-        hideLoader();
-        hideBatchProgress();
-        fileInput.value = ''; // Input leeren
-    }
-}
-// *** NEUE FUNKTION ENDE ***
 
 /* ---------- Auswertung ---------- */
 const anaYear = document.getElementById('anaYear');
@@ -2938,16 +2742,6 @@ document.addEventListener('keydown',(e)=>{
         // Optional: Springe zum nächsten Feld oder löse Button aus? Eher nicht, kann verwirren.
     }
 });
-
-/* ---------- ERP Import ---------- */
-const btnErpImport = document.getElementById('btnErpImport');
-btnErpImport.addEventListener('click', handleErpImport);
-
-// *** NEUER EVENT LISTENER START ***
-const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
-btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
-// *** NEUER EVENT LISTENER ENDE ***
-
 </script>
 </body>
 </html>
