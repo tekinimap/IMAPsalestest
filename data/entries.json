@@ -4306,28 +4306,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709373_KV20250064_182",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Rossmann DRO01 Mitarbeitendenbefragung Diversity",
-    "projectNumber": "ChangePartner-21-001",
-    "kv_nummer": "KV-2025-0064",
-    "amount": 295355,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709373,
-    "complete": false,
-    "modified": 1761042132128
-  },
-  {
     "id": "entry_1760970709373_KV20250058_184",
     "source": "erp-import",
     "projectType": "fix",
