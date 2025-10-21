@@ -3691,28 +3691,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709372_KV20250114_124",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Ministerium für Kultur und Wissenschaft des Landes Nordrhein-Westfalen",
-    "title": "Diversitätsfonds: Empowermentkonzept",
-    "projectNumber": "MKW-01-002",
-    "kv_nummer": "KV-2025-0114",
-    "amount": 176095,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709372,
-    "complete": false,
-    "modified": 1761042132127
-  },
-  {
     "id": "entry_1760970709372_KV20250120_129",
     "source": "erp-import",
     "projectType": "fix",
