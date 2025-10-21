@@ -4624,28 +4624,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709374_KV20250019_223",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "BG Verkehr",
-    "title": "Einzelcoaching für Führungsverantwortliche",
-    "projectNumber": "BG Verkehr-04-001",
-    "kv_nummer": "KV-2025-0019",
-    "amount": 28675,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709374,
-    "complete": false,
-    "modified": 1761042132128
-  },
-  {
     "id": "entry_1760970709374_KV20250020_224",
     "source": "erp-import",
     "projectType": "fix",
