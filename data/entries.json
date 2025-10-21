@@ -1746,9 +1746,17 @@
         "type": "founder",
         "amount": 33300,
         "ts": 1760970709370
+      },
+      {
+        "id": "trans_1761042132127_KV20250117",
+        "kv_nummer": "KV-2025-0117",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761042132127,
+        "freigabedatum": 1747605600000
       }
     ],
-    "modified": 1760970709370
+    "modified": 1761042132127
   },
   {
     "id": "manuell_steb_koeln_change",
