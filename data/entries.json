@@ -552,16 +552,8 @@
     "projectNumber": "DRV Bund-06-006",
     "kv_nummer": "",
     "ts": 1761032940012,
-    "transactions": [
-      {
-        "id": "trans_1760970709371_KV20250157",
-        "kv_nummer": "KV-2025-0157",
-        "type": "founder",
-        "amount": 40352,
-        "ts": 1760970709371
-      }
-    ],
-    "modified": 1761047344908
+    "transactions": [],
+    "modified": 1761047349700
   },
   {
     "id": "manuell_drv_bund_next_campus",
