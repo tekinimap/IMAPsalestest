@@ -4555,7 +4555,7 @@
     "title": "Teamworkshop zum Thema „Positive Fehlerkultur & lösungsorientierte Kommunikation“",
     "projectNumber": "GIZ-57-001",
     "kv_nummer": "KV-2025-0059",
-    "amount": 999.99,
+    "amount": 99999,
     "list": [],
     "rows": [],
     "weights": [],
@@ -4566,7 +4566,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709373,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709373_KV20250053_190",
