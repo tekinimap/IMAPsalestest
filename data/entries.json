@@ -585,11 +585,11 @@
         "id": "trans_1760970709372_KV20250103",
         "kv_nummer": "KV-2025-0103",
         "type": "founder",
-        "amount": 21187.5,
+        "amount": 211875,
         "ts": 1760970709372
       }
     ],
-    "modified": 1760970709372
+    "modified": 1761042132127
   },
   {
     "id": "manuell_drv_bund_foerderkreise",
