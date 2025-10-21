@@ -4042,22 +4042,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591570_KV20250040",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Viega VIE09 Innovation 2.0 1. Aufstockung 01-04.2025",
-    "projectNumber": "ChangePartner-11-001",
-    "kv_nummer": "KV-2025-0040",
-    "amount": 1413732,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591570,
-    "freigabedatum": 1759356000000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591570_KV20250037",
     "source": "erp-import",
     "projectType": "fix",
