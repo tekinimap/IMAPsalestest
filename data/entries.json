@@ -5458,12 +5458,47 @@
     "projectNumber": "S.I.N.N.-04-001",
     "kv_nummer": "KV-2025-0104",
     "amount": 0,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761053193301,
-    "freigabedatum": 1738710000000,
-    "complete": false
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 0
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054880891",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761060009474,
+    "freigabedatum": 1738627200000,
+    "complete": false,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761060009474
   },
   {
     "id": "entry_1761053193301_KV20250105",
