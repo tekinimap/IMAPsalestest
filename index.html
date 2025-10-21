@@ -148,7 +148,6 @@
     .form-fields-group input { width: 100% !important; }
     .search-wrapper { flex-direction: column; align-items: stretch; }
     .batch-actions { width: 100%; flex-direction: column; }
-    .analytics-controls { justify-content: center; }
   }
   @media(max-width: 980px){
     table{min-width: 800px;}
@@ -669,84 +668,21 @@ function hideBatchProgress() {
 /* ---------- Formatter ---------- */
 const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
+// *** KORREKTUR HIER ***
 const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
 const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 const formatDateForInput = (ts) => {
     if (!ts) return '';
-    try { 
-        // Handle potential invalid date timestamps from old data or bad imports
-        const d = new Date(ts);
-        if (isNaN(d.getTime())) return '';
-        return d.toISOString().split('T')[0]; 
-    }
-    catch(e) { 
-        console.error("Error formatting date:", ts, e);
-        return ''; 
-    }
+    try { return new Date(ts).toISOString().split('T')[0]; }
+    catch(e) { return ''; }
 };
 
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
+function parseAmountInput(str){if(!str)return 0;const clean=String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');const n=Number(clean);return Number.isFinite(n)?n:0;}
 
-function parseAmountInput(str) {
-  // Handle null, undefined, or empty strings immediately
-  if (str === null || str === undefined || String(str).trim() === '') return 0;
-
-  // Convert input to string first, just in case it's already a number
-  let clean = String(str);
-
-  // Remove currency symbols (€, $, £ etc.) and any whitespace
-  clean = clean.replace(/[€$£\s]/g, '');
-
-  // Check for separators
-  const hasComma = clean.includes(',');
-  const hasDot = clean.includes('.');
-
-  let numberStr;
-
-  // Case 1: German format suspected (comma is the last separator)
-  if (hasComma && (!hasDot || clean.lastIndexOf(',') > clean.lastIndexOf('.'))) {
-      // Remove all dots (thousand separators), replace the last comma with a dot (decimal separator)
-      numberStr = clean.replace(/\./g, '').replace(',', '.');
-  }
-  // Case 2: International/English format suspected (dot is the last separator, or only dot exists)
-  else if (hasDot) {
-       // Remove all commas (thousand separators)
-      numberStr = clean.replace(/,/g, '');
-      // Dot is already the decimal separator, no replacement needed.
-  }
-   // Case 3: Only comma, assume decimal separator
-  else if (hasComma) {
-       numberStr = clean.replace(',', '.');
-  }
-  // Case 4: No separators, assume integer or simple float with dot already
-  else {
-      numberStr = clean;
-  }
-
-  // Final cleanup: Remove anything that's not a digit, the first minus sign, or the first decimal point
-  // This helps catch edge cases or slightly malformed inputs
-  let sign = '';
-  if (numberStr.startsWith('-')) {
-    sign = '-';
-    numberStr = numberStr.substring(1);
-  }
-  const parts = numberStr.split('.');
-  let integerPart = parts[0].replace(/[^\d]/g, '');
-  let decimalPart = parts.length > 1 ? parts[1].replace(/[^\d]/g, '') : '';
-  
-  if (decimalPart) {
-      numberStr = `${sign}${integerPart}.${decimalPart}`;
-  } else {
-       numberStr = `${sign}${integerPart}`;
-  }
-  
-  const n = Number(numberStr);
-  // console.log(`Original: "${str}", Cleaned: "${clean}", Parsed String: "${numberStr}", Final Number: ${n}`); // Debugging line
-  return Number.isFinite(n) ? n : 0;
-}
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
@@ -769,18 +705,15 @@ async function fetchWithRetry(url, options, retryCount = 0) {
             return fetchWithRetry(url, options, retryCount + 1);
         }
         // Bei anderen Client-Fehlern (z.B. 404, 400) nicht erneut versuchen
-        const errorText = await response.text();
-        console.error(`HTTP-Fehler ${response.status} für ${options.method} ${url}: ${errorText}`); // Mehr Debugging
-        throw new Error(`HTTP-Fehler ${response.status}: ${errorText}`);
+        throw new Error(`HTTP-Fehler ${response.status}: ${await response.text()}`);
     } catch (e) {
         // Bei Netzwerkfehlern ebenfalls erneut versuchen
-        if (retryCount < RETRY_LIMIT && !(e instanceof Error && e.message.startsWith('HTTP-Fehler'))) { // Nur bei Netzwerkfehlern
+        if (retryCount < RETRY_LIMIT) {
             showToast(`Netzwerkfehler. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
             await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
             return fetchWithRetry(url, options, retryCount + 1);
         }
-        console.error("Finaler Fehler nach Retries:", e);
-        throw e; // Finaler Fehler nach Retries oder bei nicht-wiederholbaren HTTP-Fehlern
+        throw e; // Finaler Fehler nach Retries
     }
 }
 
@@ -955,9 +888,7 @@ function validateInput(forLive = false) {
             errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
         }
 
-        // Allow saving entries without rows initially
-        // if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
-        
+        if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
         if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
     }
 
@@ -966,30 +897,21 @@ function validateInput(forLive = false) {
     let categoryErrors = [];
     weights.forEach(w => {
         if (forLive) {
-            // Allow totals over 100 for live calculation preview
-            // if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
+            if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
         } else {
-             // Only validate non-zero weight categories that have *some* points entered but not 100
-            if (w.weight > 0 && t[w.key] > 0 && t[w.key] !== 100) {
-                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+            if (w.weight > 0 && t[w.key] !== 100) {
+                categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
             }
-            // Ensure 0-weight categories are either 0 or 100 (for full assignment overrides)
             if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
                  categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
             }
         }
     });
-    // Only add category error if rows have been entered
-    if (readRows().some(r => r.cs + r.konzept + r.pitch > 0) && categoryErrors.length > 0) {
-         errors.categories = categoryErrors.join(' | ');
-    }
-
+    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
 
     const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
     if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
-    if (forLive && sumW === 0 && readRows().some(r => r.cs + r.konzept + r.pitch > 0)) { // Only show error if weights are 0 AND rows have points
-         errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
-    }
+    if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
     
     return errors;
 }
@@ -1013,12 +935,11 @@ function displayValidation(errors){
 function recalc(){
   const liveErrors = validateInput(true);
   const liveAmount = parseAmountInput(auftragswert.value);
-  // Always calculate live results if possible, even with >100 points temporarily
-  if (!liveErrors.weights) { // Only check for 0 weights error
+  if (Object.keys(liveErrors).length === 0) {
     const result = compute(readRows(), currentWeights(), liveAmount, true);
     updateLiveResults(result.list);
   } else {
-    updateLiveResults([]); // Clear if weights are zero
+    updateLiveResults([]);
   }
   
   const finalErrors = validateInput(false);
@@ -1042,10 +963,10 @@ function updateLiveResults(resultList) {
     const key = name || `_temp_${index}`;
     const resultData = resultByKey.get(key);
 
-    if (resultData && auftragswertBekannt.checked && parseAmountInput(auftragswert.value) > 0) {
+    if (resultData && auftragswertBekannt.checked) {
       resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
       resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
-    } else if (resultData) { // Show percentage even if amount is unknown/zero
+    } else if (resultData) {
       resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
       resultEl.querySelector('.money').textContent = `- €`;
     }
@@ -1116,31 +1037,19 @@ btnSave.addEventListener('click', async () => {
 
 async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
-  // Calculate final distribution only if amount > 0 and rows exist
-  const resultData = (finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0)) 
-                     ? compute(st.input.rows, st.input.weights, finalAmount) 
-                     : { list: [], totals: {cs:0, konzept:0, pitch:0}, effectiveWeights: st.input.weights || [] };
-
-  // Determine completeness based on minimum requirements (client, title) and potential for later completion
-  const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && resultData.list.length > 0);
-  
-  const date = getTimestamp(st.input.freigabedatum); // Convert date string to timestamp
+  const resultData = compute(st.input.rows, st.input.weights, finalAmount);
+  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  const date = new Date(st.input.freigabedatum).getTime();
   const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
 
   const payload={
-    source:st.source||'manuell', 
-    complete:isComplete, 
-    client:st.input.client||'',
-    title:st.input.title||'', 
-    amount:finalAmount, 
+    source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
+    title:st.input.title||'', amount:finalAmount, 
     projectType: st.input.projectType || 'fix',
-    rows: st.input.rows || [], // Always save rows, even if empty
+    rows: st.input.rows || [],
     list:resultData.list||[],
-    totals:resultData.totals||{}, 
-    weights:resultData.effectiveWeights||[], 
-    submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', 
-    kv_nummer: st.input.kvNummer, 
+    totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
+    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
     freigabedatum: date,
     ts: ts,
     modified: st.editingId ? Date.now() : undefined, // Only set modified on update
@@ -1203,8 +1112,8 @@ function loadInputForm(inputData, isEditing = false) {
 
         projectNumber.disabled = !isEditing;
         kvNummer.disabled = !isEditing;
-        // Freigabedatum immer editierbar, außer bei Anlage eines neuen Rahmenvertrags
-        freigabedatum.disabled = (!isEditing && (inputData.projectType === 'rahmen' || document.querySelector('input[name="projectType"]:checked')?.value === 'rahmen'));
+        // Freigabedatum sollte editierbar sein, außer bei Erstellung eines Rahmenvertrags (da noch keine Abrufe)
+        freigabedatum.disabled = (!isEditing && inputData.projectType === 'rahmen'); 
         
         projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
         kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
@@ -1232,24 +1141,10 @@ function loadInputForm(inputData, isEditing = false) {
         tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0)));
         tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
       });
-    } else { addRow(true); addRow(false); } // Start with two rows
+    } else { addRow(true); addRow(false); }
     hasUnsavedChanges = false;
     recalc();
 }
-
-// Disable freigabedatum when Rahmenvertrag is selected on new entry
-document.querySelectorAll('input[name="projectType"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        const st = loadState();
-        const isNewEntry = !st?.editingId && !st?.isAbrufMode;
-        freigabedatum.disabled = (isNewEntry && e.target.value === 'rahmen');
-        if (freigabedatum.disabled) freigabedatum.value = ''; // Clear if disabled
-        hasUnsavedChanges = true;
-        saveCurrentInputState();
-        recalc();
-    });
-});
-
 
 function clearInputFields() {
     saveState({ source: 'manuell' });
@@ -1262,18 +1157,15 @@ function compute(rows, weights, amount, forLive=false){
   const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
   const effWeights = (weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
   
-  // Normalize weights only for final calculation (not live) if rows have points
-  const calcWeights = (forLive || !rows.some(r => r.cs + r.konzept + r.pitch > 0)) 
-                      ? effWeights 
-                      : normalizeWeightsForUsed(effWeights, usedKeys);
+  const calcWeights = forLive ? effWeights : normalizeWeightsForUsed(effWeights, usedKeys);
   
   const map=new Map();
   rows.forEach((r, index)=>{
     const act=r.cs+r.konzept+r.pitch>0;
-    const key = r.name.trim() || `_temp_${index}`; // Use temp key for unnamed rows
-    if (!r.name.trim() && !act) return; // Skip totally empty rows
+    const key = r.name.trim() || `_temp_${index}`;
+    if (!r.name.trim() && !act) return;
 
-    const cur=map.get(key) || { name: r.name.trim(), cs:0, konzept:0, pitch:0 };
+    const cur=map.get(key) || { name: r.name, cs:0, konzept:0, pitch:0 };
     cur.cs+=r.cs; cur.konzept+=r.konzept; cur.pitch+=r.pitch;
     map.set(key,cur);
   });
@@ -1283,68 +1175,34 @@ function compute(rows, weights, amount, forLive=false){
 
   for(const [key, p] of map.entries()){
     let pct=0;
-    // Avoid division by zero if total for a category is 0 but someone has points
-    const divCS = t.cs > 0 ? t.cs : 1; 
-    const divKonzept = t.konzept > 0 ? t.konzept : 1;
-    const divPitch = t.pitch > 0 ? t.pitch : 1;
+    const divCS = forLive ? 100 : (t.cs || 1);
+    const divKonzept = forLive ? 100 : (t.konzept || 1);
+    const divPitch = forLive ? 100 : (t.pitch || 1);
 
-    // Apply weight only if the category total is > 0 OR if calculating live (allow preview)
-    if((usedKeys.includes('cs') || forLive) && wIdx.cs > 0) pct += wIdx.cs * (p.cs / (forLive ? 100 : divCS));
-    if((usedKeys.includes('konzept') || forLive) && wIdx.konzept > 0) pct += wIdx.konzept * (p.konzept / (forLive ? 100 : divKonzept));
-    if((usedKeys.includes('pitch') || forLive) && wIdx.pitch > 0) pct += wIdx.pitch * (p.pitch / (forLive ? 100 : divPitch));
-    
-    // Only add if name exists or points > 0
-    if (p.name || p.cs+p.konzept+p.pitch > 0) {
-       list.push({ key, name: p.name, pct: pct * 100 });
-    }
+    if(usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
+    if(usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
+    if(usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
+    list.push({ key, name: p.name, pct: pct * 100 });
   }
   
   list.sort((a,b)=>b.pct-a.pct); 
-  
-  // Redistribute rounding errors only for final calculation
-  if(!forLive && list.length > 0) {
-      const sum=list.reduce((a,x)=>a+x.pct,0);
-      const resid=100-sum; 
-      if(Math.abs(resid)>1e-9) list[0].pct+=resid; // Add remainder to top person
+  if(!forLive) {
+      const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; 
+      if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
   }
   
-  list.forEach(x=>{if(x.pct<0)x.pct=0;}); // Ensure no negative percentages
-  
+  list.forEach(x=>{if(x.pct<0)x.pct=0;});
   const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
   return { totals:t, usedKeys, effectiveWeights: calcWeights, list:withMoney };
 }
 
 function normalizeWeightsForUsed(allWeights, usedKeys){
-  // Filter weights that are actually used (have points in rows)
-  const used = allWeights.filter(w => usedKeys.includes(w.key) && w.weight > 0); 
-  const sum = used.reduce((a, w) => a + w.weight, 0);
-
-  // If no used weights with value > 0, return original or default distribution based on non-zero weights
-  if (sum <= 0) {
-      const nonZeroWeights = allWeights.filter(w => w.weight > 0);
-      const nonZeroSum = nonZeroWeights.reduce((a,w) => a + w.weight, 0);
-      if (nonZeroSum <= 0) return allWeights; // Should not happen if default weights exist
-      const factor = 100 / nonZeroSum;
-      return allWeights.map(w => ({ key: w.key, weight: Math.round(w.weight * factor) }));
-  }
-
-  const factor = 100 / sum;
-  const out = allWeights.map(w => 
-      (usedKeys.includes(w.key) && w.weight > 0) 
-          ? { key: w.key, weight: w.weight * factor } 
-          : { key: w.key, weight: 0 }
-  );
-
-  // Adjust for rounding errors - find first used weight and add remainder
-  let roundedSum = out.reduce((a, w) => a + Math.round(w.weight), 0);
-  let rem = 100 - roundedSum; 
-  if (rem !== 0) {
-      const ix = out.findIndex(x => usedKeys.includes(x.key) && x.weight > 0); 
-      if (ix >= 0) out[ix].weight += rem;
-  }
-  
-  // Final rounded weights
-  return out.map(w => ({ key: w.key, weight: Math.round(w.weight) }));
+  const used=allWeights.filter(w=>usedKeys.includes(w.key)); const sum=used.reduce((a,w)=>a+w.weight,0);
+  if(sum<=0) return allWeights.map(w=>({key:w.key,weight:w.weight}));
+  const factor=100/sum;
+  const out=allWeights.map(w=> usedKeys.includes(w.key)?{key:w.key,weight:w.weight*factor}:{key:w.key,weight:0});
+  const rem=100-out.reduce((a,w)=>a+Math.round(w.weight),0); if(rem!==0){const ix=out.findIndex(x=>usedKeys.includes(x.key)); if(ix>=0) out[ix].weight+=rem;}
+  return out.map(w=>({key:w.key,weight:Math.round(w.weight)}));
 }
 
 
@@ -1361,11 +1219,7 @@ let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'t
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
-// Completeness check now also considers if rows have been added, even if points are zero yet
-function autoComplete(e){ 
-    return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.rows) && e.rows.length > 0 && Array.isArray(e.list) && e.list.length > 0); 
-}
-
+function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 
 function filtered(type = 'fix'){
   let arr = entries.filter(e => (e.projectType || 'fix') === type);
@@ -1391,9 +1245,7 @@ function filtered(type = 'fix'){
       if (searchText) {
         arr = arr.filter(e => 
           String(e.title || '').toLowerCase().includes(searchText) || 
-          String(e.client || '').toLowerCase().includes(searchText) ||
-          String(e.projectNumber || '').toLowerCase().includes(searchText) || // Search project number
-          String(e.kv_nummer || '').toLowerCase().includes(searchText) // Search KV number
+          String(e.client || '').toLowerCase().includes(searchText)
         );
       }
 
@@ -1412,20 +1264,9 @@ function filtered(type = 'fix'){
             if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
           }
         }
-        // Add date filter possibility? e.g., datum:>2025-01-01
-        if (key === 'datum' || key === 'freigabe') {
-            const dateVal = value.startsWith('>') || value.startsWith('<') ? value.substring(1) : value;
-            const dateTs = getTimestamp(dateVal);
-            if(dateTs > 0) {
-                if(value.startsWith('>')) arr = arr.filter(e => (e.freigabedatum || e.ts || 0) >= dateTs);
-                else if (value.startsWith('<')) arr = arr.filter(e => (e.freigabedatum || e.ts || 0) <= getTimestamp(dateVal + 'T23:59:59')); // <= end of day
-                else arr = arr.filter(e => formatDateForInput(e.freigabedatum || e.ts) === dateVal); // Exact match
-            }
-        }
       });
   }
 
-  // Sorting logic remains the same
   arr.sort((a,b) => {
     let valA, valB;
     if (currentSort.key === 'ts') { 
@@ -1475,7 +1316,7 @@ function renderHistory(){
   }
   
   document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
-  updateBatchButtons(); // Update button states after rendering
+  updateBatchButtons();
 }
 omniSearch.addEventListener('input', renderHistory);
 rahmenSearch.addEventListener('input', renderFrameworkContracts);
@@ -1486,7 +1327,6 @@ function getSelectedFixIds() {
 
 function updateBatchButtons() {
     const selectedIds = getSelectedFixIds();
-    const fixTableRows = document.querySelectorAll('#historyBody .row-check');
     if (selectedIds.length > 0) {
         btnBatchDelete.classList.remove('hide');
         btnMoveToFramework.classList.remove('hide');
@@ -1496,9 +1336,7 @@ function updateBatchButtons() {
         btnBatchDelete.classList.add('hide');
         btnMoveToFramework.classList.add('hide');
     }
-    // Check/uncheck "select all" checkbox
-    checkAllFix.checked = fixTableRows.length > 0 && selectedIds.length === fixTableRows.length;
-    checkAllFix.indeterminate = selectedIds.length > 0 && selectedIds.length < fixTableRows.length;
+    checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
 
 checkAllFix.addEventListener('change', () => {
@@ -1568,11 +1406,6 @@ btnBatchDelete.addEventListener('click', () => {
 
 historyBody.addEventListener('click', async(ev)=>{
   const btn=ev.target.closest('button[data-act]'); if(!btn) return;
-  // Prevent edit/delete if batch is running
-  if (isBatchRunning) {
-      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-      return;
-  }
   const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
   if(act==='edit'){
     editEntry(id);
@@ -1597,7 +1430,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
     const { id, ids, type, parentId } = pendingDelete;
     document.getElementById('confirmDlg').close();
     
-    showLoader(); // Show small loader initially
+    showLoader();
     try {
         if (type === 'entry') {
             if (!id) return;
@@ -1612,60 +1445,36 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             hideLoader(); // Hide small loader, show batch progress
             showBatchProgress('Lösche Einträge...', ids.length);
             let count = 0;
-            let errors = [];
             for (const entryId of ids) {
                 count++;
                 updateBatchProgress(count, ids.length);
-                try {
-                    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
-                     if (!r.ok) throw new Error(`Fehler beim Löschen von ${entryId}: ${await r.text()}`);
-                } catch(err) {
-                     errors.push(entryId);
-                     console.error(`Fehler beim Löschen von ${entryId}:`, err);
-                }
-                await throttle(); // Throttle even if error occurred
+                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+                if (!r.ok) throw new Error(`Fehler beim Löschen von ${entryId}: ${await r.text()}`);
+                await throttle();
             }
-            if (errors.length > 0) {
-                 showToast(`${ids.length - errors.length} Einträge gelöscht. ${errors.length} Fehler.`, 'warn');
-            } else {
-                showToast(`${count} Einträge gelöscht.`, 'ok');
-            }
+            showToast(`${count} Einträge gelöscht.`, 'ok');
             await loadHistory(); // Reload all data
             renderHistory();
         } else if (type === 'transaction') {
             if (!id || !parentId) return;
-            // Find the entry in the *current* in-memory `entries` array
-            const entryIndex = entries.findIndex(e => e.id === parentId);
-            if (entryIndex < 0 || !Array.isArray(entries[entryIndex].transactions)) throw new Error('Parent entry or transactions not found');
-            const entry = entries[entryIndex]; // Reference to the object in the array
-            
-            const transIndex = entry.transactions.findIndex(t => t.id === id);
-            if(transIndex < 0) throw new Error('Transaction not found in entry');
-
-            const originalTransactions = JSON.parse(JSON.stringify(entry.transactions)); // Backup
-            entry.transactions.splice(transIndex, 1); // Remove directly
+            const entry = entries.find(e => e.id === parentId);
+            if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+            const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
+            entry.transactions = entry.transactions.filter(t => t.id !== id);
             entry.modified = Date.now();
-            
-            try {
-                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-                });
-                if (!r.ok) throw new Error(await r.text());
-                showToast('Abruf gelöscht.', 'ok');
-                // No need to reload history, just re-render details if visible
-                if (!document.getElementById('viewRahmenDetails').classList.contains('hide')) {
-                     renderRahmenDetails(parentId);
-                }
-            } catch (updateError) {
-                // Rollback on failure
-                entries[entryIndex].transactions = originalTransactions;
-                entries[entryIndex].modified = undefined; // Or original modified time if available
-                throw updateError; // Re-throw the error
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+            });
+            if (!r.ok) {
+              entry.transactions = originalTransactions; // rollback on fail
+              throw new Error(await r.text());
             }
+            showToast('Abruf gelöscht.', 'ok');
+            renderRahmenDetails(parentId);
         }
     } catch (e) {
         showToast('Aktion fehlgeschlagen.', 'bad');
-        console.error("Fehler im Löschprozess:", e);
+        console.error(e);
     } finally {
         hideLoader();
         hideBatchProgress();
@@ -1694,17 +1503,15 @@ let editingTransactionId = null;
 function filteredFrameworks() {
     let arr = entries.filter(e => e.projectType === 'rahmen');
     const query = rahmenSearch.value.trim().toLowerCase();
-    if (!query) return arr.sort((a, b) => (b.modified || b.ts || 0) - (a.modified || a.ts || 0)); // Add fallback 0
+    if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 
     return arr.filter(e => {
       if (String(e.title || '').toLowerCase().includes(query)) return true;
       if (String(e.client || '').toLowerCase().includes(query)) return true;
-      if (String(e.projectNumber || '').toLowerCase().includes(query)) return true; // Search project number
       if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
 
       if (Array.isArray(e.transactions)) {
         for (const trans of e.transactions) {
-          if (String(trans.kv_nummer || '').toLowerCase().includes(query)) return true; // Search KV in transactions
           if (trans.type === 'hunter') {
             if (String(trans.title || '').toLowerCase().includes(query)) return true;
             if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
@@ -1712,7 +1519,7 @@ function filteredFrameworks() {
         }
       }
       return false;
-    }).sort((a, b) => (b.modified || b.ts || 0) - (a.modified || a.ts || 0));
+    }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 }
 
 function renderFrameworkContracts() {
@@ -1723,7 +1530,7 @@ function renderFrameworkContracts() {
     const tr = document.createElement('tr');
     tr.classList.add('clickable');
     tr.dataset.id = e.id;
-    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + (trans.amount || 0), 0); // Handle missing amount
+    const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
     totalSum += totalValue;
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
@@ -1743,11 +1550,6 @@ function renderFrameworkContracts() {
 }
 
 rahmenBody.addEventListener('click', (e) => {
-  // Prevent actions if batch is running
-  if (isBatchRunning) {
-      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-      return;
-  }
   const btn = e.target.closest('button[data-act]');
   if (btn) {
     e.stopPropagation(); // Stop click from bubbling to the row
@@ -1781,20 +1583,14 @@ rahmenBody.addEventListener('click', (e) => {
 
 
 async function saveHunterAbruf(st) {
-    // Find parent in the current `entries` array
-    const parentEntryIndex = entries.findIndex(e => e.id === st.parentEntry.id);
-    if (parentEntryIndex < 0) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
-    const parentEntry = entries[parentEntryIndex]; // Reference to the object in the array
+    const parentEntry = entries.find(e => e.id === st.parentEntry.id);
+    if (!parentEntry) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
     
     const abrufAmount = auftragswertBekannt.checked ? st.input.amount : 0;
-    // Calculate distribution only if amount > 0 and rows exist
-    const resultData = (abrufAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0)) 
-                     ? compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)))
-                     : { list: [], totals: {cs:0, konzept:0, pitch:0}, effectiveWeights: st.input.weights || [] };
-
+    const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
-    const date = getTimestamp(st.input.freigabedatum);
+    const date = new Date(st.input.freigabedatum).getTime();
 
     const newTransaction = {
         id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
@@ -1821,14 +1617,13 @@ async function saveHunterAbruf(st) {
         if (!r.ok) throw new Error(await r.text());
         showToast(`Aktiver Abruf hinzugefügt`, 'ok');
         clearInputFields();
-        // No full history reload needed, data is updated in memory
-        renderFrameworkContracts(); // Re-render list with updated sum
-        showView('rahmen');
+        loadHistory().then(() => { // Reload data after save
+          renderFrameworkContracts();
+          showView('rahmen');
+        });
     } catch (e) {
         showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
         console.error(e);
-        // Potential rollback? If save fails, remove the transaction added locally?
-        // parentEntry.transactions.pop(); // Simple rollback if it was the last added
     } finally {
         hideLoader();
     }
@@ -1841,32 +1636,30 @@ document.getElementById('backToRahmen').addEventListener('click', () => showView
 
 function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
     const personTotals = new Map();
-    // Ensure startDate and endDate are valid numbers
-    const validStart = Number.isFinite(startDate) ? startDate : 0;
-    const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
-
     const transactions = (entry.transactions || []).filter(t => {
         const d = t.freigabedatum || t.ts || 0;
+        // Make sure start and end are valid numbers
+        const validStart = Number.isFinite(startDate) ? startDate : 0;
+        const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
         return d >= validStart && d <= validEnd;
     });
     let totalVolume = 0;
 
     transactions.forEach(trans => {
-        totalVolume += (trans.amount || 0); // Handle potential missing amount
+        totalVolume += trans.amount;
         if (trans.type === 'founder') {
             (entry.list || []).forEach(founder => {
-                const money = (trans.amount || 0) * (founder.pct / 100);
+                const money = trans.amount * (founder.pct / 100);
                 personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
             });
         } else if (trans.type === 'hunter') {
-            const founderShareAmount = (trans.amount || 0) * (FOUNDER_SHARE_PCT / 100);
+            const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
             (entry.list || []).forEach(founder => {
                 const money = founderShareAmount * (founder.pct / 100);
                 personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
             });
             (trans.list || []).forEach(hunter => {
-                // hunter.money should already be calculated correctly by compute()
-                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + (hunter.money || 0));
+                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
             });
         }
     });
@@ -1877,16 +1670,8 @@ function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
         name,
         money,
         pct: (money / totalVolume) * 100
-    })).filter(p => p.money > 0.001) // Filter out negligible amounts
-      .sort((a, b) => b.money - a.money);
+    })).sort((a, b) => b.money - a.money);
     
-     // Adjust rounding for percentages if needed
-    if (list.length > 0) {
-        let pctSum = list.reduce((sum, p) => sum + p.pct, 0);
-        let diff = 100 - pctSum;
-        if (Math.abs(diff) > 1e-9) list[0].pct += diff;
-    }
-      
     return { list, total: totalVolume };
 }
 
@@ -1897,8 +1682,7 @@ function renderRahmenDetails(id) {
 
     document.getElementById('rahmenDetailsTitle').textContent = entry.title;
     
-    // Calculate total based on ALL transactions for the header
-    const { total: totalValue } = calculateActualDistribution(entry); 
+    const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry); // Calculate total based on ALL transactions
     document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''} | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
     
     const foundersBody = document.getElementById('rahmenFoundersBody');
@@ -1909,8 +1693,6 @@ function renderRahmenDetails(id) {
         foundersBody.appendChild(tr);
     });
     
-    // Calculate distribution based on ALL transactions for the table
-    const { list: actualDistribution } = calculateActualDistribution(entry); 
     rahmenActualBody.innerHTML = '';
     actualDistribution.forEach(person => {
         const tr = document.createElement('tr');
@@ -1919,7 +1701,7 @@ function renderRahmenDetails(id) {
     });
 
     rahmenTransaktionenBody.innerHTML = '';
-    (entry.transactions || []).sort((a,b) => (b.freigabedatum || b.ts || 0) - (a.freigabedatum || a.ts || 0)).forEach(trans => { // Sort by freigabedatum desc
+    (entry.transactions || []).sort((a,b) => (b.freigabedatum || b.ts) - (a.freigabedatum || a.ts)).forEach(trans => {
         const tr = document.createElement('tr');
         tr.classList.add('clickable');
         tr.dataset.transId = trans.id;
@@ -1928,7 +1710,7 @@ function renderRahmenDetails(id) {
             <td>${trans.kv_nummer || '–'}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
-            <td>${fmtCurr2.format(trans.amount || 0)}</td>
+            <td>${fmtCurr2.format(trans.amount)}</td>
             <td>${datum}</td>
             <td style="display:flex;gap:8px;align-items:center">
                 <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -1939,11 +1721,6 @@ function renderRahmenDetails(id) {
 }
 
 rahmenTransaktionenBody.addEventListener('click', (ev) => {
-     // Prevent actions if batch is running
-    if (isBatchRunning) {
-        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-        return;
-    }
     const row = ev.target.closest('tr.clickable');
     const delBtn = ev.target.closest('button[data-act="del-trans"]');
     
@@ -1999,13 +1776,11 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
         return;
     }
     
-    // Find target framework in the *current* in-memory `entries` array
-    const targetFrameworkIndex = entries.findIndex(e => e.id === targetFrameworkId);
-    if (targetFrameworkIndex < 0) {
+    const targetFramework = entries.find(e => e.id === targetFrameworkId);
+    if (!targetFramework) {
         moveValidationSummary.textContent = 'Ziel-Rahmenvertrag nicht gefunden.';
         return;
     }
-    const targetFramework = entries[targetFrameworkIndex]; // Reference to the object
 
     const fixEntriesToMove = entries.filter(e => selectedIds.includes(e.id));
     
@@ -2013,7 +1788,7 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
     if (moveType === 'hunter') {
         const incompleteEntries = fixEntriesToMove.filter(e => !autoComplete(e));
         if (incompleteEntries.length > 0) {
-            moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => `"${e.title}"`).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
+            moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => e.title).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
             return;
         }
     }
@@ -2022,85 +1797,61 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
     showBatchProgress(`Verschiebe Aufträge...`, selectedIds.length);
     
     let count = 0;
-    let errors = [];
-    let updatedFrameworkData = JSON.parse(JSON.stringify(targetFramework)); // Work on a copy
-
     try {
-        if (!Array.isArray(updatedFrameworkData.transactions)) {
-            updatedFrameworkData.transactions = [];
-        }
-
         for (const entry of fixEntriesToMove) {
             count++;
             updateBatchProgress(count, selectedIds.length);
             
-            // 1. Create new transaction object
+            // 1. Create new transaction
             let newTransaction;
             if (moveType === 'founder') {
                 newTransaction = {
-                    id: `trans_${Date.now()}_${entry.kv_nummer?.replace(/\W/g, '') || count}`, // Add count fallback
+                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
                     kv_nummer: entry.kv_nummer,
                     type: 'founder',
-                    amount: entry.amount || 0, // Ensure amount is number
+                    amount: entry.amount,
                     ts: Date.now(),
-                    freigabedatum: entry.freigabedatum || entry.ts || Date.now() // Prioritize freigabedatum
+                    freigabedatum: entry.freigabedatum || entry.ts
                 };
             } else { // hunter
-                // Create a clean copy for the transaction
-                const { id, projectType, transactions, source, hubspotId, pipeline, dealstage, closedate, ...restOfEntry } = entry;
+                // Create a clean copy for the transaction, removing framework-specific fields if they exist
+                const { id, projectType, transactions, ...restOfEntry } = entry;
                 newTransaction = {
-                    ...restOfEntry, // copy relevant data (title, client, amount, rows, list, weights, submittedBy, projectNumber, kv_nummer, freigabedatum)
-                    id: `trans_${Date.now()}_${entry.kv_nummer?.replace(/\W/g, '') || count}`,
+                    ...restOfEntry, // copy relevant data
+                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
                     type: 'hunter',
                     ts: Date.now() // new internal timestamp
+                    // freigabedatum is already part of 'restOfEntry'
                 };
             }
             
-            // Add transaction to the temporary framework copy
-            updatedFrameworkData.transactions.push(newTransaction);
-            updatedFrameworkData.modified = Date.now();
+             // Ensure targetFramework.transactions exists and is an array
+            if (!Array.isArray(targetFramework.transactions)) {
+                targetFramework.transactions = [];
+            }
+            targetFramework.transactions.push(newTransaction);
+            targetFramework.modified = Date.now();
             
-            // 2. Save the updated framework *only once at the end* for efficiency? No, needs save+delete per item for atomicity.
-
-            // 2a. Save target framework with the new transaction
+            // 2. Save target framework
             const rPut = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(targetFramework.id)}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedFrameworkData)
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(targetFramework)
             });
             if (!rPut.ok) throw new Error(`Fehler beim Speichern von Rahmenvertrag ${targetFramework.id}: ${await rPut.text()}`);
             
-            // 3. Delete original fix order *after* successful save
+            // 3. Delete original fix order
             const rDel = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
-            if (!rDel.ok) {
-                 // Try to rollback? Difficult. Log error and continue?
-                 console.error(`Konnte Fixauftrag ${entry.id} nach Zuweisung nicht löschen:`, await rDel.text());
-                 errors.push(entry.id + " (Löschfehler)");
-                 // Continue to next item? Or stop? Let's continue for now.
-            } else {
-                 // Remove from local 'entries' array after successful delete
-                 const idxToRemove = entries.findIndex(e => e.id === entry.id);
-                 if (idxToRemove > -1) entries.splice(idxToRemove, 1);
-            }
-
-            // Update the main in-memory framework object *after* successful save of this step
-            entries[targetFrameworkIndex] = JSON.parse(JSON.stringify(updatedFrameworkData));
+            if (!rDel.ok) throw new Error(`Fehler beim Löschen von Fixauftrag ${entry.id}: ${await rDel.text()}`);
 
             await throttle();
         }
         
-        if (errors.length > 0) {
-             showToast(`${count - errors.length} Einträge verschoben. ${errors.length} Fehler (siehe Konsole).`, 'warn');
-        } else {
-             showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
-        }
-
+        showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
     } catch (e) {
         showToast(`Fehler nach ${count} Einträgen: ${e.message}`, 'bad');
-        console.error("Fehler im Verschiebe-Prozess:", e);
-        // Maybe reload history here to get consistent state?
-        await loadHistory();
+        console.error(e);
     } finally {
         hideBatchProgress();
-        // Re-render views with updated in-memory data
+        await loadHistory(); // Reload all data
         renderHistory();
         renderFrameworkContracts();
     }
@@ -2108,33 +1859,299 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
 
 
 /* ---------- Edit Modals ---------- */
-// ... (Modal code remains largely the same, ensure freigabedatum fields are handled) ...
+const editTransactionDlg = document.getElementById('editTransactionDlg');
+const editFounderTransView = document.getElementById('editFounderTransView');
+const editHunterTransView = document.getElementById('editHunterTransView');
+const editTransDlgTitle = document.getElementById('editTransDlgTitle');
+const editFounderValueInput = document.getElementById('editFounderValueInput');
+const editFounderKvNummer = document.getElementById('editFounderKvNummer');
+const editFounderFreigabedatum = document.getElementById('editFounderFreigabedatum');
+const editHunterTitle = document.getElementById('editHunterTitle');
+const editHunterAmount = document.getElementById('editHunterAmount');
+const editHunterKvNummer = document.getElementById('editHunterKvNummer');
+const editHunterFreigabedatum = document.getElementById('editHunterFreigabedatum');
+const editW_cs = document.getElementById('editW_cs');
+const editW_konzept = document.getElementById('editW_konzept');
+const editW_pitch = document.getElementById('editW_pitch');
+const editTbody = document.getElementById('editTbody');
+const editFrameworkContractDlg = document.getElementById('editFrameworkContractDlg');
 
-// ** Inside btnSaveTransaction click handler **
-// Ensure timestamp conversion for freigabedatum
-// ... existing validation ...
+function openEditTransactionModal(transaction, parentEntry) {
+    currentFrameworkEntryId = parentEntry.id;
+    editingTransactionId = transaction.id || null; // null for new founder transaction
+    
+    document.getElementById('editTransValidationSummary').textContent = '';
+    
+    if (transaction.type === 'founder') {
+        editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
+        editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
+        editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
+        editFounderFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
+        editFounderTransView.classList.remove('hide');
+        editHunterTransView.classList.add('hide');
+    } else { // hunter
+        editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
+        editHunterTitle.value = transaction.title || '';
+        editHunterAmount.value = formatAmountInput(transaction.amount);
+        editHunterKvNummer.value = transaction.kv_nummer || '';
+        editHunterFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
+        
+        const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+        const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+        editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+        editW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+        editW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+        
+        editTbody.innerHTML = '';
+        (transaction.rows || []).forEach(r => addEditRow(r, '#editTbody'));
+
+        editHunterTransView.classList.remove('hide');
+        editFounderTransView.classList.add('hide');
+    }
+    editTransactionDlg.showModal();
+}
+
+function addEditRow(rowData = {}, tbodySelector) {
+    const tbodyEl = document.querySelector(tbodySelector);
+    if (!tbodyEl) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" class="name" value="${rowData.name || ''}" list="peopleList"></td>
+        <td><input type="number" class="cs" value="${rowData.cs || 0}"></td>
+        <td><input type="number" class="konzept" value="${rowData.konzept || 0}"></td>
+        <td><input type="number" class="pitch" value="${rowData.pitch || 0}"></td>
+        <td><button class="delrow">X</button></td>
+    `;
+    tr.querySelector('.delrow').addEventListener('click', () => tr.remove());
+    tbodyEl.appendChild(tr);
+}
+document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow({}, '#editTbody'));
+
+document.getElementById('btnSaveTransaction').addEventListener('click', async () => {
+    const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+    if (!parentEntry) return;
+
+    const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
+    
+    let transaction = (transIndex > -1) ? JSON.parse(JSON.stringify(parentEntry.transactions[transIndex])) : {}; // Deep copy to avoid modifying original on error
+    let validationError = '';
+
+    if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
+        const rows = readRows('#editTbody');
+        const weights = [
+            {key:'cs', weight: toInt0(editW_cs.value)},
+            {key:'konzept', weight: toInt0(editW_konzept.value)},
+            {key:'pitch', weight: toInt0(editW_pitch.value)}
+        ];
+        
+        const errors = validateModalInput(rows, weights);
+        if (Object.keys(errors).length > 0) {
+            document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
+            return;
+        }
         if (!editHunterFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
-        // ...
-        transaction = { /* ... */, freigabedatum: getTimestamp(editHunterFreigabedatum.value) }; // Use getTimestamp
-// ... founder part ...
+
+        const amount = parseAmountInput(editHunterAmount.value);
+        const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
+        const resultData = compute(rows, weights, hunterShareAmount);
+        
+        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim(), freigabedatum: new Date(editHunterFreigabedatum.value).getTime() };
+
+    } else { // Saving a Founder transaction
+        if(!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
         if(!editFounderFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
-        // ...
-        transaction.freigabedatum = getTimestamp(editFounderFreigabedatum.value); // Use getTimestamp
-// ... rest of save logic ...
+        
+        transaction.amount = parseAmountInput(editFounderValueInput.value);
+        transaction.kv_nummer = editFounderKvNummer.value.trim();
+        transaction.freigabedatum = new Date(editFounderFreigabedatum.value).getTime();
+    }
+    
+    if (validationError) {
+        document.getElementById('editTransValidationSummary').innerHTML = validationError;
+        return;
+    }
+    
+    if (transIndex === -1) { // New founder transaction
+        transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g,'')}`;
+        transaction.ts = Date.now();
+        transaction.type = 'founder';
+        if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = []; // Ensure array exists
+        parentEntry.transactions.push(transaction);
+    } else {
+        parentEntry.transactions[transIndex] = transaction;
+    }
+    
+    parentEntry.modified = Date.now();
+    showLoader();
+    try {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Abruf aktualisiert', 'ok');
+        editTransactionDlg.close();
+        loadHistory().then(() => { // Reload data after saving
+            renderRahmenDetails(currentFrameworkEntryId);
+            renderFrameworkContracts(); // Update list view sum
+        });
+    } catch (e) {
+        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+    } finally {
+        hideLoader();
+    }
+});
 
+const editFwClient = document.getElementById('editFwClient');
+const editFwTitle = document.getElementById('editFwTitle');
+const editFwProjectNumber = document.getElementById('editFwProjectNumber');
+const editFwTbody = document.getElementById('editFwTbody');
+const editFwW_cs = document.getElementById('editFwW_cs');
+const editFwW_konzept = document.getElementById('editFwW_konzept');
+const editFwW_pitch = document.getElementById('editFwW_pitch');
+document.getElementById('editFwBtnAddRow').addEventListener('click', () => addEditRow({}, '#editFwTbody'));
 
-// ** Inside btnSaveFrameworkContract click handler **
-// No freigabedatum needed here, but recalculate list correctly
-// ... existing validation ...
-    const resultData = compute(rows, weights, 100); // Use 100 to get percentages
-    // ...
-    entry.list = resultData.list.map(({key, name, pct}) => ({key, name, pct})); // Save only pct
-// ... rest of save logic ...
+function openEditFrameworkContractModal(entry) {
+    currentFrameworkEntryId = entry.id;
+    document.getElementById('editFwValidationSummary').textContent = '';
+    editFwClient.value = entry.client || '';
+    editFwTitle.value = entry.title || '';
+    editFwProjectNumber.value = entry.projectNumber || '';
 
+    const weights = entry.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
+    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
+    editFwW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+    editFwW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+    editFwW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+
+    editFwTbody.innerHTML = '';
+    (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
+    editFrameworkContractDlg.showModal();
+}
+
+document.getElementById('btnSaveFrameworkContract').addEventListener('click', async () => {
+    const entry = entries.find(e => e.id === currentFrameworkEntryId);
+    if (!entry) return;
+
+    const rows = readRows('#editFwTbody');
+    const weights = [
+        {key:'cs', weight: toInt0(editFwW_cs.value)},
+        {key:'konzept', weight: toInt0(editFwW_konzept.value)},
+        {key:'pitch', weight: toInt0(editFwW_pitch.value)}
+    ];
+
+    const errors = validateModalInput(rows, weights);
+     if (rows.length === 0 || rows.every(r => r.name === '' && r.cs === 0 && r.konzept === 0 && r.pitch === 0)) {
+        errors.rows = 'Mindestens eine Person muss dem Gründer-Team zugewiesen sein.';
+    }
+    if (Object.keys(errors).length > 0) {
+        document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
+        return;
+    }
+    
+    // Recalculate founder list based on new rows/weights (amount doesn't matter here)
+    const resultData = compute(rows, weights, 100); // Amount 100 to get percentages
+
+    entry.client = editFwClient.value.trim();
+    entry.title = editFwTitle.value.trim();
+    entry.projectNumber = editFwProjectNumber.value.trim();
+    entry.rows = rows; // Save the raw input rows
+    entry.weights = resultData.effectiveWeights; // Save the potentially normalized weights
+    entry.list = resultData.list.map(({key, name, pct}) => ({key, name, pct})); // Save only pct, not money
+    entry.modified = Date.now();
+
+    showLoader();
+    try {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+        });
+        if (!r.ok) throw new Error(await r.text());
+        showToast('Rahmenvertrag aktualisiert', 'ok');
+        editFrameworkContractDlg.close();
+        loadHistory().then(() => { // Reload data
+            renderFrameworkContracts();
+            if(document.getElementById('viewRahmenDetails').classList.contains('hide') === false) {
+                 renderRahmenDetails(currentFrameworkEntryId); // Update details if visible
+            }
+        });
+    } catch (e) {
+        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+    } finally {
+        hideLoader();
+    }
+});
+
+function validateModalInput(rows, weights) {
+    const errors = {};
+    const t = totals(rows);
+    let categoryErrors = [];
+    weights.forEach(w => {
+        if (w.weight > 0 && t[w.key] !== 100) {
+            categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+        }
+         if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+             categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+        }
+    });
+    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+
+    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+    if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    
+    return errors;
+}
 
 /* ---------- Admin ---------- */
-// ... (Admin code remains the same) ...
+const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
+document.getElementById('adm_add').onclick = () => adminCreate();
+admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
+adminSearch.addEventListener('input', renderPeopleAdmin);
 
+function renderPeopleAdmin(){
+  admBody.innerHTML='';
+  const query = adminSearch.value.toLowerCase();
+  const filteredPeople = people.filter(p => p.name.toLowerCase().includes(query) || (p.team||'').toLowerCase().includes(query));
+
+  filteredPeople.forEach(p=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${p.name}"></td>
+      <td><select>${TEAMS.map(t=>`<option value="${t}" ${p.team===t?'selected':''}>${t}</option>`).join('')}</select></td>
+      <td style="display:flex;gap:8px">
+        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </td>`;
+    admBody.appendChild(tr);
+  });
+}
+admBody.addEventListener('click',async(ev)=>{
+  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
+  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const tr=btn.closest('tr');
+  showLoader();
+  try{
+    if(act==='save'){
+      const name=tr.querySelector('td:nth-child(1) input').value.trim();
+      const team=tr.querySelector('td:nth-child(2) select').value;
+      if(!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,name,team})});
+      if(!r.ok) throw new Error(await r.text());
+      showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
+    } else if(act==='del'){
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, _delete:true})});
+      if(!r.ok) throw new Error(await r.text());
+      showToast('Person gelöscht.', 'ok'); await loadPeople(); renderPeopleAdmin();
+    }
+  } catch(e){ showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
+});
+async function adminCreate(){
+  const name=admName.value.trim(); const team=admTeam.value;
+  if(!name || !team){ showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
+  showLoader();
+  try{
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:`p_${Date.now()}`,name,team})});
+    if(!r.ok) throw new Error(await r.text());
+    showToast('Person angelegt.', 'ok'); admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
+  }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
+}
 
 /* ---------- ERP Import ---------- */
 const btnErpImport = document.getElementById('btnErpImport');
@@ -2154,10 +2171,7 @@ function parseExcelDate(excelDate) {
         // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
         // Fängt auch ungültige Excel-Daten ab (z.B. 0)
         if (excelDate > 0) {
-             // Check if it's likely a date (e.g., > 30000 for dates after 1982)
-            if (excelDate > 30000) {
-                 return new Date((excelDate - 25569) * 86400 * 1000);
-            }
+            return new Date((excelDate - 25569) * 86400 * 1000);
         }
     }
     if (typeof excelDate === 'string') {
@@ -2176,12 +2190,6 @@ function parseExcelDate(excelDate) {
             d = new Date(parts[3], parts[1] - 1, parts[2]);
             if (!isNaN(d.getTime())) return d;
         }
-         // Versuch YYYY-MM-DD
-         const isoParts = excelDate.match(/(\d{4})-(\d{2})-(\d{2})/);
-         if (isoParts) {
-             let d = new Date(isoParts[1], isoParts[2] - 1, isoParts[3]);
-             if (!isNaN(d.getTime())) return d;
-         }
     }
     return null; // Ungültiges Format oder Wert
 }
@@ -2199,7 +2207,7 @@ async function handleErpImport() {
     importResult.classList.add('hide');
     
     try {
-        await loadHistory(); // Ensure we have the latest data before starting
+        await loadHistory(); // Ensure we have the latest data
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheetName = workbook.SheetNames[0];
@@ -2208,118 +2216,103 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
-        let skippedCount = 0; // Zähler für übersprungene Zeilen
+        let skippedCount = 0;
 
-        // Erstelle eine tiefe Kopie für die Bearbeitung, um Seiteneffekte zu managen
+        // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
         const allEntriesCopy = JSON.parse(JSON.stringify(entries));
-        const changesToPush = []; // Collect IDs of entries that need saving
+        const changesToPush = [];
         
-        // Erstelle schnelle Indizes aus der Kopie
+        // Erstelle einen schnellen Index für KV-Nummern aus der Kopie
         const kvIndex = new Map();
         allEntriesCopy.forEach(entry => {
             if (entry.kv_nummer) {
-                // Store reference to the entry in the copy
-                kvIndex.set(entry.kv_nummer, { type: 'fix', entryRef: entry });
+                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
             }
             if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
                 entry.transactions.forEach(trans => {
                     if (trans.kv_nummer) {
-                         // Store reference to parent entry and the transaction itself from the copy
-                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entryRef: entry, transactionRef: trans });
+                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
                     }
                 });
             }
         });
         
+        // Erstelle einen Index für Projektnummern von Rahmenverträgen aus der Kopie
         const frameworkProjectIndex = new Map();
         allEntriesCopy.forEach(entry => {
             if (entry.projectType === 'rahmen' && entry.projectNumber) {
-                 // Store reference to the entry in the copy
                 frameworkProjectIndex.set(entry.projectNumber, entry);
             }
         });
 
-        // Verarbeite jede Zeile aus der Excel-Datei
         for (const row of rows) {
             const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
-            const amountRaw = getVal(row, 'Agenturleistung netto');
-            const amount = parseAmountInput(amountRaw); // Korrigierte Funktion verwenden
-
-            // FILTER 1: Überspringe Zeile ohne KV-Nummer
             if (!kvNummer) {
                 skippedCount++;
-                console.warn("Zeile übersprungen: Keine KV-Nummer gefunden.", row);
-                continue; // Nächste Zeile
+                continue;
             }
 
-            // FILTER 2: Überspringe Zeile mit Betrag <= 0
-            if (amount <= 0) {
-                 skippedCount++;
-                 console.warn(`Zeile mit KV ${kvNummer} übersprungen: Betrag ist ${amount}€.`, row);
-                 continue; // Nächste Zeile
-            }
-
-            // --- Ab hier verarbeiten wir die gültige Zeile ---
             const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
+            // Versucht, verschiedene Formate zu parsen (mit Komma als Dezimaltrenner)
+            const amountRaw = getVal(row, 'Agenturleistung netto');
+            const amount = parseAmountInput(amountRaw); 
+            
             const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
             const title = getVal(row, 'Titel') || '';
-
-            // --- Datum verarbeiten (KORRIGIERT) ---
+            
             let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
-            const excelDateValue = getVal(row, 'Freigabedatum');
-            if (excelDateValue) {
-                const parsedDate = parseExcelDate(excelDateValue);
-                if (parsedDate && !isNaN(parsedDate.getTime())) { // Prüfe auf gültiges Datum
-                    freigabeTimestamp = parsedDate.getTime(); // Überschreibe Fallback mit Excel-Datum
+            const excelDate = getVal(row, 'Freigabedatum'); // Suche nach Freigabedatum
+            if (excelDate) {
+                const parsedDate = parseExcelDate(excelDate);
+                if (parsedDate) {
+                    freigabeTimestamp = parsedDate.getTime();
                 } else {
-                     console.warn(`Ungültiges Freigabedatum für KV ${kvNummer}: "${excelDateValue}". Verwende Importdatum.`);
+                     console.warn(`Ungültiges Freigabedatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
                 }
             } else {
-                 console.warn(`Kein Freigabedatum für KV ${kvNummer} gefunden, verwende Importdatum.`);
+                 console.warn(`Kein Freigabedatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
             }
-            // freigabeTimestamp enthält jetzt entweder das Excel-Datum oder das Importdatum
 
             const existing = kvIndex.get(kvNummer);
 
-            if (existing) { // Fall A: KV-Nummer wurde gefunden -> Update in der Kopie
+            if (existing) { // Fall A: KV-Nummer wurde gefunden
                 let currentAmount;
                 if (existing.type === 'transaction') {
-                    currentAmount = existing.transactionRef.amount;
+                    currentAmount = existing.transaction.amount;
                 } else {
-                    currentAmount = existing.entryRef.amount;
+                    currentAmount = existing.entry.amount;
                 }
 
-                // Vergleiche Beträge mit kleiner Toleranz
+                // Vergleiche Beträge mit kleiner Toleranz für Fließkomma-Ungenauigkeiten
                 if (Math.abs(currentAmount - amount) > 0.001) {
                     if (existing.type === 'transaction') {
-                        existing.transactionRef.amount = amount;
-                        // Optional: Freigabedatum auch aktualisieren? Ja.
-                        existing.transactionRef.freigabedatum = freigabeTimestamp;
+                        existing.transaction.amount = amount;
+                        // Optional: Freigabedatum aktualisieren, falls es sich geändert hat?
+                        // existing.transaction.freigabedatum = freigabeTimestamp; 
                     } else {
-                        existing.entryRef.amount = amount;
-                         // Optional: Freigabedatum auch aktualisieren? Ja.
-                        existing.entryRef.freigabedatum = freigabeTimestamp;
+                        existing.entry.amount = amount;
+                         // Optional: Freigabedatum aktualisieren?
+                        // existing.entry.freigabedatum = freigabeTimestamp;
                     }
-                    existing.entryRef.modified = Date.now(); // Update modified timestamp of the parent entry
-                    // Füge die ID des geänderten *Haupteintrags* zur Speicherliste hinzu
-                    if (!changesToPush.includes(existing.entryRef.id)) {
-                        changesToPush.push(existing.entryRef.id);
+                    existing.entry.modified = Date.now();
+                    // Stelle sicher, dass der Eintrag nur einmal in changesToPush landet
+                    if (!changesToPush.some(item => item.id === existing.entry.id)) {
+                        changesToPush.push(existing.entry);
                     }
                     updatedCount++;
                 } else {
-                    // Betrag ist gleich, nichts tun
-                    // skippedCount++; // Zählen wir nicht als übersprungen
+                    skippedCount++;
                 }
-            } else { // Fall B: KV-Nummer ist neu -> Hinzufügen zur Kopie
-                const parentFrameworkRef = frameworkProjectIndex.get(projektNummer);
+            } else { // Fall B: KV-Nummer ist neu
+                const parentFramework = frameworkProjectIndex.get(projektNummer);
                 
-                if (parentFrameworkRef) { // Fall B1: Rahmenvertrag gefunden
-                    if (!Array.isArray(parentFrameworkRef.transactions)) {
-                        parentFrameworkRef.transactions = [];
+                if (parentFramework) { // Fall B1: Rahmenvertrag gefunden
+                    if (!Array.isArray(parentFramework.transactions)) {
+                        parentFramework.transactions = [];
                     }
-                    // Prüfen ob die Transaktion (KV) nicht doch schon da ist
-                    if (!parentFrameworkRef.transactions.some(t => t.kv_nummer === kvNummer)) {
-                        parentFrameworkRef.transactions.push({
+                     // Prüfen ob die Transaktion (KV) nicht doch schon da ist (Sicherheitsnetz)
+                    if (!parentFramework.transactions.some(t => t.kv_nummer === kvNummer)) {
+                        parentFramework.transactions.push({
                             id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
                             kv_nummer: kvNummer,
                             type: 'founder', // Standard auf 'founder' (passiv)
@@ -2327,14 +2320,14 @@ async function handleErpImport() {
                             ts: Date.now(),
                             freigabedatum: freigabeTimestamp
                         });
-                        parentFrameworkRef.modified = Date.now();
-                        if (!changesToPush.includes(parentFrameworkRef.id)) {
-                            changesToPush.push(parentFrameworkRef.id);
+                        parentFramework.modified = Date.now();
+                         if (!changesToPush.some(item => item.id === parentFramework.id)) {
+                            changesToPush.push(parentFramework);
                         }
                         addedToFrameworkCount++;
                     } else {
-                         skippedCount++;
-                         console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFrameworkRef.id} vorhanden (Dopplung in Excel?), übersprungen.`);
+                         skippedCount++; // KV schon im RV vorhanden, aber nicht im Index (sollte nicht passieren)
+                         console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFramework.id} gefunden, obwohl nicht im Index.`);
                     }
                 } else { // Fall B2: Neuer Fixauftrag
                     const newFixEntry = {
@@ -2346,52 +2339,54 @@ async function handleErpImport() {
                         projectNumber: projektNummer,
                         kv_nummer: kvNummer,
                         amount: amount,
-                        list: [], rows: [], weights: [], // Leer initialisieren
+                        list: [],
+                        rows: [],
+                        weights: [],
                         ts: Date.now(),
                         freigabedatum: freigabeTimestamp,
-                        complete: false // Ist unvollständig
+                        complete: false // Ist unvollständig, da Verteilung fehlt
                     };
-                    allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu
-                    kvIndex.set(kvNummer, {type: 'fix', entryRef: newFixEntry}); // Füge zum Index hinzu
-                    changesToPush.push(newFixEntry.id); // Füge ID zur Speicherliste hinzu
+                    allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu für spätere Index-Checks
+                    kvIndex.set(kvNummer, {type: 'fix', entry: newFixEntry}); // Füge zum Index hinzu
+                    changesToPush.push(newFixEntry);
                     newFixCount++;
                 }
             }
-        } // Ende der for-Schleife
+        }
 
-        // Hole die tatsächlichen Entry-Objekte, die gespeichert werden müssen, aus der Kopie
-        const entriesToSave = allEntriesCopy.filter(entry => changesToPush.includes(entry.id));
-
+        // Keine Notwendigkeit mehr für uniqueChanges, da wir es jetzt direkt beim Pushen prüfen
+        
         hideLoader();
-        if (entriesToSave.length > 0) {
-            showBatchProgress('Speichere Import-Änderungen...', entriesToSave.length);
+        if (changesToPush.length > 0) {
+            showBatchProgress('Speichere Import-Änderungen...', changesToPush.length);
             let count = 0;
-            for (const entry of entriesToSave) {
+            for (const entry of changesToPush) {
                 count++;
-                updateBatchProgress(count, entriesToSave.length);
+                updateBatchProgress(count, changesToPush.length);
                 
-                // Prüfe, ob der Eintrag *ursprünglich* existierte, um POST vs PUT zu entscheiden
+// *** KORREKTUR HIER: Prüfe gegen den *ursprünglichen* entries-Array ***
                 const originalEntryExists = entries.some(originalEntry => originalEntry.id === entry.id);
                 const url = !originalEntryExists ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
                 const method = !originalEntryExists ? 'POST' : 'PUT';
-                
-                if (method === 'PUT' && !entry.id) {
+
+                // Stelle sicher, dass für PUT eine ID vorhanden ist
+                if(method === 'PUT' && !entry.id) {
                      throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
                 }
 
-                console.log(`Sending ${method} request to ${url} for ID ${entry.id} (KV ${entry.kv_nummer})`); // Debugging
+                console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`); // Debugging-Ausgabe
 
                 const r = await fetchWithRetry(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(entry) // Sende den aktualisierten Eintrag aus der Kopie
+                    body: JSON.stringify(entry)
                 });
                 if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+entry.kv_nummer+')')}: ${await r.text()}`);
                 await throttle();
             }
         }
 
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (fehlende KV, Betrag <= 0 o.ä.).`;
+        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (keine Änderungen oder fehlende KV-Nummer).`;
         importResult.innerHTML = resultMsg;
         importResult.classList.remove('hide');
         showToast('ERP-Daten erfolgreich importiert', 'ok');
@@ -2399,7 +2394,7 @@ async function handleErpImport() {
 
     } catch (e) {
         showToast('Fehler beim Importieren der Datei.', 'bad');
-        console.error("Import Fehler:", e);
+        console.error(e);
         importResult.textContent = 'Fehler: ' + e.message;
         importResult.classList.remove('hide');
     } finally {
@@ -2421,7 +2416,7 @@ const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
 function initAnalytics() {
     // Fülle Jahres-Dropdown (für Top-Listen)
     const currentYear = new Date().getFullYear();
-    anaYear.innerHTML = ''; // Clear previous options
+    anaYear.innerHTML = '';
     for (let y = 2022; y <= currentYear + 1; y++) {
       const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
     }
@@ -2468,7 +2463,6 @@ let analyticsData = { persons: [], teams: [], totals: [] };
 // Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
     try {
-        if (!dateStr) return 0; // Handle empty string
         const d = new Date(dateStr);
         return isNaN(d.getTime()) ? 0 : d.getTime();
     } catch { return 0; }
@@ -2477,23 +2471,22 @@ function getTimestamp(dateStr) {
 // Jährliche Top-Listen und Gesamtübersicht
 function renderAnalytics() {
   const year = Number(anaYear.value);
-  // Definiere Start- und End-Timestamp für das gewählte Jahr
+  // Definiere Start- und End-Timestamp für das gewählte Jahr (UTC oder lokale Zeitzone beachten?)
+  // Annahme: Lokale Zeitzone basierend auf formatDateForInput
   const startOfYear = getTimestamp(`${year}-01-01`);
-  // Ende des Jahres, sicherstellen, dass es den ganzen Tag umfasst
-  const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`); 
+  const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`);
 
   const per = new Map();
   let fixTotal = 0;
   let rahmenTotal = 0;
   
   entries.forEach(e => {
-    // Verwende Freigabedatum primär, fallback auf ts
-    const datum = e.freigabedatum || e.ts || 0; 
+    const datum = e.freigabedatum || e.ts || 0; // Verwende Freigabedatum primär
     
-    // Prüfe, ob das Datum überhaupt gültig ist und im gewählten Jahr liegt
-    if (!datum || datum < startOfYear || datum > endOfYear) return; 
-
     if(e.projectType === 'fix') {
+        // Prüfe, ob das Datum im gewählten Jahr liegt
+        if (!(datum >= startOfYear && datum <= endOfYear)) return;
+        
         const amount = e.amount || 0; if (amount <= 0) return;
         fixTotal += amount;
         // Zähle Personenbeiträge nur, wenn der Auftrag in diesem Jahr freigegeben wurde
@@ -2510,7 +2503,7 @@ function renderAnalytics() {
     }
   });
   
-  const perArr = Array.from(per, ([name, val]) => ({ name, val })).filter(x => x.val > 0.001).sort((a, b) => b.val - a.val).slice(0, 20);
+  const perArr = Array.from(per, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val).slice(0, 20);
   drawBars('chartPersons', perArr);
   analyticsData.persons = perArr;
 
@@ -2520,7 +2513,7 @@ function renderAnalytics() {
     const team = byNameTeam.get(name) || 'Ohne Team';
     teamMap.set(team, (teamMap.get(team) || 0) + val);
   });
-  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0.001).sort((a, b) => b.val - a.val);
+  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val);
   drawBars('chartTeams', teamArr);
   analyticsData.teams = teamArr;
   
@@ -2551,20 +2544,19 @@ function renderActivityAnalytics() {
         let total = 0;
         let count = 0;
         (e.transactions || []).forEach(t => {
-            // Freigabedatum primär, fallback auf ts
-            const datum = t.freigabedatum || t.ts || 0; 
+            const datum = t.freigabedatum || t.ts || 0; // Freigabedatum primär
             if (datum >= start && datum <= end) {
-                total += (t.amount || 0); // Handle missing amount
+                total += (t.amount || 0);
                 count++;
             }
         });
-        if (total > 0.001) { // Nur hinzufügen, wenn Betrag > 0
-            // Speichere ID, um Duplikate zu vermeiden
+        if (total > 0) {
+            // Speichere ID, um Duplikate zu vermeiden, falls Titel nicht eindeutig
             rahmenMap.set(e.id, { id: e.id, name: e.title, val: total, count: count });
         }
     });
     
-    const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10); // Top 10
+    const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10);
     const title = `Aktivste Rahmenverträge (${new Date(start).toLocaleDateString('de-DE')} - ${new Date(end).toLocaleDateString('de-DE')})`;
     document.getElementById('chartActivityTitle').textContent = title;
     drawBars('chartActivity', rahmenArr, true); // showCount = true
@@ -2584,10 +2576,10 @@ function drawBars(hostId, items, showCount = false) {
   
   let y = 10;
   const textWidth = 240, barStartX = textWidth;
-  const valueOffset = showCount ? 140 : 100; // More space for value label if count is shown
+  const valueOffset = 100; // Space for value label at the end
 
   items.forEach(it => {
-    // Calculate bar length based on available space
+    // Calculate bar length based on available space minus text label and value offset
     const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - valueOffset)));
     const g = document.createElementNS(svgNS, 'g');
     
@@ -2662,34 +2654,25 @@ btnAnaXlsx.addEventListener('click', () => {
         XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
     }
     
-    // Add activity data if available (based on the data used for the chart)
-    const start = anaStartDate.value;
-    const end = anaEndDate.value;
-    const startTs = getTimestamp(start);
-    const endTs = getTimestamp(end + 'T23:59:59.999');
-    
-    const activityMap = new Map();
-    entries.filter(e => e.projectType === 'rahmen').forEach(e => {
-        let total = 0;
-        let count = 0;
-        (e.transactions || []).forEach(t => {
-            const datum = t.freigabedatum || t.ts || 0;
-            if (datum >= startTs && datum <= endTs) {
-                total += (t.amount || 0);
-                count++;
-            }
-        });
-        if (total > 0.001) {
-            activityMap.set(e.id, { Rahmenvertrag: e.title, Betrag_EUR: total, Abrufe: count });
-        }
-    });
-    const activityItems = Array.from(activityMap.values()).sort((a,b) => b.Betrag_EUR - a.Betrag_EUR);
-
-    if(activityItems.length > 0) {
-         const ws4 = XLSX.utils.json_to_sheet(activityItems);
-         XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+    // Add activity data if available (simple export of the current view)
+    const activityChart = document.getElementById('chartActivity');
+    if(activityChart && activityChart.innerHTML !== '') {
+         const start = anaStartDate.value;
+         const end = anaEndDate.value;
+         const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
+             const name = g.querySelector('text[x="10"]').textContent;
+             const valueText = g.querySelector('text[font-weight="700"]').textContent;
+             const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
+             const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
+             const countMatch = valueText.match(/\((\d+)\)/); // Extract count
+             const count = countMatch ? parseInt(countMatch[1]) : null;
+             return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
+         });
+         if(activityItems.length > 0) {
+             const ws4 = XLSX.utils.json_to_sheet(activityItems);
+             XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+         }
     }
-
 
     if(wb.SheetNames.length > 0) {
       XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
@@ -2724,6 +2707,8 @@ window.addEventListener('beforeunload', (e) => {
 loadPeople().then(()=>{ 
     initFromState(); 
     showView('erfassung'); 
+    // Setze initialen Fokus (optional)
+    // document.getElementById('auftraggeber').focus(); 
 });
 
 // Deep Link zu Admin (optional)
@@ -2736,6 +2721,7 @@ if (location.hash === '#admin') {
 document.addEventListener('keydown',(e)=>{ 
     if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
         e.preventDefault(); 
+        // Optional: Springe zum nächsten Feld oder löse Button aus? Eher nicht, kann verwirren.
     }
 });
 </script>
