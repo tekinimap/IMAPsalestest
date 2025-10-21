@@ -1347,7 +1347,17 @@
     "projectNumber": "Goethe-10-001",
     "kv_nummer": "",
     "ts": 1761032940027,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1761042132128_KV20250051",
+        "kv_nummer": "KV-2025-0051",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761042132128,
+        "freigabedatum": 1759356000000
+      }
+    ],
+    "modified": 1761042132128
   },
   {
     "id": "manuell_kommone_fke_los1",
