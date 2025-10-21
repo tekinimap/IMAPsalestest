@@ -374,17 +374,8 @@
     "projectNumber": "DRV BaWü-02-001",
     "kv_nummer": "",
     "ts": 1761032940007,
-    "transactions": [
-      {
-        "id": "trans_1761046591570_KV20250025",
-        "kv_nummer": "KV-2025-0025",
-        "type": "founder",
-        "amount": 3300,
-        "ts": 1761046591570,
-        "freigabedatum": 1736722800000
-      }
-    ],
-    "modified": 1761047246313
+    "transactions": [],
+    "modified": 1761047251203
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
