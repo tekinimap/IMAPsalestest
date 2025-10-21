@@ -2911,28 +2911,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709370_KV20250185_56",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "VolkswagenStiftung VWS01 Transformationsbegleitung",
-    "projectNumber": "ChangePartner-30-001",
-    "kv_nummer": "KV-2025-0185",
-    "amount": 3746376,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709370,
-    "complete": false,
-    "modified": 1761042132126
-  },
-  {
     "id": "entry_1760970709370_KV20250189_57",
     "source": "erp-import",
     "projectType": "fix",
