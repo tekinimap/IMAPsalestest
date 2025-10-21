@@ -4381,5 +4381,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1736377200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250214",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Spring School 2",
+    "projectNumber": "GIZ-59-001",
+    "kv_nummer": "KV-2025-0214",
+    "amount": 63850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1736377200000,
+    "complete": false
   }
 ]
