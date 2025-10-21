@@ -464,7 +464,7 @@
         "id": "trans_1760970709371_KV20250151",
         "kv_nummer": "KV-2025-0151",
         "type": "founder",
-        "amount": 1312.5,
+        "amount": 13125,
         "ts": 1760970709371
       },
       {
@@ -475,7 +475,7 @@
         "ts": 1760970709371
       }
     ],
-    "modified": 1760970709371
+    "modified": 1761042132127
   },
   {
     "id": "manuell_drv_bund_interkult_komm",
