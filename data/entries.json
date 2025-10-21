@@ -8233,12 +8233,86 @@
     "projectNumber": "DRV-18-001",
     "kv_nummer": "KV-2025-0198",
     "amount": 12500,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761053193302,
-    "freigabedatum": 1756245600000,
-    "complete": false
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 46,
+        "money": 5750
+      },
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 18,
+        "money": 2250
+      },
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 18,
+        "money": 2250
+      },
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 18,
+        "money": 2250
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054924733",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 18,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_1761054944692",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 18,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_1761054954775",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 18,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_1761054995370",
+        "name": "BU Lead OE",
+        "cs": 46,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761059785320,
+    "freigabedatum": 1756166400000,
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761059785320
   },
   {
     "id": "entry_1761053193302_KV20250199",
