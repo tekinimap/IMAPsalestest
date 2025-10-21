@@ -918,39 +918,41 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// Initialisierung nach Laden der Personenliste
-// Wrap initial load in try-catch
-try {
-    // Ensure progress bar is hidden initially right after elements are available
-    hideBatchProgress(); 
-    
-    loadPeople().then(()=>{ 
-        initFromState(); 
-        showView('erfassung'); 
-    }).catch(err => {
-         console.error("Failed to load people or init:", err);
-         showToast("Initialisierung fehlgeschlagen. Bitte Seite neu laden.", "bad");
-         hideLoader(); // Ensure loader is hidden on error
-    });
+// Initialisierung erst starten, wenn das gesamte HTML geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    // Wrap initial load in try-catch
+    try {
+        // Ensure progress bar is hidden initially right after elements are available
+        hideBatchProgress(); 
+        
+        loadPeople().then(()=>{ 
+            initFromState(); 
+            showView('erfassung'); 
+        }).catch(err => {
+             console.error("Failed to load people or init:", err);
+             showToast("Initialisierung fehlgeschlagen. Bitte Seite neu laden.", "bad");
+             hideLoader(); // Ensure loader is hidden on error
+        });
 
-    // Deep Link zu Admin (optional)
-    if (location.hash === '#admin') { 
-        // Warte kurz, damit die UI bereit ist, bevor der Pw-Prompt kommt
-        setTimeout(handleAdminClick, 100); 
-    }
-
-    // Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
-    document.addEventListener('keydown',(e)=>{ 
-        if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
-            e.preventDefault(); 
+        // Deep Link zu Admin (optional)
+        if (location.hash === '#admin') { 
+            // Warte kurz, damit die UI bereit ist, bevor der Pw-Prompt kommt
+            setTimeout(handleAdminClick, 100); 
         }
-    });
-} catch (initError) {
-     console.error("Critical error during initial script execution:", initError);
-     // Display a user-friendly message directly in the body as JS might be broken
-     document.body.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">Ein kritischer Fehler ist beim Laden der Anwendung aufgetreten. Bitte versuchen Sie, die Seite neu zu laden oder kontaktieren Sie den Support. Details: ' + initError.message + '</div>';
-     hideLoader(); // Try to hide loader
-}
+
+        // Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
+        document.addEventListener('keydown',(e)=>{ 
+            if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
+                e.preventDefault(); 
+            }
+        });
+    } catch (initError) {
+         console.error("Critical error during initial script execution:", initError);
+         // Display a user-friendly message directly in the body as JS might be broken
+         document.body.innerHTML = '<div style="padding: 20px; color: red; font-size: 18px;">Ein kritischer Fehler ist beim Laden der Anwendung aufgetreten. Bitte versuchen Sie, die Seite neu zu laden oder kontaktieren Sie den Support. Details: ' + initError.message + '</div>';
+         hideLoader(); // Try to hide loader
+    }
+}); // Ende des DOMContentLoaded Listeners
 
 } // End of the main try-catch block for the entire script
 </script>
