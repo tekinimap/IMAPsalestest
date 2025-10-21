@@ -1500,13 +1500,6 @@
     "ts": 1761032940033,
     "transactions": [
       {
-        "id": "trans_1760970709369_KV20250195",
-        "kv_nummer": "KV-2025-0195",
-        "type": "founder",
-        "amount": 53625,
-        "ts": 1760970709369
-      },
-      {
         "id": "trans_1761042132127_KV20250122",
         "kv_nummer": "KV-2025-0122",
         "type": "founder",
@@ -1515,7 +1508,7 @@
         "freigabedatum": 1748469600000
       }
     ],
-    "modified": 1761047489502
+    "modified": 1761047493717
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
