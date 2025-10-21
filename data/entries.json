@@ -629,7 +629,7 @@
         "id": "trans_1760970709371_KV20250157",
         "kv_nummer": "KV-2025-0157",
         "type": "founder",
-        "amount": 4035.2,
+        "amount": 40352,
         "ts": 1760970709371
       },
       {
@@ -640,7 +640,7 @@
         "ts": 1760970709375
       }
     ],
-    "modified": 1760970709375
+    "modified": 1761042132127
   },
   {
     "id": "manuell_drv_bund_next_campus",
