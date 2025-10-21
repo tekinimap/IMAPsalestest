@@ -2168,22 +2168,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250130",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ARD ZDF Deutschlandradio Beitragsservice",
-    "title": "Zukunftsfähige Aufstellung der Abt. Kommunikation",
-    "projectNumber": "ARD ZDF-03-001",
-    "kv_nummer": "KV-2025-0130",
-    "amount": 1979375,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1743890400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250139",
     "source": "erp-import",
     "projectType": "fix",
