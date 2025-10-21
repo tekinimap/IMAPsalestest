@@ -2258,27 +2258,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760969705768_KV20250203_35",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Eucon EUM04 Beratung Entstehung neuer Finanzbereich",
-    "projectNumber": "ChangePartner-32-001",
-    "kv_nummer": "KV-2025-0203",
-    "amount": 5185,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760969705768,
-    "complete": false
-  },
-  {
     "id": "entry_1760969705762_KV20250244_3",
     "source": "erp-import",
     "projectType": "fix",
