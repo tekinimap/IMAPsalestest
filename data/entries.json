@@ -4448,7 +4448,7 @@
     "title": "Einzelcoachings",
     "projectNumber": "BMBF-03-001",
     "kv_nummer": "KV-2025-0066",
-    "amount": 2437.5,
+    "amount": 24375,
     "list": [],
     "rows": [],
     "weights": [],
@@ -4459,7 +4459,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709373,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709373_KV20250065_177",
