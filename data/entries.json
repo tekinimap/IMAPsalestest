@@ -1848,5 +1848,21 @@
     "kv_nummer": "",
     "ts": 1761032940044,
     "transactions": []
+  },
+  {
+    "id": "entry_1761053193300_KV20230140",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
+    "title": "BAMF VAMOS 2.0 - Fortsetzung 2025",
+    "projectNumber": "BAMF-09-003",
+    "kv_nummer": "KV-2023-0140",
+    "amount": 180527.1,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193300,
+    "freigabedatum": 1740783600000,
+    "complete": false
   }
 ]
