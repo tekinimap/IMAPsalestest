@@ -3500,5 +3500,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1759701600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250133",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "StudienInstitut NiederrheiN",
+    "title": "Seminar zum Thema Generationsmanagement Teil 2",
+    "projectNumber": "S.I.N.N.-04-001",
+    "kv_nummer": "KV-2025-0133",
+    "amount": 1600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1748296800000,
+    "complete": false
   }
 ]
