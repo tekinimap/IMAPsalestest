@@ -668,7 +668,8 @@ function hideBatchProgress() {
 /* ---------- Formatter ---------- */
 const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
-const fmtCurr2 = new Intl.Onecall('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+// *** KORREKTUR HIER ***
+const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
 const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
 const getTodayDate = () => new Date().toISOString().split('T')[0];
@@ -1051,7 +1052,7 @@ async function saveNewEntry(st) {
     projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
     freigabedatum: date,
     ts: ts,
-    modified: Date.now(),
+    modified: st.editingId ? Date.now() : undefined, // Only set modified on update
     id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
@@ -1111,7 +1112,8 @@ function loadInputForm(inputData, isEditing = false) {
 
         projectNumber.disabled = !isEditing;
         kvNummer.disabled = !isEditing;
-        freigabedatum.disabled = !isEditing && !st.isAbrufMode;
+        // Freigabedatum sollte editierbar sein, außer bei Erstellung eines Rahmenvertrags (da noch keine Abrufe)
+        freigabedatum.disabled = (!isEditing && inputData.projectType === 'rahmen'); 
         
         projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
         kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
@@ -1213,7 +1215,7 @@ const btnBatchDelete=document.getElementById('btnBatchDelete');
 const btnMoveToFramework=document.getElementById('btnMoveToFramework');
 const checkAllFix=document.getElementById('checkAllFix');
 let entries=[]; 
-let pendingDelete = { id: null, type: 'entry' }; // { id, type: 'entry'|'transaction', parentId? }
+let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
@@ -1357,6 +1359,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
       currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
     } else {
       currentSort.key = key;
+      // Default sort direction based on column type
       currentSort.direction = (key === 'title' || key === 'client' || key === 'source') ? 'asc' : 'desc';
     }
     renderHistory();
@@ -1364,7 +1367,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
 });
 
 function updateSortIcons() {
-  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => icon.textContent = '');
+  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => {icon.textContent = ''; icon.style.opacity=0.5;});
   const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${currentSort.key}"] .sort-icon`);
   if (activeTh) {
     activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
@@ -1614,8 +1617,10 @@ async function saveHunterAbruf(st) {
         if (!r.ok) throw new Error(await r.text());
         showToast(`Aktiver Abruf hinzugefügt`, 'ok');
         clearInputFields();
-        renderFrameworkContracts();
-        showView('rahmen');
+        loadHistory().then(() => { // Reload data after save
+          renderFrameworkContracts();
+          showView('rahmen');
+        });
     } catch (e) {
         showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
         console.error(e);
@@ -1633,7 +1638,10 @@ function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
     const personTotals = new Map();
     const transactions = (entry.transactions || []).filter(t => {
         const d = t.freigabedatum || t.ts || 0;
-        return d >= startDate && d <= endDate;
+        // Make sure start and end are valid numbers
+        const validStart = Number.isFinite(startDate) ? startDate : 0;
+        const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
+        return d >= validStart && d <= validEnd;
     });
     let totalVolume = 0;
 
@@ -1673,7 +1681,9 @@ function renderRahmenDetails(id) {
     currentFrameworkEntryId = id;
 
     document.getElementById('rahmenDetailsTitle').textContent = entry.title;
-    document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''}`;
+    
+    const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry); // Calculate total based on ALL transactions
+    document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''} | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
     
     const foundersBody = document.getElementById('rahmenFoundersBody');
     foundersBody.innerHTML = '';
@@ -1683,8 +1693,6 @@ function renderRahmenDetails(id) {
         foundersBody.appendChild(tr);
     });
     
-    const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry);
-    document.getElementById('rahmenDetailsSub').textContent += ` | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
     rahmenActualBody.innerHTML = '';
     actualDistribution.forEach(person => {
         const tr = document.createElement('tr');
@@ -1806,15 +1814,18 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
                     freigabedatum: entry.freigabedatum || entry.ts
                 };
             } else { // hunter
+                // Create a clean copy for the transaction, removing framework-specific fields if they exist
+                const { id, projectType, transactions, ...restOfEntry } = entry;
                 newTransaction = {
-                    ...entry, // copy all data
+                    ...restOfEntry, // copy relevant data
                     id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
                     type: 'hunter',
                     ts: Date.now() // new internal timestamp
-                    // freigabedatum is already part of 'entry'
+                    // freigabedatum is already part of 'restOfEntry'
                 };
             }
             
+             // Ensure targetFramework.transactions exists and is an array
             if (!Array.isArray(targetFramework.transactions)) {
                 targetFramework.transactions = [];
             }
@@ -1922,7 +1933,7 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
 
     const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
     
-    let transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
+    let transaction = (transIndex > -1) ? JSON.parse(JSON.stringify(parentEntry.transactions[transIndex])) : {}; // Deep copy to avoid modifying original on error
     let validationError = '';
 
     if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
@@ -1964,6 +1975,7 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g,'')}`;
         transaction.ts = Date.now();
         transaction.type = 'founder';
+        if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = []; // Ensure array exists
         parentEntry.transactions.push(transaction);
     } else {
         parentEntry.transactions[transIndex] = transaction;
@@ -1978,8 +1990,10 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         if (!r.ok) throw new Error(await r.text());
         showToast('Abruf aktualisiert', 'ok');
         editTransactionDlg.close();
-        renderRahmenDetails(currentFrameworkEntryId);
-        renderFrameworkContracts();
+        loadHistory().then(() => { // Reload data after saving
+            renderRahmenDetails(currentFrameworkEntryId);
+            renderFrameworkContracts(); // Update list view sum
+        });
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
@@ -2026,19 +2040,23 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     ];
 
     const errors = validateModalInput(rows, weights);
+     if (rows.length === 0 || rows.every(r => r.name === '' && r.cs === 0 && r.konzept === 0 && r.pitch === 0)) {
+        errors.rows = 'Mindestens eine Person muss dem Gründer-Team zugewiesen sein.';
+    }
     if (Object.keys(errors).length > 0) {
         document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
         return;
     }
     
-    const resultData = compute(rows, weights, entry.amount);
+    // Recalculate founder list based on new rows/weights (amount doesn't matter here)
+    const resultData = compute(rows, weights, 100); // Amount 100 to get percentages
 
     entry.client = editFwClient.value.trim();
     entry.title = editFwTitle.value.trim();
     entry.projectNumber = editFwProjectNumber.value.trim();
-    entry.rows = rows;
-    entry.weights = weights;
-    entry.list = resultData.list;
+    entry.rows = rows; // Save the raw input rows
+    entry.weights = resultData.effectiveWeights; // Save the potentially normalized weights
+    entry.list = resultData.list.map(({key, name, pct}) => ({key, name, pct})); // Save only pct, not money
     entry.modified = Date.now();
 
     showLoader();
@@ -2049,7 +2067,12 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
         if (!r.ok) throw new Error(await r.text());
         showToast('Rahmenvertrag aktualisiert', 'ok');
         editFrameworkContractDlg.close();
-        renderFrameworkContracts();
+        loadHistory().then(() => { // Reload data
+            renderFrameworkContracts();
+            if(document.getElementById('viewRahmenDetails').classList.contains('hide') === false) {
+                 renderRahmenDetails(currentFrameworkEntryId); // Update details if visible
+            }
+        });
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
@@ -2064,6 +2087,9 @@ function validateModalInput(rows, weights) {
     weights.forEach(w => {
         if (w.weight > 0 && t[w.key] !== 100) {
             categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+        }
+         if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+             categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
         }
     });
     if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
@@ -2134,7 +2160,7 @@ btnErpImport.addEventListener('click', handleErpImport);
 function getVal(row, keyName) {
     const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const keys = Object.keys(row);
-    // Finde den Schlüssel, der am besten passt
+    // Finde den Schlüssel, der am besten passt (enthält statt exakt)
     const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
     return foundKey ? row[foundKey] : undefined;
 }
@@ -2143,16 +2169,29 @@ function getVal(row, keyName) {
 function parseExcelDate(excelDate) {
     if (typeof excelDate === 'number') {
         // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
-        return new Date((excelDate - 25569) * 86400 * 1000);
+        // Fängt auch ungültige Excel-Daten ab (z.B. 0)
+        if (excelDate > 0) {
+            return new Date((excelDate - 25569) * 86400 * 1000);
+        }
     }
     if (typeof excelDate === 'string') {
-        // Versucht, ein Standard-Datumsformat zu parsen
+        // Versucht, ein Standard-Datumsformat zu parsen (ISO, locale etc.)
         const d = new Date(excelDate);
         if (!isNaN(d.getTime())) {
             return d;
         }
+        // Versuch, DD.MM.YYYY oder MM/DD/YYYY zu parsen
+        const parts = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+        if (parts) {
+            // Annahme: DD.MM.YYYY zuerst (europäisch)
+            let d = new Date(parts[3], parts[2] - 1, parts[1]);
+            if (!isNaN(d.getTime())) return d;
+            // Annahme: MM/DD/YYYY (amerikanisch)
+            d = new Date(parts[3], parts[1] - 1, parts[2]);
+            if (!isNaN(d.getTime())) return d;
+        }
     }
-    return null; // Ungültiges Format
+    return null; // Ungültiges Format oder Wert
 }
 
 
@@ -2180,12 +2219,12 @@ async function handleErpImport() {
         let skippedCount = 0;
 
         // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
-        const allEntries = JSON.parse(JSON.stringify(entries));
+        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
         const changesToPush = [];
         
-        // Erstelle einen schnellen Index für KV-Nummern
+        // Erstelle einen schnellen Index für KV-Nummern aus der Kopie
         const kvIndex = new Map();
-        allEntries.forEach(entry => {
+        allEntriesCopy.forEach(entry => {
             if (entry.kv_nummer) {
                 kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
             }
@@ -2198,9 +2237,9 @@ async function handleErpImport() {
             }
         });
         
-        // Erstelle einen Index für Projektnummern von Rahmenverträgen
+        // Erstelle einen Index für Projektnummern von Rahmenverträgen aus der Kopie
         const frameworkProjectIndex = new Map();
-        allEntries.forEach(entry => {
+        allEntriesCopy.forEach(entry => {
             if (entry.projectType === 'rahmen' && entry.projectNumber) {
                 frameworkProjectIndex.set(entry.projectNumber, entry);
             }
@@ -2214,19 +2253,25 @@ async function handleErpImport() {
             }
 
             const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-            const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
+            // Versucht, verschiedene Formate zu parsen (mit Komma als Dezimaltrenner)
+            const amountRaw = getVal(row, 'Agenturleistung netto');
+            const amount = parseAmountInput(amountRaw); 
+            
             const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
             const title = getVal(row, 'Titel') || '';
             
-            let freigabeDate = getTodayDate(); // Standard-Datum
+            let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
             const excelDate = getVal(row, 'Freigabedatum'); // Suche nach Freigabedatum
             if (excelDate) {
                 const parsedDate = parseExcelDate(excelDate);
                 if (parsedDate) {
-                    freigabeDate = parsedDate.toISOString().split('T')[0];
+                    freigabeTimestamp = parsedDate.getTime();
+                } else {
+                     console.warn(`Ungültiges Freigabedatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
                 }
+            } else {
+                 console.warn(`Kein Freigabedatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
             }
-            const freigabeTimestamp = new Date(freigabeDate).getTime();
 
             const existing = kvIndex.get(kvNummer);
 
@@ -2238,14 +2283,22 @@ async function handleErpImport() {
                     currentAmount = existing.entry.amount;
                 }
 
-                if (currentAmount !== amount) {
+                // Vergleiche Beträge mit kleiner Toleranz für Fließkomma-Ungenauigkeiten
+                if (Math.abs(currentAmount - amount) > 0.001) {
                     if (existing.type === 'transaction') {
                         existing.transaction.amount = amount;
+                        // Optional: Freigabedatum aktualisieren, falls es sich geändert hat?
+                        // existing.transaction.freigabedatum = freigabeTimestamp; 
                     } else {
                         existing.entry.amount = amount;
+                         // Optional: Freigabedatum aktualisieren?
+                        // existing.entry.freigabedatum = freigabeTimestamp;
                     }
                     existing.entry.modified = Date.now();
-                    changesToPush.push(existing.entry);
+                    // Stelle sicher, dass der Eintrag nur einmal in changesToPush landet
+                    if (!changesToPush.some(item => item.id === existing.entry.id)) {
+                        changesToPush.push(existing.entry);
+                    }
                     updatedCount++;
                 } else {
                     skippedCount++;
@@ -2257,17 +2310,25 @@ async function handleErpImport() {
                     if (!Array.isArray(parentFramework.transactions)) {
                         parentFramework.transactions = [];
                     }
-                    parentFramework.transactions.push({
-                        id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        kv_nummer: kvNummer,
-                        type: 'founder', // Standard auf 'founder' (passiv)
-                        amount: amount,
-                        ts: Date.now(),
-                        freigabedatum: freigabeTimestamp
-                    });
-                    parentFramework.modified = Date.now();
-                    changesToPush.push(parentFramework);
-                    addedToFrameworkCount++;
+                     // Prüfen ob die Transaktion (KV) nicht doch schon da ist (Sicherheitsnetz)
+                    if (!parentFramework.transactions.some(t => t.kv_nummer === kvNummer)) {
+                        parentFramework.transactions.push({
+                            id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            kv_nummer: kvNummer,
+                            type: 'founder', // Standard auf 'founder' (passiv)
+                            amount: amount,
+                            ts: Date.now(),
+                            freigabedatum: freigabeTimestamp
+                        });
+                        parentFramework.modified = Date.now();
+                         if (!changesToPush.some(item => item.id === parentFramework.id)) {
+                            changesToPush.push(parentFramework);
+                        }
+                        addedToFrameworkCount++;
+                    } else {
+                         skippedCount++; // KV schon im RV vorhanden, aber nicht im Index (sollte nicht passieren)
+                         console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFramework.id} gefunden, obwohl nicht im Index.`);
+                    }
                 } else { // Fall B2: Neuer Fixauftrag
                     const newFixEntry = {
                         id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
@@ -2285,22 +2346,23 @@ async function handleErpImport() {
                         freigabedatum: freigabeTimestamp,
                         complete: false // Ist unvollständig, da Verteilung fehlt
                     };
-                    allEntries.push(newFixEntry); // Füge zur lokalen Kopie hinzu
+                    allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu für spätere Index-Checks
+                    kvIndex.set(kvNummer, {type: 'fix', entry: newFixEntry}); // Füge zum Index hinzu
                     changesToPush.push(newFixEntry);
                     newFixCount++;
                 }
             }
         }
 
-        const uniqueChanges = Array.from(new Map(changesToPush.map(item => [item.id, item])).values());
+        // Keine Notwendigkeit mehr für uniqueChanges, da wir es jetzt direkt beim Pushen prüfen
         
         hideLoader();
-        if (uniqueChanges.length > 0) {
-            showBatchProgress('Speichere Import-Änderungen...', uniqueChanges.length);
+        if (changesToPush.length > 0) {
+            showBatchProgress('Speichere Import-Änderungen...', changesToPush.length);
             let count = 0;
-            for (const entry of uniqueChanges) {
+            for (const entry of changesToPush) {
                 count++;
-                updateBatchProgress(count, uniqueChanges.length);
+                updateBatchProgress(count, changesToPush.length);
                 
                 const isNew = !entries.some(e => e.id === entry.id);
                 const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
@@ -2311,7 +2373,7 @@ async function handleErpImport() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(entry)
                 });
-                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}`);
+                if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}: ${await r.text()}`);
                 await throttle();
             }
         }
@@ -2320,7 +2382,7 @@ async function handleErpImport() {
         importResult.innerHTML = resultMsg;
         importResult.classList.remove('hide');
         showToast('ERP-Daten erfolgreich importiert', 'ok');
-        await loadHistory();
+        await loadHistory(); // Lade die finale Version vom Server
 
     } catch (e) {
         showToast('Fehler beim Importieren der Datei.', 'bad');
@@ -2356,8 +2418,8 @@ function initAnalytics() {
     setAnaDateRange('thisYear');
     
     // Führe beide Render-Funktionen aus
-    renderAnalytics();
-    renderActivityAnalytics();
+    renderAnalytics(); // Jährliche Auswertung
+    renderActivityAnalytics(); // Zeitintervall-Auswertung
 }
 
 function setAnaDateRange(rangeType) {
@@ -2367,8 +2429,9 @@ function setAnaDateRange(rangeType) {
         start = new Date(now.getFullYear(), 0, 1); // 1. Jan
         end = now; // Heute
     } else { // lastYear
-        start = new Date(now.getFullYear() - 1, 0, 1); // 1. Jan letztes Jahr
-        end = new Date(now.getFullYear() - 1, 11, 31); // 31. Dez letztes Jahr
+        const lastYear = now.getFullYear() - 1;
+        start = new Date(lastYear, 0, 1); // 1. Jan letztes Jahr
+        end = new Date(lastYear, 11, 31); // 31. Dez letztes Jahr
     }
     anaStartDate.value = formatDateForInput(start.getTime());
     anaEndDate.value = formatDateForInput(end.getTime());
@@ -2384,43 +2447,48 @@ btnAnaLastYear.addEventListener('click', () => {
 });
 btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
 
-for (let y = 2022; y <= new Date().getFullYear() + 1; y++) {
-  const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
-}
-anaYear.value = String(new Date().getFullYear());
-document.getElementById('anaRefresh').addEventListener('click', renderAnalytics);
+document.getElementById('anaRefresh').addEventListener('click', renderAnalytics); // Jährliche Auswertung
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
 let analyticsData = { persons: [], teams: [], totals: [] };
 
+// Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
     try {
-        return new Date(dateStr).getTime();
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? 0 : d.getTime();
     } catch { return 0; }
 }
 
+// Jährliche Top-Listen und Gesamtübersicht
 function renderAnalytics() {
   const year = Number(anaYear.value);
-  const start = getTimestamp(`${year}-01-01T00:00:00Z`);
-  const end   = getTimestamp(`${year}-12-31T23:59:59Z`);
+  // Definiere Start- und End-Timestamp für das gewählte Jahr (UTC oder lokale Zeitzone beachten?)
+  // Annahme: Lokale Zeitzone basierend auf formatDateForInput
+  const startOfYear = getTimestamp(`${year}-01-01`);
+  const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`);
 
   const per = new Map();
   let fixTotal = 0;
   let rahmenTotal = 0;
   
   entries.forEach(e => {
-    const datum = e.freigabedatum || e.ts || 0;
+    const datum = e.freigabedatum || e.ts || 0; // Verwende Freigabedatum primär
     
     if(e.projectType === 'fix') {
-        if (!(datum >= start && datum <= end)) return;
+        // Prüfe, ob das Datum im gewählten Jahr liegt
+        if (!(datum >= startOfYear && datum <= endOfYear)) return;
+        
         const amount = e.amount || 0; if (amount <= 0) return;
         fixTotal += amount;
+        // Zähle Personenbeiträge nur, wenn der Auftrag in diesem Jahr freigegeben wurde
         if (Array.isArray(e.list)) {
           e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
         }
     } else if (e.projectType === 'rahmen') {
-        const { list: actualDistribution, total: totalValue } = calculateActualDistribution(e, start, end);
-        rahmenTotal += totalValue;
+        // Berechne die Verteilung basierend auf Abrufen *innerhalb* des Jahres
+        const { list: actualDistribution, total: totalValueInYear } = calculateActualDistribution(e, startOfYear, endOfYear);
+        rahmenTotal += totalValueInYear;
         actualDistribution.forEach(p => {
             per.set(p.name, (per.get(p.name) || 0) + p.money);
         });
@@ -2450,12 +2518,16 @@ function renderAnalytics() {
   analyticsData.totals = totalArr;
 }
 
+// Zeitintervall-basierte Aktivität der Rahmenverträge
 function renderActivityAnalytics() {
     const start = getTimestamp(anaStartDate.value);
-    const end = getTimestamp(anaEndDate.value + 'T23:59:59'); // Ende des Tages
+    // Ende des Tages für das Enddatum nehmen
+    const end = getTimestamp(anaEndDate.value + 'T23:59:59.999'); 
     
     if (!start || !end || end < start) {
         showToast('Ungültiger Datumsbereich', 'bad');
+        drawBars('chartActivity', [], false); // Leere Grafik anzeigen
+        document.getElementById('chartActivityTitle').textContent = 'Aktivste Rahmenverträge (ungültiger Zeitraum)';
         return;
     }
     
@@ -2464,40 +2536,46 @@ function renderActivityAnalytics() {
         let total = 0;
         let count = 0;
         (e.transactions || []).forEach(t => {
-            const datum = t.freigabedatum || t.ts || 0;
+            const datum = t.freigabedatum || t.ts || 0; // Freigabedatum primär
             if (datum >= start && datum <= end) {
                 total += (t.amount || 0);
                 count++;
             }
         });
         if (total > 0) {
-            rahmenMap.set(e.id, { name: e.title, val: total, count: count });
+            // Speichere ID, um Duplikate zu vermeiden, falls Titel nicht eindeutig
+            rahmenMap.set(e.id, { id: e.id, name: e.title, val: total, count: count });
         }
     });
     
     const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10);
     const title = `Aktivste Rahmenverträge (${new Date(start).toLocaleDateString('de-DE')} - ${new Date(end).toLocaleDateString('de-DE')})`;
     document.getElementById('chartActivityTitle').textContent = title;
-    drawBars('chartActivity', rahmenArr, true);
+    drawBars('chartActivity', rahmenArr, true); // showCount = true
 }
 
 
 function drawBars(hostId, items, showCount = false) {
   const host = document.getElementById(hostId);
-  host.innerHTML = '';
-  const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1;
-  const barH = 30, gap = 8, w = 1060, h = items.length ? (items.length * (barH + gap) + 10) : 50;
+  host.innerHTML = ''; // Clear previous chart
+  const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1; // Avoid division by zero
+  const barH = 30, gap = 8, w = 1060; // Fixed width
+  const h = items.length > 0 ? (items.length * (barH + gap) + 10) : 50; // Dynamic height or fixed minimum
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, 'svg');
   svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet'); // Ensure it scales correctly if container width changes
+  
   let y = 10;
   const textWidth = 240, barStartX = textWidth;
+  const valueOffset = 100; // Space for value label at the end
 
   items.forEach(it => {
-    const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - 100)));
+    // Calculate bar length based on available space minus text label and value offset
+    const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - valueOffset)));
     const g = document.createElementNS(svgNS, 'g');
     
-    const titleText = `${it.name}: ${fmtCurr0.format(it.val)}` + (showCount ? ` (${it.count} Abrufe)` : '');
+    const titleText = `${it.name}: ${fmtCurr0.format(it.val)}` + (showCount && it.count ? ` (${it.count} Abrufe)` : '');
     const title = document.createElementNS(svgNS, 'title');
     title.textContent = titleText;
     g.appendChild(title);
@@ -2517,12 +2595,16 @@ function drawBars(hostId, items, showCount = false) {
     labelV.setAttribute('y', String(y + barH * 0.68));
     labelV.setAttribute('font-weight', '700');
     labelV.setAttribute('font-size', '14');
-    labelV.textContent = fmtCurr0.format(it.val) + (showCount && it.count ? ` (${it.count})` : '');
+    // Add count if requested
+    const valueText = fmtCurr0.format(it.val) + (showCount && it.count ? ` (${it.count})` : '');
+    labelV.textContent = valueText;
     
-    if(len < (showCount ? 160 : 120)) {
+    // Position value label inside or outside based on bar length
+    const valueTextLengthEstimate = valueText.length * 8; // Rough estimate
+    if(len < valueTextLengthEstimate + 10) { // Place outside if bar is too short
       labelV.setAttribute('x', String(barStartX + len + 8));
       labelV.setAttribute('fill', '#cbd5e1');
-    } else {
+    } else { // Place inside
       labelV.setAttribute('x', String(barStartX + 10));
       labelV.setAttribute('fill', '#0a0f16');
     }
@@ -2531,11 +2613,13 @@ function drawBars(hostId, items, showCount = false) {
     svg.appendChild(g);
     y += barH + gap;
   });
+  
+  // Display message if no data
   if (items.length === 0) {
       const noData = document.createElementNS(svgNS, 'text');
       noData.setAttribute('x', '10'); noData.setAttribute('y', '30');
       noData.setAttribute('fill', '#cbd5e1'); noData.setAttribute('font-size', '14');
-      noData.textContent = 'Für diesen Zeitraum liegen keine Daten vor.';
+      noData.textContent = 'Für diesen Zeitraum/dieses Jahr liegen keine Daten vor.';
       svg.appendChild(noData);
   }
   host.appendChild(svg);
@@ -2544,16 +2628,49 @@ function drawBars(hostId, items, showCount = false) {
 btnAnaXlsx.addEventListener('click', () => {
     const year = anaYear.value;
     const wb = XLSX.utils.book_new();
-    const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
-    const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
-    XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
-    const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: p.val }));
-    const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
-    XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
-    const ws3Arr = analyticsData.totals.map(t => ({ Typ: t.name, Betrag_EUR: p.val }));
-    const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
-    XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
-    XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+    
+    // Ensure data exists before creating sheets
+    if (analyticsData.persons && analyticsData.persons.length > 0) {
+        const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
+        const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
+        XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
+    }
+    if (analyticsData.teams && analyticsData.teams.length > 0) {
+        const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: t.val }));
+        const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
+        XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
+    }
+     if (analyticsData.totals && analyticsData.totals.length > 0) {
+        const ws3Arr = analyticsData.totals.map(t => ({ Typ: t.name, Betrag_EUR: t.val }));
+        const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
+        XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
+    }
+    
+    // Add activity data if available (simple export of the current view)
+    const activityChart = document.getElementById('chartActivity');
+    if(activityChart && activityChart.innerHTML !== '') {
+         const start = anaStartDate.value;
+         const end = anaEndDate.value;
+         const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
+             const name = g.querySelector('text[x="10"]').textContent;
+             const valueText = g.querySelector('text[font-weight="700"]').textContent;
+             const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
+             const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
+             const countMatch = valueText.match(/\((\d+)\)/); // Extract count
+             const count = countMatch ? parseInt(countMatch[1]) : null;
+             return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
+         });
+         if(activityItems.length > 0) {
+             const ws4 = XLSX.utils.json_to_sheet(activityItems);
+             XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+         }
+    }
+
+    if(wb.SheetNames.length > 0) {
+      XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+    } else {
+        showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+    }
 });
 
 /* ---------- Init & Window Events ---------- */
@@ -2563,24 +2680,42 @@ function initFromState(isEditing = false){
     const isEditFromHistory = !!st.editingId;
     loadInputForm(st.input, isEditFromHistory);
   } else {
-    loadInputForm({}, false);
+    loadInputForm({}, false); // Ensure default freigabedatum is set
   }
   updateWeightNote(); 
 }
 
-// Warnung bei ungespeicherten Änderungen
+// Warnung bei ungespeicherten Änderungen oder laufendem Batch
 window.addEventListener('beforeunload', (e) => {
   if (hasUnsavedChanges || isBatchRunning) {
     const msg = isBatchRunning ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
-    e.preventDefault();
-    e.returnValue = msg;
-    return msg;
+    e.preventDefault(); // Standard für die meisten Browser
+    e.returnValue = msg; // Für ältere Browser / Electron
+    return msg; // Für manche Browser
   }
 });
 
-loadPeople().then(()=>{ initFromState(); showView('erfassung'); });
-if (location.hash === '#admin') { handleAdminClick(); }
-document.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) e.preventDefault(); });
+// Initialisierung nach Laden der Personenliste
+loadPeople().then(()=>{ 
+    initFromState(); 
+    showView('erfassung'); 
+    // Setze initialen Fokus (optional)
+    // document.getElementById('auftraggeber').focus(); 
+});
+
+// Deep Link zu Admin (optional)
+if (location.hash === '#admin') { 
+    // Warte kurz, damit die UI bereit ist, bevor der Pw-Prompt kommt
+    setTimeout(handleAdminClick, 100); 
+}
+
+// Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
+document.addEventListener('keydown',(e)=>{ 
+    if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
+        e.preventDefault(); 
+        // Optional: Springe zum nächsten Feld oder löse Button aus? Eher nicht, kann verwirren.
+    }
+});
 </script>
 </body>
 </html>
