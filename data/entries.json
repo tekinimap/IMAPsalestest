@@ -5221,27 +5221,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760971496101_KV20250034_208",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Goethe-Institut",
-    "title": "Workshop „Berufliche Orientierung nach  dem Volontariat“ für Fachvolontär:innen",
-    "projectNumber": "Goethe-09-001",
-    "kv_nummer": "KV-2025-0034",
-    "amount": 1375,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760971496101,
-    "complete": false
-  },
-  {
     "id": "entry_1761042132127_KV20250156",
     "source": "erp-import",
     "projectType": "fix",
