@@ -2893,5 +2893,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1753394400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250166",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Knauf KNB04 Strategisches Coaching - Provisionen Q2-2025",
+    "projectNumber": "ChangePartner-15-001",
+    "kv_nummer": "KV-2025-0166",
+    "amount": 2800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1753221600000,
+    "complete": false
   }
 ]
