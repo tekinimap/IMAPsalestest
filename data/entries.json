@@ -3691,27 +3691,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709372_KV20250147_116",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesministerium für Familie, Senioren, Frauen und Jugend",
-    "title": "Durchführung einer Veranstaltung zur Ergebnispräsentation der Studie „Betriebliche Beschwerdestellen",
-    "projectNumber": "BMFSFJ-03-001",
-    "kv_nummer": "KV-2025-0147",
-    "amount": 2420,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709372,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709372_KV20250124_117",
     "source": "erp-import",
     "projectType": "fix",
