@@ -7470,12 +7470,54 @@
     "projectNumber": "ChangePartner-19-001",
     "kv_nummer": "KV-2025-0167",
     "amount": 500,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761053193302,
-    "freigabedatum": 1753221600000,
-    "complete": false
+    "list": [
+      {
+        "key": "ChangePartner Mitarbeiter:in",
+        "name": "ChangePartner Mitarbeiter:in",
+        "pct": 100,
+        "money": 500
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054932556",
+        "name": "ChangePartner Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": null,
+        "name": "",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761059877201,
+    "freigabedatum": 1753142400000,
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761059877201
   },
   {
     "id": "entry_1761053193302_KV20250170",
