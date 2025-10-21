@@ -2957,7 +2957,7 @@
     "title": "VolkswagenStiftung VWS01 Transformationsbegleitung",
     "projectNumber": "ChangePartner-30-001",
     "kv_nummer": "KV-2025-0185",
-    "amount": 37463.76,
+    "amount": 3746376,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2968,7 +2968,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709370,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132126
   },
   {
     "id": "entry_1760970709370_KV20250189_57",
