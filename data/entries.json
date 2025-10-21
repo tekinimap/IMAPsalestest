@@ -4093,5 +4093,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1762556400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250189",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Salzgitter",
+    "title": "Umsetzung und Erneuerung des Klimaschutzkonzepts",
+    "projectNumber": "Stadt Salzgitter-01-001",
+    "kv_nummer": "KV-2025-0189",
+    "amount": 6000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1755727200000,
+    "complete": false
   }
 ]
