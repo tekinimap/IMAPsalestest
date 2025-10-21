@@ -2541,5 +2541,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1756332000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250202",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Bayern Süd",
+    "title": "Ziel-Workshops HJ2 2025",
+    "projectNumber": "DRV Bayern Süd-09-001",
+    "kv_nummer": "KV-2025-0202",
+    "amount": 8160,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1756332000000,
+    "complete": false
   }
 ]
