@@ -3581,12 +3581,73 @@
     "projectNumber": "Coach-02-001",
     "kv_nummer": "KV-2025-0043",
     "amount": 2425,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761053193301,
-    "freigabedatum": 1743544800000,
-    "complete": false
+    "list": [
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 34,
+        "money": 825
+      },
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 33,
+        "money": 800
+      },
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 33,
+        "money": 800
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054902400",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 33,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_1761054880891",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 33,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_1761054924733",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 34,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761059922742,
+    "freigabedatum": 1743465600000,
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761059922742
   },
   {
     "id": "entry_1761053193301_KV20250044",
