@@ -4701,5 +4701,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1759096800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250243",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Moderation  von TOP-Managementveranstaltungen, wie der Beratungskreis-Klausuren",
+    "projectNumber": "GIZ-60-001",
+    "kv_nummer": "KV-2025-0243",
+    "amount": 39000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1759096800000,
+    "complete": false
   }
 ]
