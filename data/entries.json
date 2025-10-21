@@ -2295,22 +2295,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250138",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stiftung Universität Hildesheim",
-    "title": "Input & Co-Moderation von zwei Workshops zum Thema \"Nutzerorientierte Digitalisierung von Ausländerbehörden\"",
-    "projectNumber": "SUH-01-001",
-    "kv_nummer": "KV-2025-0138",
-    "amount": 200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1750024800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250141",
     "source": "erp-import",
     "projectType": "fix",
