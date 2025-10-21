@@ -2058,5 +2058,21 @@
     "ts": 1761053193300,
     "freigabedatum": 1751320800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193300_KV20250019",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Einzelcoaching für Führungsverantwortliche",
+    "projectNumber": "BG Verkehr-04-001",
+    "kv_nummer": "KV-2025-0019",
+    "amount": 2867.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193300,
+    "freigabedatum": 1751320800000,
+    "complete": false
   }
 ]
