@@ -2295,22 +2295,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250146",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Teach First Deutschland gGmbH",
-    "title": "Strategieentwicklung Paperplane",
-    "projectNumber": "TFD-02-001",
-    "kv_nummer": "KV-2025-0146",
-    "amount": 650,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1750802400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250143",
     "source": "erp-import",
     "projectType": "fix",
