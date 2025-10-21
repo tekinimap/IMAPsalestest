@@ -2596,12 +2596,45 @@
     "projectNumber": "LBV NRW-01-001",
     "kv_nummer": "KV-2025-0029",
     "amount": 4800,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 4800
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193301,
     "freigabedatum": 1736895600000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695671
   },
   {
     "id": "entry_1761053193301_KV20250031",
