@@ -4151,27 +4151,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709373_KV20250080_160",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Keil (61) - Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "Köln-08-017",
-    "kv_nummer": "KV-2025-0080",
-    "amount": 694.64,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709373,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709373_KV20250081_161",
     "source": "erp-import",
     "projectType": "fix",
