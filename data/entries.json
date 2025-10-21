@@ -5035,7 +5035,7 @@
     "title": "Forschungszentrum Jülich - Führungskräfteentwicklung",
     "projectNumber": "UP Transfer-01-001",
     "kv_nummer": "KV-2025-0020",
-    "amount": 19796.5,
+    "amount": 197965,
     "list": [],
     "rows": [],
     "weights": [],
@@ -5046,7 +5046,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709374_KV20250021_225",
