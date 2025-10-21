@@ -2580,5 +2580,21 @@
     "ts": 1761053193301,
     "freigabedatum": 1740956400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193301_KV20250058",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Duisburg",
+    "title": "Konzeptionstag",
+    "projectNumber": "STD-08-001",
+    "kv_nummer": "KV-2025-0058",
+    "amount": 1200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193301,
+    "freigabedatum": 1759442400000,
+    "complete": false
   }
 ]
