@@ -2909,5 +2909,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1753221600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250167",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "AstraZeneca AZH03 Workshop/Training/Moderation - Provision Q2-2025",
+    "projectNumber": "ChangePartner-19-001",
+    "kv_nummer": "KV-2025-0167",
+    "amount": 500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1753221600000,
+    "complete": false
   }
 ]
