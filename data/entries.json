@@ -1843,7 +1843,17 @@
     "projectNumber": "ekom21-06-001",
     "kv_nummer": "",
     "ts": 1761032940036,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1761042132127_KV20250121",
+        "kv_nummer": "KV-2025-0121",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761042132127,
+        "freigabedatum": 1747260000000
+      }
+    ],
+    "modified": 1761042132127
   },
   {
     "id": "manuell_wdr_change_fuehrung",
