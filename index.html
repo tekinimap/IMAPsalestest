@@ -426,7 +426,20 @@
         <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
       </div>
       <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
-    </div>
+
+      <div class="hr"></div>
+      <h3>Import: Sales-Beteiligung (Altdaten)</h3>
+      <p class="note" style="font-size: 14px; margin-bottom: 12px;">
+        Nur für Altdaten: Lädt eine Excel-Datei, die KV-Nummern und Team-Prozentsätze (als Zahlen von 0-1) enthält. 
+        Die Funktion <strong>überspringt KV-Nummern, die nicht gefunden werden</strong>, und erstellt <strong>keine</strong> neuen Aufträge.
+        Sie <strong>überschreibt</strong> die Sales-Verteilung für alle gefundenen Einträge.
+      </p>
+      <div class="search-wrapper">
+        <input type="file" id="legacySalesFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
+        <button class="btn warn" id="btnLegacySalesImport">Legacy-Sales-Import starten</button>
+      </div>
+      <div id="legacyImportResult" class="info-box hide" style="margin-top: 14px;"></div>
+      </div>
   </div>
 
   <div class="card hide" id="viewAnalytics">
@@ -2421,6 +2434,199 @@ async function handleErpImport() {
     }
 }
 
+/* ---------- Import: Legacy Sales (Team-Prozente) - CHUNKED VERSION ---------- */
+async function handleLegacySalesImport() {
+    const fileInput = document.getElementById('legacySalesFile');
+    const importResult = document.getElementById('legacyImportResult');
+    if (fileInput.files.length === 0) {
+        showToast('Bitte eine Datei für den Legacy-Import auswählen.', 'bad');
+        return;
+    }
+    const file = fileInput.files[0];
+    showLoader();
+    importResult.classList.add('hide');
+    
+    const columnToPersonMap = {
+        "% Evaluation und Beteiligung": "Evaluation und Beteiligung Mitarbeiter:in",
+        "% Vielfalt+": "Vielfalt+ Mitarbeiter:in",
+        "% Nachhaltigkeit": "Nachhaltigkeit Mitarbeiter:in",
+        "% Sozial- und Krankenversicherungen": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "% ChangePartner": "ChangePartner Mitarbeiter:in",
+        "% Bundes- & Landesbehörden": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "% Kommunalverwaltungen": "Kommunalverwaltungen Mitarbeiter:in",
+        "% Internationale Zusammenarbeit": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "% BU OE": "BU Lead OE",
+        "% BU PI": "BU Lead PI"
+    };
+    const percentageColumns = Object.keys(columnToPersonMap);
+    const legacyWeights = [{key: 'cs', weight: 100}, {key: 'konzept', weight: 0}, {key: 'pitch', weight: 0}];
+    
+    // Konfiguration für die Blockverarbeitung
+    const CHUNK_SIZE = 10; // Anzahl der Einträge pro Speicherblock
+    const CHUNK_DELAY = 50; // Kurze Pause zwischen den Blöcken (zusätzlich zu throttle)
+
+    try {
+        await loadHistory(); 
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        let updatedCount = 0;
+        let skippedCount = 0;
+        
+        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
+        const changesToPush = [];
+        const kvIndex = new Map();
+        allEntriesCopy.forEach(entry => {
+            if (entry.kv_nummer) {
+                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
+            }
+            // Rahmenvertrags-Transaktionen ignorieren wir hier, da wir nur Fixaufträge aktualisieren
+        });
+
+        // 1. Daten vorbereiten (synchron)
+        for (const row of excelRows) {
+            const newSalesRows = []; 
+            let totalPoints = 0;
+            for (const colName of percentageColumns) {
+                const percentageValue = parseFloat(getVal(row, colName) || 0);
+                if (percentageValue > 0) {
+                    const personName = columnToPersonMap[colName];
+                    const points = percentageValue * 100;
+                    newSalesRows.push({ name: personName, cs: points, konzept: 0, pitch: 0 });
+                    totalPoints += points;
+                }
+            }
+
+            if (newSalesRows.length === 0) continue;
+            
+            if (Math.abs(totalPoints - 100) > 0.1) {
+                console.warn(`Übersprungen (Vorb.): Zeile mit KV ${getVal(row, 'KV-Nummer')} hat Summe ${totalPoints}.`);
+                skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                continue;
+            }
+            
+            const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
+            if (!kvString) continue;
+
+            const kvList = kvString.split(',')
+                                 .map(kv => kv.trim())
+                                 .filter(kv => kv.length > 0);
+            
+            let firstFullKv = kvList.find(k => k.toLowerCase().startsWith('kv-')) || kvList[0];
+            let kvPrefix = '';
+            if (firstFullKv && firstFullKv.includes('-')) {
+                 kvPrefix = firstFullKv.substring(0, firstFullKv.lastIndexOf('-') + 1); // z.B. "KV-2025-"
+            }
+
+            for (const kv of kvList) {
+                let kvToUpdate = kv;
+                if (!kvToUpdate.toLowerCase().startsWith('kv-') && kvPrefix) {
+                    kvToUpdate = kvPrefix + kvToUpdate;
+                } else if (!kvToUpdate.toLowerCase().startsWith('kv-') && !kvPrefix) {
+                     console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe diese KV.`);
+                     skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                     continue;
+                }
+
+                const existing = kvIndex.get(kvToUpdate);
+                
+                if (existing && existing.type === 'fix') { // Nur Fixaufträge bearbeiten
+                    const entryToUpdate = existing.entry; 
+                    
+                     // Verhindern, dass derselbe Eintrag mehrmals in die Liste kommt
+                    if (changesToPush.some(item => item.id === entryToUpdate.id)) {
+                        console.log(`Eintrag ${entryToUpdate.id} bereits für Update vorgemerkt.`);
+                        continue; // Gehe zur nächsten KV in der Liste
+                    }
+
+                    // Änderungen anwenden
+                    entryToUpdate.rows = newSalesRows;
+                    entryToUpdate.weights = legacyWeights;
+                    entryToUpdate.totals = {cs: 100, konzept: 0, pitch: 0}; 
+                    entryToUpdate.list = newSalesRows.map(r => ({ 
+                        key: r.name, name: r.name, pct: r.cs, 
+                        money: Math.round((entryToUpdate.amount || 0) * r.cs / 100)
+                    }));
+                    entryToUpdate.complete = true; 
+                    entryToUpdate.modified = Date.now();
+                    
+                    changesToPush.push(entryToUpdate); // Zum Speichern vormerken
+                } else if (!existing) {
+                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} nicht gefunden.`);
+                    skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                } else {
+                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} gehört zu Transaktion, nicht zu Fixauftrag.`);
+                     skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                }
+            }
+        }
+        
+        hideLoader(); // Loader ausblenden, bevor die Batch-Verarbeitung beginnt
+
+        // 2. Daten speichern (asynchron in Blöcken)
+        if (changesToPush.length > 0) {
+            showBatchProgress('Speichere Sales-Daten (Altdaten)...', changesToPush.length);
+            let processedCount = 0;
+
+            // Funktion, die einen Block verarbeitet
+            const processChunk = async (chunk) => {
+                for (const entry of chunk) {
+                    try {
+                        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(entry)
+                        });
+                        if (!r.ok) {
+                            throw new Error(`Fehler (PUT) für Eintrag ${entry.id}: ${await r.text()}`);
+                        }
+                         updatedCount++; // Nur bei Erfolg zählen
+                    } catch (error) {
+                         console.error(`Fehler beim Speichern von ${entry.id} (${entry.kv_nummer}):`, error);
+                         skippedCount++; // Bei Fehler als übersprungen zählen
+                         showToast(`Fehler bei KV ${entry.kv_nummer}: ${error.message}`, 'bad', 5000);
+                    } finally {
+                        processedCount++;
+                        updateBatchProgress(processedCount, changesToPush.length);
+                        await throttle(); // Wichtig: Latenz *nach jeder einzelnen* Anfrage
+                    }
+                }
+            };
+
+            // Schleife, die die Blöcke nacheinander aufruft
+            for (let i = 0; i < changesToPush.length; i += CHUNK_SIZE) {
+                const chunk = changesToPush.slice(i, i + CHUNK_SIZE);
+                await processChunk(chunk);
+                // Kurze zusätzliche Pause, um dem Browser sicher Zeit zu geben
+                await new Promise(resolve => setTimeout(resolve, CHUNK_DELAY)); 
+            }
+        }
+
+        // 3. Ergebnis anzeigen
+        const resultMsg = `Legacy-Import abgeschlossen: ${updatedCount} Einträge erfolgreich aktualisiert. ${skippedCount} Einträge/KV-Nummern übersprungen (nicht gefunden, Fehler, falscher Typ oder Summe != 100).`;
+        importResult.innerHTML = resultMsg;
+        importResult.classList.remove('hide');
+        showToast('Sales-Daten (Altdaten) Import beendet.', 'ok');
+        await loadHistory(); // Lade die finale Version vom Server
+
+    } catch (e) {
+        // Fehler bei der Dateiverarbeitung (vor dem Speichern)
+        hideLoader(); // Sicherstellen, dass der Loader aus ist
+        hideBatchProgress(); // Sicherstellen, dass der Batch-Progress aus ist
+        showToast('Fehler beim Verarbeiten der Datei.', 'bad');
+        console.error(e);
+        importResult.textContent = 'Fehler bei Dateiverarbeitung: ' + e.message;
+        importResult.classList.remove('hide');
+    } finally {
+        // Wird immer ausgeführt, egal ob Erfolg oder Fehler
+        hideLoader(); 
+        hideBatchProgress();
+        fileInput.value = ''; // Input leeren
+    }
+}
+// *** NEUE FUNKTION ENDE ***
 
 
 /* ---------- Auswertung ---------- */
@@ -2725,13 +2931,24 @@ window.addEventListener('beforeunload', (e) => {
 loadPeople().then(()=>{ 
     initFromState(); 
     showView('erfassung'); 
+    
+    // *** KORREKTUR: Event Listener HIER hinzufügen ***
+    const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
+    // Sicherheitscheck: Nur hinzufügen, wenn der Button existiert
+    if (btnLegacySalesImport) { 
+        btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
+    } else {
+        console.error("Button #btnLegacySalesImport nicht gefunden!");
+    }
+    // *** ENDE KORREKTUR ***
+
     // Setze initialen Fokus (optional)
     // document.getElementById('auftraggeber').focus(); 
 });
 
 // Deep Link zu Admin (optional)
 if (location.hash === '#admin') { 
-    // Warte kurz, damit die UI bereit ist, bevor der Pw-Prompt kommt
+    // Warte kurz, damit die UI bereit ist
     setTimeout(handleAdminClick, 100); 
 }
 
@@ -2739,7 +2956,6 @@ if (location.hash === '#admin') {
 document.addEventListener('keydown',(e)=>{ 
     if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
         e.preventDefault(); 
-        // Optional: Springe zum nächsten Feld oder löse Button aus? Eher nicht, kann verwirren.
     }
 });
 </script>
