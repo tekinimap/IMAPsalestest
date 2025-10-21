@@ -681,7 +681,29 @@ const formatDateForInput = (ts) => {
 
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
-function parseAmountInput(str){if(!str)return 0;const clean=String(str).replace(/[^\d,.\-]/g,'').replace(/\./g,'').replace(',', '.');const n=Number(clean);return Number.isFinite(n)?n:0;}
+function parseAmountInput(str) {
+  if (!str) return 0;
+  str = String(str).trim();
+
+  // 1. Entferne Währungs- und Leerzeichen
+  str = str.replace(/[€\s]/g, '');
+
+  // 2. Prüfe, welches Trennzeichen zuletzt vorkommt (Dezimaltrennzeichen)
+  const lastComma = str.lastIndexOf(',');
+  const lastDot = str.lastIndexOf('.');
+
+  let normalized;
+  if (lastComma > lastDot) {
+    // deutsches Format: 212.532,57 -> 212532.57
+    normalized = str.replace(/\./g, '').replace(',', '.');
+  } else {
+    // englisches Format: 212,532.57 -> 212532.57
+    normalized = str.replace(/,/g, '');
+  }
+
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : 0;
+}
 
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
