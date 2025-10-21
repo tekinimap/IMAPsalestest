@@ -3785,12 +3785,45 @@
     "projectNumber": "ST BN-02-001",
     "kv_nummer": "KV-2025-0068",
     "amount": 99825,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 99825
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193301,
     "freigabedatum": 1742338800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695672
   },
   {
     "id": "entry_1761053193301_KV20250070",
