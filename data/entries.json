@@ -1798,9 +1798,17 @@
         "type": "founder",
         "amount": 9000,
         "ts": 1760968566273
+      },
+      {
+        "id": "trans_1761042132127_KV20250168",
+        "kv_nummer": "KV-2025-0168",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761042132127,
+        "freigabedatum": 1736290800000
       }
     ],
-    "modified": 1760968566273
+    "modified": 1761042132127
   },
   {
     "id": "manuell_ekom21_miniwettbewerb",
