@@ -1513,11 +1513,11 @@
         "id": "trans_1760970709373_KV20250060",
         "kv_nummer": "KV-2025-0060",
         "type": "founder",
-        "amount": 9401.57,
+        "amount": 940157,
         "ts": 1760970709373
       }
     ],
-    "modified": 1760970709373
+    "modified": 1761042132128
   },
   {
     "id": "manuell_stadt_koeln_leitlinien",
