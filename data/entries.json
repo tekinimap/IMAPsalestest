@@ -2468,7 +2468,7 @@
     "title": "VW Stiftung VWS02 Workshop Leitungsteam Führung im Wandel",
     "projectNumber": "ChangePartner-36-001",
     "kv_nummer": "KV-2025-0226",
-    "amount": 5163.75,
+    "amount": 516375,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2479,7 +2479,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709368,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132126
   },
   {
     "id": "entry_1760970709368_KV20250228_16",
