@@ -4624,28 +4624,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709374_KV20250036_206",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Moderationsleistung zur Begleitung von  Führungskräfteveranstaltungen",
-    "projectNumber": "DAK-02-001",
-    "kv_nummer": "KV-2025-0036",
-    "amount": 1921875,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709374,
-    "complete": false,
-    "modified": 1761042132128
-  },
-  {
     "id": "entry_1760970709374_KV20250038_207",
     "source": "erp-import",
     "projectType": "fix",
