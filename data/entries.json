@@ -4757,7 +4757,7 @@
     "title": "Viega VIE09 Innovation 2.0 1. Aufstockung 01-04.2025",
     "projectNumber": "ChangePartner-11-001",
     "kv_nummer": "KV-2025-0040",
-    "amount": 14137.32,
+    "amount": 1413732,
     "list": [],
     "rows": [],
     "weights": [],
@@ -4768,7 +4768,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709374_KV20250037_205",
