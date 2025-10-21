@@ -3734,5 +3734,21 @@
     "ts": 1761046591569,
     "freigabedatum": 1754258400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591569_KV20250087",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Freie Hansestadt Bremen",
+    "title": "Kinder und Jugendbeteiligung LAP",
+    "projectNumber": "F HB-02-001",
+    "kv_nummer": "KV-2025-0087",
+    "amount": 1705,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591569,
+    "freigabedatum": 1759528800000,
+    "complete": false
   }
 ]
