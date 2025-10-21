@@ -3990,5 +3990,21 @@
     "ts": 1761046591569,
     "freigabedatum": 1742166000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591569_KV20250064",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Rossmann DRO01 Mitarbeitendenbefragung Diversity",
+    "projectNumber": "ChangePartner-21-001",
+    "kv_nummer": "KV-2025-0064",
+    "amount": 295355,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591569,
+    "freigabedatum": 1742166000000,
+    "complete": false
   }
 ]
