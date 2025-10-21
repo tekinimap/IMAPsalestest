@@ -3779,12 +3779,45 @@
     "projectNumber": "ver.di-01-001",
     "kv_nummer": "KV-2025-0048",
     "amount": 2880,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 100,
+        "money": 2880
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193301,
     "freigabedatum": 1751407200000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695672
   },
   {
     "id": "entry_1761053193301_KV20250052",
