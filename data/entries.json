@@ -4520,5 +4520,21 @@
     "ts": 1761046591570,
     "freigabedatum": 1751320800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591570_KV20250021",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Industriegewerkschaft Bergbau, Chemie, Energie",
+    "title": "Einzelcoaching",
+    "projectNumber": "IGW BCE-01-001",
+    "kv_nummer": "KV-2025-0021",
+    "amount": 1700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591570,
+    "freigabedatum": 1751320800000,
+    "complete": false
   }
 ]
