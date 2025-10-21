@@ -3789,5 +3789,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1751234400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250156",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Goethe-Institut",
+    "title": "Workshop KI im Arbeitsalltag 2.7.2025 München",
+    "projectNumber": "Goethe-11-001",
+    "kv_nummer": "KV-2025-0156",
+    "amount": 500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1744581600000,
+    "complete": false
   }
 ]
