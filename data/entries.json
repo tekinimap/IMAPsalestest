@@ -5170,5 +5170,67 @@
     "submittedBy": "ERP-Import",
     "ts": 1760971496101,
     "complete": false
+  },
+  {
+    "source": "manuell",
+    "complete": true,
+    "client": "Deutsche Rentenversicherung Bund",
+    "title": "Führungskräfteentwicklung",
+    "amount": 100000,
+    "projectType": "fix",
+    "rows": [
+      {
+        "personId": "p_oe_skv_03",
+        "name": "Lotta Burron",
+        "cs": 50,
+        "konzept": 100,
+        "pitch": 0
+      },
+      {
+        "personId": "p_pi_nh_05",
+        "name": "Benedict Bueb",
+        "cs": 50,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "list": [
+      {
+        "key": "Lotta Burron",
+        "name": "Lotta Burron",
+        "pct": 75,
+        "money": 75000
+      },
+      {
+        "key": "Benedict Bueb",
+        "name": "Benedict Bueb",
+        "pct": 25,
+        "money": 25000
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 50
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "submittedBy": "Johannes Groß",
+    "projectNumber": "",
+    "kv_nummer": "",
+    "ts": 1761031565537,
+    "id": "5a0520f3-baef-4e27-821c-894cefefde82"
   }
 ]
