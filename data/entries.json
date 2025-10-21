@@ -3910,5 +3910,21 @@
     "ts": 1761046591569,
     "freigabedatum": 1742943600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591569_KV20250068",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Bonn",
+    "title": "Begleitung des Transformationsprozesses Rückenwind für die Ausländerbehörde",
+    "projectNumber": "ST BN-02-001",
+    "kv_nummer": "KV-2025-0068",
+    "amount": 99825,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591569,
+    "freigabedatum": 1742338800000,
+    "complete": false
   }
 ]
