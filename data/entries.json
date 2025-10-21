@@ -2149,21 +2149,5 @@
     "kv_nummer": "",
     "ts": 1761032940044,
     "transactions": []
-  },
-  {
-    "id": "entry_1761042132128_KV20250024",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stiftung BSW",
-    "title": "Workshop - Festenburg 2025",
-    "projectNumber": "ST BSW-10-001",
-    "kv_nummer": "KV-2025-0024",
-    "amount": 3900,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761042132128,
-    "freigabedatum": 1736722800000,
-    "complete": false
   }
 ]
