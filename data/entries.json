@@ -1576,6 +1576,54 @@
     "ts": 1761032940031,
     "transactions": [
       {
+        "id": "trans_1761054243678_KV20250217",
+        "kv_nummer": "KV-2025-0217",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761054243678,
+        "freigabedatum": 1757368800000
+      },
+      {
+        "id": "trans_1761054235875_KV20250193",
+        "kv_nummer": "KV-2025-0193",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761054235875,
+        "freigabedatum": 1756072800000
+      },
+      {
+        "id": "trans_1761054238608_KV20250194",
+        "kv_nummer": "KV-2025-0194",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761054238608,
+        "freigabedatum": 1756072800000
+      },
+      {
+        "id": "trans_1761054241162_KV20250210",
+        "kv_nummer": "KV-2025-0210",
+        "type": "founder",
+        "amount": 252,
+        "ts": 1761054241162,
+        "freigabedatum": 1741474800000
+      },
+      {
+        "id": "trans_1761054230688_KV20250152",
+        "kv_nummer": "KV-2025-0152",
+        "type": "founder",
+        "amount": 360,
+        "ts": 1761054230688,
+        "freigabedatum": 1738882800000
+      },
+      {
+        "id": "trans_1761054233273_KV20250178",
+        "kv_nummer": "KV-2025-0178",
+        "type": "founder",
+        "amount": 1440,
+        "ts": 1761054233273,
+        "freigabedatum": 1736290800000
+      },
+      {
         "id": "trans_1761054220312_KV20250080",
         "kv_nummer": "KV-2025-0080",
         "type": "founder",
@@ -1606,65 +1654,9 @@
         "amount": 1681.76,
         "ts": 1761054228088,
         "freigabedatum": 1735945200000
-      },
-      {
-        "id": "trans_1761054230688_KV20250152",
-        "kv_nummer": "KV-2025-0152",
-        "type": "founder",
-        "amount": 360,
-        "ts": 1761054230688,
-        "freigabedatum": 1738882800000
-      },
-      {
-        "id": "trans_1761054233273_KV20250178",
-        "kv_nummer": "KV-2025-0178",
-        "type": "founder",
-        "amount": 1440,
-        "ts": 1761054233273,
-        "freigabedatum": 1736290800000
-      },
-      {
-        "id": "trans_1761054235875_KV20250193",
-        "kv_nummer": "KV-2025-0193",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761054235875,
-        "freigabedatum": 1756072800000
-      },
-      {
-        "id": "trans_1761054238608_KV20250194",
-        "kv_nummer": "KV-2025-0194",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761054238608,
-        "freigabedatum": 1756072800000
-      },
-      {
-        "id": "trans_1761054241162_KV20250210",
-        "kv_nummer": "KV-2025-0210",
-        "type": "founder",
-        "amount": 252,
-        "ts": 1761054241162,
-        "freigabedatum": 1741474800000
-      },
-      {
-        "id": "trans_1761054243678_KV20250217",
-        "kv_nummer": "KV-2025-0217",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761054243678,
-        "freigabedatum": 1757368800000
-      },
-      {
-        "id": "trans_1761054246431_KV20250233",
-        "kv_nummer": "KV-2025-0233",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761054246431,
-        "freigabedatum": 1758146400000
       }
     ],
-    "modified": 1761054246431
+    "modified": 1761054259976
   },
   {
     "id": "manuell_stadt_mg_fke_a21082",
