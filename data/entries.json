@@ -2935,7 +2935,7 @@
     "title": "Begleitung Teamentwicklung - Team Lern- und Entwicklungsmanagement",
     "projectNumber": "Barmer-05-001",
     "kv_nummer": "KV-2025-0187",
-    "amount": 3718.75,
+    "amount": 371875,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2946,7 +2946,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709370,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132126
   },
   {
     "id": "entry_1760970709370_KV20250185_56",
