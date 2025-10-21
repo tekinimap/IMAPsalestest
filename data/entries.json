@@ -2120,22 +2120,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591570_KV20250037",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Forschungszentrum Jülich GmbH",
-    "title": "Führungskräfteentwicklungsprogramm",
-    "projectNumber": "FZJ-01-001",
-    "kv_nummer": "KV-2025-0037",
-    "amount": 6936,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591570,
-    "freigabedatum": 1737932400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591570_KV20250034",
     "source": "erp-import",
     "projectType": "fix",
