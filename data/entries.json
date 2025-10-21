@@ -2845,5 +2845,21 @@
     "ts": 1761053193301,
     "freigabedatum": 1735945200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193301_KV20250082",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Köln",
+    "title": "Deutmann (63) - Rahmenvertrag 3. FZ Leitlinienprozess",
+    "projectNumber": "Köln-08-019",
+    "kv_nummer": "KV-2025-0082",
+    "amount": 731.2,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193301,
+    "freigabedatum": 1735945200000,
+    "complete": false
   }
 ]
