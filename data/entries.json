@@ -3176,5 +3176,21 @@
     "ts": 1761053193301,
     "freigabedatum": 1749074400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193301_KV20250108",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Hessen",
+    "title": "Führungskräfteentwicklung",
+    "projectNumber": "DRV Hessen-04-001",
+    "kv_nummer": "KV-2025-0108",
+    "amount": 27300,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193301,
+    "freigabedatum": 1749074400000,
+    "complete": false
   }
 ]
