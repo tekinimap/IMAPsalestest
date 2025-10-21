@@ -4624,27 +4624,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709374_KV20250026_216",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Knauf KNB06 Erstellung Führungsleitbild",
-    "projectNumber": "ChangePartner-18-001",
-    "kv_nummer": "KV-2025-0026",
-    "amount": 10080,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709374,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709374_KV20250027_217",
     "source": "erp-import",
     "projectType": "fix",
