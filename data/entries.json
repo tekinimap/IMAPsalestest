@@ -3809,7 +3809,7 @@
     "title": "Beteiligungsformate Leichlinger Zukunfts Büffet Planung",
     "projectNumber": "STL-01-001",
     "kv_nummer": "KV-2025-0125",
-    "amount": 28461.12,
+    "amount": 2846112,
     "list": [],
     "rows": [],
     "weights": [],
@@ -3820,7 +3820,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132127
   },
   {
     "id": "entry_1760970709372_KV20250119_120",
