@@ -2179,7 +2179,7 @@
     "title": "AstraZeneca AZH03 Workshop/Training/Moderation",
     "projectNumber": "ChangePartner-19-001",
     "kv_nummer": "KV-2025-0033",
-    "amount": 6401.25,
+    "amount": 640125,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2190,7 +2190,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760968634801,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760968634806_KV20250057_216",
