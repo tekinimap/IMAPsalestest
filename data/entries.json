@@ -4141,5 +4141,21 @@
     "ts": 1761053193302,
     "freigabedatum": 1755554400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193302_KV20250192",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "Workshop Bereich 8",
+    "projectNumber": "Lahn-Dill-04-001",
+    "kv_nummer": "KV-2025-0192",
+    "amount": 2400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193302,
+    "freigabedatum": 1765148400000,
+    "complete": false
   }
 ]
