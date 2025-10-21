@@ -1664,8 +1664,25 @@
     "projectNumber": "Köln-27-001",
     "kv_nummer": "",
     "ts": 1761032940034,
-    "transactions": [],
-    "modified": 1761047511947
+    "transactions": [
+      {
+        "id": "trans_1761053193301_KV20250117",
+        "kv_nummer": "KV-2025-0117",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761053193301,
+        "freigabedatum": 1747605600000
+      },
+      {
+        "id": "trans_1761053193302_KV20250172",
+        "kv_nummer": "KV-2025-0172",
+        "type": "founder",
+        "amount": 33300,
+        "ts": 1761053193302,
+        "freigabedatum": 1753740000000
+      }
+    ],
+    "modified": 1761053193302
   },
   {
     "id": "manuell_steb_koeln_change",
