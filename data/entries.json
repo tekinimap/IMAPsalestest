@@ -2076,5 +2076,21 @@
     "kv_nummer": "",
     "ts": 1761032940044,
     "transactions": []
+  },
+  {
+    "id": "entry_1761046591567_KV20250245",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Moderation „Städte und Regionen im Fokus“",
+    "projectNumber": "GIZ-61-001",
+    "kv_nummer": "KV-2025-0245",
+    "amount": 999,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591567,
+    "freigabedatum": 1759183200000,
+    "complete": false
   }
 ]
