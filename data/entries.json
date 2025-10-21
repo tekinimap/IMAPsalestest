@@ -2363,27 +2363,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709368_KV20250234_7",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Viega VIE12 Fortsetzung Change Begleitung AI Initiative",
-    "projectNumber": "ChangePartner-37-001",
-    "kv_nummer": "KV-2025-0234",
-    "amount": 10850,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709368,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709368_KV20250232_8",
     "source": "erp-import",
     "projectType": "fix",
