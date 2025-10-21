@@ -3335,12 +3335,45 @@
     "projectNumber": "FZJ-01-001",
     "kv_nummer": "KV-2025-0037",
     "amount": 6936,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 100,
+        "money": 6936
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193301,
     "freigabedatum": 1737932400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695672
   },
   {
     "id": "entry_1761053193301_KV20250038",
