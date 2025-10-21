@@ -3312,27 +3312,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709371_KV20250153_85",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Viega VIE10  Change Begleitung Global AI Initiative 2025",
-    "projectNumber": "ChangePartner-26-001",
-    "kv_nummer": "KV-2025-0153",
-    "amount": 6045,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709371,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709371_KV20250154_90",
     "source": "erp-import",
     "projectType": "fix",
