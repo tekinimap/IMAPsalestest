@@ -376,14 +376,6 @@
     "ts": 1761032940007,
     "transactions": [
       {
-        "id": "trans_1761046591567_KV20250225",
-        "kv_nummer": "KV-2025-0225",
-        "type": "founder",
-        "amount": 1400,
-        "ts": 1761046591567,
-        "freigabedatum": 1754690400000
-      },
-      {
         "id": "trans_1761046591568_KV20250171",
         "kv_nummer": "KV-2025-0171",
         "type": "founder",
@@ -416,7 +408,7 @@
         "freigabedatum": 1736722800000
       }
     ],
-    "modified": 1761047204906
+    "modified": 1761047228047
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
