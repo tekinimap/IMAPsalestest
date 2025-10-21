@@ -2074,5 +2074,21 @@
     "ts": 1761053193300,
     "freigabedatum": 1751320800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193300_KV20250020",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "UP Transfer GmbH an der Universität Potsdam",
+    "title": "Forschungszentrum Jülich - Führungskräfteentwicklung",
+    "projectNumber": "UP Transfer-01-001",
+    "kv_nummer": "KV-2025-0020",
+    "amount": 19796.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193300,
+    "freigabedatum": 1751320800000,
+    "complete": false
   }
 ]
