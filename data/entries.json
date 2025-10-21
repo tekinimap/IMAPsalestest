@@ -2318,22 +2318,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250160",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Moderation „Retrospektive mit Visionsentwicklung“",
-    "projectNumber": "MGladbach-04-001",
-    "kv_nummer": "KV-2025-0160",
-    "amount": 1200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1751234400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250149",
     "source": "erp-import",
     "projectType": "fix",
