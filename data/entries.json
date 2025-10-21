@@ -3315,5 +3315,21 @@
     "ts": 1761053193301,
     "freigabedatum": 1747605600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193301_KV20250119",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Herne",
+    "title": "Moderationsauftrag",
+    "projectNumber": "Stadt Herne-06-001",
+    "kv_nummer": "KV-2025-0119",
+    "amount": 1100,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193301,
+    "freigabedatum": 1746396000000,
+    "complete": false
   }
 ]
