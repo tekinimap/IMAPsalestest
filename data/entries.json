@@ -1864,5 +1864,21 @@
     "ts": 1761053193300,
     "freigabedatum": 1740783600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193300_KV20240182",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "IMAP GmbH",
+    "title": "IMAP Interne Budgets 2025",
+    "projectNumber": "IMAP-02-001",
+    "kv_nummer": "KV-2024-0182",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193300,
+    "freigabedatum": 1735686000000,
+    "complete": false
   }
 ]
