@@ -4735,7 +4735,7 @@
     "title": "Durchführung der Replikation der Studie  „Diskriminierungserfahrungen in Deutschland“",
     "projectNumber": "ADS-03-001",
     "kv_nummer": "KV-2025-0044",
-    "amount": 337837.5,
+    "amount": 3378375,
     "list": [],
     "rows": [],
     "weights": [],
@@ -4746,7 +4746,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709374,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709374_KV20250040_204",
