@@ -2595,27 +2595,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709369_KV20250204_36",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Eucon EUM05 Beratung Geschäftsführung Strategieprozess Teil 2",
-    "projectNumber": "ChangePartner-33-001",
-    "kv_nummer": "KV-2025-0204",
-    "amount": 5100,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709369,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709369_KV20250206_37",
     "source": "erp-import",
     "projectType": "fix",
