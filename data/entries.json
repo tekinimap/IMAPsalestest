@@ -2764,12 +2764,54 @@
     "projectNumber": "BAMF-12-002",
     "kv_nummer": "KV-2025-0022",
     "amount": 173608.5,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761053193300,
-    "freigabedatum": 1737586800000,
-    "complete": false
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 173609
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054880891",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": null,
+        "name": "",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761059659493,
+    "freigabedatum": 1737504000000,
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761059659493
   },
   {
     "id": "entry_1761053193300_KV20250023",
