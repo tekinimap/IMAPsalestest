@@ -5185,7 +5185,7 @@
     "title": "BAMF VAMOS 2.0 - Fortsetzung 2025",
     "projectNumber": "BAMF-09-003",
     "kv_nummer": "KV-2023-0140",
-    "amount": 180527.1,
+    "amount": 1805271,
     "list": [],
     "rows": [],
     "weights": [],
@@ -5196,7 +5196,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709375,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760971496095_KV20250202_40",
