@@ -1498,17 +1498,8 @@
     "projectNumber": "DAA-01-001",
     "kv_nummer": "",
     "ts": 1761032940033,
-    "transactions": [
-      {
-        "id": "trans_1761042132127_KV20250122",
-        "kv_nummer": "KV-2025-0122",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761042132127,
-        "freigabedatum": 1748469600000
-      }
-    ],
-    "modified": 1761047493717
+    "transactions": [],
+    "modified": 1761047498755
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
