@@ -374,8 +374,57 @@
     "projectNumber": "DRV BaWü-02-001",
     "kv_nummer": "",
     "ts": 1761032940007,
-    "transactions": [],
-    "modified": 1761046541102
+    "transactions": [
+      {
+        "id": "trans_1761046591567_KV20250225",
+        "kv_nummer": "KV-2025-0225",
+        "type": "founder",
+        "amount": 1400,
+        "ts": 1761046591567,
+        "freigabedatum": 1754690400000
+      },
+      {
+        "id": "trans_1761046591568_KV20250171",
+        "kv_nummer": "KV-2025-0171",
+        "type": "founder",
+        "amount": 3500,
+        "ts": 1761046591568,
+        "freigabedatum": 1752616800000
+      },
+      {
+        "id": "trans_1761046591569_KV20250094",
+        "kv_nummer": "KV-2025-0094",
+        "type": "founder",
+        "amount": 910625,
+        "ts": 1761046591569,
+        "freigabedatum": 1745272800000
+      },
+      {
+        "id": "trans_1761046591569_KV20250090",
+        "kv_nummer": "KV-2025-0090",
+        "type": "founder",
+        "amount": 0,
+        "ts": 1761046591569,
+        "freigabedatum": 1744754400000
+      },
+      {
+        "id": "trans_1761046591569_KV20250074",
+        "kv_nummer": "KV-2025-0074",
+        "type": "founder",
+        "amount": 11599,
+        "ts": 1761046591569,
+        "freigabedatum": 1743030000000
+      },
+      {
+        "id": "trans_1761046591570_KV20250025",
+        "kv_nummer": "KV-2025-0025",
+        "type": "founder",
+        "amount": 3300,
+        "ts": 1761046591570,
+        "freigabedatum": 1736722800000
+      }
+    ],
+    "modified": 1761046591570
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
