@@ -793,31 +793,20 @@ navLinks.forEach(link => {
   });
 });
 
-async function handleAdminClick() {
+ async function handleAdminClick() {
   try { 
     showLoader();
     await loadPeople(); 
     renderPeopleAdmin(); 
     showView('admin'); 
-  }
-  catch(e){ 
+  } catch (e) { 
     console.error('Admin init failed', e); 
     showToast('Konnte Admin-Daten nicht laden.', 'bad'); 
-  }
-  finally { 
+  } finally { 
     hideLoader(); 
   }
 }
 
-  try { 
-    showLoader();
-    await loadPeople(); 
-    renderPeopleAdmin(); 
-    showView('admin'); 
-  }
-  catch(e){ console.error('Admin init failed',e); showToast('Konnte Admin-Daten nicht laden.', 'bad'); }
-  finally { hideLoader(); }
-}
 
 
 /* ---------- People ---------- */
