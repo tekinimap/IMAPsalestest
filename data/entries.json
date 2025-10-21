@@ -2363,27 +2363,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709368_KV20250238_12",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Ministerium für Soziales, Gesundheit und Integration des Landes Baden-Württemberg",
-    "title": "kommunales Integrationsmanagement Herrenberg",
-    "projectNumber": "SGI BW-01-001",
-    "kv_nummer": "KV-2025-0238",
-    "amount": 3000,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709368,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709368_KV20250226_14",
     "source": "erp-import",
     "projectType": "fix",
