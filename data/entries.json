@@ -2306,12 +2306,45 @@
     "projectNumber": "DRV Hessen-02-001",
     "kv_nummer": "KV-2025-0012",
     "amount": 4200,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 4200
+      }
+    ],
+    "rows": [
+      {
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193300,
     "freigabedatum": 1751320800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695671
   },
   {
     "id": "entry_1761053193300_KV20250013",
