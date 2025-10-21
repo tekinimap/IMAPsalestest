@@ -955,6 +955,11 @@ document.addEventListener('DOMContentLoaded', () => {
 }); // Ende des DOMContentLoaded Listeners
 
 } // End of the main try-catch block for the entire script
+  catch (err) {
+    // Dieser Block hat gefehlt
+    console.error("Fehler beim Laden des Skripts:", err);
+    document.body.innerHTML = '<div style="font-family: sans-serif; padding: 20px; color: red; background: #fff; border: 2px solid red; margin: 20px;"><strong>Kritischer Fehler:</strong> Die Anwendung konnte nicht geladen werden. Bitte kontaktieren Sie den Support. Details: ' + err.message + '</div>';
+}
 </script>
 </body>
 </html>
