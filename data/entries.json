@@ -3596,7 +3596,7 @@
     "title": "Führen von Projektteams",
     "projectNumber": "MGladbach-03-002",
     "kv_nummer": "KV-2025-0129",
-    "amount": 437.5,
+    "amount": 4375,
     "list": [],
     "rows": [],
     "weights": [],
@@ -3607,7 +3607,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709371,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132127
   },
   {
     "id": "entry_1760970709371_KV20250128_109",
