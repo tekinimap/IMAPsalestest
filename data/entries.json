@@ -2073,22 +2073,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250211",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Miriam von der Burg  - FK Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "",
-    "kv_nummer": "KV-2025-0211",
-    "amount": 0,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1741474800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250203",
     "source": "erp-import",
     "projectType": "fix",
