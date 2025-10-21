@@ -690,25 +690,63 @@ const formatDateForInput = (ts) => {
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
 
-// *** KORRIGIERTE VERSION ***
-function parseAmountInput(str){
-  if(!str) return 0;
-  // Entferne alles außer Zahlen, Komma, Punkt, Minus. Entferne Währungszeichen und Leerzeichen.
-  const clean = String(str).replace(/[€\s]/g, '').replace(/[^\d,.\-]/g,'');
-  // Prüfe, ob das letzte Vorkommen von '.' oder ',' ein Komma ist (typisch deutsch)
-  const lastSeparator = clean.lastIndexOf(',') > clean.lastIndexOf('.') ? ',' : '.';
+function parseAmountInput(str) {
+  // Handle null, undefined, or empty strings immediately
+  if (str === null || str === undefined || String(str).trim() === '') return 0;
+
+  // Convert input to string first, just in case it's already a number
+  let clean = String(str);
+
+  // Remove currency symbols (€, $, £ etc.) and any whitespace
+  clean = clean.replace(/[€$£\s]/g, '');
+
+  // Check for separators
+  const hasComma = clean.includes(',');
+  const hasDot = clean.includes('.');
+
   let numberStr;
-  if (lastSeparator === ',') {
-    // Deutsch: Punkte entfernen, Komma zu Punkt
-    numberStr = clean.replace(/\./g, '').replace(',', '.');
-  } else {
-    // Englisch/International: Kommas entfernen
-    numberStr = clean.replace(/,/g, '');
+
+  // Case 1: German format suspected (comma is the last separator)
+  if (hasComma && (!hasDot || clean.lastIndexOf(',') > clean.lastIndexOf('.'))) {
+      // Remove all dots (thousand separators), replace the last comma with a dot (decimal separator)
+      numberStr = clean.replace(/\./g, '').replace(',', '.');
   }
+  // Case 2: International/English format suspected (dot is the last separator, or only dot exists)
+  else if (hasDot) {
+       // Remove all commas (thousand separators)
+      numberStr = clean.replace(/,/g, '');
+      // Dot is already the decimal separator, no replacement needed.
+  }
+   // Case 3: Only comma, assume decimal separator
+  else if (hasComma) {
+       numberStr = clean.replace(',', '.');
+  }
+  // Case 4: No separators, assume integer or simple float with dot already
+  else {
+      numberStr = clean;
+  }
+
+  // Final cleanup: Remove anything that's not a digit, the first minus sign, or the first decimal point
+  // This helps catch edge cases or slightly malformed inputs
+  let sign = '';
+  if (numberStr.startsWith('-')) {
+    sign = '-';
+    numberStr = numberStr.substring(1);
+  }
+  const parts = numberStr.split('.');
+  let integerPart = parts[0].replace(/[^\d]/g, '');
+  let decimalPart = parts.length > 1 ? parts[1].replace(/[^\d]/g, '') : '';
+  
+  if (decimalPart) {
+      numberStr = `${sign}${integerPart}.${decimalPart}`;
+  } else {
+       numberStr = `${sign}${integerPart}`;
+  }
+  
   const n = Number(numberStr);
+  // console.log(`Original: "${str}", Cleaned: "${clean}", Parsed String: "${numberStr}", Final Number: ${n}`); // Debugging line
   return Number.isFinite(n) ? n : 0;
 }
-
 const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
