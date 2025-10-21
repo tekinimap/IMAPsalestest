@@ -2375,22 +2375,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250120",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Erzbistum Paderborn",
-    "title": "Verwaltungstransformation im Erzbistum Paderborn",
-    "projectNumber": "ERP-01-001",
-    "kv_nummer": "KV-2025-0120",
-    "amount": 135000,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1747087200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591569_KV20250104",
     "source": "erp-import",
     "projectType": "fix",
