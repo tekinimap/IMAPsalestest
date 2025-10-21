@@ -4306,27 +4306,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709373_KV20250071_172",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "GFA CONSULTING GROUP GMBH",
-    "title": "Teamcoaching",
-    "projectNumber": "GFA-01-001",
-    "kv_nummer": "KV-2025-0071",
-    "amount": 7200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709373,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709373_KV20250068_174",
     "source": "erp-import",
     "projectType": "fix",
