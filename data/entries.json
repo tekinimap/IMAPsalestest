@@ -5163,7 +5163,7 @@
     "title": "Aufstockung 2025 Rahmenvertrag Abteilung 70 - Zusammenlegung der Abteilung 40 und 49",
     "projectNumber": "DRV Bund-13-001",
     "kv_nummer": "KV-2025-0023",
-    "amount": 212532.57,
+    "amount": 21253257,
     "list": [],
     "rows": [],
     "weights": [],
@@ -5174,7 +5174,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709375,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132128
   },
   {
     "id": "entry_1760970709375_KV20230140_238",
