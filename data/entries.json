@@ -1511,8 +1511,17 @@
     "projectNumber": "ST KO-01-001",
     "kv_nummer": "",
     "ts": 1761032940030,
-    "transactions": [],
-    "modified": 1761046559198
+    "transactions": [
+      {
+        "id": "trans_1761046591569_KV20250060",
+        "kv_nummer": "KV-2025-0060",
+        "type": "founder",
+        "amount": 940157,
+        "ts": 1761046591569,
+        "freigabedatum": 1764716400000
+      }
+    ],
+    "modified": 1761046591569
   },
   {
     "id": "manuell_stadt_koeln_leitlinien",
