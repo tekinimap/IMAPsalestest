@@ -2290,22 +2290,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591568_KV20250191",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Jobcenter Lahn-Dill",
-    "title": "Workshop zum LincPersonalityProfile im Führungsteam",
-    "projectNumber": "Lahn-Dill-03-001",
-    "kv_nummer": "KV-2025-0191",
-    "amount": 4200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591568,
-    "freigabedatum": 1755554400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591568_KV20250185",
     "source": "erp-import",
     "projectType": "fix",
