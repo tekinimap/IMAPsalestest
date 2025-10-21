@@ -2745,7 +2745,7 @@
     "title": "AstraZeneca AZH04 Moderationstraining Außendienstler",
     "projectNumber": "ChangePartner-31-001",
     "kv_nummer": "KV-2025-0199",
-    "amount": 2257.5,
+    "amount": 22575,
     "list": [],
     "rows": [],
     "weights": [],
@@ -2756,7 +2756,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709369,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132126
   },
   {
     "id": "entry_1760970709369_KV20250198_42",
