@@ -2596,5 +2596,21 @@
     "ts": 1761053193301,
     "freigabedatum": 1759442400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761053193301_KV20250059",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Teamworkshop zum Thema „Positive Fehlerkultur & lösungsorientierte Kommunikation“",
+    "projectNumber": "GIZ-57-001",
+    "kv_nummer": "KV-2025-0059",
+    "amount": 999.99,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761053193301,
+    "freigabedatum": 1759442400000,
+    "complete": false
   }
 ]
