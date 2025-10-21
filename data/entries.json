@@ -3852,7 +3852,7 @@
     "title": "Diversitätsfonds: Empowermentkonzept",
     "projectNumber": "MKW-01-002",
     "kv_nummer": "KV-2025-0114",
-    "amount": 17609.5,
+    "amount": 176095,
     "list": [],
     "rows": [],
     "weights": [],
@@ -3863,7 +3863,8 @@
     },
     "submittedBy": "ERP-Import",
     "ts": 1760970709372,
-    "complete": false
+    "complete": false,
+    "modified": 1761042132127
   },
   {
     "id": "entry_1760970709372_KV20250120_129",
