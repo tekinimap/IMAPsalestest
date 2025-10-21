@@ -4624,27 +4624,6 @@
     "complete": false
   },
   {
-    "id": "entry_1760970709374_KV20250021_225",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Industriegewerkschaft Bergbau, Chemie, Energie",
-    "title": "Einzelcoaching",
-    "projectNumber": "IGW BCE-01-001",
-    "kv_nummer": "KV-2025-0021",
-    "amount": 1700,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "ERP-Import",
-    "ts": 1760970709374,
-    "complete": false
-  },
-  {
     "id": "entry_1760970709374_KV20250022_226",
     "source": "erp-import",
     "projectType": "fix",
