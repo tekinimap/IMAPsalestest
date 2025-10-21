@@ -1291,11 +1291,12 @@
     "ts": 1761032940028,
     "transactions": [
       {
-        "id": "trans_1760970709371_KV20250150",
-        "kv_nummer": "KV-2025-0150",
+        "id": "trans_1761042132127_KV20250092",
+        "kv_nummer": "KV-2025-0092",
         "type": "founder",
-        "amount": 445469,
-        "ts": 1760970709371
+        "amount": 0,
+        "ts": 1761042132127,
+        "freigabedatum": 1744754400000
       },
       {
         "id": "trans_1761042132126_KV20250208",
@@ -1304,17 +1305,9 @@
         "amount": 0,
         "ts": 1761042132126,
         "freigabedatum": 1739055600000
-      },
-      {
-        "id": "trans_1761042132127_KV20250092",
-        "kv_nummer": "KV-2025-0092",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761042132127,
-        "freigabedatum": 1744754400000
       }
     ],
-    "modified": 1761042132127
+    "modified": 1761047396998
   },
   {
     "id": "manuell_stadt_bochum_teamentw",
