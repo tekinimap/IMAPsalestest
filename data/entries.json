@@ -3207,22 +3207,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591570_KV20250047",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Jobcenter Lahn-Dill",
-    "title": "Konzeption und Durchführung einer Führungskräfteschulung zum Thema ‚Selbst- und Zeitmanagement für erfahrene Führungskräfte‘",
-    "projectNumber": "Lahn-Dill-02-001",
-    "kv_nummer": "KV-2025-0047",
-    "amount": 5800,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591570,
-    "freigabedatum": 1751407200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591570_KV20250037",
     "source": "erp-import",
     "projectType": "fix",
