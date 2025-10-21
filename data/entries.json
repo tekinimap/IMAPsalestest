@@ -1429,14 +1429,6 @@
     "ts": 1761032940031,
     "transactions": [
       {
-        "id": "trans_1761041395933_KV20250178",
-        "kv_nummer": "KV-2025-0178",
-        "type": "founder",
-        "amount": 1440,
-        "ts": 1761041395933,
-        "freigabedatum": 1760970709370
-      },
-      {
         "id": "trans_1761041393126_KV20250210",
         "kv_nummer": "KV-2025-0210",
         "type": "founder",
@@ -1445,7 +1437,7 @@
         "freigabedatum": 1760970709369
       }
     ],
-    "modified": 1761047467812
+    "modified": 1761047473554
   },
   {
     "id": "manuell_stadt_mg_fke_a21082",
