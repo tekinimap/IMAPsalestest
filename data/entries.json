@@ -2749,5 +2749,21 @@
     "ts": 1761046591568,
     "freigabedatum": 1762556400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761046591568_KV20250185",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "VolkswagenStiftung VWS01 Transformationsbegleitung",
+    "projectNumber": "ChangePartner-30-001",
+    "kv_nummer": "KV-2025-0185",
+    "amount": 3746376,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761046591568,
+    "freigabedatum": 1749333600000,
+    "complete": false
   }
 ]
