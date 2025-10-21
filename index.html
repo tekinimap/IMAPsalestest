@@ -25,11 +25,14 @@
   .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.35);overflow:hidden;margin-bottom:18px}
   .hd{padding:20px 22px 8px}.hd h1{margin:0 0 8px;font-size:24px}.hd p{margin:0;color:var(--muted);font-size:14px}
   .ct{padding:20px 22px 24px}
+  
+  .sum-display { font-size: 18px; font-weight: 600; color: var(--muted); margin-top: -8px; margin-bottom: 8px; }
+  .sum-display span { color: var(--text); font-size: 20px; }
 
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   label{display:block;font-weight:600;margin:8px 0 6px}
-  input[type="text"],input[type="number"],select{
+  input[type="text"],input[type="number"],input[type="date"],select{
     width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
     border-radius:10px;padding:12px;outline:none; font-size:15px;
   }
@@ -43,6 +46,7 @@
   .btn.disabled{opacity:.5;pointer-events:none}
   .btn.ok{background:var(--ok);border-color:transparent}
   .btn.danger{background:var(--bad);border-color:transparent}
+  .btn.warn{background:var(--warn);border-color:transparent}
   .tag{background:#0c162b;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:13px}
   
   .radio-group {display:flex; gap:12px; margin-top: 8px;}
@@ -70,8 +74,9 @@
   .small{font-size:12px}
   .hide{display:none !important}
   
-  .search-wrapper{display:flex; gap:10px; margin-bottom:12px;}
-  .search-wrapper input {width:100%;}
+  .search-wrapper{display:flex; gap:10px; margin-bottom:12px; align-items: center; flex-wrap: wrap;}
+  .search-wrapper input {flex-grow:1;}
+  .batch-actions { display: flex; gap: 10px; }
 
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
@@ -80,6 +85,8 @@
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
+  th.col-check { width: 40px; padding: 12px 10px; text-align: center; }
+  td.col-check { text-align: center; }
   
   .field-error {color:var(--bad); font-size:13px; font-weight:600; padding-top:4px; min-height:1.2em;}
   input.invalid-field, select.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
@@ -95,6 +102,11 @@
   .chart h3{margin:0 0 10px 0;font-size:15px;color:#cbd5e1}
   .chart svg{width:100%;height:auto}
   
+  .analytics-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .analytics-controls label { margin: 0; font-weight: 500; color: var(--muted); }
+  .analytics-controls input[type="date"], .analytics-controls select { padding: 8px 10px; font-size: 14px; width: auto; }
+  .analytics-controls .btn { padding: 8px 14px; font-size: 14px; }
+  
   /* --- Feedback & Loader --- */
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);color:var(--text);padding:12px 20px;border-radius:10px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9999;opacity:0;transition:opacity .3s, bottom .3s;font-weight:600;}
   .toast.show{opacity:1;bottom:30px;}
@@ -103,6 +115,16 @@
   .loader{position:fixed;top:20px;right:20px;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;z-index:10000;}
   @keyframes spin{to{transform:rotate(360deg)}}
   
+  /* --- Batch Progress Bar --- */
+  #batchProgress {
+    position: sticky; top: 10px; z-index: 9000;
+    margin: -10px auto 18px auto; max-width: 1200px; padding: 16px 22px;
+  }
+  #batchProgress h3 { margin: 0 0 10px; font-size: 16px; }
+  #batchProgress p { margin: 0; }
+  #batchProgress .note { margin-top: 6px; }
+  #batchProgressBar { width: 100%; height: 10px; margin: 8px 0 4px; }
+
   dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius); max-width: 90vw; }
   dialog::backdrop {background:rgba(0,0,0,.5); backdrop-filter: blur(4px);}
   dialog .hd { position: relative; }
@@ -120,7 +142,12 @@
     .main-nav {width: 100%; justify-content: space-around;}
     .actions{flex-direction:column; align-items:stretch; gap:12px;}
     .btn{width:100%; text-align:center;}
-    .form-bottom-actions{justify-content:center !important;}
+    .form-bottom-actions{flex-direction:column; align-items:stretch !important; gap:16px !important;}
+    .form-fields-group { flex-direction: column; gap: 10px !important; }
+    .form-fields-group > div { width: 100%; }
+    .form-fields-group input { width: 100% !important; }
+    .search-wrapper { flex-direction: column; align-items: stretch; }
+    .batch-actions { width: 100%; flex-direction: column; }
   }
   @media(max-width: 980px){
     table{min-width: 800px;}
@@ -144,6 +171,13 @@
       <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
       <a href="#" class="nav-link" data-view="admin">Admin</a>
     </div>
+  </div>
+  
+  <div id="batchProgress" class="card hide">
+    <h3 id="batchTitle">Verarbeitung läuft...</h3>
+    <p id="batchStatusLabel">Initialisiere...</p>
+    <progress id="batchProgressBar" max="100" value="0"></progress>
+    <p class="note small" id="batchThrottleNotice">Gedrosselter Schreibmodus aktiv, um Server-Limits einzuhalten. Dies kann einen Moment dauern.</p>
   </div>
 
   <div class="card" id="viewErfassung">
@@ -232,16 +266,21 @@
       <div class="hr"></div>
 
       <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
-        <div style="display:flex; gap:10px;">
+        <div class="form-fields-group" style="display:flex; gap:10px; flex-wrap: wrap;">
             <div>
               <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
-              <input id="projectNumber" type="text" style="padding: 8px 12px; width: 200px;">
+              <input id="projectNumber" type="text" style="padding: 8px 12px; width: 170px;">
               <div class="field-error" data-validation-for="projectNumber"></div>
             </div>
             <div>
               <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer</label>
-              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 200px;">
+              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 170px;">
                <div class="field-error" data-validation-for="kvNummer"></div>
+            </div>
+            <div>
+              <label for="freigabedatum" style="font-weight:500; font-size:13px; color: var(--muted);">Freigabedatum *</label>
+              <input id="freigabedatum" type="date" style="padding: 8px 12px; width: 170px;">
+               <div class="field-error" data-validation-for="freigabedatum"></div>
             </div>
         </div>
         <div style="display:flex;gap:10px; justify-content: flex-end;">
@@ -252,22 +291,31 @@
   </div>
 
   <div class="card hide" id="viewFixauftraege">
-    <div class="hd"><h1>Fixaufträge</h1><p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p></div>
+    <div class="hd">
+        <h1>Fixaufträge</h1>
+        <div id="fixSumDisplay" class="sum-display">💰 Lade Summe...</div>
+        <p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p>
+    </div>
     <div class="ct">
       <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
-        <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
+        <div class="batch-actions">
+            <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
+            <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
+            <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
+        </div>
       </div>
 
       <div class="table-wrapper">
         <table>
           <thead><tr>
+            <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
             <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th style="width:14%">Status</th>
             <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
-            <th class="sortable" data-sort="ts">Zuletzt bearbeitet<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
             <th style="width:10%">Aktionen</th>
           </tr></thead>
           <tbody id="historyBody"></tbody>
@@ -277,7 +325,11 @@
   </div>
   
   <div class="card hide" id="viewRahmen">
-    <div class="hd"><h1>Rahmenverträge</h1><p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p></div>
+    <div class="hd">
+        <h1>Rahmenverträge</h1>
+        <div id="rahmenSumDisplay" class="sum-display">💰 Lade Summe...</div>
+        <p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p>
+    </div>
     <div class="ct">
       <div class="search-wrapper">
         <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
@@ -327,7 +379,7 @@
       <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
        <div class="table-wrapper">
         <table style="min-width:auto;">
-          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Aktionen</th></tr></thead>
+          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Freigabe</th><th>Aktionen</th></tr></thead>
           <tbody id="rahmenTransaktionenBody"></tbody>
         </table>
       </div>
@@ -380,7 +432,7 @@
   <div class="card hide" id="viewAnalytics">
     <div class="hd"><h1>Auswertung</h1><p>Jahressummen, monetär. Basis: Fixaufträge & Rahmenverträge.</p></div>
     <div class="ct">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px; flex-wrap: wrap;">
+      <div class="analytics-controls">
         <label>Jahr</label>
         <select id="anaYear" class="ipt"></select>
         <button class="btn" id="anaRefresh">Aktualisieren</button>
@@ -395,14 +447,37 @@
           <h3>Teams (monetär, aggregiert)</h3>
           <div id="chartTeams"></div>
         </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Gesamtübersicht (monetär)</h3>
+          <div id="chartTotals"></div>
+        </div>
       </div>
+      
+      <div class="hr"></div>
+      <h2>Aktivität Rahmenverträge</h2>
+      <div class="analytics-controls">
+        <label for="anaStartDate">Von</label>
+        <input type="date" id="anaStartDate">
+        <label for="anaEndDate">Bis</label>
+        <input type="date" id="anaEndDate">
+        <button class="btn" id="btnAnaThisYear">Dieses Jahr</button>
+        <button class="btn" id="btnAnaLastYear">Letztes Jahr</button>
+        <button class="btn primary" id="btnAnaRangeRefresh">Laden</button>
+      </div>
+      <div class="grid-3">
+         <div class="chart" style="grid-column:1/-1">
+          <h3 id="chartActivityTitle">Aktivste Rahmenverträge</h3>
+          <div id="chartActivity"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
 
 <dialog id="confirmDlg">
-  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong>Eintrag löschen</strong></div>
+  <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong><span id="confirmDlgTitle">Eintrag löschen</span></strong></div>
   <div class="ct" style="padding:16px">
     <p id="confirmDlgText">Wollen Sie den Eintrag wirklich löschen?</p>
     <div style="display:flex;gap:10px;justify-content:flex-end">
@@ -410,6 +485,40 @@
       <button class="btn danger" id="btnYes">Löschen</button>
     </div>
   </div>
+</dialog>
+
+<dialog id="moveToFrameworkDlg" style="min-width: 500px;">
+    <div class="hd">
+        <h1>Aufträge zuweisen</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="moveValidationSummary" class="validation-summary"></div>
+        <p id="moveDlgCountLabel"></p>
+        <div>
+            <label for="moveTargetFramework">Ziel-Rahmenvertrag *</label>
+            <select id="moveTargetFramework">
+                <option value="">-- Bitte Rahmenvertrag wählen --</option>
+            </select>
+        </div>
+        <div style="margin-top: 16px;">
+            <label>Abruf-Typ *</label>
+            <div class="radio-group">
+                <label><input type="radio" name="moveType" value="founder" checked> Passiver Abruf (Founder)</label>
+                <label><input type="radio" name="moveType" value="hunter"> Aktiver Abruf (Hunter)</label>
+            </div>
+            <p class="note small" style="margin-top: 10px;">
+                <b>Passiv (Founder):</b> Nur Betrag & KV-Nr. werden übernommen. Die Sales-Verteilung des Fixauftrags wird verworfen und stattdessen die Founder-Verteilung des Rahmenvertrags angewendet.
+                <br><br>
+                <b>Aktiv (Hunter):</b> Der komplette Eintrag inkl. Sales-Verteilung wird 1:1 als "Hunter"-Abruf übernommen. Dies geht nur, wenn der Fixauftrag vollständig (Status "ok") ist.
+            </p>
+        </div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
+            <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
+        </div>
+    </div>
 </dialog>
 
 <dialog id="editTransactionDlg" style="min-width: 800px;">
@@ -420,10 +529,20 @@
     <div class="ct">
         <div id="editTransValidationSummary" class="validation-summary"></div>
         <div id="editFounderTransView">
-            <label for="editFounderValueInput">Wert (EUR)</label>
-            <input type="text" id="editFounderValueInput" inputmode="decimal">
-             <label for="editFounderKvNummer">KV-Nummer</label>
-            <input type="text" id="editFounderKvNummer">
+            <div class="grid-2">
+                <div>
+                    <label for="editFounderValueInput">Wert (EUR)</label>
+                    <input type="text" id="editFounderValueInput" inputmode="decimal">
+                </div>
+                 <div>
+                    <label for="editFounderKvNummer">KV-Nummer</label>
+                    <input type="text" id="editFounderKvNummer">
+                </div>
+            </div>
+             <div style="margin-top: 10px;">
+                <label for="editFounderFreigabedatum">Freigabedatum</label>
+                <input type="date" id="editFounderFreigabedatum">
+            </div>
         </div>
 
         <div id="editHunterTransView" class="hide">
@@ -431,6 +550,10 @@
                 <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
                 <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount" inputmode="decimal"></div>
                 <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer"></div>
+            </div>
+            <div style="margin-top: 10px;">
+                <label for="editHunterFreigabedatum">Freigabedatum</label>
+                <input type="date" id="editHunterFreigabedatum">
             </div>
             <div class="hr"></div>
             <div class="grid-3">
@@ -501,12 +624,20 @@ const TEAMS = [
 const DEFAULT_WEIGHTS = { cs: 50, konzept: 30, pitch: 20 };
 const CATEGORY_NAMES = {cs: "Consultative Selling", konzept: "Konzepterstellung", pitch: "Pitch"};
 const FOUNDER_SHARE_PCT = 20;
+const THROTTLE_MS = 400; // Latenz für Batch-Prozesse
+const RETRY_LIMIT = 2;
+const RETRY_BACKOFF_MS = 3000;
 
 
 /* ---------- Hilfsfunktionen & UI-Feedback ---------- */
 const loader = document.getElementById('loader');
 const toast = document.getElementById('toast');
+const batchProgress = document.getElementById('batchProgress');
+const batchTitle = document.getElementById('batchTitle');
+const batchStatusLabel = document.getElementById('batchStatusLabel');
+const batchProgressBar = document.getElementById('batchProgressBar');
 let hasUnsavedChanges = false;
+let isBatchRunning = false;
 
 function showLoader(){ loader.classList.remove('hide'); }
 function hideLoader(){ loader.classList.add('hide'); }
@@ -516,12 +647,36 @@ function showToast(msg, type='ok', duration=3000){
   setTimeout(() => { toast.className = 'toast'; }, duration);
 }
 
+function showBatchProgress(title, totalItems) {
+    isBatchRunning = true;
+    batchTitle.textContent = title;
+    batchProgressBar.max = totalItems;
+    batchProgressBar.value = 0;
+    batchStatusLabel.textContent = `Starte... (0 / ${totalItems})`;
+    batchProgress.classList.remove('hide');
+    window.scrollTo(0, 0);
+}
+function updateBatchProgress(currentItem, totalItems) {
+    batchProgressBar.value = currentItem;
+    batchStatusLabel.textContent = `Verarbeite ${currentItem} / ${totalItems}...`;
+}
+function hideBatchProgress() {
+    isBatchRunning = false;
+    batchProgress.classList.add('hide');
+}
+
 /* ---------- Formatter ---------- */
 const fmtPct   = new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtInt   = new Intl.NumberFormat('de-DE',{maximumFractionDigits:0});
-const fmtCurr2 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtCurr2 = new Intl.Onecall('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtCurr0 = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
 const formatAmountInput = (v) => new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((+v)||0);
+const getTodayDate = () => new Date().toISOString().split('T')[0];
+const formatDateForInput = (ts) => {
+    if (!ts) return '';
+    try { return new Date(ts).toISOString().split('T')[0]; }
+    catch(e) { return ''; }
+};
 
 function clamp01(x){return Math.max(0,Math.min(100,x));}
 function toInt0(v){const n=Math.round(Number(String(v??'0').replace(',','.')));return Number.isFinite(n)?n:0;}
@@ -531,13 +686,48 @@ const LS_KEY="sales_state_v1";
 function saveState(st){localStorage.setItem(LS_KEY, JSON.stringify(st));}
 function loadState(){try{const s=localStorage.getItem(LS_KEY);return s?JSON.parse(s):null;}catch{return null;}}
 
+/* ---------- API Helper mit Retry/Latenz ---------- */
+async function throttle() {
+    await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
+}
+
+async function fetchWithRetry(url, options, retryCount = 0) {
+    try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+            return response;
+        }
+        // Nur bei 429 (Too Many Requests) oder 5xx (Server Error) erneut versuchen
+        if ((response.status === 429 || response.status >= 500) && retryCount < RETRY_LIMIT) {
+            showToast(`Serverfehler ${response.status}. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        // Bei anderen Client-Fehlern (z.B. 404, 400) nicht erneut versuchen
+        throw new Error(`HTTP-Fehler ${response.status}: ${await response.text()}`);
+    } catch (e) {
+        // Bei Netzwerkfehlern ebenfalls erneut versuchen
+        if (retryCount < RETRY_LIMIT) {
+            showToast(`Netzwerkfehler. Versuche erneut in ${RETRY_BACKOFF_MS / 1000}s...`, 'warn', RETRY_BACKOFF_MS);
+            await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+            return fetchWithRetry(url, options, retryCount + 1);
+        }
+        throw e; // Finaler Fehler nach Retries
+    }
+}
+
 /* ---------- Navigation ---------- */
 const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
 function showView(viewName) {
+  if (isBatchRunning) {
+      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+      return;
+  }
   Object.values(views).forEach(v => v.classList.add('hide'));
   navLinks.forEach(l => l.classList.remove('active'));
+  hideBatchProgress();
   
   if (views[viewName]) {
     views[viewName].classList.remove('hide');
@@ -550,6 +740,10 @@ function showView(viewName) {
 navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
+    if (isBatchRunning) {
+        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+        return;
+    }
     const viewName = e.target.getAttribute('data-view');
     
     if (viewName === 'fixauftraege') {
@@ -557,7 +751,7 @@ navLinks.forEach(link => {
     } else if (viewName === 'rahmen') {
       loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else if (viewName === 'analytics') {
-      loadHistory().then(() => { renderAnalytics(); showView('analytics'); });
+      loadHistory().then(() => { initAnalytics(); showView('analytics'); });
     } else if (viewName === 'admin') {
       handleAdminClick();
     } else if (viewName === 'erfassung') {
@@ -622,6 +816,7 @@ const auftragswertBekannt = document.getElementById('auftragswertBekannt');
 const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
 const kvNummer = document.getElementById('kvNummer');
+const freigabedatum = document.getElementById('freigabedatum');
 const w_cs = document.getElementById('w_cs');
 const w_konzept = document.getElementById('w_konzept');
 const w_pitch = document.getElementById('w_pitch');
@@ -686,6 +881,7 @@ function validateInput(forLive = false) {
         if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
+        if (!freigabedatum.value) errors.freigabedatum = 'Freigabedatum ist erforderlich.';
         
         if (st.isAbrufMode && !kvNummer.value.trim()) {
             errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
@@ -792,12 +988,13 @@ function saveCurrentInputState() {
         weights: currentWeights(),
         submittedBy: submittedBy.value,
         projectNumber: projectNumber.value.trim(),
-        kvNummer: kvNummer.value.trim()
+        kvNummer: kvNummer.value.trim(),
+        freigabedatum: freigabedatum.value || getTodayDate()
     };
     saveState({ ...stPrev, input: currentInput });
 }
 
-[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -841,6 +1038,8 @@ async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
   const resultData = compute(st.input.rows, st.input.weights, finalAmount);
   const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  const date = new Date(st.input.freigabedatum).getTime();
+  const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
 
   const payload={
     source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
@@ -849,14 +1048,18 @@ async function saveNewEntry(st) {
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, ts:Date.now(), id:st.editingId||undefined,
+    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
+    freigabedatum: date,
+    ts: ts,
+    modified: Date.now(),
+    id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
   showLoader();
   try{
     const method = st.editingId ? 'PUT' : 'POST';
     const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
-    const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(await r.text());
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     clearInputFields();
@@ -880,6 +1083,8 @@ function loadInputForm(inputData, isEditing = false) {
     auftraggeber.disabled = false;
     projectNumber.disabled = true;
     kvNummer.disabled = true;
+    freigabedatum.disabled = false;
+    freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
 
     if (st.isAbrufMode && st.parentEntry) {
         // Hunter Abruf
@@ -893,6 +1098,7 @@ function loadInputForm(inputData, isEditing = false) {
         kvNummer.value = inputData.kvNummer || '';
         kvNummer.disabled = false;
         kvNummer.placeholder = 'KV-Nummer des Abrufs';
+        freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
 
     } else {
         // Neue Erfassung oder Bearbeitung
@@ -905,6 +1111,8 @@ function loadInputForm(inputData, isEditing = false) {
 
         projectNumber.disabled = !isEditing;
         kvNummer.disabled = !isEditing;
+        freigabedatum.disabled = !isEditing && !st.isAbrufMode;
+        
         projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
         kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
     }
@@ -1001,9 +1209,12 @@ const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
 const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
+const btnBatchDelete=document.getElementById('btnBatchDelete');
+const btnMoveToFramework=document.getElementById('btnMoveToFramework');
+const checkAllFix=document.getElementById('checkAllFix');
 let entries=[]; 
 let pendingDelete = { id: null, type: 'entry' }; // { id, type: 'entry'|'transaction', parentId? }
-let currentSort = { key: 'ts', direction: 'desc' };
+let currentSort = { key: 'freigabedatum', direction: 'desc' };
 
 async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
 function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
@@ -1011,56 +1222,67 @@ function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Arr
 function filtered(type = 'fix'){
   let arr = entries.filter(e => (e.projectType || 'fix') === type);
   const query = omniSearch.value.trim().toLowerCase();
-  const terms = query.split(/\s+/);
   
-  const filters = [];
-  const searchTerms = [];
+  if (query) {
+      const terms = query.split(/\s+/);
+      const filters = [];
+      const searchTerms = [];
 
-  terms.forEach(term => {
-    if (term.includes(':')) {
-      const [key, ...value] = term.split(':');
-      if (value.length > 0) {
-        filters.push({ key, value: value.join(':') });
+      terms.forEach(term => {
+        if (term.includes(':')) {
+          const [key, ...value] = term.split(':');
+          if (value.length > 0) {
+            filters.push({ key, value: value.join(':') });
+          }
+        } else {
+          searchTerms.push(term);
+        }
+      });
+
+      const searchText = searchTerms.join(' ');
+      if (searchText) {
+        arr = arr.filter(e => 
+          String(e.title || '').toLowerCase().includes(searchText) || 
+          String(e.client || '').toLowerCase().includes(searchText)
+        );
       }
-    } else {
-      searchTerms.push(term);
-    }
-  });
 
-  const searchText = searchTerms.join(' ');
-  if (searchText) {
-    arr = arr.filter(e => 
-      String(e.title || '').toLowerCase().includes(searchText) || 
-      String(e.client || '').toLowerCase().includes(searchText)
-    );
+      filters.forEach(({ key, value }) => {
+        if (key === 'status') {
+          const wantOk = value.startsWith('v') || value.startsWith('o');
+          arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+        }
+        if (key === 'quelle' || key === 'source') {
+          arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
+        }
+        if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
+          const num = parseFloat(value.substring(1));
+          if (!isNaN(num)) {
+            if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
+            if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
+          }
+        }
+      });
   }
 
-  filters.forEach(({ key, value }) => {
-    if (key === 'status') {
-      const wantOk = value.startsWith('v') || value.startsWith('o');
-      arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
-    }
-    if (key === 'quelle' || key === 'source') {
-      arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
-    }
-    if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
-      const num = parseFloat(value.substring(1));
-      if (!isNaN(num)) {
-        if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
-        if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
-      }
-    }
-  });
-
   arr.sort((a,b) => {
-    let valA = a[currentSort.key] || '';
-    let valB = b[currentSort.key] || '';
-    if (currentSort.key === 'ts') { valA = a.modified || a.ts || 0; valB = b.modified || b.ts || 0; }
+    let valA, valB;
+    if (currentSort.key === 'ts') { 
+        valA = a.modified || a.ts || 0; 
+        valB = b.modified || b.ts || 0; 
+    } else if (currentSort.key === 'freigabedatum') {
+        valA = a.freigabedatum || a.ts || 0;
+        valB = b.freigabedatum || b.ts || 0;
+    } else {
+        valA = a[currentSort.key] || '';
+        valB = b[currentSort.key] || '';
+    }
+    
     let comparison = 0;
     if (typeof valA === 'string' && typeof valB === 'string') {
       comparison = valA.localeCompare(valB, 'de');
     } else {
-      comparison = valA - valB;
+      comparison = (valA || 0) - (valB || 0);
     }
     return currentSort.direction === 'asc' ? comparison : -comparison;
   });
@@ -1071,23 +1293,62 @@ function filtered(type = 'fix'){
 function renderHistory(){
   historyBody.innerHTML=''; 
   updateSortIcons();
-  const arr=filtered('fix');
+  const arr = filtered('fix');
+  let totalSum = 0;
+  
   for(const e of arr){
-    const ok=autoComplete(e); const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
-    const modified=e.modified? new Date(e.modified).toLocaleString('de-DE'): e.ts? new Date(e.ts).toLocaleString('de-DE'): '–';
+    const ok = autoComplete(e); 
+    totalSum += (e.amount || 0);
+    const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
+    const datum = e.freigabedatum ? new Date(e.freigabedatum).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
+      <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
       <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
-      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${modified}</td>
+      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>`;
     historyBody.appendChild(tr);
   }
+  
+  document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+  updateBatchButtons();
 }
 omniSearch.addEventListener('input', renderHistory);
 rahmenSearch.addEventListener('input', renderFrameworkContracts);
+
+function getSelectedFixIds() {
+    return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
+}
+
+function updateBatchButtons() {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length > 0) {
+        btnBatchDelete.classList.remove('hide');
+        btnMoveToFramework.classList.remove('hide');
+        btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
+        btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
+    } else {
+        btnBatchDelete.classList.add('hide');
+        btnMoveToFramework.classList.add('hide');
+    }
+    checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
+}
+
+checkAllFix.addEventListener('change', () => {
+    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+        cb.checked = checkAllFix.checked;
+    });
+    updateBatchButtons();
+});
+
+historyBody.addEventListener('change', (ev) => {
+    if (ev.target.classList.contains('row-check')) {
+        updateBatchButtons();
+    }
+});
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -1118,9 +1379,27 @@ function handleDeleteClick(id, type = 'entry', parentId = null) {
     return;
   }
   pendingDelete = { id, type, parentId };
+  document.getElementById('confirmDlgTitle').textContent = `Eintrag löschen`;
   document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
   document.getElementById('confirmDlg').showModal();
 }
+
+btnBatchDelete.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+    
+    const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
+    if (pw !== 'imapadmin') {
+        if (pw !== null) showToast('Falsches Passwort.', 'bad');
+        return;
+    }
+    
+    pendingDelete = { ids: selectedIds, type: 'batch-entry' };
+    document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
+    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+    document.getElementById('confirmDlg').showModal();
+});
+
 
 historyBody.addEventListener('click', async(ev)=>{
   const btn=ev.target.closest('button[data-act]'); if(!btn) return;
@@ -1136,6 +1415,7 @@ function editEntry(id) {
   const e=entries.find(x=>x.id===id); if(!e) return;
   const st={ source:e.source||'manuell', editingId:e.id,
     input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummer: e.kv_nummer || '',
+            freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
             rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
   saveState(st); initFromState(true);
@@ -1144,26 +1424,42 @@ function editEntry(id) {
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 document.getElementById('btnYes').addEventListener('click',async()=>{
-    const { id, type, parentId } = pendingDelete;
+    const { id, ids, type, parentId } = pendingDelete;
     document.getElementById('confirmDlg').close();
-    if (!id) return;
     
     showLoader();
     try {
         if (type === 'entry') {
-            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!id) return;
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
             if (!r.ok) throw new Error(await r.text());
             showToast('Eintrag gelöscht.', 'ok');
             entries = entries.filter(x => x.id !== id);
             renderHistory();
             renderFrameworkContracts();
+        } else if (type === 'batch-entry') {
+            if (!ids || ids.length === 0) return;
+            hideLoader(); // Hide small loader, show batch progress
+            showBatchProgress('Lösche Einträge...', ids.length);
+            let count = 0;
+            for (const entryId of ids) {
+                count++;
+                updateBatchProgress(count, ids.length);
+                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+                if (!r.ok) throw new Error(`Fehler beim Löschen von ${entryId}: ${await r.text()}`);
+                await throttle();
+            }
+            showToast(`${count} Einträge gelöscht.`, 'ok');
+            await loadHistory(); // Reload all data
+            renderHistory();
         } else if (type === 'transaction') {
+            if (!id || !parentId) return;
             const entry = entries.find(e => e.id === parentId);
             if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
             const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
             entry.transactions = entry.transactions.filter(t => t.id !== id);
             entry.modified = Date.now();
-            const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
             });
             if (!r.ok) {
@@ -1174,10 +1470,11 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             renderRahmenDetails(parentId);
         }
     } catch (e) {
-        showToast('Löschen fehlgeschlagen.', 'bad');
+        showToast('Aktion fehlgeschlagen.', 'bad');
         console.error(e);
     } finally {
         hideLoader();
+        hideBatchProgress();
         pendingDelete = { id: null, type: 'entry' };
     }
 });
@@ -1188,7 +1485,7 @@ btnXlsx.addEventListener('click',()=>{
   const arr=filtered('fix').map(e=>({
     Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
     Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
-    Zuletzt_bearbeitet: e.modified? new Date(e.modified).toISOString() : (e.ts? new Date(e.ts).toISOString():'')
+    Freigabedatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
   }));
   const ws=XLSX.utils.json_to_sheet(arr);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
@@ -1225,11 +1522,13 @@ function filteredFrameworks() {
 function renderFrameworkContracts() {
   rahmenBody.innerHTML = '';
   const rahmenEntries = filteredFrameworks();
+  let totalSum = 0;
   for (const e of rahmenEntries) {
     const tr = document.createElement('tr');
     tr.classList.add('clickable');
     tr.dataset.id = e.id;
     const totalValue = (e.transactions || []).reduce((sum, trans) => sum + trans.amount, 0);
+    totalSum += totalValue;
     tr.innerHTML = `
       <td>${e.projectNumber || '–'}</td>
       <td>${e.title || '–'}</td>
@@ -1244,6 +1543,7 @@ function renderFrameworkContracts() {
     `;
     rahmenBody.appendChild(tr);
   }
+  document.getElementById('rahmenSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (Summe aller Abrufe)`;
 }
 
 rahmenBody.addEventListener('click', (e) => {
@@ -1258,7 +1558,7 @@ rahmenBody.addEventListener('click', (e) => {
     if (act === 'founder-plus') {
       openEditTransactionModal({type:'founder'}, entry);
     } else if (act === 'hunter-plus') {
-      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '' } });
+      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
       initFromState();
       showView('erfassung');
     } else if (act === 'details') {
@@ -1287,6 +1587,7 @@ async function saveHunterAbruf(st) {
     const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
+    const date = new Date(st.input.freigabedatum).getTime();
 
     const newTransaction = {
         id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
@@ -1295,6 +1596,7 @@ async function saveHunterAbruf(st) {
         title: st.input.title, 
         amount: abrufAmount, 
         ts: Date.now(),
+        freigabedatum: date,
         submittedBy: st.input.submittedBy, 
         rows: st.input.rows, 
         list: resultData.list, 
@@ -1306,7 +1608,7 @@ async function saveHunterAbruf(st) {
 
     showLoader();
     try {
-        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
         });
         if (!r.ok) throw new Error(await r.text());
@@ -1327,9 +1629,12 @@ const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody
 const rahmenActualBody = document.getElementById('rahmenActualBody');
 document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
 
-function calculateActualDistribution(entry) {
+function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
     const personTotals = new Map();
-    const transactions = entry.transactions || [];
+    const transactions = (entry.transactions || []).filter(t => {
+        const d = t.freigabedatum || t.ts || 0;
+        return d >= startDate && d <= endDate;
+    });
     let totalVolume = 0;
 
     transactions.forEach(trans => {
@@ -1351,13 +1656,15 @@ function calculateActualDistribution(entry) {
         }
     });
     
-    if (totalVolume === 0) return [];
+    if (totalVolume === 0) return { list: [], total: 0 };
     
-    return Array.from(personTotals, ([name, money]) => ({
+    const list = Array.from(personTotals, ([name, money]) => ({
         name,
         money,
         pct: (money / totalVolume) * 100
     })).sort((a, b) => b.money - a.money);
+    
+    return { list, total: totalVolume };
 }
 
 function renderRahmenDetails(id) {
@@ -1376,7 +1683,8 @@ function renderRahmenDetails(id) {
         foundersBody.appendChild(tr);
     });
     
-    const actualDistribution = calculateActualDistribution(entry);
+    const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry);
+    document.getElementById('rahmenDetailsSub').textContent += ` | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
     rahmenActualBody.innerHTML = '';
     actualDistribution.forEach(person => {
         const tr = document.createElement('tr');
@@ -1385,15 +1693,17 @@ function renderRahmenDetails(id) {
     });
 
     rahmenTransaktionenBody.innerHTML = '';
-    (entry.transactions || []).sort((a,b) => b.ts - a.ts).forEach(trans => {
+    (entry.transactions || []).sort((a,b) => (b.freigabedatum || b.ts) - (a.freigabedatum || a.ts)).forEach(trans => {
         const tr = document.createElement('tr');
         tr.classList.add('clickable');
         tr.dataset.transId = trans.id;
+        const datum = trans.freigabedatum ? new Date(trans.freigabedatum).toLocaleDateString('de-DE') : (trans.ts ? new Date(trans.ts).toLocaleDateString('de-DE') : '–');
         tr.innerHTML = `
             <td>${trans.kv_nummer || '–'}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
             <td>${fmtCurr2.format(trans.amount)}</td>
+            <td>${datum}</td>
             <td style="display:flex;gap:8px;align-items:center">
                 <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
             </td>
@@ -1423,6 +1733,120 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
     }
 });
 
+/* ---------- Move Fix-Order Modal ---------- */
+const moveToFrameworkDlg = document.getElementById('moveToFrameworkDlg');
+const moveValidationSummary = document.getElementById('moveValidationSummary');
+const moveTargetFramework = document.getElementById('moveTargetFramework');
+
+btnMoveToFramework.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+
+    moveValidationSummary.textContent = '';
+    document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
+    
+    const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a,b) => a.title.localeCompare(b.title));
+    moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+    rahmenEntries.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.title} (${e.client})`;
+        moveTargetFramework.appendChild(opt);
+    });
+    
+    moveToFrameworkDlg.showModal();
+});
+
+document.getElementById('btnConfirmMove').addEventListener('click', async () => {
+    const selectedIds = getSelectedFixIds();
+    const targetFrameworkId = moveTargetFramework.value;
+    const moveType = document.querySelector('input[name="moveType"]:checked').value;
+    
+    moveValidationSummary.textContent = '';
+    if (!targetFrameworkId) {
+        moveValidationSummary.textContent = 'Bitte einen Ziel-Rahmenvertrag auswählen.';
+        return;
+    }
+    
+    const targetFramework = entries.find(e => e.id === targetFrameworkId);
+    if (!targetFramework) {
+        moveValidationSummary.textContent = 'Ziel-Rahmenvertrag nicht gefunden.';
+        return;
+    }
+
+    const fixEntriesToMove = entries.filter(e => selectedIds.includes(e.id));
+    
+    // Pre-check for Hunter type
+    if (moveType === 'hunter') {
+        const incompleteEntries = fixEntriesToMove.filter(e => !autoComplete(e));
+        if (incompleteEntries.length > 0) {
+            moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => e.title).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
+            return;
+        }
+    }
+    
+    moveToFrameworkDlg.close();
+    showBatchProgress(`Verschiebe Aufträge...`, selectedIds.length);
+    
+    let count = 0;
+    try {
+        for (const entry of fixEntriesToMove) {
+            count++;
+            updateBatchProgress(count, selectedIds.length);
+            
+            // 1. Create new transaction
+            let newTransaction;
+            if (moveType === 'founder') {
+                newTransaction = {
+                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
+                    kv_nummer: entry.kv_nummer,
+                    type: 'founder',
+                    amount: entry.amount,
+                    ts: Date.now(),
+                    freigabedatum: entry.freigabedatum || entry.ts
+                };
+            } else { // hunter
+                newTransaction = {
+                    ...entry, // copy all data
+                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
+                    type: 'hunter',
+                    ts: Date.now() // new internal timestamp
+                    // freigabedatum is already part of 'entry'
+                };
+            }
+            
+            if (!Array.isArray(targetFramework.transactions)) {
+                targetFramework.transactions = [];
+            }
+            targetFramework.transactions.push(newTransaction);
+            targetFramework.modified = Date.now();
+            
+            // 2. Save target framework
+            const rPut = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(targetFramework.id)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(targetFramework)
+            });
+            if (!rPut.ok) throw new Error(`Fehler beim Speichern von Rahmenvertrag ${targetFramework.id}: ${await rPut.text()}`);
+            
+            // 3. Delete original fix order
+            const rDel = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+            if (!rDel.ok) throw new Error(`Fehler beim Löschen von Fixauftrag ${entry.id}: ${await rDel.text()}`);
+
+            await throttle();
+        }
+        
+        showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
+    } catch (e) {
+        showToast(`Fehler nach ${count} Einträgen: ${e.message}`, 'bad');
+        console.error(e);
+    } finally {
+        hideBatchProgress();
+        await loadHistory(); // Reload all data
+        renderHistory();
+        renderFrameworkContracts();
+    }
+});
+
+
 /* ---------- Edit Modals ---------- */
 const editTransactionDlg = document.getElementById('editTransactionDlg');
 const editFounderTransView = document.getElementById('editFounderTransView');
@@ -1430,9 +1854,11 @@ const editHunterTransView = document.getElementById('editHunterTransView');
 const editTransDlgTitle = document.getElementById('editTransDlgTitle');
 const editFounderValueInput = document.getElementById('editFounderValueInput');
 const editFounderKvNummer = document.getElementById('editFounderKvNummer');
+const editFounderFreigabedatum = document.getElementById('editFounderFreigabedatum');
 const editHunterTitle = document.getElementById('editHunterTitle');
 const editHunterAmount = document.getElementById('editHunterAmount');
 const editHunterKvNummer = document.getElementById('editHunterKvNummer');
+const editHunterFreigabedatum = document.getElementById('editHunterFreigabedatum');
 const editW_cs = document.getElementById('editW_cs');
 const editW_konzept = document.getElementById('editW_konzept');
 const editW_pitch = document.getElementById('editW_pitch');
@@ -1449,6 +1875,7 @@ function openEditTransactionModal(transaction, parentEntry) {
         editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
         editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
         editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
+        editFounderFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
         editFounderTransView.classList.remove('hide');
         editHunterTransView.classList.add('hide');
     } else { // hunter
@@ -1456,6 +1883,8 @@ function openEditTransactionModal(transaction, parentEntry) {
         editHunterTitle.value = transaction.title || '';
         editHunterAmount.value = formatAmountInput(transaction.amount);
         editHunterKvNummer.value = transaction.kv_nummer || '';
+        editHunterFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
+        
         const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
         const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
         editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
@@ -1494,6 +1923,7 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
     const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
     
     let transaction = (transIndex > -1) ? parentEntry.transactions[transIndex] : {};
+    let validationError = '';
 
     if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
         const rows = readRows('#editTbody');
@@ -1508,20 +1938,26 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
             document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
             return;
         }
+        if (!editHunterFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
 
         const amount = parseAmountInput(editHunterAmount.value);
         const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
         const resultData = compute(rows, weights, hunterShareAmount);
         
-        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim() };
+        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim(), freigabedatum: new Date(editHunterFreigabedatum.value).getTime() };
 
     } else { // Saving a Founder transaction
+        if(!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
+        if(!editFounderFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
+        
         transaction.amount = parseAmountInput(editFounderValueInput.value);
         transaction.kv_nummer = editFounderKvNummer.value.trim();
-        if(!transaction.kv_nummer) {
-            document.getElementById('editTransValidationSummary').innerHTML = 'KV-Nummer ist erforderlich.';
-            return;
-        }
+        transaction.freigabedatum = new Date(editFounderFreigabedatum.value).getTime();
+    }
+    
+    if (validationError) {
+        document.getElementById('editTransValidationSummary').innerHTML = validationError;
+        return;
     }
     
     if (transIndex === -1) { // New founder transaction
@@ -1536,7 +1972,7 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
     parentEntry.modified = Date.now();
     showLoader();
     try {
-        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
         });
         if (!r.ok) throw new Error(await r.text());
@@ -1607,7 +2043,7 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
 
     showLoader();
     try {
-        const r = await fetch(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
         });
         if (!r.ok) throw new Error(await r.text());
@@ -1670,11 +2106,11 @@ admBody.addEventListener('click',async(ev)=>{
       const name=tr.querySelector('td:nth-child(1) input').value.trim();
       const team=tr.querySelector('td:nth-child(2) select').value;
       if(!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
-      const r = await fetch(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,name,team})});
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,name,team})});
       if(!r.ok) throw new Error(await r.text());
       showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
     } else if(act==='del'){
-      const r = await fetch(`${WORKER_BASE}/people`,{method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, _delete:true})});
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, _delete:true})});
       if(!r.ok) throw new Error(await r.text());
       showToast('Person gelöscht.', 'ok'); await loadPeople(); renderPeopleAdmin();
     }
@@ -1685,7 +2121,7 @@ async function adminCreate(){
   if(!name || !team){ showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
   showLoader();
   try{
-    const r = await fetch(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:`p_${Date.now()}`,name,team})});
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:`p_${Date.now()}`,name,team})});
     if(!r.ok) throw new Error(await r.text());
     showToast('Person angelegt.', 'ok'); admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
@@ -1698,18 +2134,39 @@ btnErpImport.addEventListener('click', handleErpImport);
 function getVal(row, keyName) {
     const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const keys = Object.keys(row);
-    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedKeyName);
+    // Finde den Schlüssel, der am besten passt
+    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
     return foundKey ? row[foundKey] : undefined;
 }
 
+// Hilfsfunktion zum Parsen von Excel-Datumsangaben
+function parseExcelDate(excelDate) {
+    if (typeof excelDate === 'number') {
+        // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
+        return new Date((excelDate - 25569) * 86400 * 1000);
+    }
+    if (typeof excelDate === 'string') {
+        // Versucht, ein Standard-Datumsformat zu parsen
+        const d = new Date(excelDate);
+        if (!isNaN(d.getTime())) {
+            return d;
+        }
+    }
+    return null; // Ungültiges Format
+}
+
+
 async function handleErpImport() {
     const fileInput = document.getElementById('erpFile');
+    const importResult = document.getElementById('importResult');
     if (fileInput.files.length === 0) {
         showToast('Bitte eine Datei auswählen.', 'bad');
         return;
     }
     const file = fileInput.files[0];
     showLoader();
+    importResult.classList.add('hide');
+    
     try {
         await loadHistory(); // Ensure we have the latest data
         const data = await file.arrayBuffer();
@@ -1720,67 +2177,98 @@ async function handleErpImport() {
         let updatedCount = 0;
         let addedToFrameworkCount = 0;
         let newFixCount = 0;
+        let skippedCount = 0;
 
-        const allEntries = JSON.parse(JSON.stringify(entries)); // Deep copy to avoid side effects
+        // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
+        const allEntries = JSON.parse(JSON.stringify(entries));
         const changesToPush = [];
+        
+        // Erstelle einen schnellen Index für KV-Nummern
+        const kvIndex = new Map();
+        allEntries.forEach(entry => {
+            if (entry.kv_nummer) {
+                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
+            }
+            if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
+                entry.transactions.forEach(trans => {
+                    if (trans.kv_nummer) {
+                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
+                    }
+                });
+            }
+        });
+        
+        // Erstelle einen Index für Projektnummern von Rahmenverträgen
+        const frameworkProjectIndex = new Map();
+        allEntries.forEach(entry => {
+            if (entry.projectType === 'rahmen' && entry.projectNumber) {
+                frameworkProjectIndex.set(entry.projectNumber, entry);
+            }
+        });
 
         for (const row of rows) {
             const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
-            if (!kvNummer) continue;
+            if (!kvNummer) {
+                skippedCount++;
+                continue;
+            }
 
             const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
             const amount = parseFloat(String(getVal(row, 'Agenturleistung netto') || '0').replace(',', '.')) || 0;
             const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
             const title = getVal(row, 'Titel') || '';
-
-            let entryToUpdate = null;
-            let transactionToUpdate = null;
-
-            // Search for existing KV-Nummer
-            for (const entry of allEntries) {
-                if ((entry.projectType === 'fix' || !entry.projectType) && entry.kv_nummer === kvNummer) {
-                    entryToUpdate = entry;
-                    break;
-                }
-                if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                    const trans = entry.transactions.find(t => t.kv_nummer === kvNummer);
-                    if (trans) {
-                        entryToUpdate = entry;
-                        transactionToUpdate = trans;
-                        break;
-                    }
+            
+            let freigabeDate = getTodayDate(); // Standard-Datum
+            const excelDate = getVal(row, 'Freigabedatum'); // Suche nach Freigabedatum
+            if (excelDate) {
+                const parsedDate = parseExcelDate(excelDate);
+                if (parsedDate) {
+                    freigabeDate = parsedDate.toISOString().split('T')[0];
                 }
             }
+            const freigabeTimestamp = new Date(freigabeDate).getTime();
 
-            if (entryToUpdate) { // Case A: KV-Nummer found
-                const originalAmount = transactionToUpdate ? transactionToUpdate.amount : entryToUpdate.amount;
-                if (originalAmount !== amount) {
-                    if (transactionToUpdate) {
-                        transactionToUpdate.amount = amount;
-                    } else {
-                        entryToUpdate.amount = amount;
-                    }
-                    entryToUpdate.modified = Date.now();
-                    changesToPush.push(entryToUpdate);
-                    updatedCount++;
+            const existing = kvIndex.get(kvNummer);
+
+            if (existing) { // Fall A: KV-Nummer wurde gefunden
+                let currentAmount;
+                if (existing.type === 'transaction') {
+                    currentAmount = existing.transaction.amount;
+                } else {
+                    currentAmount = existing.entry.amount;
                 }
-            } else { // Case B: KV-Nummer is new
-                const parentFramework = allEntries.find(e => e.projectType === 'rahmen' && e.projectNumber && e.projectNumber === projektNummer);
-                if (parentFramework) {
+
+                if (currentAmount !== amount) {
+                    if (existing.type === 'transaction') {
+                        existing.transaction.amount = amount;
+                    } else {
+                        existing.entry.amount = amount;
+                    }
+                    existing.entry.modified = Date.now();
+                    changesToPush.push(existing.entry);
+                    updatedCount++;
+                } else {
+                    skippedCount++;
+                }
+            } else { // Fall B: KV-Nummer ist neu
+                const parentFramework = frameworkProjectIndex.get(projektNummer);
+                
+                if (parentFramework) { // Fall B1: Rahmenvertrag gefunden
                     if (!Array.isArray(parentFramework.transactions)) {
                         parentFramework.transactions = [];
                     }
                     parentFramework.transactions.push({
                         id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
                         kv_nummer: kvNummer,
-                        type: 'founder',
+                        type: 'founder', // Standard auf 'founder' (passiv)
                         amount: amount,
-                        ts: Date.now()
+                        ts: Date.now(),
+                        freigabedatum: freigabeTimestamp
                     });
                     parentFramework.modified = Date.now();
                     changesToPush.push(parentFramework);
                     addedToFrameworkCount++;
-                } else {
+                } else { // Fall B2: Neuer Fixauftrag
                     const newFixEntry = {
                         id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
                         source: 'erp-import',
@@ -1794,9 +2282,10 @@ async function handleErpImport() {
                         rows: [],
                         weights: [],
                         ts: Date.now(),
-                        complete: false
+                        freigabedatum: freigabeTimestamp,
+                        complete: false // Ist unvollständig, da Verteilung fehlt
                     };
-                    allEntries.push(newFixEntry);
+                    allEntries.push(newFixEntry); // Füge zur lokalen Kopie hinzu
                     changesToPush.push(newFixEntry);
                     newFixCount++;
                 }
@@ -1804,36 +2293,43 @@ async function handleErpImport() {
         }
 
         const uniqueChanges = Array.from(new Map(changesToPush.map(item => [item.id, item])).values());
-
-        const updatePromises = uniqueChanges.map(entry => {
-            const isNew = !entries.some(e => e.id === entry.id);
-            const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
-            const method = isNew ? 'POST' : 'PUT';
-            return fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entry)
-            }).then(r => {
+        
+        hideLoader();
+        if (uniqueChanges.length > 0) {
+            showBatchProgress('Speichere Import-Änderungen...', uniqueChanges.length);
+            let count = 0;
+            for (const entry of uniqueChanges) {
+                count++;
+                updateBatchProgress(count, uniqueChanges.length);
+                
+                const isNew = !entries.some(e => e.id === entry.id);
+                const url = isNew ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${entry.id}`;
+                const method = isNew ? 'POST' : 'PUT';
+                
+                const r = await fetchWithRetry(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry)
+                });
                 if (!r.ok) throw new Error(`Fehler beim Speichern von Eintrag ${entry.id}`);
-                return r.json();
-            });
-        });
+                await throttle();
+            }
+        }
 
-        await Promise.all(updatePromises);
-
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt.`;
-        document.getElementById('importResult').innerHTML = resultMsg;
-        document.getElementById('importResult').classList.remove('hide');
+        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (keine Änderungen oder fehlende KV-Nummer).`;
+        importResult.innerHTML = resultMsg;
+        importResult.classList.remove('hide');
         showToast('ERP-Daten erfolgreich importiert', 'ok');
         await loadHistory();
 
     } catch (e) {
         showToast('Fehler beim Importieren der Datei.', 'bad');
         console.error(e);
-        document.getElementById('importResult').textContent = 'Fehler: ' + e.message;
-        document.getElementById('importResult').classList.remove('hide');
+        importResult.textContent = 'Fehler: ' + e.message;
+        importResult.classList.remove('hide');
     } finally {
         hideLoader();
+        hideBatchProgress();
     }
 }
 
@@ -1841,6 +2337,53 @@ async function handleErpImport() {
 
 /* ---------- Auswertung ---------- */
 const anaYear = document.getElementById('anaYear');
+const anaStartDate = document.getElementById('anaStartDate');
+const anaEndDate = document.getElementById('anaEndDate');
+const btnAnaThisYear = document.getElementById('btnAnaThisYear');
+const btnAnaLastYear = document.getElementById('btnAnaLastYear');
+const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
+
+function initAnalytics() {
+    // Fülle Jahres-Dropdown (für Top-Listen)
+    const currentYear = new Date().getFullYear();
+    anaYear.innerHTML = '';
+    for (let y = 2022; y <= currentYear + 1; y++) {
+      const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
+    }
+    anaYear.value = String(currentYear);
+    
+    // Setze Standard-Datum (für Aktivitäts-Chart)
+    setAnaDateRange('thisYear');
+    
+    // Führe beide Render-Funktionen aus
+    renderAnalytics();
+    renderActivityAnalytics();
+}
+
+function setAnaDateRange(rangeType) {
+    const now = new Date();
+    let start, end;
+    if (rangeType === 'thisYear') {
+        start = new Date(now.getFullYear(), 0, 1); // 1. Jan
+        end = now; // Heute
+    } else { // lastYear
+        start = new Date(now.getFullYear() - 1, 0, 1); // 1. Jan letztes Jahr
+        end = new Date(now.getFullYear() - 1, 11, 31); // 31. Dez letztes Jahr
+    }
+    anaStartDate.value = formatDateForInput(start.getTime());
+    anaEndDate.value = formatDateForInput(end.getTime());
+}
+
+btnAnaThisYear.addEventListener('click', () => {
+    setAnaDateRange('thisYear');
+    renderActivityAnalytics();
+});
+btnAnaLastYear.addEventListener('click', () => {
+    setAnaDateRange('lastYear');
+    renderActivityAnalytics();
+});
+btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
+
 for (let y = 2022; y <= new Date().getFullYear() + 1; y++) {
   const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
 }
@@ -1848,24 +2391,36 @@ anaYear.value = String(new Date().getFullYear());
 document.getElementById('anaRefresh').addEventListener('click', renderAnalytics);
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
-let analyticsData = { persons: [], teams: [] };
+let analyticsData = { persons: [], teams: [], totals: [] };
+
+function getTimestamp(dateStr) {
+    try {
+        return new Date(dateStr).getTime();
+    } catch { return 0; }
+}
 
 function renderAnalytics() {
   const year = Number(anaYear.value);
-  const start = new Date(Date.UTC(year, 0, 1)).getTime();
-  const end   = new Date(Date.UTC(year + 1, 0, 1)).getTime();
+  const start = getTimestamp(`${year}-01-01T00:00:00Z`);
+  const end   = getTimestamp(`${year}-12-31T23:59:59Z`);
 
   const per = new Map();
+  let fixTotal = 0;
+  let rahmenTotal = 0;
+  
   entries.forEach(e => {
+    const datum = e.freigabedatum || e.ts || 0;
+    
     if(e.projectType === 'fix') {
-        const when = e.modified || e.ts || 0;
-        if (!(when >= start && when < end)) return;
+        if (!(datum >= start && datum <= end)) return;
         const amount = e.amount || 0; if (amount <= 0) return;
+        fixTotal += amount;
         if (Array.isArray(e.list)) {
           e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
         }
     } else if (e.projectType === 'rahmen') {
-        const actualDistribution = calculateActualDistribution(e);
+        const { list: actualDistribution, total: totalValue } = calculateActualDistribution(e, start, end);
+        rahmenTotal += totalValue;
         actualDistribution.forEach(p => {
             per.set(p.name, (per.get(p.name) || 0) + p.money);
         });
@@ -1885,9 +2440,49 @@ function renderAnalytics() {
   const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val);
   drawBars('chartTeams', teamArr);
   analyticsData.teams = teamArr;
+  
+  const totalArr = [
+    { name: 'Fixaufträge', val: fixTotal },
+    { name: 'Rahmenverträge', val: rahmenTotal },
+    { name: 'Gesamt', val: fixTotal + rahmenTotal }
+  ];
+  drawBars('chartTotals', totalArr);
+  analyticsData.totals = totalArr;
 }
 
-function drawBars(hostId, items) {
+function renderActivityAnalytics() {
+    const start = getTimestamp(anaStartDate.value);
+    const end = getTimestamp(anaEndDate.value + 'T23:59:59'); // Ende des Tages
+    
+    if (!start || !end || end < start) {
+        showToast('Ungültiger Datumsbereich', 'bad');
+        return;
+    }
+    
+    const rahmenMap = new Map();
+    entries.filter(e => e.projectType === 'rahmen').forEach(e => {
+        let total = 0;
+        let count = 0;
+        (e.transactions || []).forEach(t => {
+            const datum = t.freigabedatum || t.ts || 0;
+            if (datum >= start && datum <= end) {
+                total += (t.amount || 0);
+                count++;
+            }
+        });
+        if (total > 0) {
+            rahmenMap.set(e.id, { name: e.title, val: total, count: count });
+        }
+    });
+    
+    const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10);
+    const title = `Aktivste Rahmenverträge (${new Date(start).toLocaleDateString('de-DE')} - ${new Date(end).toLocaleDateString('de-DE')})`;
+    document.getElementById('chartActivityTitle').textContent = title;
+    drawBars('chartActivity', rahmenArr, true);
+}
+
+
+function drawBars(hostId, items, showCount = false) {
   const host = document.getElementById(hostId);
   host.innerHTML = '';
   const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1;
@@ -1902,8 +2497,9 @@ function drawBars(hostId, items) {
     const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - 100)));
     const g = document.createElementNS(svgNS, 'g');
     
+    const titleText = `${it.name}: ${fmtCurr0.format(it.val)}` + (showCount ? ` (${it.count} Abrufe)` : '');
     const title = document.createElementNS(svgNS, 'title');
-    title.textContent = `${it.name}: ${fmtCurr0.format(it.val)}`;
+    title.textContent = titleText;
     g.appendChild(title);
 
     const rect = document.createElementNS(svgNS, 'rect');
@@ -1921,9 +2517,9 @@ function drawBars(hostId, items) {
     labelV.setAttribute('y', String(y + barH * 0.68));
     labelV.setAttribute('font-weight', '700');
     labelV.setAttribute('font-size', '14');
-    labelV.textContent = fmtCurr0.format(it.val);
+    labelV.textContent = fmtCurr0.format(it.val) + (showCount && it.count ? ` (${it.count})` : '');
     
-    if(len < 120) {
+    if(len < (showCount ? 160 : 120)) {
       labelV.setAttribute('x', String(barStartX + len + 8));
       labelV.setAttribute('fill', '#cbd5e1');
     } else {
@@ -1935,6 +2531,13 @@ function drawBars(hostId, items) {
     svg.appendChild(g);
     y += barH + gap;
   });
+  if (items.length === 0) {
+      const noData = document.createElementNS(svgNS, 'text');
+      noData.setAttribute('x', '10'); noData.setAttribute('y', '30');
+      noData.setAttribute('fill', '#cbd5e1'); noData.setAttribute('font-size', '14');
+      noData.textContent = 'Für diesen Zeitraum liegen keine Daten vor.';
+      svg.appendChild(noData);
+  }
   host.appendChild(svg);
 }
 
@@ -1944,9 +2547,12 @@ btnAnaXlsx.addEventListener('click', () => {
     const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
     const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
     XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
-    const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: t.val }));
+    const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: p.val }));
     const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
     XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
+    const ws3Arr = analyticsData.totals.map(t => ({ Typ: t.name, Betrag_EUR: p.val }));
+    const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
+    XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
     XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
 });
 
@@ -1964,9 +2570,11 @@ function initFromState(isEditing = false){
 
 // Warnung bei ungespeicherten Änderungen
 window.addEventListener('beforeunload', (e) => {
-  if (hasUnsavedChanges) {
+  if (hasUnsavedChanges || isBatchRunning) {
+    const msg = isBatchRunning ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
     e.preventDefault();
-    e.returnValue = '';
+    e.returnValue = msg;
+    return msg;
   }
 });
 
