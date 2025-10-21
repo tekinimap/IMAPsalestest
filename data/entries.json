@@ -5403,12 +5403,45 @@
     "projectNumber": "Hamm-06-001",
     "kv_nummer": "KV-2025-0107",
     "amount": 7175,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Nachhaltigkeit Mitarbeiter:in",
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 7175
+      }
+    ],
+    "rows": [
+      {
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193301,
     "freigabedatum": 1749074400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695673
   },
   {
     "id": "entry_1761053193301_KV20250108",
