@@ -516,16 +516,8 @@
     "projectNumber": "DRV Bund-05-005",
     "kv_nummer": "",
     "ts": 1761032940011,
-    "transactions": [
-      {
-        "id": "trans_1760970709372_KV20250103",
-        "kv_nummer": "KV-2025-0103",
-        "type": "founder",
-        "amount": 211875,
-        "ts": 1760970709372
-      }
-    ],
-    "modified": 1761042132127
+    "transactions": [],
+    "modified": 1761047333816
   },
   {
     "id": "manuell_drv_bund_foerderkreise",
