@@ -2170,22 +2170,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761046591567_KV20250228",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "StudienInstitut NiederrheiN",
-    "title": "Interkulturelle Kompetenz und Kommunikation",
-    "projectNumber": "S.I.N.N.-05-001",
-    "kv_nummer": "KV-2025-0228",
-    "amount": 1600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761046591567,
-    "freigabedatum": 1757973600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761046591567_KV20250229",
     "source": "erp-import",
     "projectType": "fix",
