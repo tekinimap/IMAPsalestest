@@ -6195,12 +6195,45 @@
     "projectNumber": "Kreis M-L-02-001",
     "kv_nummer": "KV-2025-0132",
     "amount": 95900,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 95900
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761053193302,
     "freigabedatum": 1759701600000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761058695673
   },
   {
     "id": "entry_1761053193302_KV20250133",
