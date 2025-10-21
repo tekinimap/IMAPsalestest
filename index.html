@@ -794,9 +794,21 @@ navLinks.forEach(link => {
 });
 
 async function handleAdminClick() {
-  const pw = prompt("Bitte Passwort für Admin eingeben:");
-  const ok = (pw || '').trim().toLowerCase() === 'imapadmin';
-  if (!ok) { showToast('Falsches Passwort.', 'bad'); return; }
+  try { 
+    showLoader();
+    await loadPeople(); 
+    renderPeopleAdmin(); 
+    showView('admin'); 
+  }
+  catch(e){ 
+    console.error('Admin init failed', e); 
+    showToast('Konnte Admin-Daten nicht laden.', 'bad'); 
+  }
+  finally { 
+    hideLoader(); 
+  }
+}
+
   try { 
     showLoader();
     await loadPeople(); 
@@ -1397,32 +1409,27 @@ function updateSortIcons() {
   }
 }
 
+// PASSWORTFREI: Einzel-Löschung
 function handleDeleteClick(id, type = 'entry', parentId = null) {
-  const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
-  if (pw !== 'imapadmin') {
-    if (pw !== null) showToast('Falsches Passwort.', 'bad');
-    return;
-  }
+  // Passwortabfrage entfernt
   pendingDelete = { id, type, parentId };
   document.getElementById('confirmDlgTitle').textContent = `Eintrag löschen`;
-  document.getElementById('confirmDlgText').textContent = `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
+  document.getElementById('confirmDlgText').textContent =
+    `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
   document.getElementById('confirmDlg').showModal();
 }
 
+// PASSWORTFREI: Batch-Löschung
 btnBatchDelete.addEventListener('click', () => {
-    const selectedIds = getSelectedFixIds();
-    if (selectedIds.length === 0) return;
-    
-    const pw = prompt("Zum Löschen bitte Admin-Passwort eingeben:");
-    if (pw !== 'imapadmin') {
-        if (pw !== null) showToast('Falsches Passwort.', 'bad');
-        return;
-    }
-    
-    pendingDelete = { ids: selectedIds, type: 'batch-entry' };
-    document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
-    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
-    document.getElementById('confirmDlg').showModal();
+  const selectedIds = getSelectedFixIds();
+  if (selectedIds.length === 0) return;
+
+  // Passwortabfrage entfernt
+  pendingDelete = { ids: selectedIds, type: 'batch-entry' };
+  document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
+  document.getElementById('confirmDlgText').textContent =
+    `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+  document.getElementById('confirmDlg').showModal();
 });
 
 
