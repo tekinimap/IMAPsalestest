@@ -5126,13 +5126,47 @@
     "projectNumber": "SenInnSport-01-001",
     "kv_nummer": "KV-2025-0091",
     "amount": 47500,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 100,
+        "money": 47500
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1762210800000,
-    "complete": false,
-    "createdAt": 1761144856583
+    "complete": true,
+    "createdAt": 1761144856583,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127492,
+    "updatedAt": 1761145230403
   },
   {
     "id": "entry_1761144762643_KV20250093",
