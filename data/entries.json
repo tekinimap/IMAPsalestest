@@ -4604,13 +4604,47 @@
     "projectNumber": "SPG-01-001",
     "kv_nummer": "KV-2025-0073",
     "amount": 1300,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 1300
+      }
+    ],
+    "rows": [
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1742943600000,
-    "complete": false,
-    "createdAt": 1761144839895
+    "complete": true,
+    "createdAt": 1761144839895,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127492,
+    "updatedAt": 1761145211201
   },
   {
     "id": "entry_1761144762643_KV20250077",
