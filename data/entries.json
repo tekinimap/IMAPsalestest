@@ -6107,13 +6107,47 @@
     "projectNumber": "Stadt Münster-04-001",
     "kv_nummer": "KV-2025-0128",
     "amount": 2870,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Nachhaltigkeit Mitarbeiter:in",
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 2870
+      }
+    ],
+    "rows": [
+      {
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1746482400000,
-    "complete": false,
-    "createdAt": 1761144888477
+    "complete": true,
+    "createdAt": 1761144888477,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127493,
+    "updatedAt": 1761145263292
   },
   {
     "id": "entry_1761144762644_KV20250129",
