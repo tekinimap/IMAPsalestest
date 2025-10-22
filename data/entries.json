@@ -5699,13 +5699,47 @@
     "projectNumber": "Stadt Herne-05-001",
     "kv_nummer": "KV-2025-0111",
     "amount": 1050,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 1050
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1754344800000,
-    "complete": false,
-    "createdAt": 1761144874149
+    "complete": true,
+    "createdAt": 1761144874149,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127492,
+    "updatedAt": 1761145248717
   },
   {
     "id": "entry_1761144762643_KV20250112",
