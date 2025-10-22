@@ -9562,13 +9562,59 @@
     "projectNumber": "DEB-01-001",
     "kv_nummer": "KV-2025-0240",
     "amount": 18900,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 20,
+        "money": 3780
+      },
+      {
+        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "pct": 80,
+        "money": 15120
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 20,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "cs": 80,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762645,
     "freigabedatum": 1758751200000,
-    "complete": false,
-    "createdAt": 1761145005973
+    "complete": true,
+    "createdAt": 1761145005973,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127495,
+    "updatedAt": 1761145416506
   },
   {
     "id": "entry_1761144762645_KV20250242",
