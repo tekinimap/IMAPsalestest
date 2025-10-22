@@ -4393,5 +4393,22 @@
     "freigabedatum": 1736377200000,
     "complete": false,
     "createdAt": 1761144979055
+  },
+  {
+    "id": "entry_1761144762645_KV20250216",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Schlüsselqualifikationen für Internationale Zusammenarbeit",
+    "projectNumber": "GIZ-58-001",
+    "kv_nummer": "KV-2025-0216",
+    "amount": 14950,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1741474800000,
+    "complete": false,
+    "createdAt": 1761144980833
   }
 ]
