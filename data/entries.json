@@ -7983,64 +7983,6 @@
     "modified": 1761058695672
   },
   {
-    "id": "entry_1761053193302_KV20250187",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Barmer GEK",
-    "title": "Begleitung Teamentwicklung - Team Lern- und Entwicklungsmanagement",
-    "projectNumber": "Barmer-05-001",
-    "kv_nummer": "KV-2025-0187",
-    "amount": 3718.75,
-    "list": [
-      {
-        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 3719
-      }
-    ],
-    "rows": [
-      {
-        "personId": "p_1761054924733",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": null,
-        "name": "",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761059690022,
-    "freigabedatum": 1762473600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "submittedBy": "Abdi Tekin",
-    "modified": 1761059690022
-  },
-  {
     "id": "entry_1761053193302_KV20250189",
     "source": "erp-import",
     "projectType": "fix",
