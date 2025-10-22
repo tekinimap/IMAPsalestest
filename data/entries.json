@@ -4563,5 +4563,22 @@
     "freigabedatum": 1758146400000,
     "complete": false,
     "createdAt": 1761144996011
+  },
+  {
+    "id": "entry_1761144762645_KV20250234",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Viega VIE12 Fortsetzung Change Begleitung AI Initiative",
+    "projectNumber": "ChangePartner-37-001",
+    "kv_nummer": "KV-2025-0234",
+    "amount": 10850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1762642800000,
+    "complete": false,
+    "createdAt": 1761144997580
   }
 ]
