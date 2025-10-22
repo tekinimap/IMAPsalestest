@@ -156,26 +156,24 @@
 </style>
 
 <style>
-  /* --- Logbuch UI --- */
-  #btnLogbookFloat { position: fixed; right: 18px; bottom: 18px; z-index: 9100; border-radius: 999px; padding: 10px 14px; font-weight: 700; }
-  #logbookDlg { min-width: 860px; }
-  #logbookDlg .hd { padding-right: 56px; display:flex; align-items:center; justify-content: space-between; }
-  #logbookDlg .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 10px; }
-  #logbookDlg .controls input[type="date"],
-  #logbookDlg .controls input[type="text"],
-  #logbookDlg .controls select { padding:8px 10px; font-size:14px; }
-  #logbookDlg .table-wrapper table { min-width: 840px; width: 100%; border-collapse: collapse; }
-  #logbookDlg table thead th { text-align:left; border-bottom: 1px solid #213044; padding: 8px; }
-  #logbookDlg table tbody td { padding: 6px 8px; font-size: 12px; border-bottom: 1px dashed #213044; }
+  /* LOGBOOK v2 additions */
+  #btnLogbookFloat { display:none !important; } /* hide old floating button globally */
+  dialog#logbookDlgV2 { border:1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; min-width:920px; }
+  #logbookV2 .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 10px; }
+  #logbookV2 .controls input[type="date"],
+  #logbookV2 .controls input[type="text"],
+  #logbookV2 .controls select { padding:8px 10px; font-size:14px; }
+  #logbookV2 table { width:100%; border-collapse:collapse; min-width:900px; }
+  #logbookV2 th { text-align:left; border-bottom:1px solid #213044; padding:8px; }
+  #logbookV2 td { padding:6px 8px; font-size:12px; border-bottom:1px dashed #213044; }
   .status.ev-ok { background: rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.4); color:#86efac; padding:2px 6px; border-radius:8px;}
   .status.ev-skip { background: rgba(245,158,11,.18); border:1px solid rgba(245,158,11,.4); color:#fde68a; padding:2px 6px; border-radius:8px;}
   .status.ev-err { background: rgba(239,68,68,.18); border:1px solid rgba(239,68,68,.4); color:#fecaca; padding:2px 6px; border-radius:8px;}
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   .small { font-size: 12px; }
-  .btn { background:#3b82f6; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer;}
-  .btn:hover { filter: brightness(1.05); }
-  .close-btn { background:transparent; border:1px solid #213044; color:#e6ebf3; border-radius:8px; padding:4px 8px; cursor:pointer;}
-  dialog#logbookDlg { border: 1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; }
+  .btn { background:#3b82f6; color:white; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; }
+  .btn:hover { filter:brightness(1.05); }
+  .iconbtn.small { padding:6px 10px; border-radius:8px; font-size:12px; }
 </style>
 
 </head>
@@ -2984,51 +2982,49 @@ document.addEventListener('keydown',(e)=>{
 });
 </script>
 
-<!-- Schwebender Logbuch-Button -->
-<button class="btn" id="btnLogbookFloat" title="Logbuch öffnen">📜 Logbuch</button>
-
-<!-- Logbuch-Dialog -->
-<dialog id="logbookDlg">
-  <div class="hd">
+<!-- LOGBOOK v2 Dialog (admin-only access via dedicated button) -->
+<dialog id="logbookDlgV2">
+  <div class="hd" style="display:flex;align-items:center;justify-content:space-between">
     <h1 style="margin:0;font-size:18px;">Logbuch</h1>
-    <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    <button class="btn iconbtn small" onclick="document.getElementById('logbookDlgV2').close()">Schließen</button>
   </div>
-  <div class="ct">
+  <div id="logbookV2" class="ct">
     <div class="controls">
-      <input type="text" id="logSearch" placeholder="Suchen (KV, Titel, Kunde, Grund, ID)…" style="flex:1">
-      <label>Von <input type="date" id="logFrom"></label>
-      <label>Bis <input type="date" id="logTo"></label>
-      <select id="logEventFilter">
+      <input type="text" id="logSearchV2" placeholder="Suchen (KV, Projektnummer, Titel, Kunde, Grund, ID)…" style="flex:1">
+      <label>Von <input type="date" id="logFromV2"></label>
+      <label>Bis <input type="date" id="logToV2"></label>
+      <select id="logEventFilterV2">
         <option value="">Alle Ereignisse</option>
         <option value="create">Neu angelegt</option>
         <option value="update">Aktualisiert</option>
         <option value="delete">Gelöscht</option>
         <option value="skip">Übersprungen</option>
       </select>
-      <select id="logSourceFilter">
+      <select id="logSourceFilterV2">
         <option value="">Alle Quellen</option>
-        <option>erp</option>
-        <option>legacy_sales</option>
-        <option>manuell</option>
-        <option>hubspot</option>
+        <option value="erp">ERP</option>
+        <option value="legacy_sales">Legacy</option>
+        <option value="manuell">Manuell</option>
+        <option value="hubspot">HubSpot</option>
       </select>
-      <button class="btn" id="btnLogRefresh">Aktualisieren</button>
-      <button class="btn" id="btnLogExport">Export .jsonl</button>
+      <button class="btn" id="btnLogRefreshV2">Aktualisieren</button>
+      <button class="btn" id="btnLogExportTxtV2">Export .txt</button>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th style="width: 140px;">Zeit</th>
-            <th style="width: 110px;">Ereignis</th>
-            <th style="width: 120px;">KV</th>
-            <th style="width: 150px;">Projektnummer</th>
-            <th style="width: 260px;">Titel / Kunde</th>
-            <th style="width: 110px;">Δ Betrag</th>
+            <th style="width:140px;">Zeit</th>
+            <th style="width:110px;">Ereignis</th>
+            <th style="width:120px;">KV</th>
+            <th style="width:150px;">Projektnummer</th>
+            <th style="width:260px;">Titel</th>
+            <th style="width:180px;">Kunde</th>
+            <th style="width:110px;">Δ Betrag</th>
             <th>Grund / Details</th>
           </tr>
         </thead>
-        <tbody id="logbookBody"></tbody>
+        <tbody id="logbookBodyV2"></tbody>
       </table>
     </div>
   </div>
@@ -3036,115 +3032,252 @@ document.addEventListener('keydown',(e)=>{
 
 
 <script>
-(function(){
-  if (typeof window.WORKER_BASE === 'undefined') { window.WORKER_BASE = ''; }
-  if (typeof window.showToast === 'undefined') { window.showToast = (m,t)=>console.log('[toast]',t||'info',m); }
+(() => {
+  // --- Admin-only button mount ---
+  function mountLogbookAdminButton() {
+    const adminCard = document.getElementById('viewAdmin');
+    if (!adminCard) return;
+    const hd = adminCard.querySelector('.hd');
+    if (!hd || hd.querySelector('#btnLogbookAdminV2')) return;
+    const btn = document.createElement('button');
+    btn.id = 'btnLogbookAdminV2';
+    btn.className = 'btn iconbtn small';
+    btn.textContent = '📜 Logbuch';
+    btn.title = 'Logbuch öffnen';
+    btn.addEventListener('click', () => {
+      document.getElementById('logbookDlgV2').showModal();
+      LOGBOOK2.render(); // initial render from cache
+    });
+    // place to the right of the header
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.gap = '8px';
+    right.appendChild(btn);
+    hd.appendChild(right);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountLogbookAdminButton);
+  } else {
+    mountLogbookAdminButton();
+  }
+
+  // --- Shims if missing ---
+  if (typeof window.WORKER_BASE === 'undefined') window.WORKER_BASE = '';
+  if (typeof window.showToast === 'undefined') window.showToast = (m,t)=>console.log('[toast]', t||'info', m);
   if (typeof window.fetchWithRetry === 'undefined') {
     window.fetchWithRetry = async function(url, options={}, retryCount=0){
-      const limit = 3;
-      try {
-        const res = await fetch(url, options);
-        if (!res.ok && retryCount < limit && res.status >= 500) {
+      const limit=3;
+      try{ const res = await fetch(url, options);
+        if(!res.ok && retryCount<limit && res.status>=500){
           await new Promise(r=>setTimeout(r, 300*(retryCount+1)));
           return window.fetchWithRetry(url, options, retryCount+1);
-        }
-        return res;
-      } catch (e) {
-        if (retryCount < limit) {
-          await new Promise(r=>setTimeout(r, 300*(retryCount+1)));
-          return window.fetchWithRetry(url, options, retryCount+1);
-        }
+        } return res;
+      } catch(e){
+        if(retryCount<limit){ await new Promise(r=>setTimeout(r, 300*(retryCount+1))); return window.fetchWithRetry(url, options, retryCount+1); }
         throw e;
       }
     }
   }
 
-  const LOG_LS = 'logbook_cache_v1';
-  const dateISO = (ts) => new Date(ts).toISOString();
-  const todayStr = () => new Date().toISOString().slice(0,10);
-  const state = { cache: [], queue: [], requestId: (crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random()) };
+  // --- LOGBOOK v2 (optimiert) ---
+  const LOG_LS = 'logbook_cache_v2';
+  const state = { cache: [], queue: [], requestId: (crypto?.randomUUID?.() || (Date.now()+'-'+Math.random())) };
   try{ const raw = localStorage.getItem(LOG_LS); if(raw) state.cache = JSON.parse(raw); }catch{}
-  function persistCache(){ try{ const keep = state.cache.slice(-1000); localStorage.setItem(LOG_LS, JSON.stringify(keep)); }catch{} }
-  function toMoneyDelta(after, before){ if(typeof after !== 'number' || typeof before !== 'number') return ''; const diff = Math.round(after - before); const fmt = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}); return diff===0 ? '±0 €' : (diff>0?'+':'') + fmt.format(diff); }
-  function normalizeEvent(ev){ const base = { ts: Date.now(), requestId: state.requestId, event: '', source: '', kv: '', projectNumber: '', entryId:'', title:'', client:'', before:null, after:null, reason:'', detail:'' }; return Object.assign(base, ev||{}); }
+  const fmtDate = (ts)=> new Date(ts).toISOString().replace('T',' ').slice(0,16);
+  const todayStr = ()=> new Date().toISOString().slice(0,10);
+  function persist(){ try{ localStorage.setItem(LOG_LS, JSON.stringify(state.cache.slice(-1500))); }catch{} }
 
-  window.LOGBOOK = {
-    add(ev){ const e = normalizeEvent(ev); state.queue.push(e); state.cache.push(e); persistCache(); renderTable(); },
-    importSkip({kv, projectNumber, title, client, source='erp', reason, detail}){ this.add({event:'skip', source, kv, projectNumber, title, client, reason, detail}); },
-    async flush(){ if(state.queue.length===0) return; try{ const lines = state.queue.map(x=>JSON.stringify(x)); const body = { lines, date: todayStr() }; const r = await fetchWithRetry(`${WORKER_BASE}/log`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); if(!r.ok) throw new Error(await r.text()); state.queue.length = 0; showToast(`Logbuch aktualisiert (${lines.length} Ereignisse).`,'ok'); }catch(err){ console.error('Log flush failed', err); showToast('Logbuch-Speicherung fehlgeschlagen.','bad'); } },
-    async loadRange(fromStr, toStr){ try{ const p = new URLSearchParams(); if(fromStr) p.set('from', fromStr); if(toStr) p.set('to', toStr); const r = await fetchWithRetry(`${WORKER_BASE}/log/list?${p.toString()}`, {method:'GET'}); if(!r.ok) throw new Error(await r.text()); const arr = await r.json(); state.cache = arr; persistCache(); renderTable(); }catch(err){ console.error('Load range failed', err); showToast('Logbuch-Laden fehlgeschlagen.','bad'); } }
-  };
-
-  const dlg = document.getElementById('logbookDlg');
-  const bodyEl = document.getElementById('logbookBody');
-  const btnOpen = document.getElementById('btnLogbookFloat');
-  const txtSearch = document.getElementById('logSearch');
-  const selEvent = document.getElementById('logEventFilter');
-  const selSource = document.getElementById('logSourceFilter');
-  const inpFrom = document.getElementById('logFrom');
-  const inpTo = document.getElementById('logTo');
-
-  btnOpen?.addEventListener('click', ()=>{ dlg.showModal(); renderTable(); });
-  document.getElementById('btnLogRefresh')?.addEventListener('click', ()=>{ const f = inpFrom.value; const t = inpTo.value; window.LOGBOOK.loadRange(f, t); });
-  document.getElementById('btnLogExport')?.addEventListener('click', ()=>{ try{ const lines = (state.cache||[]).map(x=>JSON.stringify(x)); const blob = new Blob([lines.join('\n')], {type:'text/plain'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`logbuch_${todayStr()}.jsonl`; a.click(); URL.revokeObjectURL(url); }catch{} });
-  ;[txtSearch, selEvent, selSource].forEach(el=> el?.addEventListener('input', renderTable));
-
-  function passFilters(x){ const q = (txtSearch.value||'').toLowerCase(); const ev = selEvent.value; const src = selSource.value; const inQ = !q || [x.kv, x.projectNumber, x.title, x.client, x.reason, x.detail, x.entryId].some(v=>String(v||'').toLowerCase().includes(q)); const inEv = !ev || x.event===ev; const inSrc = !src || x.source===src; return inQ && inEv && inSrc; }
-
-  function renderTable(){
-    if(!bodyEl) return;
-    const list = (state.cache||[]).slice().sort((a,b)=>b.ts-a.ts).filter(passFilters);
-    bodyEl.innerHTML = list.map(x=>{
-      const when = dateISO(x.ts).replace('T',' ').slice(0,16);
-      const badge = x.event==='skip' ? 'status ev-skip' : (x.event==='delete' ? 'status ev-err' : 'status ev-ok');
-      const delta = x.after && x.before ? toMoneyDelta(x.after.amount, x.before.amount) : '';
-      return `<tr>
-        <td class="mono small">${when}</td>
-        <td><span class="${badge}">${x.event}</span> <span class="small mono">${x.source||''}</span></td>
-        <td class="mono small">${x.kv||''}</td>
-        <td class="mono small">${x.projectNumber||''}</td>
-        <td><div class="small"><strong>${(x.title||'').replace(/</g,'&lt;')}</strong><br><span class="mono small">${(x.client||'').replace(/</g,'&lt;')}</span></div></td>
-        <td class="mono small">${delta}</td>
-        <td class="small">${(x.reason?`<strong>${x.reason}</strong> – `:'')}${(x.detail||'').replace(/</g,'&lt;')}</td>
-      </tr>`;
-    }).join('');
+  function pick(v, ...keys){
+    for(const k of keys){
+      if (v && typeof v==='object' && k in v && v[k]!=null && v[k]!=='' ) return v[k];
+    }
+    return '';
+  }
+  function extractFields(obj){
+    if(!obj || typeof obj!=='object') return {};
+    return {
+      kv: pick(obj,'kv','kv_nummer','kvNummer','KV','kvnummer'),
+      projectNumber: pick(obj,'projectNumber','projektnummer','project_no','projectId'),
+      title: pick(obj,'title','titel','projectTitle','dealname','name'),
+      client: pick(obj,'client','kunde','customer','account'),
+      amount: Number(pick(obj,'amount','wert','value','sum','betrag')) || undefined,
+      source: pick(obj,'source') || ''
+    };
+  }
+  function moneyDelta(after, before){
+    const a = Number(after?.amount); const b = Number(before?.amount);
+    if(!Number.isFinite(a) || !Number.isFinite(b)) return '';
+    const diff = Math.round(a-b);
+    const fmt = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+    return diff===0 ? '±0 €' : (diff>0?'+':'')+fmt.format(diff);
   }
 
-  try{ const now = new Date(); const from = new Date(now.getTime()-13*24*3600*1000); if (inpTo) inpTo.value = now.toISOString().slice(0,10); if (inpFrom) inpFrom.value = from.toISOString().slice(0,10); }catch{}
+  // public API
+  window.LOGBOOK2 = {
+    add(ev){
+      const e = Object.assign({
+        ts: Date.now(), requestId: state.requestId,
+        event: '', source:'', kv:'', projectNumber:'', entryId:'',
+        title:'', client:'', before:null, after:null, reason:'', detail:''
+      }, ev||{});
+      // Fill metadata from after/before if missing
+      const fromAfter = extractFields(e.after||{});
+      const fromBefore = extractFields(e.before||{});
+      e.kv = e.kv || fromAfter.kv || fromBefore.kv || e.kv || '';
+      e.projectNumber = e.projectNumber || fromAfter.projectNumber || fromBefore.projectNumber || '';
+      e.title = e.title || fromAfter.title || fromBefore.title || '';
+      e.client = e.client || fromAfter.client || fromBefore.client || '';
+      e.source = e.source || fromAfter.source || fromBefore.source || '';
+      state.queue.push(e);
+      state.cache.push(e);
+      persist();
+      this.render();
+    },
+    importSkip({kv, projectNumber, title, client, source='erp', reason, detail}){
+      this.add({ event:'skip', kv, projectNumber, title, client, source, reason, detail });
+    },
+    async flush(){
+      if(state.queue.length===0) return;
+      try{
+        const lines = state.queue.map(x=>JSON.stringify(x));
+        const body = { lines, date: todayStr() };
+        const r = await fetchWithRetry(`${WORKER_BASE}/log`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if(!r.ok) throw new Error(await r.text());
+        state.queue.length = 0;
+        showToast(`Logbuch gespeichert (${lines.length}).`,'ok');
+      }catch(e){
+        console.error('Log flush failed', e);
+        showToast('Logbuch-Speicherung fehlgeschlagen.','bad');
+      }
+    },
+    async loadRange(from,to){
+      try{
+        const p = new URLSearchParams();
+        if(from) p.set('from', from); if(to) p.set('to', to);
+        const r = await fetchWithRetry(`${WORKER_BASE}/log/list?${p}`, {method:'GET'});
+        if(!r.ok) throw new Error(await r.text());
+        state.cache = await r.json();
+        persist();
+        this.render();
+      }catch(e){
+        console.error('Load range failed', e);
+        showToast('Logbuch-Laden fehlgeschlagen.','bad');
+      }
+    },
+    render(){
+      const tbody = document.getElementById('logbookBodyV2'); if(!tbody) return;
+      const q = (document.getElementById('logSearchV2')?.value||'').toLowerCase();
+      const evf = document.getElementById('logEventFilterV2')?.value||'';
+      const sf = document.getElementById('logSourceFilterV2')?.value||'';
+      const list = state.cache.slice().sort((a,b)=> (b.ts||0)-(a.ts||0)).filter(x=>{
+        const inQ = !q || [x.kv,x.projectNumber,x.title,x.client,x.reason,x.detail,x.entryId].some(v=> String(v||'').toLowerCase().includes(q));
+        const inEv = !evf || x.event===evf;
+        const inSrc = !sf || x.source===sf;
+        return inQ && inEv && inSrc;
+      });
+      tbody.innerHTML = list.map(x=>{
+        const badge = x.event==='skip' ? 'status ev-skip' : (x.event==='delete' ? 'status ev-err' : 'status ev-ok');
+        const d = moneyDelta(x.after, x.before);
+        return `<tr>
+          <td class="mono small">${fmtDate(x.ts)}</td>
+          <td><span class="${badge}">${x.event}</span> <span class="small mono">${x.source||''}</span></td>
+          <td class="mono small">${(x.kv||'')}</td>
+          <td class="mono small">${(x.projectNumber||'')}</td>
+          <td class="small">${(x.title||'').replace(/</g,'&lt;')}</td>
+          <td class="small mono">${(x.client||'').replace(/</g,'&lt;')}</td>
+          <td class="mono small">${d}</td>
+          <td class="small">${(x.reason?`<strong>${x.reason}</strong> – `:'')}${(x.detail||'').replace(/</g,'&lt;')}</td>
+        </tr>`;
+      }).join('');
+    }
+  };
 
+  // Wire UI controls
+  const dlg = document.getElementById('logbookDlgV2');
+  ['logSearchV2','logEventFilterV2','logSourceFilterV2'].forEach(id=>{
+    const el = document.getElementById(id); el && el.addEventListener('input', ()=>LOGBOOK2.render());
+  });
+  const fromEl = document.getElementById('logFromV2');
+  const toEl = document.getElementById('logToV2');
+  document.getElementById('btnLogRefreshV2')?.addEventListener('click', ()=> LOGBOOK2.loadRange(fromEl.value, toEl.value));
+  document.getElementById('btnLogExportTxtV2')?.addEventListener('click', ()=>{
+    const rows = (state.cache||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(x=>[
+      fmtDate(x.ts), x.event, x.source||'', x.kv||'', x.projectNumber||'', (x.title||'').replace(/\t/g,' '),
+      (x.client||'').replace(/\t/g,' '), (x.after?.amount??''), (x.before?.amount??''), (x.reason||''), (x.detail||''),
+      (x.entryId||'')
+    ].join('\\t'));
+    const header = ['Zeit','Event','Quelle','KV','Projektnummer','Titel','Kunde','Amount_after','Amount_before','Grund','Detail','EntryID'].join('\\t');
+    const blob = new Blob([header + '\\n' + rows.join('\\n')], {type:'text/plain'});
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = `logbuch_${todayStr()}.txt`; a.click(); URL.revokeObjectURL(url);
+  });
+  try{
+    const now = new Date(); const from = new Date(now.getTime()-13*24*3600*1000);
+    if (toEl) toEl.value = now.toISOString().slice(0,10);
+    if (fromEl) fromEl.value = from.toISOString().slice(0,10);
+  }catch{}
+
+  // --- Interceptor (optimized: no extra GET; uses window.entries snapshot) ---
   const _origFetchWithRetry = window.fetchWithRetry;
   window.fetchWithRetry = async function(url, options={}, retryCount=0){
     const method = (options.method||'GET').toUpperCase();
     const isEntries = typeof url === 'string' && url.includes('/entries');
     const isTrans   = typeof url === 'string' && url.includes('/transactions');
 
-    let before = null; let idForGet = null;
-    if(isEntries && method==='PUT'){
-      try{ const m = String(url).match(/\/entries\/([^\/?#]+)/); idForGet = m? decodeURIComponent(m[1]) : null; if(idForGet){ const r0 = await _origFetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(idForGet)}`, {method:'GET'}); if(r0.ok) before = await r0.json(); } }catch{}
+    // Find id from URL when present
+    let id = null;
+    if (isEntries) {
+      const m = String(url).match(/\/entries\/([^\/?#]+)/);
+      if (m) try { id = decodeURIComponent(m[1]); } catch {}
+    }
+
+    // Snapshot BEFORE from window.entries for PUT/DELETE (zero extra requests)
+    let before = null;
+    if ((method==='PUT' || method==='DELETE') && isEntries && id && Array.isArray(window.entries)) {
+      before = window.entries.find(e => String(e.id) === String(id)) || null;
     }
 
     const res = await _origFetchWithRetry(url, options, retryCount);
 
-    try{
-      if(isEntries || isTrans){
-        const body = options.body ? JSON.parse(options.body) : {};
-        const after = (res && res.ok) ? (await (async()=>{ try{return await res.clone().json();}catch{return null;}})()) : null;
-        const common = { source: body?.source || (body?.projectType? 'manuell': (body?.hubspotId? 'hubspot': '')), kv: body?.kv_nummer || body?.kv || '', projectNumber: body?.projectNumber || '', title: body?.title || '', client: body?.client || '' };
+    try {
+      if (isEntries || isTrans) {
+        const body = options.body ? (typeof options.body==='string' ? JSON.parse(options.body||'{}') : options.body) : {};
+        const after = (res && res.ok) ? await (async ()=>{ try{return await res.clone().json();}catch{return null;}})() : null;
 
-        if(res && res.ok){
-          if(method==='POST' && isEntries){ window.LOGBOOK.add({ event:'create', after, ...common, entryId: after?.id || '' }); }
-          else if(method==='PUT' && isEntries){ window.LOGBOOK.add({ event:'update', before, after, ...common, entryId: idForGet || after?.id || '' }); }
-          else if(method==='DELETE'){ const reason = isTrans ? 'delete.transaction' : 'delete.entry'; window.LOGBOOK.add({ event:'delete', reason, ...common }); }
-        } else {
-          if(method!=='GET'){ const detail = `HTTP ${res?.status||'?'}`; window.LOGBOOK.add({ event:'skip', reason:'http_error', detail, ...common }); }
+        // Compose common fields (prefer after > before > body)
+        const fields = (obj)=> (obj? extractFields(obj): {});
+        const fAfter = fields(after), fBefore = fields(before), fBody = fields(body);
+        const common = {
+          source: fAfter.source || fBefore.source || fBody.source || (body?.projectType?'manuell': (body?.hubspotId?'hubspot':'')),
+          kv: fAfter.kv || fBefore.kv || fBody.kv || '',
+          projectNumber: fAfter.projectNumber || fBefore.projectNumber || fBody.projectNumber || '',
+          title: fAfter.title || fBefore.title || fBody.title || '',
+          client: fAfter.client || fBefore.client || fBody.client || '',
+          entryId: id || after?.id || body?.id || ''
+        };
+
+        if (res && res.ok) {
+          if (method==='POST' && isEntries) {
+            LOGBOOK2.add({ event:'create', after, ...common });
+          } else if (method==='PUT' && isEntries) {
+            LOGBOOK2.add({ event:'update', before, after, ...common });
+          } else if (method==='DELETE') {
+            LOGBOOK2.add({ event:'delete', before, ...common, reason: isTrans?'delete.transaction':'delete.entry' });
+          }
+        } else if (method!=='GET') {
+          LOGBOOK2.add({ event:'skip', before, ...common, reason:'http_error', detail:`HTTP ${res?.status||'?'}` });
         }
       }
-    }catch(e){ console.warn('Log-Interceptor warn', e); }
+    } catch(e) {
+      console.warn('LOGBOOK2 interceptor warn', e);
+    }
 
     return res;
   };
 
-  window.flushLogbook = () => window.LOGBOOK.flush();
+  // expose flush for importer batches
+  window.flushLogbook = ()=> LOGBOOK2.flush();
 })();
 </script>
 
