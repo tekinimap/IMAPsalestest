@@ -7804,13 +7804,59 @@
     "projectNumber": "DAK-03-001",
     "kv_nummer": "KV-2025-0177",
     "amount": 241717,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 80,
+        "money": 193374
+      },
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 20,
+        "money": 48343
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 80,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 20,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762644,
     "freigabedatum": 1749333600000,
-    "complete": false,
-    "createdAt": 1761144945483
+    "complete": true,
+    "createdAt": 1761144945483,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127493,
+    "updatedAt": 1761145318998
   },
   {
     "id": "entry_1761144762644_KV20250179",
