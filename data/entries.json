@@ -8494,55 +8494,6 @@
     "modified": 1761058695674
   },
   {
-    "id": "entry_1761053193302_KV20250226",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "VW Stiftung VWS02 Workshop Leitungsteam Führung im Wandel",
-    "projectNumber": "ChangePartner-36-001",
-    "kv_nummer": "KV-2025-0226",
-    "amount": 5163.75,
-    "list": [
-      {
-        "key": "ChangePartner Mitarbeiter:in",
-        "name": "ChangePartner Mitarbeiter:in",
-        "pct": 100,
-        "money": 5164
-      }
-    ],
-    "rows": [
-      {
-        "name": "ChangePartner Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1757887200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695674
-  },
-  {
     "id": "entry_1761053193302_KV20250236",
     "source": "erp-import",
     "projectType": "fix",
