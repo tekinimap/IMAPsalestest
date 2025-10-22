@@ -4478,5 +4478,22 @@
     "freigabedatum": 1762642800000,
     "complete": false,
     "createdAt": 1761144987900
+  },
+  {
+    "id": "entry_1761144762645_KV20250226",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "VW Stiftung VWS02 Workshop Leitungsteam Führung im Wandel",
+    "projectNumber": "ChangePartner-36-001",
+    "kv_nummer": "KV-2025-0226",
+    "amount": 5163.75,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1757887200000,
+    "complete": false,
+    "createdAt": 1761144989323
   }
 ]
