@@ -4257,5 +4257,22 @@
     "freigabedatum": 1756245600000,
     "complete": false,
     "createdAt": 1761144965550
+  },
+  {
+    "id": "entry_1761144762645_KV20250199",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "AstraZeneca AZH04 Moderationstraining Außendienstler",
+    "projectNumber": "ChangePartner-31-001",
+    "kv_nummer": "KV-2025-0199",
+    "amount": 2257.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1753308000000,
+    "complete": false,
+    "createdAt": 1761144967226
   }
 ]
