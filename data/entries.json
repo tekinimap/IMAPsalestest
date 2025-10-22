@@ -4580,5 +4580,22 @@
     "freigabedatum": 1762642800000,
     "complete": false,
     "createdAt": 1761144997580
+  },
+  {
+    "id": "entry_1761144762645_KV20250235",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ARD ZDF Deutschlandradio Beitragsservice",
+    "title": "Strategisches Coaching",
+    "projectNumber": "ARD ZDF-04-001",
+    "kv_nummer": "KV-2025-0235",
+    "amount": 6705,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1758060000000,
+    "complete": false,
+    "createdAt": 1761144999196
   }
 ]
