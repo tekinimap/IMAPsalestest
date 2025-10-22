@@ -3441,5 +3441,22 @@
     "freigabedatum": 1748210400000,
     "complete": false,
     "createdAt": 1761144883309
+  },
+  {
+    "id": "entry_1761144762643_KV20250125",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadtverwaltung Leichlingen",
+    "title": "Beteiligungsformate Leichlinger Zukunfts Büffet Planung",
+    "projectNumber": "STL-01-001",
+    "kv_nummer": "KV-2025-0125",
+    "amount": 28461.12,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1738796400000,
+    "complete": false,
+    "createdAt": 1761144885030
   }
 ]
