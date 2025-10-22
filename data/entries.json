@@ -7690,13 +7690,47 @@
     "projectNumber": "ChangePartner-28-001",
     "kv_nummer": "KV-2025-0174",
     "amount": 1224,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 1224
+      }
+    ],
+    "rows": [
+      {
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762644,
     "freigabedatum": 1752703200000,
-    "complete": false,
-    "createdAt": 1761144942244
+    "complete": true,
+    "createdAt": 1761144942244,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127493,
+    "updatedAt": 1761145314969
   },
   {
     "id": "entry_1761144762644_KV20250176",
