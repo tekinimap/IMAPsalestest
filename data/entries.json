@@ -2693,5 +2693,22 @@
     "freigabedatum": 1751407200000,
     "complete": false,
     "createdAt": 1761144811957
+  },
+  {
+    "id": "entry_1761144762643_KV20250046",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "LPP-Coachings",
+    "projectNumber": "Lahn-Dill-02-001",
+    "kv_nummer": "KV-2025-0046",
+    "amount": 3744,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1751407200000,
+    "complete": false,
+    "createdAt": 1761144813583
   }
 ]
