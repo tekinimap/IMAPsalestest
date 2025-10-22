@@ -3985,5 +3985,22 @@
     "freigabedatum": 1753221600000,
     "complete": false,
     "createdAt": 1761144938862
+  },
+  {
+    "id": "entry_1761144762644_KV20250170",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Ausländerbehörde Viersen",
+    "title": "Optimierung und Digitalisierung der Front und Back Office Prozesse",
+    "projectNumber": "AUV-01-001",
+    "kv_nummer": "KV-2025-0170",
+    "amount": 24500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762644,
+    "freigabedatum": 1753394400000,
+    "complete": false,
+    "createdAt": 1761144940445
   }
 ]
