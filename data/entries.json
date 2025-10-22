@@ -4962,55 +4962,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250138",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stiftung Universität Hildesheim",
-    "title": "Input & Co-Moderation von zwei Workshops zum Thema \"Nutzerorientierte Digitalisierung von Ausländerbehörden\"",
-    "projectNumber": "SUH-01-001",
-    "kv_nummer": "KV-2025-0138",
-    "amount": 200,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 200
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1750024800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695673
-  },
-  {
     "id": "entry_1761053193302_KV20250139",
     "source": "erp-import",
     "projectType": "fix",
