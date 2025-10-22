@@ -3220,5 +3220,22 @@
     "freigabedatum": 1738623600000,
     "complete": false,
     "createdAt": 1761144861452
+  },
+  {
+    "id": "entry_1761144762643_KV20250100",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Praxisbegleitung für Führungsverantwortliche",
+    "projectNumber": "BG Verkehr-03-001",
+    "kv_nummer": "KV-2025-0100",
+    "amount": 5250,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1745877600000,
+    "complete": false,
+    "createdAt": 1761144862950
   }
 ]
