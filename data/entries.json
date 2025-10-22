@@ -3611,13 +3611,59 @@
     "projectNumber": "ADS-03-001",
     "kv_nummer": "KV-2025-0044",
     "amount": 337837.5,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 15,
+        "money": 50676
+      },
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 85,
+        "money": 287162
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 15,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 85,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1764630000000,
-    "complete": false,
-    "createdAt": 1761144810504
+    "complete": true,
+    "createdAt": 1761144810504,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127490,
+    "updatedAt": 1761145177078
   },
   {
     "id": "entry_1761144762643_KV20250045",
