@@ -7759,55 +7759,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250202",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Rentenversicherung Bayern Süd",
-    "title": "Ziel-Workshops HJ2 2025",
-    "projectNumber": "DRV Bayern Süd-09-001",
-    "kv_nummer": "KV-2025-0202",
-    "amount": 8160,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 8160
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1756332000000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695673
-  },
-  {
     "id": "entry_1761053193302_KV20250203",
     "source": "erp-import",
     "projectType": "fix",
