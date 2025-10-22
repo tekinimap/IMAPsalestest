@@ -3956,55 +3956,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193301_KV20250098",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Coach e.V.",
-    "title": "Moderation",
-    "projectNumber": "Coach-03-001",
-    "kv_nummer": "KV-2025-0098",
-    "amount": 1250,
-    "list": [
-      {
-        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1250
-      }
-    ],
-    "rows": [
-      {
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193301,
-    "freigabedatum": 1745445600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695673
-  },
-  {
     "id": "entry_1761053193301_KV20250099",
     "source": "erp-import",
     "projectType": "fix",
