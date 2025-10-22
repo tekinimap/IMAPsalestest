@@ -3747,5 +3747,22 @@
     "freigabedatum": 1743890400000,
     "complete": false,
     "createdAt": 1761144915486
+  },
+  {
+    "id": "entry_1761144762644_KV20250148",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Duisburg",
+    "title": "Auswahlprozess für Auszubildende",
+    "projectNumber": "STD-09-001",
+    "kv_nummer": "KV-2025-0148",
+    "amount": 3600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762644,
+    "freigabedatum": 1750802400000,
+    "complete": false,
+    "createdAt": 1761144917225
   }
 ]
