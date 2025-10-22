@@ -4274,5 +4274,22 @@
     "freigabedatum": 1753308000000,
     "complete": false,
     "createdAt": 1761144967226
+  },
+  {
+    "id": "entry_1761144762645_KV20250200",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Kassel",
+    "title": "Diversity Training",
+    "projectNumber": "ST1-01-001",
+    "kv_nummer": "KV-2025-0200",
+    "amount": 1800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762645,
+    "freigabedatum": 1756332000000,
+    "complete": false,
+    "createdAt": 1761144969026
   }
 ]
