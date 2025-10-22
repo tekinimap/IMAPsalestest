@@ -4036,5 +4036,22 @@
     "freigabedatum": 1753912800000,
     "complete": false,
     "createdAt": 1761144943791
+  },
+  {
+    "id": "entry_1761144762644_KV20250177",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "DAK-Gesundheit",
+    "title": "Durchführung von Umfragen",
+    "projectNumber": "DAK-03-001",
+    "kv_nummer": "KV-2025-0177",
+    "amount": 241717,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762644,
+    "freigabedatum": 1749333600000,
+    "complete": false,
+    "createdAt": 1761144945483
   }
 ]
