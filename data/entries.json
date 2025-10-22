@@ -4544,55 +4544,6 @@
     "modified": 1761058695672
   },
   {
-    "id": "entry_1761053193301_KV20250084",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Kreis Mettmann",
-    "title": "Beratungsleistungen zur digitalen Arbeit mit der e-Akte",
-    "projectNumber": "Kreis Mettmann-04-001",
-    "kv_nummer": "KV-2025-0084",
-    "amount": 14400,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 14400
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193301,
-    "freigabedatum": 1756936800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695672
-  },
-  {
     "id": "entry_1761053193301_KV20250085",
     "source": "erp-import",
     "projectType": "fix",
