@@ -7418,13 +7418,47 @@
     "projectNumber": "Stadt Hilden-02-001",
     "kv_nummer": "KV-2025-0162",
     "amount": 4700,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 4700
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762644,
     "freigabedatum": 1752444000000,
-    "complete": false,
-    "createdAt": 1761144932288
+    "complete": true,
+    "createdAt": 1761144932288,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127493,
+    "updatedAt": 1761145305939
   },
   {
     "id": "entry_1761144762644_KV20250163",
