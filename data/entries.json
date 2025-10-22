@@ -8491,13 +8491,47 @@
     "projectNumber": "DRV Bayern Süd-09-001",
     "kv_nummer": "KV-2025-0202",
     "amount": 8160,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 8160
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762645,
     "freigabedatum": 1756332000000,
-    "complete": false,
-    "createdAt": 1761144970964
+    "complete": true,
+    "createdAt": 1761144970964,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127494,
+    "updatedAt": 1761145344479
   },
   {
     "id": "entry_1761144762645_KV20250203",
