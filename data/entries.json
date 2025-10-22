@@ -3883,5 +3883,22 @@
     "freigabedatum": 1751234400000,
     "complete": false,
     "createdAt": 1761144928921
+  },
+  {
+    "id": "entry_1761144762644_KV20250161",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Rheinland",
+    "title": "Führungsnachwuchsprogramm",
+    "projectNumber": "DRV Rheinland-02-001",
+    "kv_nummer": "KV-2025-0161",
+    "amount": 141900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762644,
+    "freigabedatum": 1752444000000,
+    "complete": false,
+    "createdAt": 1761144930718
   }
 ]
