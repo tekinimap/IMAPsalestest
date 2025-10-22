@@ -8690,55 +8690,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250232",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "",
-    "title": "Interkulturelle Kompetenz - Grundsensibilisierung (Kopie)",
-    "projectNumber": "",
-    "kv_nummer": "KV-2025-0232",
-    "amount": 1504,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 1504
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1758146400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695674
-  },
-  {
     "id": "entry_1761053193302_KV20250235",
     "source": "erp-import",
     "projectType": "fix",
