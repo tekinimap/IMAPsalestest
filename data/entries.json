@@ -3674,13 +3674,47 @@
     "projectNumber": "Lahn-Dill-02-001",
     "kv_nummer": "KV-2025-0045",
     "amount": 525,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 525
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1751407200000,
-    "complete": false,
-    "createdAt": 1761144811957
+    "complete": true,
+    "createdAt": 1761144811957,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127490,
+    "updatedAt": 1761145178642
   },
   {
     "id": "entry_1761144762643_KV20250046",
