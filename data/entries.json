@@ -9460,13 +9460,47 @@
     "projectNumber": "SGI BW-01-001",
     "kv_nummer": "KV-2025-0238",
     "amount": 3000,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead PI",
+        "name": "BU Lead PI",
+        "pct": 100,
+        "money": 3000
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead PI",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762645,
     "freigabedatum": 1758060000000,
-    "complete": false,
-    "createdAt": 1761145002407
+    "complete": true,
+    "createdAt": 1761145002407,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127494,
+    "updatedAt": 1761145412758
   },
   {
     "id": "entry_1761144762645_KV20250239",
