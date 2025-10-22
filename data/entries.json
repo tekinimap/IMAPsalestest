@@ -2659,5 +2659,22 @@
     "freigabedatum": 1743544800000,
     "complete": false,
     "createdAt": 1761144808665
+  },
+  {
+    "id": "entry_1761144762643_KV20250044",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Antidiskriminierungsstelle des Bundes",
+    "title": "Durchführung der Replikation der Studie  „Diskriminierungserfahrungen in Deutschland“",
+    "projectNumber": "ADS-03-001",
+    "kv_nummer": "KV-2025-0044",
+    "amount": 337837.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1764630000000,
+    "complete": false,
+    "createdAt": 1761144810504
   }
 ]
