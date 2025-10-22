@@ -3662,5 +3662,22 @@
     "freigabedatum": 1743890400000,
     "complete": false,
     "createdAt": 1761144906847
+  },
+  {
+    "id": "entry_1761144762644_KV20250143",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Staatskanzlei und Ministerium für Kultur des Landes Sachsen-Anhalt",
+    "title": "Seminar Interkulturelle Kompetenz für Nachwuchsführungskräfte aus der Landesverwaltung Fortbildungsreihe Europa und Internationales",
+    "projectNumber": "SKM-04-001",
+    "kv_nummer": "KV-2025-0143",
+    "amount": 2800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762644,
+    "freigabedatum": 1750629600000,
+    "complete": false,
+    "createdAt": 1761144908553
   }
 ]
