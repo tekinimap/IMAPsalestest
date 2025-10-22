@@ -8321,13 +8321,47 @@
     "projectNumber": "DAK-04-001",
     "kv_nummer": "KV-2025-0197",
     "amount": 7020,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 7020
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762645,
     "freigabedatum": 1756072800000,
-    "complete": false,
-    "createdAt": 1761144964015
+    "complete": true,
+    "createdAt": 1761144964015,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127494,
+    "updatedAt": 1761145336622
   },
   {
     "id": "entry_1761144762645_KV20250198",
