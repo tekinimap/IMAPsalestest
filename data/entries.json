@@ -3958,55 +3958,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250147",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesministerium für Familie, Senioren, Frauen und Jugend",
-    "title": "Durchführung einer Veranstaltung zur Ergebnispräsentation der Studie „Betriebliche Beschwerdestellen",
-    "projectNumber": "BMFSFJ-03-001",
-    "kv_nummer": "KV-2025-0147",
-    "amount": 2420,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 2420
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1743890400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695671
-  },
-  {
     "id": "entry_1761053193302_KV20250203",
     "source": "erp-import",
     "projectType": "fix",
