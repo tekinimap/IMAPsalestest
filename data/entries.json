@@ -3322,5 +3322,22 @@
     "freigabedatum": 1749074400000,
     "complete": false,
     "createdAt": 1761144871106
+  },
+  {
+    "id": "entry_1761144762643_KV20250110",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landeshauptstadt Düsseldorf",
+    "title": "Teamworkshops zum Thema  „Zusammenarbeit und  Rollenverständnis“",
+    "projectNumber": "LH Düsseldorf-04-001",
+    "kv_nummer": "KV-2025-0110",
+    "amount": 5850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1749074400000,
+    "complete": false,
+    "createdAt": 1761144872764
   }
 ]
