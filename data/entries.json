@@ -3169,5 +3169,22 @@
     "freigabedatum": 1762210800000,
     "complete": false,
     "createdAt": 1761144856583
+  },
+  {
+    "id": "entry_1761144762643_KV20250093",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Weiden in der Oberpfalz",
+    "title": "Aufstockung Bürgerbeteiligung Thema Identität Weiden in der Oberpfalz",
+    "projectNumber": "Weiden-01-001",
+    "kv_nummer": "KV-2025-0093",
+    "amount": 6475,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1744840800000,
+    "complete": false,
+    "createdAt": 1761144858051
   }
 ]
