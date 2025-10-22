@@ -5852,13 +5852,47 @@
     "projectNumber": "Stadt Herne-06-001",
     "kv_nummer": "KV-2025-0119",
     "amount": 1100,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 1100
+      }
+    ],
+    "rows": [
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1746396000000,
-    "complete": false,
-    "createdAt": 1761144879675
+    "complete": true,
+    "createdAt": 1761144879675,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127492,
+    "updatedAt": 1761145254247
   },
   {
     "id": "entry_1761144762643_KV20250120",
