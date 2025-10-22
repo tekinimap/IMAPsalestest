@@ -5279,13 +5279,47 @@
     "projectNumber": "BPB-03-001",
     "kv_nummer": "KV-2025-0099",
     "amount": 656075,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 100,
+        "money": 656075
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761144762643,
     "freigabedatum": 1738623600000,
-    "complete": false,
-    "createdAt": 1761144861452
+    "complete": true,
+    "createdAt": 1761144861452,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761145127492,
+    "updatedAt": 1761145235696
   },
   {
     "id": "entry_1761144762643_KV20250100",
