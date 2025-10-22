@@ -5501,55 +5501,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250155",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Duisburg",
-    "title": "Beobachtungsschulung 2025",
-    "projectNumber": "STD-11-001",
-    "kv_nummer": "KV-2025-0155",
-    "amount": 2200,
-    "list": [
-      {
-        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 2200
-      }
-    ],
-    "rows": [
-      {
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1751234400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695673
-  },
-  {
     "id": "entry_1761053193302_KV20250156",
     "source": "erp-import",
     "projectType": "fix",
