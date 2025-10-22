@@ -2676,5 +2676,22 @@
     "freigabedatum": 1764630000000,
     "complete": false,
     "createdAt": 1761144810504
+  },
+  {
+    "id": "entry_1761144762643_KV20250045",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Jobcenter Lahn-Dill",
+    "title": "Coachings Heinz Köster",
+    "projectNumber": "Lahn-Dill-02-001",
+    "kv_nummer": "KV-2025-0045",
+    "amount": 525,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761144762643,
+    "freigabedatum": 1751407200000,
+    "complete": false,
+    "createdAt": 1761144811957
   }
 ]
