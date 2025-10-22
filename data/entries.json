@@ -7432,55 +7432,6 @@
     "modified": 1761058695673
   },
   {
-    "id": "entry_1761053193302_KV20250197",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Einstieg in die Entwicklung eines Führungsteams",
-    "projectNumber": "DAK-04-001",
-    "kv_nummer": "KV-2025-0197",
-    "amount": 7020,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 7020
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193302,
-    "freigabedatum": 1756072800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695672
-  },
-  {
     "id": "entry_1761053193302_KV20250199",
     "source": "erp-import",
     "projectType": "fix",
