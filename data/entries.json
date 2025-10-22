@@ -3132,67 +3132,6 @@
     "modified": 1761058695672
   },
   {
-    "id": "entry_1761053193301_KV20250064",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Rossmann DRO01 Mitarbeitendenbefragung Diversity",
-    "projectNumber": "ChangePartner-21-001",
-    "kv_nummer": "KV-2025-0064",
-    "amount": 29535.5,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 80,
-        "money": 23628
-      },
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 20,
-        "money": 5907
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 80,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 20,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193301,
-    "freigabedatum": 1742166000000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695671
-  },
-  {
     "id": "entry_1761053193301_KV20250077",
     "source": "erp-import",
     "projectType": "fix",
