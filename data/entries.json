@@ -2266,55 +2266,6 @@
     "modified": 1761058695671
   },
   {
-    "id": "entry_1761053193300_KV20250014",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landeshauptstadt München",
-    "title": "Teamentwicklung - Strategietagung Baureferat",
-    "projectNumber": "LHSM-03-001",
-    "kv_nummer": "KV-2025-0014",
-    "amount": 2400,
-    "list": [
-      {
-        "key": "ChangePartner Mitarbeiter:in",
-        "name": "ChangePartner Mitarbeiter:in",
-        "pct": 100,
-        "money": 2400
-      }
-    ],
-    "rows": [
-      {
-        "name": "ChangePartner Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761053193300,
-    "freigabedatum": 1751320800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761058695672
-  },
-  {
     "id": "entry_1761053193300_KV20250016",
     "source": "erp-import",
     "projectType": "fix",
