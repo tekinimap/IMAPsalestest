@@ -3280,6 +3280,9 @@ document.addEventListener('keydown',(e)=>{
   window.flushLogbook = ()=> LOGBOOK2.flush();
 })();
 </script>
-
+<script>
+  window.WORKER_BASE = window.WORKER_BASE || 'https://imap-sales-worker.tekin-6af.workers.dev';
+</script>
+<script src="public/js/sales-logbook-preview-module.js"></script>
 </body>
 </html>
