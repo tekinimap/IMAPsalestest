@@ -2455,5 +2455,22 @@
     "freigabedatum": 1736722800000,
     "complete": false,
     "createdAt": 1761581236996
+  },
+  {
+    "id": "entry_1761581176238_KV20250026",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Knauf KNB06 Erstellung Führungsleitbild",
+    "projectNumber": "ChangePartner-18-001",
+    "kv_nummer": "KV-2025-0026",
+    "amount": 10080,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176238,
+    "freigabedatum": 1759269600000,
+    "complete": false,
+    "createdAt": 1761581239594
   }
 ]
