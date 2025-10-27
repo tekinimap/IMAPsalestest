@@ -3025,57 +3025,6 @@
     "updatedAt": 1761145235696
   },
   {
-    "id": "entry_1761144762643_KV20250125",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadtverwaltung Leichlingen",
-    "title": "Beteiligungsformate Leichlinger Zukunfts Büffet Planung",
-    "projectNumber": "STL-01-001",
-    "kv_nummer": "KV-2025-0125",
-    "amount": 28461.12,
-    "list": [
-      {
-        "key": "Nachhaltigkeit Mitarbeiter:in",
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 28461
-      }
-    ],
-    "rows": [
-      {
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1738796400000,
-    "complete": true,
-    "createdAt": 1761144885030,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145259835
-  },
-  {
     "id": "entry_1761144762645_KV20250203",
     "source": "erp-import",
     "projectType": "fix",
