@@ -7119,57 +7119,6 @@
     "updatedAt": 1761145228605
   },
   {
-    "id": "entry_1761144762644_KV20250158",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landkreis Oberhavel",
-    "title": "Prozessbegleitung zur Erarbeitung strategischer Optionen",
-    "projectNumber": "LAO-01-001",
-    "kv_nummer": "KV-2025-0158",
-    "amount": 54600,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 54600
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1762470000000,
-    "complete": true,
-    "createdAt": 1761144927454,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145300106
-  },
-  {
     "id": "entry_1761144762644_KV20250160",
     "source": "erp-import",
     "projectType": "fix",
