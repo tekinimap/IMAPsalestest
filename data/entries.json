@@ -9821,23 +9821,6 @@
     "updatedAt": 1761145423286
   },
   {
-    "id": "entry_1761571448172_KV20230140",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
-    "title": "BAMF VAMOS 2.0 - Fortsetzung 2025",
-    "projectNumber": "BAMF-09-003",
-    "kv_nummer": "KV-2023-0140",
-    "amount": 180527.1,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761571448172,
-    "freigabedatum": 1740783600000,
-    "complete": false,
-    "createdAt": 1761571478579
-  },
-  {
     "id": "entry_1761571448172_KV20250007",
     "source": "erp-import",
     "projectType": "fix",
