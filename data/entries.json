@@ -2319,5 +2319,22 @@
     "freigabedatum": 1751320800000,
     "complete": false,
     "createdAt": 1761581215835
+  },
+  {
+    "id": "entry_1761581176222_KV20250017",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Managerfortbildung 2024.01 - Modul 5",
+    "projectNumber": "GIZ-41-001",
+    "kv_nummer": "KV-2025-0017",
+    "amount": 10775,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176222,
+    "freigabedatum": 1751320800000,
+    "complete": false,
+    "createdAt": 1761581218897
   }
 ]
