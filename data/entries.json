@@ -2219,57 +2219,6 @@
     "updatedAt": 1761145127969
   },
   {
-    "id": "entry_1761144762642_KV20250018",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "BG Verkehr",
-    "title": "Praxisbegleitung für Führungsverantwortliche",
-    "projectNumber": "BG Verkehr-03-001",
-    "kv_nummer": "KV-2025-0018",
-    "amount": 25160,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 25160
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762642,
-    "freigabedatum": 1751320800000,
-    "complete": true,
-    "createdAt": 1761144775229,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127489,
-    "updatedAt": 1761145141531
-  },
-  {
     "id": "entry_1761144762642_KV20250019",
     "source": "erp-import",
     "projectType": "fix",
