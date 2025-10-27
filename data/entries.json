@@ -4023,57 +4023,6 @@
     "updatedAt": 1761145235696
   },
   {
-    "id": "entry_1761144762643_KV20250102",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Industriegewerkschaft Bergbau, Chemie, Energie",
-    "title": "Webinare \"Team führen II – Arbeitsorganisation\"",
-    "projectNumber": "IGW BCE-03-001",
-    "kv_nummer": "KV-2025-0102",
-    "amount": 1150,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 1150
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1745877600000,
-    "complete": true,
-    "createdAt": 1761144866259,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127492,
-    "updatedAt": 1761145239378
-  },
-  {
     "id": "entry_1761144762643_KV20250125",
     "source": "erp-import",
     "projectType": "fix",
