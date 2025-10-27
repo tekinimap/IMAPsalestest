@@ -2506,5 +2506,22 @@
     "freigabedatum": 1736895600000,
     "complete": false,
     "createdAt": 1761581244747
+  },
+  {
+    "id": "entry_1761581176267_KV20250031",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Dresdner Verkehrsbetriebe AG",
+    "title": "Workshop",
+    "projectNumber": "DVB-02-001",
+    "kv_nummer": "KV-2025-0031",
+    "amount": 5625,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176267,
+    "freigabedatum": 1737068400000,
+    "complete": false,
+    "createdAt": 1761581247242
   }
 ]
