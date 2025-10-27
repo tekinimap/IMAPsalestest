@@ -2219,57 +2219,6 @@
     "updatedAt": 1761145127969
   },
   {
-    "id": "entry_1761144762642_KV20250010",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Ministerium für Heimat, Kommunales, Bau und Digitalisierung NRW",
-    "title": "Rahmenvertrag Regionalforen und virtuellen kollegialen Fallberatungen sowie Pflege und Aktualisierung des Online-Leitfadens „Prima.Klima.Wohnen“ 2025",
-    "projectNumber": "MHKBD.NRW-01-002",
-    "kv_nummer": "KV-2025-0010",
-    "amount": 17585,
-    "list": [
-      {
-        "key": "Nachhaltigkeit Mitarbeiter:in",
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 17585
-      }
-    ],
-    "rows": [
-      {
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762642,
-    "freigabedatum": 1751320800000,
-    "complete": true,
-    "createdAt": 1761144765774,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127489,
-    "updatedAt": 1761145131066
-  },
-  {
     "id": "entry_1761144762642_KV20250012",
     "source": "erp-import",
     "projectType": "fix",
