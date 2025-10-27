@@ -4596,57 +4596,6 @@
     "updatedAt": 1761145268539
   },
   {
-    "id": "entry_1761144762644_KV20250133",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "StudienInstitut NiederrheiN",
-    "title": "Seminar zum Thema Generationsmanagement Teil 2",
-    "projectNumber": "S.I.N.N.-04-001",
-    "kv_nummer": "KV-2025-0133",
-    "amount": 1600,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1600
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1748296800000,
-    "complete": true,
-    "createdAt": 1761144897149,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145271992
-  },
-  {
     "id": "entry_1761144762644_KV20250139",
     "source": "erp-import",
     "projectType": "fix",
