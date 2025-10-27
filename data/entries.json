@@ -2472,5 +2472,22 @@
     "freigabedatum": 1759269600000,
     "complete": false,
     "createdAt": 1761581239594
+  },
+  {
+    "id": "entry_1761581176238_KV20250027",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Goethe-Institut",
+    "title": "Moderation Workshop - Bereich Recht in der Zentrale",
+    "projectNumber": "Goethe-08-001",
+    "kv_nummer": "KV-2025-0027",
+    "amount": 1880,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176238,
+    "freigabedatum": 1736722800000,
+    "complete": false,
+    "createdAt": 1761581242309
   }
 ]
