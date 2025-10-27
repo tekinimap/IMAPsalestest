@@ -2438,5 +2438,22 @@
     "freigabedatum": 1735686000000,
     "complete": false,
     "createdAt": 1761581234280
+  },
+  {
+    "id": "entry_1761581176222_KV20250024",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stiftung BSW",
+    "title": "Workshop - Festenburg 2025",
+    "projectNumber": "ST BSW-10-001",
+    "kv_nummer": "KV-2025-0024",
+    "amount": 3900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176222,
+    "freigabedatum": 1736722800000,
+    "complete": false,
+    "createdAt": 1761581236996
   }
 ]
