@@ -1276,9 +1276,30 @@ let entries=[];
 let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
 
-async function loadHistory(){ showLoader(); try{const r=await fetch(`${WORKER_BASE}/entries`); entries=r.ok?await r.json():[];} catch{entries=[]; showToast('Daten konnten nicht geladen werden.', 'bad');} finally{hideLoader();} renderHistory(); return entries; }
-function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
+async function loadHistory(){
+  showLoader();
+  try{
+    const r = await fetch(`${WORKER_BASE}/entries`);
+    const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
 
+    // Weise BEIDEN zu: der globalen 'entries' UND 'window.entries'
+    entries = fetchedEntries;        // Für Funktionen innerhalb von index.html
+    window.entries = fetchedEntries; // Für externe Skripte wie erp-preview-override.js
+
+  } catch (err) { // Fehlerobjekt fangen für bessere Logs
+    console.error("Fehler in loadHistory:", err); // Logge den Fehler
+    entries = [];
+    window.entries = []; // Auch im Fehlerfall zurücksetzen
+    showToast('Daten konnten nicht geladen werden.', 'bad');
+  } finally{
+    hideLoader();
+  }
+  // Stelle sicher, dass renderHistory auch aufgerufen wird, nachdem window.entries gesetzt ist.
+  // Wenn renderHistory() nur die globale `entries` nutzt, ist die Reihenfolge hier okay.
+  renderHistory();
+}
+  
+function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 function filtered(type = 'fix'){
   let arr = entries.filter(e => (e.projectType || 'fix') === type);
   const query = omniSearch.value.trim().toLowerCase();
