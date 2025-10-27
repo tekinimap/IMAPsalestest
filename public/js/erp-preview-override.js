@@ -1,7 +1,7 @@
-// erp-preview-override.js  v4.3
-// Fix: KEINE Normalisierung mehr für KV und Projektnummer, nur trim().
-// Fix: Fehlermeldung (_matchReason) zeigt jetzt Originalwerte (kvRaw, pNumRaw) an.
-// Behält buildKvIndex v4.1 und stopPropagation Fix bei.
+// erp-preview-override.js  v4.4
+// Fix: buildKvIndex und buildFrameworkIndex stark vereinfacht ("first wins").
+// Add: Mehr console.log Debugging beim Index-Aufbau.
+// Behält minimale norm*/stopPropagation/Fehlermeldungs-Fixes aus v4.3 bei.
 
 (function(){
   const hasXLSX = typeof XLSX !== 'undefined';
@@ -52,17 +52,15 @@
   }
 
   // *** MINIMAL: KV-Schlüssel v4.3 ***
-  // Nur trimmen, sonst nichts.
   const normKV = (v) => {
     if (!v) return '';
-    return String(v).trim(); 
+    return String(v).trim();
   };
 
   // *** MINIMAL: Projektnummer-Schlüssel v4.3 ***
-  // Nur trimmen, sonst nichts.
   const normProjectNumber = (v) => {
     if (!v) return '';
-    return String(v).trim(); 
+    return String(v).trim();
   };
 
 
@@ -294,68 +292,63 @@
 
   // ---------- Kernlogik (Analyse/Preview) ----------
 
-  // *** buildKvIndex v4.1 ***
+  // *** VEREINFACHT: buildKvIndex v4.4 - Simpel & mit Logging ***
   function buildKvIndex(entries){
     const map = new Map();
-    (entries||[]).forEach(entry=>{
-      // Index Fix Orders first
-      const entryKv = entry.kv_nummer || entry.kv;
-      const key = normKV(entryKv); // Verwendet v4.3 Normierung (nur trim)
+    console.log('[buildKvIndex] Starting. Processing entries:', entries?.length); // DEBUG
+    (entries||[]).forEach((entry, idx)=>{
+      // Fixaufträge
+      const entryKvRaw = entry.kv_nummer || entry.kv;
+      const key = normKV(entryKvRaw); // Verwendet v4.3 (nur trim)
       if (key && entry.projectType !== 'rahmen') {
-         const existing = map.get(key);
-         const entryTs = entry.modified || entry.ts || 0;
-         let existingTs = 0;
-         if(existing) {
-            existingTs = existing.type === 'transaction' 
-                ? (existing.transaction?.ts || 0)
-                : (existing.entry?.modified || existing.entry?.ts || 0);
-         }
-         if (!existing || entryTs > existingTs) {
+         if (!map.has(key)) {
+             console.log(`[buildKvIndex] Adding FIX: Key='${key}' from entry ID ${entry.id}`); // DEBUG
              map.set(key, { type:'fix', entry });
+         } else {
+             console.warn(`[buildKvIndex] FIX Key collision ignored: Key='${key}', Existing type=${map.get(key).type}, New entry ID ${entry.id}`); // DEBUG
          }
       }
-    });
-    
-    // Index Transactions
-    (entries||[]).forEach(entry=>{
-       if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
+      // Transaktionen
+      if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
         entry.transactions.forEach(t=>{
-          const transKv = t.kv_nummer || t.kv;
-          const tkey = normKV(transKv); // Verwendet v4.3 Normierung (nur trim)
+          const transKvRaw = t.kv_nummer || t.kv;
+          const tkey = normKV(transKvRaw); // Verwendet v4.3 (nur trim)
           if (tkey) {
-             const existing = map.get(tkey);
-             const transactionTs = t.ts || 0;
-             let existingTs = 0;
-             if (existing) {
-                 existingTs = existing.type === 'transaction' 
-                     ? (existing.transaction?.ts || 0)
-                     : (existing.entry?.modified || existing.entry?.ts || 0);
-             }
-             if (!existing || transactionTs > existingTs) {
+             if (!map.has(tkey)) {
+                 console.log(`[buildKvIndex] Adding TRANSACTION: Key='${tkey}' from parent ID ${entry.id}, trans ID ${t.id}`); // DEBUG
                  map.set(tkey, { type:'transaction', entry, transaction:t });
+             } else {
+                 console.warn(`[buildKvIndex] TRANSACTION Key collision ignored: Key='${tkey}', Existing type=${map.get(tkey).type}, New parent ID ${entry.id}, trans ID ${t.id}`); // DEBUG
              }
           }
         });
       }
     });
+    console.log('[buildKvIndex] Finished. Map size:', map.size); // DEBUG
     return map;
   }
 
-  // *** Verwendet normProjectNumber v4.3 ***
+  // *** VEREINFACHT: buildFrameworkIndex v4.4 - Simpel & mit Logging ***
   function buildFrameworkIndex(entries){
     const map = new Map();
+    console.log('[buildFrameworkIndex] Starting. Processing entries:', entries?.length); // DEBUG
     (entries||[]).forEach(entry=>{
       if (entry.projectType==='rahmen' && entry.projectNumber) {
-        const key = normProjectNumber(entry.projectNumber); // Verwendet v4.3 Normierung (nur trim)
+        const key = normProjectNumber(entry.projectNumber); // Verwendet v4.3 (nur trim)
         if (key) {
-          if (!map.has(key) || (entry.modified || entry.ts || 0) > (map.get(key).modified || map.get(key).ts || 0)) {
+          if (!map.has(key)) {
+            console.log(`[buildFrameworkIndex] Adding FRAMEWORK: Key='${key}' from entry ID ${entry.id}`); // DEBUG
             map.set(key, entry);
+          } else {
+             console.warn(`[buildFrameworkIndex] FRAMEWORK Key collision ignored: Key='${key}', Existing ID ${map.get(key).id}, New entry ID ${entry.id}`); // DEBUG
           }
         }
       }
     });
+    console.log('[buildFrameworkIndex] Finished. Map size:', map.size); // DEBUG
     return map;
   }
+
 
   function renderAndOpen(preview){
     hideLoader();
@@ -380,12 +373,13 @@
 
       const entriesCopy = JSON.parse(JSON.stringify(window.entries || []));
       const modifiedEntriesMap = new Map();
-      const kvIndex        = buildKvIndex(entriesCopy);
-      const frameworkIndex = buildFrameworkIndex(entriesCopy);
+      const kvIndex        = buildKvIndex(entriesCopy); // Uses v4.4
+      const frameworkIndex = buildFrameworkIndex(entriesCopy); // Uses v4.4
 
-      console.log('kvIndex size:', kvIndex.size); 
-      console.log('frameworkIndex size:', frameworkIndex.size); 
-      // console.log('Sample kvIndex entry for "KV-2025-0007":', kvIndex.get('KV-2025-0007')); // Debugging: Key ohne toUpperCase
+      console.log('kvIndex size after build:', kvIndex.size); 
+      console.log('frameworkIndex size after build:', frameworkIndex.size); 
+      // console.log('Checking KV-2025-0007 in kvIndex:', kvIndex.get('KV-2025-0007')); // DEBUG
+      // console.log('Checking Stadt Bochum-05-001 in frameworkIndex:', frameworkIndex.get('Stadt Bochum-05-001')); // DEBUG
 
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
@@ -420,7 +414,7 @@
           continue;
         }
 
-        const existing = kvIndex.get(kvNorm);
+        const existing = kvIndex.get(kvNorm); // Suche mit getrimmtem Schlüssel
         let matchReason = '';
 
         if (existing){
@@ -442,13 +436,13 @@
               entry: currentEntry, _keep: true
             });
           } else {
-            preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine Änderung', detail:`Betrag (${f(amount)}) identisch (Schlüssel: ${kvNorm}).` }); // Zeige Schlüssel
+            preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine Änderung', detail:`Betrag (${f(amount)}) identisch (Schlüssel: ${kvNorm}).` });
             if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'no_change', detail:`Betrag ${f(amount)} identisch (Schlüssel: ${kvNorm})` });
           }
           continue;
         }
 
-        const parentFramework = pNumNorm ? frameworkIndex.get(pNumNorm) : null;
+        const parentFramework = pNumNorm ? frameworkIndex.get(pNumNorm) : null; // Suche mit getrimmtem Schlüssel
         if (parentFramework){
           parentFramework.transactions = Array.isArray(parentFramework.transactions) ? parentFramework.transactions : [];
           const existsTrans = parentFramework.transactions.some(t => normKV(t.kv_nummer || t.kv) === kvNorm); // v4.3 Normierung
@@ -466,8 +460,8 @@
         }
 
         // *** NEU: Zeige originale Werte (kvRaw, pNumRaw) in der Begründung ***
-        matchReason = `KV '${kvRaw}' nicht im Index gefunden (Schlüssel: '${kvNorm}').`; 
-        if (pNumRaw) { // Wenn eine Projektnummer in Excel stand
+        matchReason = `KV '${kvRaw}' nicht im Index gefunden (Schlüssel: '${kvNorm}').`;
+        if (pNumRaw) {
             matchReason += ` Rahmenvertrag '${pNumRaw}' nicht im Index gefunden (Schlüssel: '${pNumNorm}').`;
         } else {
             matchReason += ` Keine Projektnummer in Excel angegeben.`;
@@ -500,7 +494,7 @@
     if (btn.hasAttribute('onclick')) { console.log('Entferne alten onclick Handler von #btnErpImport'); btn.removeAttribute('onclick'); }
     const newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn);
     newBtn.addEventListener('click', handleErpImportPreview, true); // Use Capture Phase
-    console.log('Neuer ERP Preview Handler (v4.3) an #btnErpImport angehängt.');
+    console.log('Neuer ERP Preview Handler (v4.4) an #btnErpImport angehängt.');
   }
 
   if (document.readyState==='loading'){
