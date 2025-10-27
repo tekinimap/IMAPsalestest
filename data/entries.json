@@ -2219,57 +2219,6 @@
     "updatedAt": 1761145127969
   },
   {
-    "id": "entry_1761144762642_KV20250009",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "BG Verkehr",
-    "title": "Teamtage",
-    "projectNumber": "BG Verkehr-02-001",
-    "kv_nummer": "KV-2025-0009",
-    "amount": 3500,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 3500
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762642,
-    "freigabedatum": 1748728800000,
-    "complete": true,
-    "createdAt": 1761144764244,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127488,
-    "updatedAt": 1761145129531
-  },
-  {
     "id": "entry_1761144762642_KV20250010",
     "source": "erp-import",
     "projectType": "fix",
