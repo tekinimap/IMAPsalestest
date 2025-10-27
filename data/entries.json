@@ -2542,57 +2542,6 @@
     "updatedAt": 1761145163409
   },
   {
-    "id": "entry_1761144762643_KV20250034",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Goethe-Institut",
-    "title": "Workshop „Berufliche Orientierung nach  dem Volontariat“ für Fachvolontär:innen",
-    "projectNumber": "Goethe-09-001",
-    "kv_nummer": "KV-2025-0034",
-    "amount": 1375,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1375
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1737673200000,
-    "complete": true,
-    "createdAt": 1761144797108,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127490,
-    "updatedAt": 1761145165243
-  },
-  {
     "id": "entry_1761144762643_KV20250035",
     "source": "erp-import",
     "projectType": "fix",
