@@ -3076,57 +3076,6 @@
     "updatedAt": 1761145189966
   },
   {
-    "id": "entry_1761144762643_KV20250057",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Heidelberg",
-    "title": "Qualifizierung kommunaler Antidiskriminierungsstellen Aufstockung",
-    "projectNumber": "ST HD-01-002",
-    "kv_nummer": "KV-2025-0057",
-    "amount": 20137.5,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 20138
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1740956400000,
-    "complete": true,
-    "createdAt": 1761144822963,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127491,
-    "updatedAt": 1761145191891
-  },
-  {
     "id": "entry_1761144762643_KV20250078",
     "source": "erp-import",
     "projectType": "fix",
