@@ -2219,57 +2219,6 @@
     "updatedAt": 1761145127969
   },
   {
-    "id": "entry_1761144762642_KV20250017",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Managerfortbildung 2024.01 - Modul 5",
-    "projectNumber": "GIZ-41-001",
-    "kv_nummer": "KV-2025-0017",
-    "amount": 10775,
-    "list": [
-      {
-        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 10775
-      }
-    ],
-    "rows": [
-      {
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762642,
-    "freigabedatum": 1751320800000,
-    "complete": true,
-    "createdAt": 1761144773432,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127489,
-    "updatedAt": 1761145139653
-  },
-  {
     "id": "entry_1761144762642_KV20250018",
     "source": "erp-import",
     "projectType": "fix",
