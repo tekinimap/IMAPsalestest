@@ -3241,57 +3241,6 @@
     "updatedAt": 1761145198742
   },
   {
-    "id": "entry_1761144762643_KV20250068",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Bonn",
-    "title": "Begleitung des Transformationsprozesses Rückenwind für die Ausländerbehörde",
-    "projectNumber": "ST BN-02-001",
-    "kv_nummer": "KV-2025-0068",
-    "amount": 99825,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 99825
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1742338800000,
-    "complete": true,
-    "createdAt": 1761144835190,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127492,
-    "updatedAt": 1761145206018
-  },
-  {
     "id": "entry_1761144762643_KV20250077",
     "source": "erp-import",
     "projectType": "fix",
