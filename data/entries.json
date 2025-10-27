@@ -2217,56 +2217,5 @@
     },
     "modified": 1761145127489,
     "updatedAt": 1761145149995
-  },
-  {
-    "id": "entry_1761144762643_KV20250079",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Pulheim",
-    "title": "Interessensbekundung Klimaanpassungskonzept",
-    "projectNumber": "Pulheim-01-001",
-    "kv_nummer": "KV-2025-0079",
-    "amount": 36800,
-    "list": [
-      {
-        "key": "Nachhaltigkeit Mitarbeiter:in",
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 36800
-      }
-    ],
-    "rows": [
-      {
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1735945200000,
-    "complete": true,
-    "createdAt": 1761144844603,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127492,
-    "updatedAt": 1761145218774
   }
 ]
