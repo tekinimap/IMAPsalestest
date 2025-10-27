@@ -4176,57 +4176,6 @@
     "updatedAt": 1761145239378
   },
   {
-    "id": "entry_1761144762643_KV20250110",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landeshauptstadt Düsseldorf",
-    "title": "Teamworkshops zum Thema  „Zusammenarbeit und  Rollenverständnis“",
-    "projectNumber": "LH Düsseldorf-04-001",
-    "kv_nummer": "KV-2025-0110",
-    "amount": 5850,
-    "list": [
-      {
-        "key": "BU Lead PI",
-        "name": "BU Lead PI",
-        "pct": 100,
-        "money": 5850
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead PI",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1749074400000,
-    "complete": true,
-    "createdAt": 1761144872764,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127492,
-    "updatedAt": 1761145246832
-  },
-  {
     "id": "entry_1761144762643_KV20250114",
     "source": "erp-import",
     "projectType": "fix",
