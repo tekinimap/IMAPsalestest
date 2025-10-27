@@ -9836,5 +9836,22 @@
     "freigabedatum": 1740783600000,
     "complete": false,
     "createdAt": 1761571478579
+  },
+  {
+    "id": "entry_1761571448172_KV20250007",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Bochum",
+    "title": "Jan/2025 - Rahmenvertrag Teamentwicklung",
+    "projectNumber": "Stadt Bochum-05-001",
+    "kv_nummer": "KV-2025-0007",
+    "amount": 1890,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761571448172,
+    "freigabedatum": 1738364400000,
+    "complete": false,
+    "createdAt": 1761571480862
   }
 ]
