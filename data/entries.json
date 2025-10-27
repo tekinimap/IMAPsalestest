@@ -3550,22 +3550,5 @@
     "freigabedatum": 1738364400000,
     "complete": false,
     "createdAt": 1761571480862
-  },
-  {
-    "id": "entry_1761571448172_KV20250008",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Rentenversicherung Bund",
-    "title": "Jan/2025 Rahmenvertrag Moderation von Führungskräfteveranstaltungen",
-    "projectNumber": "DRV Bund-17-001",
-    "kv_nummer": "KV-2025-0008",
-    "amount": 35940,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761571448172,
-    "freigabedatum": 1740783600000,
-    "complete": false,
-    "createdAt": 1761571483241
   }
 ]
