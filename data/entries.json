@@ -2659,5 +2659,22 @@
     "freigabedatum": 1737673200000,
     "complete": false,
     "createdAt": 1761581420896
+  },
+  {
+    "id": "entry_1761581442805_KV20250036",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "DAK-Gesundheit",
+    "title": "Moderationsleistung zur Begleitung von  Führungskräfteveranstaltungen",
+    "projectNumber": "DAK-02-001",
+    "kv_nummer": "KV-2025-0036",
+    "amount": 19218.75,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581442805,
+    "freigabedatum": 1738105200000,
+    "complete": false,
+    "createdAt": 1761581447949
   }
 ]
