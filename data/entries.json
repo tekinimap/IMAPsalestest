@@ -5373,57 +5373,6 @@
     "updatedAt": 1761145291357
   },
   {
-    "id": "entry_1761144762644_KV20250149",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Dermapharm DPH03 Strategie Workshop  10./11.09.2025",
-    "projectNumber": "ChangePartner-25-001",
-    "kv_nummer": "KV-2025-0149",
-    "amount": 6500,
-    "list": [
-      {
-        "key": "ChangePartner Mitarbeiter:in",
-        "name": "ChangePartner Mitarbeiter:in",
-        "pct": 100,
-        "money": 6500
-      }
-    ],
-    "rows": [
-      {
-        "name": "ChangePartner Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1751234400000,
-    "complete": true,
-    "createdAt": 1761144919635,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145293119
-  },
-  {
     "id": "entry_1761144762644_KV20250153",
     "source": "erp-import",
     "projectType": "fix",
