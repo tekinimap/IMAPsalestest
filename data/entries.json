@@ -8748,57 +8748,6 @@
     "updatedAt": 1761145412758
   },
   {
-    "id": "entry_1761144762645_KV20250239",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "greenstorming GmbH",
-    "title": "Moderation DAB Workshop",
-    "projectNumber": "GS GmbH-05-001",
-    "kv_nummer": "KV-2025-0239",
-    "amount": 6000,
-    "list": [
-      {
-        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 6000
-      }
-    ],
-    "rows": [
-      {
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762645,
-    "freigabedatum": 1758751200000,
-    "complete": true,
-    "createdAt": 1761145004240,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127494,
-    "updatedAt": 1761145414687
-  },
-  {
     "id": "entry_1761144762645_KV20250240",
     "source": "erp-import",
     "projectType": "fix",
