@@ -1,6 +1,7 @@
-// erp-preview-override.js  v4.0
-// Fix: Komplette Neufassung von normKV und normProjectNumber, um Regex-basiertes Matching zu verwenden.
-// Fix: hookButton nutzt stopPropagation() und Capture-Phase, um alte Handler (aus index.html) sicher zu blockieren.
+// erp-preview-override.js  v4.1
+// Fix: buildKvIndex überarbeitet, um Kollisionen/Timestamps besser zu handhaben.
+// Behält normKV/normProjectNumber v4.0 bei.
+// Behält stopPropagation Fix bei.
 
 (function(){
   const hasXLSX = typeof XLSX !== 'undefined';
@@ -33,81 +34,47 @@
   }
   function getVal(row, keyName) {
     const norm = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // Finde den Schlüssel, der den normalisierten Namen *enthält*
     const k = Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(norm));
     return k ? row[k] : undefined;
   }
   function parseExcelDate(excelDate) {
     if (typeof excelDate === 'number' && excelDate > 0) return new Date((excelDate - 25569) * 86400 * 1000);
     if (typeof excelDate === 'string') {
-      const d = new Date(excelDate);
+      const d = new Date(excelDate); // Versucht Standard-Formate
       if (!isNaN(d.getTime())) return d;
+      // Versuch: DD.MM.YYYY oder MM/DD/YYYY
       const m = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
       if (m) {
-        let d = new Date(m[3], m[2]-1, m[1]); if(!isNaN(d.getTime())) return d;
-        d = new Date(m[3], m[1]-1, m[2]); if(!isNaN(d.getTime())) return d;
+        let d = new Date(m[3], m[2]-1, m[1]); if(!isNaN(d.getTime())) return d; // DD.MM
+        d = new Date(m[3], m[1]-1, m[2]); if(!isNaN(d.getTime())) return d; // MM/DD
       }
     }
     return null;
   }
 
-  // *** NEU: Robuste KV-Normalisierung v4.0 ***
-  // Extrahiert Ziffernfolgen und normalisiert sie.
-  // "KV-2025/00041" -> "2025-41"
-  // "2025-41"       -> "2025-41"
-  // "2025/41"       -> "2025-41"
+  // *** Robuste KV-Normalisierung v4.0 ***
   const normKV = (v) => {
     if (!v) return '';
     let str = String(v).trim();
-    
-    // Finde alle Ziffernfolgen (z.B. "2025", "00041")
     const numbers = str.match(/\d+/g);
-    
-    if (!numbers) {
-      // Fallback für KVs ohne Zahlen (z.B. "PROJEKT-ABC")
-      return str.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    }
-    
-    // Erwarte 'Jahr' und 'Nummer'
+    if (!numbers) return str.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (numbers.length >= 2) {
-      const year = numbers[0]; // z.B. "2025"
-      let num = numbers[1];  // z.B. "00041"
-      
-      // Entferne führende Nullen von der Nummer (z.B. 00041 -> 41)
-      num = String(parseInt(num, 10)); // "00041" -> 41 -> "41"
-      
-      // Standard-Format: "JAHR-NUMMER"
-      return `${year}-${num}`; 
+      const year = numbers[0]; let num = numbers[1];
+      num = String(parseInt(num, 10));
+      return `${year}-${num}`;
     }
-    
-    // Fallback, falls nur eine Zahl gefunden wurde (z.B. "12345")
-    if (numbers.length === 1) {
-      return numbers[0];
-    }
-    
-    // Finaler Fallback
-    return str.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
+    if (numbers.length === 1) return numbers[0];
+    return str.toUpperCase().replace(/[^A-Z0-9]/g, '');
   };
 
-
-  // *** NEU: Robuste Projektnummer-Normalisierung v4.0 ***
-  // Extrahiert die erste Ziffernfolge (min. 4 Ziffern)
-  // "RV-12345"    -> "12345"
-  // "Projekt 12345" -> "12345"
-  // "12345.0"     -> "12345"
+  // *** Robuste Projektnummer-Normalisierung v4.0 ***
   const normProjectNumber = (v) => {
     if (!v) return '';
     let str = String(v).trim();
-    
-    // Entferne gängige Präfixe
     str = str.replace(/^(rv-|projekt\s*)/i, '');
-    
-    // Versuche, die erste lange Ziffernfolge zu extrahieren (min. 4 Ziffern)
-    const match = str.match(/\d{4,}/); 
-    if (match) {
-      return match[0]; // z.B. "12345" aus "12345.0" oder "12345-AB"
-    }
-    
-    // Fallback: trimme und entferne .0
+    const match = str.match(/\d{4,}/);
+    if (match) return match[0];
     str = str.replace(/\.0$/, '').trim();
     return str;
   };
@@ -270,7 +237,6 @@
     window.__erpPreview = preview;
   }
   
-  // Hilfsfunktion: Prüft, ob ein Objekt ein "voller Eintrag" ist (wie im Worker)
   const isFullEntry = (obj)=> !!(obj && (obj.projectType || obj.transactions || Array.isArray(obj.rows) || Array.isArray(obj.list) || Array.isArray(obj.weights)));
 
   async function applyErpImport(){
@@ -281,25 +247,16 @@
     const changedEntries = preview._modifiedEntriesMap;
     const finalChanges = [];
 
-    // Updates (bestehende) -> Eintrag wurde in der Kopie direkt modifiziert
     preview.updatedRows.forEach(x=>{
       if (x._keep===false) return;
       const modifiedEntry = changedEntries.get(x.entry.id);
-      if (modifiedEntry && !finalChanges.some(e=> e.id === modifiedEntry.id)) {
-          finalChanges.push(modifiedEntry);
-      }
+      if (modifiedEntry && !finalChanges.some(e=> e.id === modifiedEntry.id)) { finalChanges.push(modifiedEntry); }
     });
-
-    // Abrufe -> Parent wurde in der Kopie modifiziert
     preview.newCalloffs.forEach(x=>{
       if (x._keep===false) return;
       const modifiedParent = changedEntries.get(x.parentEntry.id);
-       if (modifiedParent && !finalChanges.some(e=> e.id === modifiedParent.id)) {
-           finalChanges.push(modifiedParent);
-       }
+       if (modifiedParent && !finalChanges.some(e=> e.id === modifiedParent.id)) { finalChanges.push(modifiedParent); }
     });
-
-    // Neue Fixaufträge
     preview.newFixes.forEach(x=>{
       if (x._keep===false) return;
       finalChanges.push(x.newFixEntry);
@@ -309,39 +266,8 @@
 
     showLoader(); 
 
-    // *** Wichtig: Verwende /entries/bulk für Batch-Updates/-Creates ***
-    const bulkPayload = { rows: [] };
-    for (const entry of finalChanges) {
-        if (isFullEntry(entry)) {
-            // Volles Objekt: Rahmenverträge (mit neuen Abrufen) oder komplexe Fixaufträge
-            bulkPayload.rows.push(entry); 
-        } else {
-            // Schlankes Objekt: Neue Fixaufträge oder einfache Updates (sollte nicht vorkommen, aber sicher ist sicher)
-            bulkPayload.rows.push({
-                kv: entry.kv_nummer || entry.kv,
-                amount: entry.amount,
-                projectNumber: entry.projectNumber,
-                title: entry.title,
-                client: entry.client,
-                source: entry.source || 'erp',
-                id: entry.id.startsWith('entry_') ? entry.id : undefined
-            });
-        }
-    }
-
     try {
-        const url = `${WORKER()}/entries/bulk`;
-        // HINWEIS: Dein Worker (worker.js) unterstützt /entries/bulk *nicht* nativ für volle Objekte.
-        // Er erwartet *nur* Zeilen für Upsert-by-KV.
-        // Wir müssen die Logik anpassen, um die Einträge einzeln zu senden,
-        // oder der Worker muss /entries/bulk so anpassen, dass er volle Objekte verarbeiten kann.
-        
-        // --- Workaround: Sende einzeln, da der Worker /entries/bulk nicht für volle Objekte kann ---
-        // Die Bulk-Logik oben ist gut, aber der Worker (v6) kann sie nicht.
-        // Der /entries/bulk-Endpunkt in worker.js (Zeile 264) ist NUR für schlanke Upserts-by-KV.
-        // Der Code in applyErpImport (v3.0) war daher FALSCH.
-        
-        // *** NEUE (ALTE) LOGIK: Einzeln senden ***
+        // *** EINZELN SENDEN *** (da Worker v6 /entries/bulk nicht für volle Objekte kann)
         if (typeof window.showBatchProgress === 'function') window.showBatchProgress('Speichere Import-Änderungen…', finalChanges.length);
 
         let done = 0;
@@ -349,9 +275,10 @@
         for (const entry of finalChanges) {
           done++;
           if (typeof window.updateBatchProgress === 'function') window.updateBatchProgress(done, finalChanges.length);
-
-          // Prüfe, ob es ein neuer Eintrag ist (hat 'entry_' ID) oder ein existierender (hat eine andere ID)
-          const isNew = entry.id && entry.id.startsWith('entry_');
+          
+          // ID check: Neue Einträge haben oft temporäre IDs (z.B. beginnend mit 'entry_')
+          // Existierende Einträge haben IDs vom Server (beginnen NICHT mit 'entry_')
+          const isNew = entry.id && entry.id.startsWith('entry_'); 
           
           const url = isNew ? `${WORKER()}/entries` : `${WORKER()}/entries/${encodeURIComponent(entry.id)}`;
           const method = isNew ? 'POST' : 'PUT';
@@ -359,20 +286,21 @@
           const r = await fetchRetry(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(entry) });
           if (!r.ok){
             errors++;
-            console.error(`Fehler beim Speichern von ${entry.kv_nummer||entry.kv||entry.id}:`, await r.text());
-            showToast(`Fehler bei ${entry.kv_nummer||entry.kv||entry.id}`, 'bad');
+            const errText = await r.text();
+            console.error(`Fehler (${method} ${url}) bei ${entry.kv_nummer||entry.kv||entry.id}:`, errText);
+            showToast(`Fehler bei ${entry.kv_nummer||entry.kv||entry.id}: ${r.status}`, 'bad', 5000);
           }
-          await throttle(250); // Etwas mehr Drosselung
+          await throttle(250); // Beibehalten oder anpassen
         }
         
         if (typeof window.hideBatchProgress === 'function') window.hideBatchProgress();
         showToast(`Import übernommen (${done - errors} gespeichert, ${errors} Fehler).`, errors > 0 ? 'bad' : 'ok');
         dlg.close();
-        await loadHistory(); // Lade Daten neu nach erfolgreichem Import
+        await loadHistory(); 
 
     } catch (e) {
-        console.error(e);
-        showToast(`Fehler beim Übernehmen der Änderungen: ${e.message}`, 'bad');
+        console.error('Fehler in applyErpImport:', e);
+        showToast(`Genereller Fehler beim Übernehmen: ${e.message}`, 'bad');
         if (typeof window.hideBatchProgress === 'function') window.hideBatchProgress();
     } finally {
         hideLoader();
@@ -382,36 +310,63 @@
 
   // ---------- Kernlogik (Analyse/Preview) ----------
 
-  // *** NEU: Verwendet normKV v4.0 ***
+  // *** NEU: buildKvIndex v4.1 - Handles key collisions better ***
   function buildKvIndex(entries){
     const map = new Map();
     (entries||[]).forEach(entry=>{
-      // KV auf Eintragsebene (Fixauftrag)
+      // Index Fix Orders first
       const entryKv = entry.kv_nummer || entry.kv;
       const key = normKV(entryKv);
+      // Index only if it's NOT explicitly a framework contract
       if (key && entry.projectType !== 'rahmen') {
-         if (!map.has(key) || (entry.modified || entry.ts || 0) > (map.get(key).entry.modified || map.get(key).entry.ts || 0)) {
+         const existing = map.get(key);
+         // Use modification timestamp primarily, fallback to creation timestamp
+         const entryTs = entry.modified || entry.ts || 0;
+         let existingTs = 0;
+         if(existing) {
+            existingTs = existing.type === 'transaction' 
+                ? (existing.transaction?.ts || 0) // Transaction timestamp
+                : (existing.entry?.modified || existing.entry?.ts || 0); // Fix order timestamp
+         }
+
+         // Add or replace if no existing entry, or if this entry is newer than the existing one
+         if (!existing || entryTs > existingTs) {
              map.set(key, { type:'fix', entry });
          }
       }
-
-      // KV in Abrufen (transactions) von Rahmenverträgen
-      if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
+    }); // End Fix Order loop
+    
+    // Index Transactions, potentially overwriting Fix Orders if transaction is newer
+    (entries||[]).forEach(entry=>{
+       if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
         entry.transactions.forEach(t=>{
           const transKv = t.kv_nummer || t.kv;
           const tkey = normKV(transKv);
           if (tkey) {
-             if (!map.has(tkey) || (t.ts || 0) > (map.get(tkey).transaction?.ts || 0)) {
+             const existing = map.get(tkey);
+             const transactionTs = t.ts || 0; // Transaction timestamp
+             let existingTs = 0;
+             if (existing) {
+                 // Get timestamp regardless of type ('fix' or 'transaction')
+                 existingTs = existing.type === 'transaction' 
+                     ? (existing.transaction?.ts || 0)
+                     : (existing.entry?.modified || existing.entry?.ts || 0);
+             }
+             
+             // Add or replace if no existing entry, or if this transaction is newer
+             // AND ensure we don't overwrite a FIX entry with an OLDER transaction
+             if (!existing || transactionTs > existingTs) {
                  map.set(tkey, { type:'transaction', entry, transaction:t });
              }
           }
         });
       }
-    });
+    }); // End Transaction loop
     return map;
   }
 
-  // *** NEU: Verwendet normProjectNumber v4.0 ***
+
+  // *** Verwendet normProjectNumber v4.0 ***
   function buildFrameworkIndex(entries){
     const map = new Map();
     (entries||[]).forEach(entry=>{
@@ -432,11 +387,10 @@
     renderPreview(preview);
   }
 
-  // *** Hauptfunktion, jetzt mit robusterem Matching und Reason-Tracking ***
-  // *** UND mit e.stopPropagation() ***
+  // *** Hauptfunktion, jetzt mit stopPropagation ***
   async function handleErpImportPreview(e){
-    e?.preventDefault?.(); // Verhindert Standardverhalten des Buttons
-    e?.stopPropagation?.(); // Verhindert, dass andere Listener (wie der alte in index.html) feuern
+    e?.preventDefault?.(); 
+    e?.stopPropagation?.(); 
 
     if (!hasXLSX){ showToast('SheetJS (XLSX) nicht geladen.', 'bad'); return; }
 
@@ -447,10 +401,22 @@
     showLoader();
     try {
       await loadHistory();
+      // *** DEBUGGING: Log entries count ***
+      console.log('Entries loaded in handleErpImportPreview:', window.entries?.length);
+
       const entriesCopy = JSON.parse(JSON.stringify(window.entries || []));
       const modifiedEntriesMap = new Map();
+
+      // *** DEBUGGING: Log normKV function result ***
+      console.log('NormKV Test (handleErpImportPreview):', normKV('KV-2025/00041')); // Sollte '2025-41' ausgeben
+
       const kvIndex        = buildKvIndex(entriesCopy);
       const frameworkIndex = buildFrameworkIndex(entriesCopy);
+
+      // *** DEBUGGING: Log index sizes ***
+      console.log('kvIndex size:', kvIndex.size);
+      console.log('frameworkIndex size:', frameworkIndex.size);
+
 
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
@@ -479,25 +445,41 @@
         const kvNorm = normKV(kvRaw);
         const pNumNorm = normProjectNumber(pNumRaw);
 
-        // --- Skip-Logik (frühe Prüfung) ---
+        // *** DEBUGGING: Log specific KV processing (Example: KV-2025-0007) ***
+        // if (kvRaw === 'KV-2025-0007') {
+        //     console.log(`--- Processing ${kvRaw} ---`);
+        //     console.log(`kvNorm: ${kvNorm}`);
+        //     console.log(`pNumRaw: ${pNumRaw}, pNumNorm: ${pNumNorm}`);
+        //     console.log(`kvIndex has ${kvNorm}?`, kvIndex.has(kvNorm));
+        //     if(kvIndex.has(kvNorm)) console.log('Found in kvIndex:', kvIndex.get(kvNorm));
+        //     console.log(`frameworkIndex has ${pNumNorm}?`, frameworkIndex.has(pNumNorm));
+        //     if(frameworkIndex.has(pNumNorm)) console.log('Found in frameworkIndex:', frameworkIndex.get(pNumNorm));
+        // }
+
+
         if (!kvNorm){
-          preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine KV-Nummer', detail:`Zeile ohne gültige KV (Roh: ${kvRaw})` });
-          if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'missing_kv', detail:`Zeile ohne gültige KV-Nummer (Roh: ${kvRaw})` });
+          // *** DEBUGGING: Log skip reason ***
+          // if (kvRaw === 'KV-2025-0007') console.log('-> SKIPPING (no kvNorm)');
+          preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine KV-Nummer', detail:`Zeile ohne gültige KV (Roh: ${kvRaw}, Norm: ${kvNorm})` });
+          if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'missing_kv', detail:`Zeile ohne gültige KV-Nummer (Roh: ${kvRaw}, Norm: ${kvNorm})` });
           continue;
         }
 
-        // --- Matching-Logik ---
         const existing = kvIndex.get(kvNorm);
         let matchReason = '';
 
         if (existing){
-          // Fall 1: KV existiert bereits
+          // *** DEBUGGING: Log match found ***
+          // if (kvRaw === 'KV-2025-0007') console.log(`-> MATCH FOUND: Type ${existing.type}`);
+          
           const isTransaction = existing.type === 'transaction';
           const currentEntry = existing.entry;
           const currentItem = isTransaction ? existing.transaction : currentEntry;
           const currentAmount = Number(currentItem.amount)||0;
 
           if (fmtEUR0(currentAmount) !== fmtEUR0(amount)) {
+            // *** DEBUGGING: Log update classification ***
+            // if (kvRaw === 'KV-2025-0007') console.log(`-> Classifying as UPDATE (Amount differs: ${currentAmount} vs ${amount})`);
             currentItem.amount = amount;
             if (isTransaction && excelDate) currentItem.freigabedatum = freeTS;
             if (!isTransaction && excelDate) currentEntry.freigabedatum = freeTS;
@@ -511,72 +493,53 @@
               _keep: true
             });
           } else {
-            // Betrag ist identisch -> Skip
+             // *** DEBUGGING: Log skip classification ***
+             // if (kvRaw === 'KV-2025-0007') console.log(`-> Classifying as SKIP (Amount same: ${currentAmount})`);
             preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine Änderung', detail:`Betrag (${f(amount)}) identisch (Norm-KV: ${kvNorm}).` });
             if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'no_change', detail:`Betrag ${f(amount)} identisch (Norm-KV: ${kvNorm})` });
           }
           continue;
         }
 
-        // Fall 2: KV ist neu, aber gehört vielleicht zu einem Rahmenvertrag?
         const parentFramework = pNumNorm ? frameworkIndex.get(pNumNorm) : null;
         if (parentFramework){
-          // Ja, Projektnummer gehört zu einem Rahmenvertrag -> Neuer Abruf
+           // *** DEBUGGING: Log new calloff classification ***
+           // if (kvRaw === 'KV-2025-0007') console.log('-> Classifying as NEW CALLOFF');
           parentFramework.transactions = Array.isArray(parentFramework.transactions) ? parentFramework.transactions : [];
           const existsTrans = parentFramework.transactions.some(t => normKV(t.kv_nummer || t.kv) === kvNorm);
           if (!existsTrans){
-            const newTrans = {
-                id:`trans_${Date.now()}_${kvNorm}`,
-                kv_nummer: kvRaw,
-                type:'founder',
-                amount,
-                ts:Date.now(),
-                freigabedatum: freeTS
-            };
+            const newTrans = { id:`trans_${Date.now()}_${kvNorm}`, kv_nummer: kvRaw, type:'founder', amount, ts:Date.now(), freigabedatum: freeTS };
             parentFramework.transactions.push(newTrans);
             parentFramework.modified = Date.now();
             modifiedEntriesMap.set(parentFramework.id, parentFramework);
-
-            preview.newCalloffs.push({
-                kv: kvRaw,
-                parentProjectNumber: pNumRaw,
-                title, client, amount,
-                parentEntry: parentFramework,
-                 _keep:true
-             });
+            preview.newCalloffs.push({ kv: kvRaw, parentProjectNumber: pNumRaw, title, client, amount, parentEntry: parentFramework, _keep:true });
           } else {
+            // *** DEBUGGING: Log duplicate calloff skip ***
+            // if (kvRaw === 'KV-2025-0007') console.log('-> Classifying as SKIP (Duplicate Calloff?)');
             preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Abruf doppelt?', detail:`KV ${kvNorm} bereits in Rahmenvertrag ${pNumNorm}, aber Index hat nicht gematcht?` });
             if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'duplicate_calloff', detail:'KV bereits in transactions[] gefunden' });
           }
           continue;
         }
 
-        // Fall 3: KV ist neu UND gehört zu keinem bekannten Rahmenvertrag -> Neuer Fixauftrag
+        // *** DEBUGGING: Log new fix classification ***
+        // if (kvRaw === 'KV-2025-0007') console.log('-> Classifying as NEW FIX ORDER');
         matchReason = `KV '${kvNorm}' nicht gefunden.`;
-        if (pNumNorm) {
-            matchReason += ` Rahmenvertrag '${pNumNorm}' nicht gefunden.`;
-        } else {
-            matchReason += ` Keine Projektnummer (Roh: ${pNumRaw}).`;
-        }
+        if (pNumNorm) { matchReason += ` Rahmenvertrag '${pNumNorm}' nicht gefunden.`; }
+        else { matchReason += ` Keine Projektnummer (Roh: ${pNumRaw}).`; }
 
         const newFixEntry = {
-          id: `entry_${Date.now()}_${kvNorm.replace(/[^a-zA-Z0-9]/g,'')}`,
-          source: 'erp-import',
-          projectType: 'fix',
-          client, title, projectNumber: pNumRaw,
-          kv_nummer: kvRaw,
-          amount,
+          id: `entry_${Date.now()}_${kvNorm.replace(/[^a-zA-Z0-9]/g,'')}`, // Sicherere ID Generierung
+          source: 'erp-import', projectType: 'fix',
+          client, title, projectNumber: pNumRaw, kv_nummer: kvRaw, amount,
           list: [], rows: [], weights: [],
-          ts: Date.now(),
-          freigabedatum: freeTS,
-          complete: false
+          ts: Date.now(), freigabedatum: freeTS, complete: false
         };
-        preview.newFixes.push({
-            kv: kvRaw, projectNumber: pNumRaw, title, client, amount,
-            newFixEntry,
-            _matchReason: matchReason,
-            _keep:true
-        });
+        preview.newFixes.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, newFixEntry, _matchReason: matchReason, _keep:true });
+        
+        // *** DEBUGGING: End specific KV processing ***
+        // if (kvRaw === 'KV-2025-0007') console.log(`--- Finished ${kvRaw} ---`);
+
       } // Ende for-Schleife
 
       renderAndOpen(preview);
@@ -591,25 +554,11 @@
   // ---------- Button hook (v4.0 - mit stopPropagation) ----------
   function hookButton(){
     const btn = document.getElementById('btnErpImport');
-    if (!btn) {
-      console.warn('ERP Import Button #btnErpImport nicht gefunden.');
-      return;
-    }
-    
-    // Entferne potenzielle alte Inline-Handler (Sicherheitsmaßnahme)
-    if (btn.hasAttribute('onclick')) {
-        console.log('Entferne alten onclick Handler von #btnErpImport');
-        btn.removeAttribute('onclick');
-    }
-
-    // Klonen, um alle alten Listener sicher zu entfernen
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-
-    // Hänge NUR unseren neuen Handler an, und zwar in der Capture-Phase (true)
-    // damit er VOR dem alten (falls noch vorhanden) feuert und ihn blockieren kann.
-    newBtn.addEventListener('click', handleErpImportPreview, true);
-    console.log('Neuer ERP Preview Handler (v4.0) an #btnErpImport angehängt.');
+    if (!btn) { console.warn('ERP Import Button #btnErpImport nicht gefunden.'); return; }
+    if (btn.hasAttribute('onclick')) { console.log('Entferne alten onclick Handler von #btnErpImport'); btn.removeAttribute('onclick'); }
+    const newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', handleErpImportPreview, true); // Use Capture Phase
+    console.log('Neuer ERP Preview Handler (v4.1) an #btnErpImport angehängt.');
   }
 
 
