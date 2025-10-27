@@ -5616,57 +5616,6 @@
     "updatedAt": 1761145259835
   },
   {
-    "id": "entry_1761144762643_KV20250127",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Digitales Führungskräftecoaching",
-    "projectNumber": "MGladbach-03-001",
-    "kv_nummer": "KV-2025-0127",
-    "amount": 234.38,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 234
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1757196000000,
-    "complete": true,
-    "createdAt": 1761144886777,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145261645
-  },
-  {
     "id": "entry_1761144762643_KV20250128",
     "source": "erp-import",
     "projectType": "fix",
