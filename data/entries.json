@@ -7337,57 +7337,6 @@
     "updatedAt": 1761145329514
   },
   {
-    "id": "entry_1761144762645_KV20250190",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "BG Verkehr",
-    "title": "Einzelcoaching Daniel Schmidt",
-    "projectNumber": "BG Verkehr-04-001",
-    "kv_nummer": "KV-2025-0190",
-    "amount": 2940,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 2940
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762645,
-    "freigabedatum": 1756072800000,
-    "complete": true,
-    "createdAt": 1761144957287,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127494,
-    "updatedAt": 1761145331303
-  },
-  {
     "id": "entry_1761144762645_KV20250191",
     "source": "erp-import",
     "projectType": "fix",
