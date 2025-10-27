@@ -5271,57 +5271,6 @@
     "updatedAt": 1761145289679
   },
   {
-    "id": "entry_1761144762644_KV20250148",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Duisburg",
-    "title": "Auswahlprozess für Auszubildende",
-    "projectNumber": "STD-09-001",
-    "kv_nummer": "KV-2025-0148",
-    "amount": 3600,
-    "list": [
-      {
-        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 3600
-      }
-    ],
-    "rows": [
-      {
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1750802400000,
-    "complete": true,
-    "createdAt": 1761144917225,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145291357
-  },
-  {
     "id": "entry_1761144762644_KV20250156",
     "source": "erp-import",
     "projectType": "fix",
