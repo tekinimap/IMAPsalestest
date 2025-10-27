@@ -8862,57 +8862,6 @@
     "updatedAt": 1761145416506
   },
   {
-    "id": "entry_1761144762645_KV20250242",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landkreis Mecklenburgische Seenplatte",
-    "title": "Situations- und Ressourcenanalyse",
-    "projectNumber": "LMS-01-001",
-    "kv_nummer": "KV-2025-0242",
-    "amount": 5500,
-    "list": [
-      {
-        "key": "BU Lead PI",
-        "name": "BU Lead PI",
-        "pct": 100,
-        "money": 5500
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead PI",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762645,
-    "freigabedatum": 1759096800000,
-    "complete": true,
-    "createdAt": 1761145007733,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127495,
-    "updatedAt": 1761145418205
-  },
-  {
     "id": "entry_1761144762645_KV20250243",
     "source": "erp-import",
     "projectType": "fix",
