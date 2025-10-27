@@ -1,12 +1,19 @@
-// public/js/erp-preview-override.js
-// Fügt ERP-Import-Vorschau hinzu und verhindert Direkt-Speichern.
-// Nutzt bestehende Hilfsfunktionen aus deiner index.html, sofern vorhanden.
+// erp-preview-override.js  v2.2
+// Fix: KV-Matching robust (kv_nummer & kv, Normalisierung), korrekte Skip/Update-Erkennung.
 
 (function(){
   const hasXLSX = typeof XLSX !== 'undefined';
   const WORKER = ()=> (window.WORKER_BASE || '').replace(/\/+$/,'');
   const fmtEUR = (n)=> new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(n||0);
 
+  const showToast   = window.showToast   || ((m,t)=>console.log('[toast]',t||'info',m));
+  const showLoader  = window.showLoader  || (()=>{});
+  const hideLoader  = window.hideLoader  || (()=>{});
+  const fetchRetry  = window.fetchWithRetry || fetch;
+  const loadHistory = window.loadHistory || (async()=>{});
+  const throttle    = window.throttle || (async()=>{ await new Promise(r=>setTimeout(r, 80)); });
+
+  // ---------- Helpers ----------
   function parseAmountInput(v){
     if (v==null || v==='') return 0;
     if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -22,20 +29,10 @@
     }
     return 0;
   }
-
-  // Fallbacks auf deine vorhandenen Funktionen
-  const showToast = window.showToast || ((m,t)=>console.log('[toast]',t||'info',m));
-  const showLoader = window.showLoader || (()=>{});
-  const hideLoader = window.hideLoader || (()=>{});
-  const fetchWithRetry = window.fetchWithRetry || fetch;
-  const loadHistory = window.loadHistory || (async()=>{});
-  const throttle = window.throttle || (async()=>{ await new Promise(r=>setTimeout(r, 120)); });
-
   function getVal(row, keyName) {
-    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const keys = Object.keys(row);
-    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
-    return foundKey ? row[foundKey] : undefined;
+    const norm = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const k = Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(norm));
+    return k ? row[k] : undefined;
   }
   function parseExcelDate(excelDate) {
     if (typeof excelDate === 'number' && excelDate > 0) return new Date((excelDate - 25569) * 86400 * 1000);
@@ -50,8 +47,10 @@
     }
     return null;
   }
+  // KV normalisieren: Großbuchstaben + nur A-Z0-9
+  const normKV = (v)=> String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 
-  // Dialog + Styles injizieren (kein Edit an index.html nötig)
+  // ---------- Dialog (Preview) ----------
   function ensureDialog(){
     if (document.getElementById('erpPreviewDlg')) return;
     const css = document.createElement('style');
@@ -117,17 +116,20 @@
     document.body.appendChild(dlg);
 
     document.getElementById('btnClosePreview').onclick = ()=> dlg.close();
-    document.getElementById('btnApplyImport').onclick = applyErpImport;
+    document.getElementById('btnApplyImport').onclick  = applyErpImport;
   }
 
   function setKpis(preview){
     const excelSum = preview._excelSum || 0;
-    const toolSum  = Array.isArray(window.entries) ? window.entries.reduce((s,e)=> s + (Number(e.amount)||0) + (Array.isArray(e.transactions)? e.transactions.reduce((a,t)=>a+(Number(t.amount)||0),0):0), 0) : 0;
-    const selExcel = (
+    const toolSum  = Array.isArray(window.entries)
+      ? window.entries.reduce((s,e)=> s + (Number(e.amount)||0) + (Array.isArray(e.transactions)? e.transactions.reduce((a,t)=>a+(Number(t.amount)||0),0):0), 0)
+      : 0;
+
+    const selExcel =
       preview.updatedRows.filter(x=>x._keep!==false).reduce((s,x)=> s + (x.newAmount||0), 0) +
       preview.newCalloffs.filter(x=>x._keep!==false).reduce((s,x)=> s + (x.amount||0), 0) +
-      preview.newFixes.filter(x=>x._keep!==false).reduce((s,x)=> s + (x.amount||0), 0)
-    );
+      preview.newFixes.filter(x=>x._keep!==false).reduce((s,x)=> s + (x.amount||0), 0);
+
     const selTool = preview.updatedRows.filter(x=>x._keep!==false).reduce((s,x)=> s + (x.oldAmount||0), 0);
     const projected = (toolSum - selTool) + selExcel;
 
@@ -192,7 +194,6 @@
       </tr>
     `).join('');
 
-    // Checkbox-Events
     const dlg = document.getElementById('erpPreviewDlg');
     dlg.querySelectorAll('input[type="checkbox"][data-scope]').forEach(cb=>{
       cb.onchange = ()=>{
@@ -208,7 +209,7 @@
 
     setKpis(preview);
     dlg.showModal();
-    window.__erpPreview = preview; // expose for apply
+    window.__erpPreview = preview; // expose
   }
 
   async function applyErpImport(){
@@ -216,11 +217,42 @@
     const preview = window.__erpPreview;
     if (!preview) { showToast('Keine Importdaten vorhanden.', 'bad'); return; }
 
-    // Finale Liste: nur ausgewählte Änderungen
+    // zur Sicherheit: aktuellen Stand noch mal ziehen, um Duplikate zu vermeiden
+    await loadHistory();
+    const kvMap = buildKvIndex(window.entries || []);
+
     const finalChanges = [];
-    preview.updatedRows.forEach(x=>{ if (x._keep!==false) if(!finalChanges.some(e=>e.id===x.entry.id)) finalChanges.push(x.entry); });
-    preview.newCalloffs.forEach(x=>{ if (x._keep!==false) if(!finalChanges.some(e=>e.id===x.parentEntry.id)) finalChanges.push(x.parentEntry); });
-    preview.newFixes.forEach(x=>{ if (x._keep!==false) finalChanges.push(x.newFixEntry); });
+
+    // Updates (bestehende)
+    preview.updatedRows.forEach(x=>{
+      if (x._keep===false) return;
+      if (!finalChanges.some(e=> e.id === x.entry.id)) finalChanges.push(x.entry);
+    });
+
+    // Abrufe -> parentEntry speichern
+    preview.newCalloffs.forEach(x=>{
+      if (x._keep===false) return;
+      if (!finalChanges.some(e=> e.id === x.parentEntry.id)) finalChanges.push(x.parentEntry);
+    });
+
+    // Neue Fixaufträge (nur wenn KV nicht doch existiert)
+    preview.newFixes.forEach(x=>{
+      if (x._keep===false) return;
+      const kvKey = normKV(x.kv);
+      if (kvKey && kvMap.has(kvKey)) {
+        // Sicherung: doch als Update behandeln (kein Duplicate erzeugen)
+        const found = kvMap.get(kvKey);
+        const entry = found.entry;
+        const oldAmt = Number(entry.amount)||0;
+        if (Math.abs(oldAmt - (Number(x.amount)||0)) > 0.001) {
+          entry.amount = Number(x.amount)||0;
+          entry.updatedAt = Date.now();
+          if (!finalChanges.some(e=> e.id === entry.id)) finalChanges.push(entry);
+        }
+      } else {
+        finalChanges.push(x.newFixEntry);
+      }
+    });
 
     if (finalChanges.length===0){ showToast('Nichts ausgewählt.', 'bad'); return; }
 
@@ -235,10 +267,10 @@
       const url = exists ? `${WORKER()}/entries/${encodeURIComponent(entry.id)}` : `${WORKER()}/entries`;
       const method = exists ? 'PUT' : 'POST';
 
-      const r = await fetchWithRetry(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(entry) });
+      const r = await fetchRetry(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(entry) });
       if (!r.ok){
         console.error(await r.text());
-        showToast(`Fehler beim Speichern von ${entry.kv_nummer||entry.id}`, 'bad');
+        showToast(`Fehler beim Speichern von ${entry.kv_nummer||entry.kv||entry.id}`, 'bad');
       }
       await throttle();
     }
@@ -247,6 +279,38 @@
     if (typeof window.hideBatchProgress === 'function') window.hideBatchProgress();
     showToast('Import übernommen.', 'ok');
     await loadHistory();
+  }
+
+  // ---------- Kernlogik (Analyse/Preview) ----------
+  function buildKvIndex(entries){
+    const map = new Map();
+    (entries||[]).forEach(entry=>{
+      const keys = [entry.kv_nummer, entry.kv].map(normKV).filter(Boolean);
+      keys.forEach(k => map.set(k, { type:'fix', entry }));
+
+      if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
+        entry.transactions.forEach(t=>{
+          const tkeys = [t.kv_nummer, t.kv].map(normKV).filter(Boolean);
+          tkeys.forEach(k => map.set(k, { type:'transaction', entry, transaction:t }));
+        });
+      }
+    });
+    return map;
+    }
+
+  function buildFrameworkIndex(entries){
+    const map = new Map();
+    (entries||[]).forEach(entry=>{
+      if (entry.projectType==='rahmen' && entry.projectNumber) {
+        map.set(String(entry.projectNumber).trim(), entry);
+      }
+    });
+    return map;
+  }
+
+  function renderAndOpen(preview){
+    hideLoader();
+    renderPreview(preview);
   }
 
   async function handleErpImportPreview(e){
@@ -259,49 +323,43 @@
 
     showLoader();
     try {
-      await loadHistory(); // entries aktualisieren
+      await loadHistory(); // Einträge aktuell holen
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
       const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-      // Kopie von entries für Indexe
-      const allEntriesCopy = JSON.parse(JSON.stringify(window.entries || []));
-      const kvIndex = new Map();
-      allEntriesCopy.forEach(entry=>{
-        if (entry.kv_nummer) kvIndex.set(entry.kv_nummer, { type:'fix', entry });
-        if (entry.projectType==='rahmen' && Array.isArray(entry.transactions)) {
-          entry.transactions.forEach(t=>{ if (t.kv_nummer) kvIndex.set(t.kv_nummer, { type:'transaction', entry, transaction:t }); });
-        }
-      });
-      const frameworkProjectIndex = new Map();
-      allEntriesCopy.forEach(entry=>{
-        if (entry.projectType==='rahmen' && entry.projectNumber) frameworkProjectIndex.set(entry.projectNumber, entry);
-      });
+      const entriesCopy = JSON.parse(JSON.stringify(window.entries || []));
+      const kvIndex        = buildKvIndex(entriesCopy);
+      const frameworkIndex = buildFrameworkIndex(entriesCopy);
 
       const preview = { updatedRows:[], newCalloffs:[], newFixes:[], skipped:[], _excelSum:0 };
 
       for (const row of rows) {
-        const kvNummer = String(getVal(row,'KV-Nummer')||'').trim();
-        const projektNummer = String(getVal(row,'Projekt Projektnummer')||'').trim();
-        const amount = parseAmountInput(getVal(row,'Agenturleistung netto'));
-        const clientName = getVal(row,'Projekt Etat Kunde Name') || '';
-        const title = getVal(row,'Titel') || '';
+        const kvRaw   = getVal(row,'KV-Nummer');
+        const kv      = String(kvRaw||'').trim();
+        const kvKey   = normKV(kv);
+        const pNum    = String(getVal(row,'Projekt Projektnummer')||'').trim();
+        const amount  = parseAmountInput(getVal(row,'Agenturleistung netto'));
+        const client  = getVal(row,'Projekt Etat Kunde Name') || '';
+        const title   = getVal(row,'Titel') || '';
         preview._excelSum += amount||0;
 
-        let freigabeTimestamp = Date.now();
+        let freeTS = Date.now();
         const excelDate = getVal(row,'Freigabedatum');
-        if (excelDate) { const d = parseExcelDate(excelDate); if (d) freigabeTimestamp = d.getTime(); }
+        if (excelDate) { const d = parseExcelDate(excelDate); if (d) freeTS = d.getTime(); }
 
-        if (!kvNummer){
-          preview.skipped.push({ kv:'', projectNumber: projektNummer, title, client: clientName, amount, reason:'Keine KV-Nummer', detail:'Zeile ohne KV' });
-          if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv:'', projectNumber: projektNummer, title, client: clientName, source:'erp', reason:'Keine KV-Nummer', detail:'Zeile ohne KV-Nummer im ERP-Import' });
+        if (!kvKey){
+          preview.skipped.push({ kv:'', projectNumber: pNum, title, client, amount, reason:'Keine KV-Nummer', detail:'Zeile ohne KV' });
+          if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv:'', projectNumber: pNum, title, client, source:'erp', reason:'Keine KV-Nummer', detail:'Zeile ohne KV-Nummer im ERP-Import' });
           continue;
         }
 
-        const existing = kvIndex.get(kvNummer);
+        const existing = kvIndex.get(kvKey);
+
         if (existing){
-          const currentAmount = (existing.type==='transaction') ? (Number(existing.transaction.amount)||0) : (Number(existing.entry.amount)||0);
+          const currentAmount = (existing.type==='transaction') ? (Number(existing.transaction.amount)||0)
+                                                                : (Number(existing.entry.amount)||0);
           if (Math.abs(currentAmount - amount) > 0.001) {
             if (existing.type==='transaction'){
               existing.transaction.amount = amount;
@@ -311,61 +369,50 @@
             existing.entry.modified = Date.now();
 
             preview.updatedRows.push({
-              kv: kvNummer,
-              projectNumber: projektNummer,
-              title, client: clientName,
-              oldAmount: currentAmount,
-              newAmount: amount,
-              entry: existing.entry,
-              _keep: true
+              kv, projectNumber: pNum, title, client,
+              oldAmount: currentAmount, newAmount: amount,
+              entry: existing.entry, _keep: true
             });
           } else {
-            preview.skipped.push({ kv: kvNummer, projectNumber: projektNummer, title, client: clientName, amount, reason:'Keine Änderung', detail:'Betrag identisch' });
-            if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvNummer, projectNumber: projektNummer, title, client: clientName, source:'erp', reason:'Keine Änderung', detail:'Betrag identisch, nicht übernommen' });
+            preview.skipped.push({ kv, projectNumber: pNum, title, client, amount, reason:'Keine Änderung', detail:'Betrag identisch' });
+            if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv, projectNumber: pNum, title, client, source:'erp', reason:'Keine Änderung', detail:'Betrag identisch, nicht übernommen' });
           }
-        } else {
-          // Neuer Abruf in RV?
-          const parentFramework = frameworkProjectIndex.get(projektNummer);
-          if (parentFramework){
-            parentFramework.transactions = Array.isArray(parentFramework.transactions) ? parentFramework.transactions : [];
-            if (!parentFramework.transactions.some(t=> t.kv_nummer===kvNummer)){
-              const newTrans = { id:`trans_${Date.now()}_${kvNummer.replace(/\W/g,'')}`, kv_nummer: kvNummer, type:'founder', amount, ts:Date.now(), freigabedatum: freigabeTimestamp };
-              parentFramework.transactions.push(newTrans);
-              parentFramework.modified = Date.now();
-              preview.newCalloffs.push({
-                kv: kvNummer, parentProjectNumber: projektNummer,
-                title, client: clientName, amount,
-                parentEntry: parentFramework,
-                _keep: true
-              });
-            } else {
-              preview.skipped.push({ kv: kvNummer, projectNumber: projektNummer, title, client: clientName, amount, reason:'Abruf schon vorhanden', detail:'Bereits in Rahmenvertrag' });
-              if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvNummer, projectNumber: projektNummer, title, client: clientName, source:'erp', reason:'Abruf schon vorhanden', detail:'Bereits in transactions[]' });
-            }
-          } else {
-            // Neuer Fixauftrag
-            const newFixEntry = {
-              id: `entry_${Date.now()}_${kvNummer.replace(/\W/g,'')}`,
-              source: 'erp-import',
-              projectType: 'fix',
-              client: clientName,
-              title,
-              projectNumber: projektNummer,
-              kv_nummer: kvNummer,
-              amount,
-              list: [], rows: [], weights: [],
-              ts: Date.now(), freigabedatum: freigabeTimestamp,
-              complete: false
-            };
-            preview.newFixes.push({
-              kv: kvNummer, projectNumber: projektNummer, title, client: clientName, amount, newFixEntry, _keep: true
-            });
-          }
+          continue;
         }
+
+        // Neu -> Abruf in Rahmenvertrag?
+        const parentFramework = frameworkIndex.get(pNum);
+        if (parentFramework){
+          parentFramework.transactions = Array.isArray(parentFramework.transactions) ? parentFramework.transactions : [];
+          const existsTrans = parentFramework.transactions.some(t => normKV(t.kv_nummer || t.kv) === kvKey);
+          if (!existsTrans){
+            const newTrans = { id:`trans_${Date.now()}_${kvKey}`, kv_nummer: kv, type:'founder', amount, ts:Date.now(), freigabedatum: freeTS };
+            parentFramework.transactions.push(newTrans);
+            parentFramework.modified = Date.now();
+            preview.newCalloffs.push({ kv, parentProjectNumber: pNum, title, client, amount, parentEntry: parentFramework, _keep:true });
+          } else {
+            preview.skipped.push({ kv, projectNumber: pNum, title, client, amount, reason:'Abruf schon vorhanden', detail:'Bereits in Rahmenvertrag' });
+            if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv, projectNumber: pNum, title, client, source:'erp', reason:'Abruf schon vorhanden', detail:'Bereits in transactions[]' });
+          }
+          continue;
+        }
+
+        // sonst: neuer Fixauftrag
+        const newFixEntry = {
+          id: `entry_${Date.now()}_${kvKey}`,
+          source: 'erp-import',
+          projectType: 'fix',
+          client, title, projectNumber: pNum,
+          kv_nummer: kv,
+          amount,
+          list: [], rows: [], weights: [],
+          ts: Date.now(), freigabedatum: freeTS,
+          complete: false
+        };
+        preview.newFixes.push({ kv, projectNumber: pNum, title, client, amount, newFixEntry, _keep:true });
       }
 
-      hideLoader();
-      renderPreview(preview);
+      renderAndOpen(preview);
 
     } catch(e){
       hideLoader();
@@ -374,17 +421,14 @@
     }
   }
 
-  // Button-Click des vorhandenen Imports abfangen (Capture-Phase)
+  // ---------- Button hook ----------
   function hookButton(){
     const btn = document.getElementById('btnErpImport');
     if (!btn) return;
-    // Capture-Listener verhindert, dass der alte Listener feuert:
+    // Capture verhindert, dass alter Handler direkt speichert
     btn.addEventListener('click', handleErpImportPreview, true);
   }
-
   if (document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded', hookButton, { once:true });
-  } else {
-    hookButton();
-  }
+  } else { hookButton(); }
 })();
