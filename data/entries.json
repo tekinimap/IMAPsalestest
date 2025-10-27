@@ -2285,5 +2285,22 @@
     "freigabedatum": 1751320800000,
     "complete": false,
     "createdAt": 1761581210741
+  },
+  {
+    "id": "entry_1761581176206_KV20250014",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landeshauptstadt München",
+    "title": "Teamentwicklung - Strategietagung Baureferat",
+    "projectNumber": "LHSM-03-001",
+    "kv_nummer": "KV-2025-0014",
+    "amount": 2400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761581176206,
+    "freigabedatum": 1751320800000,
+    "complete": false,
+    "createdAt": 1761581213207
   }
 ]
