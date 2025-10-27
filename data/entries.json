@@ -4482,57 +4482,6 @@
     "updatedAt": 1761145218774
   },
   {
-    "id": "entry_1761144762643_KV20250085",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Kulturstiftung des Bundes",
-    "title": "Auswertung des Förderprogramms  pik — Programm für inklusive  Kunstpraxis Netzwerk für inklusive  Theaterkooperationen",
-    "projectNumber": "KDB-06-001",
-    "kv_nummer": "KV-2025-0085",
-    "amount": 35500,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 100,
-        "money": 35500
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1756936800000,
-    "complete": true,
-    "createdAt": 1761144847516,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127492,
-    "updatedAt": 1761145221905
-  },
-  {
     "id": "entry_1761144762643_KV20250086",
     "source": "erp-import",
     "projectType": "fix",
