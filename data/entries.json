@@ -2542,57 +2542,6 @@
     "updatedAt": 1761145163409
   },
   {
-    "id": "entry_1761144762643_KV20250035",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Rentenversicherung Bayern Süd",
-    "title": "Dozentenleistung „Bürokratieabbau“",
-    "projectNumber": "DRV Bayern Süd-07-001",
-    "kv_nummer": "KV-2025-0035",
-    "amount": 1387.5,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 1388
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762643,
-    "freigabedatum": 1737673200000,
-    "complete": true,
-    "createdAt": 1761144798515,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127490,
-    "updatedAt": 1761145166994
-  },
-  {
     "id": "entry_1761144762643_KV20250078",
     "source": "erp-import",
     "projectType": "fix",
