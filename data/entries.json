@@ -8391,57 +8391,6 @@
     "updatedAt": 1761145326122
   },
   {
-    "id": "entry_1761144762645_KV20250229",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landkreis Göttingen",
-    "title": "Seminare zum Thema „Interkulturelle Kompetenz“",
-    "projectNumber": "LK Göttingen-04-001",
-    "kv_nummer": "KV-2025-0229",
-    "amount": 6500,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 6500
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762645,
-    "freigabedatum": 1757973600000,
-    "complete": true,
-    "createdAt": 1761144992647,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127494,
-    "updatedAt": 1761145402081
-  },
-  {
     "id": "entry_1761144762645_KV20250230",
     "source": "erp-import",
     "projectType": "fix",
