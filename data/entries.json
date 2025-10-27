@@ -6621,57 +6621,6 @@
     "updatedAt": 1761145309456
   },
   {
-    "id": "entry_1761144762644_KV20250166",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Knauf KNB04 Strategisches Coaching - Provisionen Q2-2025",
-    "projectNumber": "ChangePartner-15-001",
-    "kv_nummer": "KV-2025-0166",
-    "amount": 2800,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 2800
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1753221600000,
-    "complete": true,
-    "createdAt": 1761144937084,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145311025
-  },
-  {
     "id": "entry_1761144762644_KV20250167",
     "source": "erp-import",
     "projectType": "fix",
