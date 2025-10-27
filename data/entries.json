@@ -8391,57 +8391,6 @@
     "updatedAt": 1761145326122
   },
   {
-    "id": "entry_1761144762645_KV20250230",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Hennef",
-    "title": "Aufstockung: Umsetzung des Klimaanpassungskonzepts der Stadt Hennef – professionelle Projektunterstützung und Unterstützung bei der Akteursbeteiligung",
-    "projectNumber": "Hennef-01-001",
-    "kv_nummer": "KV-2025-0230",
-    "amount": 9240,
-    "list": [
-      {
-        "key": "Nachhaltigkeit Mitarbeiter:in",
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 9240
-      }
-    ],
-    "rows": [
-      {
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762645,
-    "freigabedatum": 1757973600000,
-    "complete": true,
-    "createdAt": 1761144994328,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127494,
-    "updatedAt": 1761145403935
-  },
-  {
     "id": "entry_1761144762645_KV20250236",
     "source": "erp-import",
     "projectType": "fix",
