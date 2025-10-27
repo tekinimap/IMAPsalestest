@@ -1,6 +1,6 @@
 // erp-preview-override.js  v4.5
 // Fix: ReferenceError: f is not defined in handleErpImportPreview behoben (fmtEUR verwenden).
-// Behält alle Fixes aus v4.4 bei.
+// Behält alle Fixes aus v4.4 bei (minimale norm*, vereinfachte Indizes, logging, stopPropagation).
 
 (function(){
   const hasXLSX = typeof XLSX !== 'undefined';
@@ -291,7 +291,7 @@
 
   // ---------- Kernlogik (Analyse/Preview) ----------
 
-  // *** VEREINFACHT: buildKvIndex v4.4 ***
+   // *** VEREINFACHT: buildKvIndex v4.4 ***
   function buildKvIndex(entries){
     const map = new Map();
     console.log('[buildKvIndex] Starting. Processing entries:', entries?.length);
