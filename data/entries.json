@@ -6570,57 +6570,6 @@
     "updatedAt": 1761145307625
   },
   {
-    "id": "entry_1761144762644_KV20250164",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Freie Hansestadt Bremen",
-    "title": "Berichterstellung für die Beteiligung von Jugendlichen zwischen 13 und 20 Jahren",
-    "projectNumber": "F HB-01-002",
-    "kv_nummer": "KV-2025-0164",
-    "amount": 955,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 100,
-        "money": 955
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761144762644,
-    "freigabedatum": 1753048800000,
-    "complete": true,
-    "createdAt": 1761144935521,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761145127493,
-    "updatedAt": 1761145309456
-  },
-  {
     "id": "entry_1761144762644_KV20250174",
     "source": "erp-import",
     "projectType": "fix",
