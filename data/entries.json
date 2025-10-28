@@ -2611,22 +2611,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654017936_KV20250043",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Coach e.V.",
-    "title": "Mitarbeitendenbefragung",
-    "projectNumber": "Coach-02-001",
-    "kv_nummer": "KV-2025-0043",
-    "amount": 2425,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654017936,
-    "freigabedatum": 1743544800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654018075_KV20250052",
     "source": "erp-import",
     "projectType": "fix",
