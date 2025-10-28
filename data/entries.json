@@ -2673,5 +2673,21 @@
     "ts": 1761657834633,
     "freigabedatum": 1737072000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834633_KV20250032",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Leadership Programme Bangladesh",
+    "projectNumber": "GIZ-56-001",
+    "kv_nummer": "KV-2025-0032",
+    "amount": 95400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834633,
+    "freigabedatum": 1737072000000,
+    "complete": false
   }
 ]
