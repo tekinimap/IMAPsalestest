@@ -557,7 +557,17 @@
     "projectNumber": "DRV Bund-04-007",
     "kv_nummer": "",
     "ts": 1761032940010,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1761648557384_KV20250247",
+        "kv_nummer": "KV-2025-0247",
+        "type": "founder",
+        "amount": 55740.63,
+        "ts": 1761648557384,
+        "freigabedatum": 1752098400000
+      }
+    ],
+    "modified": 1761648752842
   },
   {
     "id": "manuell_drv_bund_sozvers_fachw",
