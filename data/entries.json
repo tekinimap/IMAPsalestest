@@ -640,17 +640,9 @@
         "amount": 10800,
         "ts": 1761648557385,
         "freigabedatum": 1760306400000
-      },
-      {
-        "id": "trans_1761648545195_KV20250005",
-        "kv_nummer": "KV-2025-0005",
-        "type": "founder",
-        "amount": 1200,
-        "ts": 1761648545195,
-        "freigabedatum": 1734476400000
       }
     ],
-    "modified": 1761663784309
+    "modified": 1761663789553
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
