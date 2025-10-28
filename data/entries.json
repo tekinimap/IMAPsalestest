@@ -2823,55 +2823,6 @@
     "modified": 1761647138157
   },
   {
-    "id": "entry_1761643945712_KV20250046",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Jobcenter Lahn-Dill",
-    "title": "LPP-Coachings",
-    "projectNumber": "Lahn-Dill-02-001",
-    "kv_nummer": "KV-2025-0046",
-    "amount": 3744,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 3744
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945712,
-    "freigabedatum": 1751407200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647141816
-  },
-  {
     "id": "entry_1761643945712_KV20250048",
     "source": "erp-import",
     "projectType": "fix",
