@@ -3953,5 +3953,21 @@
     "ts": 1761659318523,
     "freigabedatum": 1744588800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318581_KV20250158",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Oberhavel",
+    "title": "Prozessbegleitung zur Erarbeitung strategischer Optionen",
+    "projectNumber": "LAO-01-001",
+    "kv_nummer": "KV-2025-0158",
+    "amount": 54600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318581,
+    "freigabedatum": 1752192000000,
+    "complete": false
   }
 ]
