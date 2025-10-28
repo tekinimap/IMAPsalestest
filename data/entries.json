@@ -2994,13 +2994,46 @@
     "projectNumber": "DVB-02-001",
     "kv_nummer": "KV-2025-0031",
     "amount": 5625,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 5625
+      }
+    ],
+    "rows": [
+      {
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176267,
     "freigabedatum": 1737068400000,
-    "complete": false,
-    "createdAt": 1761581247242
+    "complete": true,
+    "createdAt": 1761581247242,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647105398
   },
   {
     "id": "entry_1761581176267_KV20250032",
