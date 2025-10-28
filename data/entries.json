@@ -10234,5 +10234,21 @@
     "ts": 1761648557385,
     "freigabedatum": 1744149600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761648557385_KV20250259",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Robert Bosch Stiftung RBS01 Moderation Mentoringprogramm",
+    "projectNumber": "ChangePartner-39-001",
+    "kv_nummer": "KV-2025-0259",
+    "amount": 6576.88,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761648557385,
+    "freigabedatum": 1758492000000,
+    "complete": false
   }
 ]
