@@ -4518,5 +4518,21 @@
     "ts": 1761643947356,
     "freigabedatum": 1758060000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947356_KV20250236",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "StudienInstitut NiederrheiN",
+    "title": "Sexuelle Belästigung am Arbeitsplatz",
+    "projectNumber": "S.I.N.N.-06-001",
+    "kv_nummer": "KV-2025-0236",
+    "amount": 1600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947356,
+    "freigabedatum": 1757368800000,
+    "complete": false
   }
 ]
