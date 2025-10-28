@@ -10202,5 +10202,21 @@
     "ts": 1761648557385,
     "freigabedatum": 1736463600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761648557385_KV20250251",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "IFM IFM02 Cultural Awareness Training 30.09.2025",
+    "projectNumber": "ChangePartner-38-001",
+    "kv_nummer": "KV-2025-0251",
+    "amount": 1280,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761648557385,
+    "freigabedatum": 1758751200000,
+    "complete": false
   }
 ]
