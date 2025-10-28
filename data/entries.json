@@ -2435,22 +2435,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761650694431_KV20250012",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Rentenversicherung Hessen",
-    "title": "Moderation Tagung",
-    "projectNumber": "DRV Hessen-02-001",
-    "kv_nummer": "KV-2025-0012",
-    "amount": 4200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761650694431,
-    "freigabedatum": 1751320800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761650694431_KV20250013",
     "source": "erp-import",
     "projectType": "fix",
