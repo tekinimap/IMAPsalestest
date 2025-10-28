@@ -3265,5 +3265,21 @@
     "ts": 1761657835818,
     "freigabedatum": 1744243200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835818_KV20250088",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Goethe-Institut",
+    "title": "KI im Arbeitsalltag 04/2025",
+    "projectNumber": "Goethe-11-001",
+    "kv_nummer": "KV-2025-0088",
+    "amount": 300,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835818,
+    "freigabedatum": 1744070400000,
+    "complete": false
   }
 ]
