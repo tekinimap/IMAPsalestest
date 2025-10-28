@@ -2739,22 +2739,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654018462_KV20250067",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "TII Group TIS02 Mediation",
-    "projectNumber": "ChangePartner-22-001",
-    "kv_nummer": "KV-2025-0067",
-    "amount": 3190,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654018462,
-    "freigabedatum": 1742511600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654018462_KV20250068",
     "source": "erp-import",
     "projectType": "fix",
