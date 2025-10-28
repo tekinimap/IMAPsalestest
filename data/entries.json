@@ -2389,56 +2389,6 @@
     "modified": 1761647086605
   },
   {
-    "id": "entry_1761581176238_KV20250027",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Goethe-Institut",
-    "title": "Moderation Workshop - Bereich Recht in der Zentrale",
-    "projectNumber": "Goethe-08-001",
-    "kv_nummer": "KV-2025-0027",
-    "amount": 1880,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1880
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581176238,
-    "freigabedatum": 1736722800000,
-    "complete": true,
-    "createdAt": 1761581242309,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647099890
-  },
-  {
     "id": "entry_1761581176267_KV20250034",
     "source": "erp-import",
     "projectType": "fix",
