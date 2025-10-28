@@ -2476,13 +2476,46 @@
     "projectNumber": "GIZ-41-001",
     "kv_nummer": "KV-2025-0017",
     "amount": 10775,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 10775
+      }
+    ],
+    "rows": [
+      {
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176222,
     "freigabedatum": 1751320800000,
-    "complete": false,
-    "createdAt": 1761581218897
+    "complete": true,
+    "createdAt": 1761581218897,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647073603
   },
   {
     "id": "entry_1761581176222_KV20250018",
