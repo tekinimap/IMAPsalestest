@@ -6199,12 +6199,45 @@
     "projectNumber": "S.I.N.N.-04-001",
     "kv_nummer": "KV-2025-0133",
     "amount": 1600,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 1600
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946476,
     "freigabedatum": 1748296800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647313960
   },
   {
     "id": "entry_1761643946557_KV20250137",
