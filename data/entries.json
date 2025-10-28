@@ -2789,56 +2789,6 @@
     "modified": 1761647105398
   },
   {
-    "id": "entry_1761581176267_KV20250033",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "AstraZeneca AZH03 Workshop/Training/Moderation",
-    "projectNumber": "ChangePartner-19-001",
-    "kv_nummer": "KV-2025-0033",
-    "amount": 6401.25,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 6401
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581176267,
-    "freigabedatum": 1737586800000,
-    "complete": true,
-    "createdAt": 1761581252877,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647110704
-  },
-  {
     "id": "entry_1761581176267_KV20250034",
     "source": "erp-import",
     "projectType": "fix",
