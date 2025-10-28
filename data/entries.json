@@ -2486,55 +2486,6 @@
     "modified": 1761647226888
   },
   {
-    "id": "entry_1761643946340_KV20250111",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Herne",
-    "title": "Hauptmoderation des Herner Dialogforums",
-    "projectNumber": "Stadt Herne-05-001",
-    "kv_nummer": "KV-2025-0111",
-    "amount": 1050,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 1050
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946340,
-    "freigabedatum": 1754344800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647267817
-  },
-  {
     "id": "entry_1761643946476_KV20250127",
     "source": "erp-import",
     "projectType": "fix",
