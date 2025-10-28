@@ -3411,22 +3411,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654020357_KV20250155",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Duisburg",
-    "title": "Beobachtungsschulung 2025",
-    "projectNumber": "STD-11-001",
-    "kv_nummer": "KV-2025-0155",
-    "amount": 2200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654020357,
-    "freigabedatum": 1751234400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654020357_KV20250156",
     "source": "erp-import",
     "projectType": "fix",
