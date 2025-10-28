@@ -2748,7 +2748,7 @@ function renderAnalytics() {
   let fixTotal = 0;
   let rahmenTotal = 0;
   
-  entries.forEach(e => {
+ (window.entries || []).forEach(e => {
     const datum = e.freigabedatum || e.ts || 0; // Verwende Freigabedatum primär
     
     if(e.projectType === 'fix') {
