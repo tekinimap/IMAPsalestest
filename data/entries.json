@@ -2339,56 +2339,6 @@
     "transactions": []
   },
   {
-    "id": "entry_1761580804093_KV20230140",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
-    "title": "BAMF VAMOS 2.0 - Fortsetzung 2025",
-    "projectNumber": "BAMF-09-003",
-    "kv_nummer": "KV-2023-0140",
-    "amount": 180527.1,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 180527
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761580804093,
-    "freigabedatum": 1740783600000,
-    "complete": true,
-    "createdAt": 1761580936713,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647056858
-  },
-  {
     "id": "entry_1761580804127_KV20250009",
     "source": "erp-import",
     "projectType": "fix",
