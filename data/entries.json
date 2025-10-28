@@ -1752,16 +1752,8 @@
     "projectNumber": "GIZ-51-001",
     "kv_nummer": "",
     "ts": 1761032940038,
-    "transactions": [
-      {
-        "id": "trans_1760970709369_KV20250215",
-        "kv_nummer": "KV-2025-0215",
-        "type": "founder",
-        "amount": 43200,
-        "ts": 1760970709369
-      }
-    ],
-    "modified": 1760970709369
+    "transactions": [],
+    "modified": 1761663741127
   },
   {
     "id": "manuell_giz_ewfl_fr",
