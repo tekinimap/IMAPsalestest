@@ -3329,5 +3329,21 @@
     "ts": 1761657835818,
     "freigabedatum": 1744848000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657836025_KV20250098",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Coach e.V.",
+    "title": "Moderation",
+    "projectNumber": "Coach-03-001",
+    "kv_nummer": "KV-2025-0098",
+    "amount": 1250,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657836025,
+    "freigabedatum": 1745452800000,
+    "complete": false
   }
 ]
