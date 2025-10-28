@@ -4348,5 +4348,21 @@
     "ts": 1761643947080,
     "freigabedatum": 1756332000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947080_KV20250203",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Eucon EUM04 Beratung Entstehung neuer Finanzbereich",
+    "projectNumber": "ChangePartner-32-001",
+    "kv_nummer": "KV-2025-0203",
+    "amount": 5185,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947080,
+    "freigabedatum": 1736290800000,
+    "complete": false
   }
 ]
