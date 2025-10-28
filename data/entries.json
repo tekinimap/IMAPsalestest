@@ -6101,12 +6101,45 @@
     "projectNumber": "GS GmbH-04-001",
     "kv_nummer": "KV-2025-0131",
     "amount": 5400,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 5400
+      }
+    ],
+    "rows": [
+      {
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946476,
     "freigabedatum": 1746482400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647308065
   },
   {
     "id": "entry_1761643946476_KV20250132",
