@@ -3059,22 +3059,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654019852_KV20250124",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Kreis Gütersloh",
-    "title": "Konzeption und Moderation der Jahresklausur des Kommunalen  Integrationszentrums Gütersloh",
-    "projectNumber": "KreisGL-05-001",
-    "kv_nummer": "KV-2025-0124",
-    "amount": 2600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654019852,
-    "freigabedatum": 1748210400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654019852_KV20250125",
     "source": "erp-import",
     "projectType": "fix",
