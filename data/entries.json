@@ -4380,5 +4380,21 @@
     "ts": 1761643947080,
     "freigabedatum": 1736290800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947080_KV20250206",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Rossmann DRO02 Begleitung RCE Operatives Team",
+    "projectNumber": "ChangePartner-34-001",
+    "kv_nummer": "KV-2025-0206",
+    "amount": 15470,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947080,
+    "freigabedatum": 1736290800000,
+    "complete": false
   }
 ]
