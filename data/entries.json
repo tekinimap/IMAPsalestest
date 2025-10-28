@@ -1599,17 +1599,8 @@
     "projectNumber": "WDR Köln-07-001",
     "kv_nummer": "",
     "ts": 1761032940037,
-    "transactions": [
-      {
-        "id": "trans_1761053193302_KV20250183",
-        "kv_nummer": "KV-2025-0183",
-        "type": "founder",
-        "amount": 8400,
-        "ts": 1761053193302,
-        "freigabedatum": 1744063200000
-      }
-    ],
-    "modified": 1761663822444
+    "transactions": [],
+    "modified": 1761663826854
   },
   {
     "id": "manuell_giz_ewfl_de_en",
