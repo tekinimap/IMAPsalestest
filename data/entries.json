@@ -8756,22 +8756,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761648557385_KV20250254",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Zukunft – Umwelt – Gesellschaft (ZUG) gGmbH",
-    "title": "CoralCarib Mid-Term Evaluation of IKI project 22_IV_106_Caribbean",
-    "projectNumber": "ZUG-05-001",
-    "kv_nummer": "KV-2025-0254",
-    "amount": 28956.5,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761648557385,
-    "freigabedatum": 1744149600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761648557385_KV20250259",
     "source": "erp-import",
     "projectType": "fix",
