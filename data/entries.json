@@ -3201,5 +3201,21 @@
     "ts": 1761657835593,
     "freigabedatum": 1743465600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835817_KV20250084",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Kreis Mettmann",
+    "title": "Beratungsleistungen zur digitalen Arbeit mit der e-Akte",
+    "projectNumber": "Kreis Mettmann-04-001",
+    "kv_nummer": "KV-2025-0084",
+    "amount": 14400,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835817,
+    "freigabedatum": 1744156800000,
+    "complete": false
   }
 ]
