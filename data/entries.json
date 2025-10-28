@@ -958,17 +958,8 @@
     "projectNumber": "DRV Bund-16-001",
     "kv_nummer": "",
     "ts": 1761032940017,
-    "transactions": [
-      {
-        "id": "trans_1761648557385_KV20250279",
-        "kv_nummer": "KV-2025-0279",
-        "type": "founder",
-        "amount": 5345.63,
-        "ts": 1761648557385,
-        "freigabedatum": 1761256800000
-      }
-    ],
-    "modified": 1761648767603
+    "transactions": [],
+    "modified": 1761663088093
   },
   {
     "id": "manuell_drv_bund_mod_fuehr_veranst",
