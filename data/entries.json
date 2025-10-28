@@ -4017,5 +4017,21 @@
     "ts": 1761659318581,
     "freigabedatum": 1752451200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318581_KV20250163",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Gubesch GUB01 Stärkung Vertriebsorganisation - Phase 1",
+    "projectNumber": "ChangePartner-27-001",
+    "kv_nummer": "KV-2025-0163",
+    "amount": 2190,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318581,
+    "freigabedatum": 1751846400000,
+    "complete": false
   }
 ]
