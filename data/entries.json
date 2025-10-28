@@ -1196,17 +1196,9 @@
         "amount": 7500,
         "ts": 1761053193301,
         "freigabedatum": 1742943600000
-      },
-      {
-        "id": "trans_1761053193300_KV20250007",
-        "kv_nummer": "KV-2025-0007",
-        "type": "founder",
-        "amount": 1890,
-        "ts": 1761053193300,
-        "freigabedatum": 1738364400000
       }
     ],
-    "modified": 1761663837816
+    "modified": 1761663843333
   },
   {
     "id": "manuell_stadt_koblenz_begl_teamentw",
