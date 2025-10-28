@@ -34,13 +34,6 @@
     "ts": 1761032940000,
     "transactions": [
       {
-        "id": "trans_1760970709371_KV20250159",
-        "kv_nummer": "KV-2025-0159",
-        "type": "founder",
-        "amount": 2800,
-        "ts": 1760970709371
-      },
-      {
         "id": "trans_1760970709371_KV20250126",
         "kv_nummer": "KV-2025-0126",
         "type": "founder",
@@ -49,7 +42,7 @@
         "freigabedatum": 1746482400000
       }
     ],
-    "modified": 1761663944202
+    "modified": 1761663949027
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
