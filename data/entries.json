@@ -4550,5 +4550,21 @@
     "ts": 1761643947382,
     "freigabedatum": 1758060000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947382_KV20250239",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "greenstorming GmbH",
+    "title": "Moderation DAB Workshop",
+    "projectNumber": "GS GmbH-05-001",
+    "kv_nummer": "KV-2025-0239",
+    "amount": 6000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947382,
+    "freigabedatum": 1758751200000,
+    "complete": false
   }
 ]
