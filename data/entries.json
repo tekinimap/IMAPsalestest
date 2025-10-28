@@ -2821,55 +2821,6 @@
     "modified": 1761647174197
   },
   {
-    "id": "entry_1761643945898_KV20250066",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesministerium für Bildung und Forschung",
-    "title": "Einzelcoachings",
-    "projectNumber": "BMBF-03-001",
-    "kv_nummer": "KV-2025-0066",
-    "amount": 2437.5,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 2438
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945898,
-    "freigabedatum": 1742425200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647186858
-  },
-  {
     "id": "entry_1761643945948_KV20250073",
     "source": "erp-import",
     "projectType": "fix",
