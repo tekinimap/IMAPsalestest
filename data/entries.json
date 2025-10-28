@@ -3512,13 +3512,70 @@
     "projectNumber": "LH Stuttgart-02-001",
     "kv_nummer": "KV-2025-0042",
     "amount": 1100000,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 25,
+        "money": 275000
+      },
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 25,
+        "money": 275000
+      },
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 50,
+        "money": 550000
+      }
+    ],
+    "rows": [
+      {
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 25,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 25,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "BU Lead OE",
+        "cs": 50,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581442856,
     "freigabedatum": 1738105200000,
-    "complete": false,
-    "createdAt": 1761581458532
+    "complete": true,
+    "createdAt": 1761581458532,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647130890
   },
   {
     "id": "entry_1761581442856_KV20250043",
