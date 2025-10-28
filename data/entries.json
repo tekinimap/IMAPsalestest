@@ -3121,5 +3121,21 @@
     "ts": 1761657835304,
     "freigabedatum": 1742947200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835304_KV20250071",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "GFA CONSULTING GROUP GMBH",
+    "title": "Teamcoaching",
+    "projectNumber": "GFA-01-001",
+    "kv_nummer": "KV-2025-0071",
+    "amount": 7200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835304,
+    "freigabedatum": 1742947200000,
+    "complete": false
   }
 ]
