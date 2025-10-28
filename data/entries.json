@@ -2801,5 +2801,21 @@
     "ts": 1761657834712,
     "freigabedatum": 1739145600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834815_KV20250042",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landeshauptstadt Stuttgart",
+    "title": "Rahmenvertrag Externe Untersuchung Organisationsentwicklung",
+    "projectNumber": "LH Stuttgart-02-001",
+    "kv_nummer": "KV-2025-0042",
+    "amount": 1100000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834815,
+    "freigabedatum": 1738108800000,
+    "complete": false
   }
 ]
