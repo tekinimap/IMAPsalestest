@@ -2211,17 +2211,8 @@
     "projectNumber": "GIZ-16-002",
     "kv_nummer": "",
     "ts": 1761032940041,
-    "transactions": [
-      {
-        "id": "trans_1761648557385_KV20250267",
-        "kv_nummer": "KV-2025-0267",
-        "type": "founder",
-        "amount": 32300,
-        "ts": 1761648557385,
-        "freigabedatum": 1760652000000
-      }
-    ],
-    "modified": 1761663388211
+    "transactions": [],
+    "modified": 1761663392695
   },
   {
     "id": "manuell_giz_partnering_business",
