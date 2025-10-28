@@ -2433,53 +2433,5 @@
     "ts": 1761650694358,
     "freigabedatum": 1748728800000,
     "complete": false
-  },
-  {
-    "id": "entry_1761650694496_KV20250016",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Managerfortbildung 2024.02 - Modul 5",
-    "projectNumber": "GIZ-42-001",
-    "kv_nummer": "KV-2025-0016",
-    "amount": 10250,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761650694496,
-    "freigabedatum": 1751320800000,
-    "complete": false
-  },
-  {
-    "id": "entry_1761650694496_KV20250016",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Managerfortbildung 2024.02 - Modul 5",
-    "projectNumber": "GIZ-42-001",
-    "kv_nummer": "KV-2025-0016",
-    "amount": 10250,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761650694496,
-    "freigabedatum": 1751320800000,
-    "complete": false
-  },
-  {
-    "id": "entry_1761650694496_KV20250016",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Managerfortbildung 2024.02 - Modul 5",
-    "projectNumber": "GIZ-42-001",
-    "kv_nummer": "KV-2025-0016",
-    "amount": 10250,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761650694496,
-    "freigabedatum": 1751320800000,
-    "complete": false
   }
 ]
