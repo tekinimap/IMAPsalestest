@@ -1221,7 +1221,17 @@
     "projectNumber": "DRV MD-04-001",
     "kv_nummer": "",
     "ts": 1761032940021,
-    "transactions": []
+    "transactions": [
+      {
+        "id": "trans_1761648557385_KV20250268",
+        "kv_nummer": "KV-2025-0268",
+        "type": "founder",
+        "amount": 11200,
+        "ts": 1761648557385,
+        "freigabedatum": 1760652000000
+      }
+    ],
+    "modified": 1761648761690
   },
   {
     "id": "manuell_drv_rheinland_mod_workshops",
