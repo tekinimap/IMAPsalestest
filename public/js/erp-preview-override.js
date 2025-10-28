@@ -1,7 +1,6 @@
-// erp-preview-override.js  v4.7
-// Fix: buildKvIndex und buildFrameworkIndex vereinfacht ("first wins").
-// Add: Logging beim Index-Aufbau.
-// Behält minimale norm*/stopPropagation/Fehlermeldungs-Fixes aus v4.5 bei.
+// erp-preview-override.js  v4.9
+// Fix: parseExcelDate überarbeitet, um TT.MM.JJJJ korrekt und sicher zu parsen (UTC).
+// Behält vereinfachte Index-Logik (v4.7) und andere Fixes bei.
 
 (function(){
   const hasXLSX = typeof XLSX !== 'undefined';
@@ -37,70 +36,73 @@
     const k = Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(norm));
     return k ? row[k] : undefined;
   }
-  // *** NEU: parseExcelDate v4.8 - Priorisiert TT.MM.JJJJ ***
+
+  // *** NEU: parseExcelDate v4.9 - Noch strenger bei TT.MM.JJJJ, sicherer Fallback ***
   function parseExcelDate(excelDate) {
-    // 1. Excel-Zahl (höchste Prio)
+    // 1. Excel-Zahl
     if (typeof excelDate === 'number' && excelDate > 25569) { // 25569 = 01.01.1970
       try {
-        // Korrekte Umrechnung Excel-Datum (Tage seit 01.01.1900, Achtung Schaltjahr-Bug 1900) zu JS-Timestamp
         const jsTimestamp = (excelDate - 25569) * 86400 * 1000;
         const d = new Date(jsTimestamp);
-        // Zusätzliche Prüfung: Ist das Jahr plausibel? (z.B. > 2000)
         if (d.getFullYear() > 2000) {
-           // UTC-Datumskorrektur: Excel-Zahlen haben keine Zeitzone, JS Date nimmt lokale an.
-           // Um Mitternacht UTC zu bekommen, addiere den Zeitzonen-Offset.
+           // Korrektur auf UTC Mitternacht
+           // Addiere den Zeitzonenoffset in Millisekunden, um von lokaler Zeit zu UTC zu gelangen
            return new Date(d.getTime() + d.getTimezoneOffset() * 60000);
         }
-      } catch (e) {
-         console.warn("Excel date number parsing failed:", e);
-      }
+      } catch (e) { console.warn("Excel date number parsing failed:", e); }
     }
 
     // 2. String-Verarbeitung
     if (typeof excelDate === 'string') {
       const dateString = excelDate.trim();
 
-      // Versuch 2a: Strenges TT.MM.JJJJ Format
-      const europeanMatch = dateString.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      // Versuch 2a: Strenges TT.MM.JJJJ Format (mit optionalen Leerzeichen um Punkte)
+      const europeanMatch = dateString.match(/^(\d{1,2})\s*\.\s*(\d{1,2})\s*\.\s*(\d{4})$/);
       if (europeanMatch) {
         const day = parseInt(europeanMatch[1], 10);
-        const month = parseInt(europeanMatch[2], 10); // Monat ist 1-basiert
+        const month = parseInt(europeanMatch[2], 10); // Monat ist 1-basiert aus Regex
         const year = parseInt(europeanMatch[3], 10);
-        // Validierung: Sind Tag, Monat, Jahr gültig?
+        // Validierung
         if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year > 1900) {
-          // Erstelle Datum als UTC Mitternacht, um Zeitzonenprobleme zu vermeiden
-          const d = new Date(Date.UTC(year, month - 1, day)); // Monat ist 0-basiert in JS Date
-          // Prüfe, ob das erstellte Datum den Eingabewerten entspricht (verhindert ungültige Tage wie 31. Feb)
-          if (d.getUTCDate() === day && d.getUTCMonth() === month - 1 && d.getUTCFullYear() === year) {
-             console.log(`[parseExcelDate] Parsed TT.MM.JJJJ: ${dateString} -> ${d.toISOString()}`); // DEBUG
-             return d;
+          // Erstelle Datum als UTC Mitternacht
+          const d = new Date(Date.UTC(year, month - 1, day)); // Monat ist 0-basiert für Date.UTC
+          // Prüfen, ob Datum gültig ist (verhindert 31. Feb etc.)
+          // Stelle sicher, dass das erstellte Datum den Eingabewerten entspricht
+          if (d && d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day) {
+             console.log(`[parseExcelDate v4.9] Parsed TT.MM.JJJJ: ${dateString} -> ${d.toISOString()}`);
+             return d; // JS Date Objekt (UTC Mitternacht)
+          } else {
+             console.warn(`[parseExcelDate v4.9] Invalid day/month combination in TT.MM.JJJJ: ${dateString}`);
           }
+        } else {
+            console.warn(`[parseExcelDate v4.9] Invalid day/month/year range in TT.MM.JJJJ: ${dateString}`);
         }
       }
 
-      // Versuch 2b: ISO Format (YYYY-MM-DD) oder andere von new Date() unterstützte Formate
-      // Wichtig: Kann MM/DD/YYYY interpretieren, wenn kein TT.MM.JJJJ passt!
-      try {
-          const d = new Date(dateString);
-          // Validierung: Ist das Datum gültig und Jahr plausibel?
-          if (!isNaN(d.getTime()) && d.getFullYear() > 1900) {
-              console.log(`[parseExcelDate] Parsed via new Date(): ${dateString} -> ${d.toISOString()}`); // DEBUG
-              // Hier nehmen wir an, dass die Interpretation korrekt war, falls TT.MM.JJJJ nicht passte.
-              // Ggf. müsste man hier noch spezifischer prüfen, wenn MM/DD ausgeschlossen werden soll.
-             // Rückgabe als Mitternacht UTC könnte sinnvoll sein:
-             return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-             // return d; // Oder lokale Zeit? Hängt vom Zielsystem ab. UTC ist oft sicherer.
-          }
-      } catch(e) { /* Ignoriere Fehler von new Date() */ }
+      // Versuch 2b: ISO Format (YYYY-MM-DD) - Sicherer Fallback
+      const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+          try {
+              const year = parseInt(isoMatch[1], 10);
+              const month = parseInt(isoMatch[2], 10); // 1-basiert
+              const day = parseInt(isoMatch[3], 10);
+               if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year > 1900) {
+                   const d = new Date(Date.UTC(year, month - 1, day)); // 0-basierter Monat
+                   // Erneute Validierung
+                   if (d && d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day) {
+                       console.log(`[parseExcelDate v4.9] Parsed YYYY-MM-DD: ${dateString} -> ${d.toISOString()}`);
+                       return d;
+                   }
+               }
+          } catch(e) { console.warn(`[parseExcelDate v4.9] Error parsing YYYY-MM-DD ${dateString}:`, e); }
+      }
     }
 
     // 3. Fallback
-    console.warn(`[parseExcelDate] Could not parse date:`, excelDate); // DEBUG
-    return null; // Ungültiges Format oder Wert
-  }
-    }
+    console.warn(`[parseExcelDate v4.9] Could not parse date:`, excelDate);
     return null;
   }
+
 
   // *** MINIMAL: KV-Schlüssel v4.3 ***
   const normKV = (v) => {
@@ -343,7 +345,7 @@
 
   // ---------- Kernlogik (Analyse/Preview) ----------
 
-  // *** VEREINFACHT: buildKvIndex v4.7 - "First Wins" + Logging ***
+  // *** VEREINFACHT: buildKvIndex v4.7 ***
   function buildKvIndex(entries){
     const map = new Map();
     console.log('[buildKvIndex v4.7] Starting. Processing entries:', entries?.length); // DEBUG
@@ -356,7 +358,6 @@
              console.log(`[buildKvIndex v4.7] Adding FIX: Key='${key}' from entry ID ${entry.id}`); // DEBUG
              map.set(key, { type:'fix', entry });
          } else {
-             // Ignoriere einfach, wenn der Schlüssel schon existiert.
              // console.warn(`[buildKvIndex v4.7] FIX Key collision ignored: Key='${key}'`); // DEBUG (Optional)
          }
       }
@@ -370,7 +371,6 @@
                  console.log(`[buildKvIndex v4.7] Adding TRANSACTION: Key='${tkey}' from parent ID ${entry.id}, trans ID ${t.id}`); // DEBUG
                  map.set(tkey, { type:'transaction', entry, transaction:t });
              } else {
-                 // Ignoriere einfach, wenn der Schlüssel schon existiert.
                  // console.warn(`[buildKvIndex v4.7] TRANSACTION Key collision ignored: Key='${tkey}'`); // DEBUG (Optional)
              }
           }
@@ -381,7 +381,7 @@
     return map;
   }
 
-  // *** VEREINFACHT: buildFrameworkIndex v4.7 - "First Wins" + Logging ***
+  // *** VEREINFACHT: buildFrameworkIndex v4.7 ***
   function buildFrameworkIndex(entries){
     const map = new Map();
     console.log('[buildFrameworkIndex v4.7] Starting. Processing entries:', entries?.length); // DEBUG
@@ -393,7 +393,6 @@
             console.log(`[buildFrameworkIndex v4.7] Adding FRAMEWORK: Key='${key}' from entry ID ${entry.id}`); // DEBUG
             map.set(key, entry);
           } else {
-             // Ignoriere einfach, wenn der Schlüssel schon existiert.
              // console.warn(`[buildFrameworkIndex v4.7] FRAMEWORK Key collision ignored: Key='${key}'`); // DEBUG (Optional)
           }
         }
@@ -432,7 +431,6 @@
 
       console.log('kvIndex size after build:', kvIndex.size);
       console.log('frameworkIndex size after build:', frameworkIndex.size);
-      // console.log('Checking KV-2025-0007 in kvIndex:', kvIndex.get('KV-2025-0007')); // DEBUG
 
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
@@ -454,9 +452,22 @@
         const title   = getVal(row,'Titel') || '';
         preview._excelSum += amount||0;
 
-        let freeTS = Date.now();
+        let freeTS = Date.now(); // Fallback auf jetzt
         const excelDate = getVal(row,'Freigabedatum');
-        if (excelDate) { const d = parseExcelDate(excelDate); if (d) freeTS = d.getTime(); }
+        let parsedDateObject = null; // Speichere das Date Objekt
+        if (excelDate) {
+            parsedDateObject = parseExcelDate(excelDate); // Uses v4.9
+            if (parsedDateObject) {
+                freeTS = parsedDateObject.getTime(); // Korrekter UTC Timestamp
+            } else {
+                 console.warn(`[handleErpImportPreview] Invalid date found for KV ${kvRaw}: ${excelDate}. Using current time as timestamp.`);
+                 freeTS = Date.now(); // Fallback, wenn Parsen fehlschlägt
+            }
+        } else {
+             console.warn(`[handleErpImportPreview] No date found for KV ${kvRaw}. Using current time as timestamp.`);
+             freeTS = Date.now(); // Fallback, wenn kein Datum da ist
+        }
+
 
         const kvNorm = normKV(kvRaw);
         const pNumNorm = normProjectNumber(pNumRaw);
@@ -478,14 +489,13 @@
 
           if (fmtEUR0(currentAmount) !== fmtEUR0(amount)) {
             currentItem.amount = amount;
-            // Update timestamp only if relevant field exists
-            if (isTransaction && 'ts' in currentItem) currentItem.ts = Date.now(); // Assuming transactions only have ts
+            if (isTransaction) currentItem.ts = Date.now(); // Update ts for transaction
             if (!isTransaction) currentEntry.modified = Date.now(); // Update modified on parent entry
 
-             // Only update freigabedatum if it was actually parsed from Excel
-            if (excelDate && parseExcelDate(excelDate)) {
-                 if (isTransaction) currentItem.freigabedatum = freeTS;
-                 if (!isTransaction) currentEntry.freigabedatum = freeTS;
+            // Update freigabedatum only if it was successfully parsed
+            if (parsedDateObject) {
+                 if (isTransaction) currentItem.freigabedatum = freeTS; // Store UTC timestamp
+                 if (!isTransaction) currentEntry.freigabedatum = freeTS; // Store UTC timestamp
             }
 
             modifiedEntriesMap.set(currentEntry.id, currentEntry);
@@ -496,8 +506,7 @@
               entry: currentEntry, _keep: true
             });
           } else {
-            // Betrag ist identisch (auf Euro gerundet)
-            preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine Änderung', detail:`Betrag (${fmtEUR(amount)}) identisch (Schlüssel: ${kvNorm}).` }); // KORRIGIERT: f -> fmtEUR
+            preview.skipped.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, reason:'Keine Änderung', detail:`Betrag (${fmtEUR(amount)}) identisch (Schlüssel: ${kvNorm}).` });
             if (window.LOGBOOK2) LOGBOOK2.importSkip({ kv: kvRaw, projectNumber: pNumRaw, title, client, source:'erp', reason:'no_change', detail:`Betrag ${fmtEUR(amount)} identisch (Schlüssel: ${kvNorm})` });
           }
           continue;
@@ -508,6 +517,7 @@
           parentFramework.transactions = Array.isArray(parentFramework.transactions) ? parentFramework.transactions : [];
           const existsTrans = parentFramework.transactions.some(t => normKV(t.kv_nummer || t.kv) === kvNorm);
           if (!existsTrans){
+            // Store UTC timestamp for freigabedatum
             const newTrans = { id:`trans_${Date.now()}_${kvNorm.replace(/[^A-Z0-9]/g,'')}`, kv_nummer: kvRaw, type:'founder', amount, ts:Date.now(), freigabedatum: freeTS };
             parentFramework.transactions.push(newTrans);
             parentFramework.modified = Date.now();
@@ -532,6 +542,7 @@
           source: 'erp-import', projectType: 'fix',
           client, title, projectNumber: pNumRaw, kv_nummer: kvRaw, amount,
           list: [], rows: [], weights: [],
+          // Store UTC timestamp for freigabedatum
           ts: Date.now(), freigabedatum: freeTS, complete: false
         };
         preview.newFixes.push({ kv: kvRaw, projectNumber: pNumRaw, title, client, amount, newFixEntry, _matchReason: matchReason, _keep:true });
@@ -554,7 +565,7 @@
     if (btn.hasAttribute('onclick')) { console.log('Entferne alten onclick Handler von #btnErpImport'); btn.removeAttribute('onclick'); }
     const newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn);
     newBtn.addEventListener('click', handleErpImportPreview, true); // Use Capture Phase
-    console.log('Neuer ERP Preview Handler (v4.7) an #btnErpImport angehängt.');
+    console.log('Neuer ERP Preview Handler (v4.9) an #btnErpImport angehängt.');
   }
 
   if (document.readyState==='loading'){
