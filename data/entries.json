@@ -5672,12 +5672,45 @@
     "projectNumber": "Goethe-11-001",
     "kv_nummer": "KV-2025-0156",
     "amount": 500,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 500
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946673,
     "freigabedatum": 1744581600000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647229814
   },
   {
     "id": "entry_1761643946700_KV20250158",
