@@ -3379,22 +3379,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654019583_KV20250112",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Niedersächsisches Ministerium für Soziales, Arbeit, Gesundheit und Gleichstellung",
-    "title": "Vorstellung Schwerpunktbericht DJIHT Messeforum",
-    "projectNumber": "NSMfSAGG-03-001",
-    "kv_nummer": "KV-2025-0112",
-    "amount": 1200,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654019583,
-    "freigabedatum": 1757023200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654019642_KV20250114",
     "source": "erp-import",
     "projectType": "fix",
