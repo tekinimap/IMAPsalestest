@@ -2385,5 +2385,21 @@
     "ts": 1761657834080,
     "freigabedatum": 1734652800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834330_KV20250009",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Teamtage",
+    "projectNumber": "BG Verkehr-02-001",
+    "kv_nummer": "KV-2025-0009",
+    "amount": 3500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834330,
+    "freigabedatum": 1736121600000,
+    "complete": false
   }
 ]
