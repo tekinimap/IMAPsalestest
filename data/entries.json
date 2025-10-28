@@ -2337,21 +2337,5 @@
     "kv_nummer": "",
     "ts": 1761032940044,
     "transactions": []
-  },
-  {
-    "id": "entry_1761654017160_KV20250003",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "greenstorming GmbH",
-    "title": "13. - 14.03.2025 in Berlin - Workshop „Migration entwicklungspolitisch gestalten“",
-    "projectNumber": "GS GmbH-03-001",
-    "kv_nummer": "KV-2025-0003",
-    "amount": 3850,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654017160,
-    "freigabedatum": 1734562800000,
-    "complete": false
   }
 ]
