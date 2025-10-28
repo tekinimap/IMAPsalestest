@@ -1382,14 +1382,6 @@
     "ts": 1761032940033,
     "transactions": [
       {
-        "id": "trans_1761053193301_KV20250122",
-        "kv_nummer": "KV-2025-0122",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761053193301,
-        "freigabedatum": 1748469600000
-      },
-      {
         "id": "trans_1761053193302_KV20250195",
         "kv_nummer": "KV-2025-0195",
         "type": "founder",
@@ -1398,15 +1390,15 @@
         "freigabedatum": 1756072800000
       },
       {
-        "id": "trans_1761053193302_KV20250218",
-        "kv_nummer": "KV-2025-0218",
+        "id": "trans_1761053193301_KV20250122",
+        "kv_nummer": "KV-2025-0122",
         "type": "founder",
-        "amount": 2943.75,
-        "ts": 1761053193302,
-        "freigabedatum": 1757368800000
+        "amount": 0,
+        "ts": 1761053193301,
+        "freigabedatum": 1748469600000
       }
     ],
-    "modified": 1761053193302
+    "modified": 1761663869464
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
