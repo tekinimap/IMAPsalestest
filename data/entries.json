@@ -577,14 +577,6 @@
     "ts": 1761032940013,
     "transactions": [
       {
-        "id": "trans_1761053193301_KV20250055",
-        "kv_nummer": "KV-2025-0055",
-        "type": "founder",
-        "amount": 1747.5,
-        "ts": 1761053193301,
-        "freigabedatum": 1740956400000
-      },
-      {
         "id": "trans_1761648545195_KV20250001",
         "kv_nummer": "KV-2025-0001",
         "type": "founder",
@@ -609,7 +601,7 @@
         "freigabedatum": 1672441200000
       }
     ],
-    "modified": 1761648740562
+    "modified": 1761663707736
   },
   {
     "id": "manuell_drv_bund_teamentw",
