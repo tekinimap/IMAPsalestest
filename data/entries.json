@@ -2794,13 +2794,46 @@
     "projectNumber": "ST BSW-10-001",
     "kv_nummer": "KV-2025-0024",
     "amount": 3900,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 3900
+      }
+    ],
+    "rows": [
+      {
+        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176222,
     "freigabedatum": 1736722800000,
-    "complete": false,
-    "createdAt": 1761581236996
+    "complete": true,
+    "createdAt": 1761581236996,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647094767
   },
   {
     "id": "entry_1761581176238_KV20250026",
