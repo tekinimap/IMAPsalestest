@@ -44,8 +44,9 @@
         "id": "trans_1760970709371_KV20250126",
         "kv_nummer": "KV-2025-0126",
         "type": "founder",
-        "amount": 8050,
-        "ts": 1760970709371
+        "amount": 3850,
+        "ts": 1761648551547,
+        "freigabedatum": 1746482400000
       },
       {
         "id": "trans_1760970709372_KV20250123",
@@ -65,11 +66,20 @@
         "id": "trans_1760970709374_KV20250028",
         "kv_nummer": "KV-2025-0028",
         "type": "founder",
-        "amount": 5425,
-        "ts": 1760970709374
+        "amount": 4725,
+        "ts": 1761648546248,
+        "freigabedatum": 1736895600000
+      },
+      {
+        "id": "trans_1761648557385_KV20250274",
+        "kv_nummer": "KV-2025-0274",
+        "type": "founder",
+        "amount": 1925,
+        "ts": 1761648557385,
+        "freigabedatum": 1761084000000
       }
     ],
-    "modified": 1760970709374
+    "modified": 1761648713286
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
