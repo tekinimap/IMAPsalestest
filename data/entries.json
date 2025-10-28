@@ -3473,5 +3473,21 @@
     "ts": 1761654019583,
     "freigabedatum": 1749074400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654019583_KV20250111",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Herne",
+    "title": "Hauptmoderation des Herner Dialogforums",
+    "projectNumber": "Stadt Herne-05-001",
+    "kv_nummer": "KV-2025-0111",
+    "amount": 1050,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654019583,
+    "freigabedatum": 1754344800000,
+    "complete": false
   }
 ]
