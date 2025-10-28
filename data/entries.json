@@ -1956,6 +1956,14 @@
     "ts": 1761032940035,
     "transactions": [
       {
+        "id": "trans_1761648557385_KV20250277",
+        "kv_nummer": "KV-2025-0277",
+        "type": "founder",
+        "amount": 22000,
+        "ts": 1761648557385,
+        "freigabedatum": 1761084000000
+      },
+      {
         "id": "trans_1761053193301_KV20250115",
         "kv_nummer": "KV-2025-0115",
         "type": "founder",
@@ -1970,25 +1978,9 @@
         "amount": 0,
         "ts": 1761053193302,
         "freigabedatum": 1736290800000
-      },
-      {
-        "id": "trans_1761648557385_KV20250276",
-        "kv_nummer": "KV-2025-0276",
-        "type": "founder",
-        "amount": 5000,
-        "ts": 1761648557385,
-        "freigabedatum": 1761170400000
-      },
-      {
-        "id": "trans_1761648557385_KV20250277",
-        "kv_nummer": "KV-2025-0277",
-        "type": "founder",
-        "amount": 22000,
-        "ts": 1761648557385,
-        "freigabedatum": 1761084000000
       }
     ],
-    "modified": 1761648764680
+    "modified": 1761663107695
   },
   {
     "id": "manuell_ekom21_miniwettbewerb",
