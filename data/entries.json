@@ -2437,55 +2437,6 @@
     "modified": 1761647291970
   },
   {
-    "id": "entry_1761643946476_KV20250129",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Führen von Projektteams",
-    "projectNumber": "MGladbach-03-002",
-    "kv_nummer": "KV-2025-0129",
-    "amount": 437.5,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 438
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946476,
-    "freigabedatum": 1757023200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647300015
-  },
-  {
     "id": "entry_1761643946557_KV20250138",
     "source": "erp-import",
     "projectType": "fix",
