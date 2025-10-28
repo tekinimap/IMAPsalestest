@@ -3425,5 +3425,21 @@
     "ts": 1761657836089,
     "freigabedatum": 1746662400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657836153_KV20250107",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Hamm",
+    "title": "Aufstockung - Hitzeaktionsplan Stadt Hamm",
+    "projectNumber": "Hamm-06-001",
+    "kv_nummer": "KV-2025-0107",
+    "amount": 7175,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657836153,
+    "freigabedatum": 1746489600000,
+    "complete": false
   }
 ]
