@@ -3007,56 +3007,6 @@
     "createdAt": 1761581420896
   },
   {
-    "id": "entry_1761581442805_KV20250037",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Forschungszentrum Jülich GmbH",
-    "title": "Führungskräfteentwicklungsprogramm",
-    "projectNumber": "FZJ-01-001",
-    "kv_nummer": "KV-2025-0037",
-    "amount": 6936,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 6936
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581442805,
-    "freigabedatum": 1737932400000,
-    "complete": true,
-    "createdAt": 1761581450688,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647121967
-  },
-  {
     "id": "entry_1761581442805_KV20250038",
     "source": "erp-import",
     "projectType": "fix",
