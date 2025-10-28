@@ -2844,13 +2844,46 @@
     "projectNumber": "ChangePartner-18-001",
     "kv_nummer": "KV-2025-0026",
     "amount": 10080,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "ChangePartner Mitarbeiter:in",
+        "name": "ChangePartner Mitarbeiter:in",
+        "pct": 100,
+        "money": 10080
+      }
+    ],
+    "rows": [
+      {
+        "name": "ChangePartner Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176238,
     "freigabedatum": 1759269600000,
-    "complete": false,
-    "createdAt": 1761581239594
+    "complete": true,
+    "createdAt": 1761581239594,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647097466
   },
   {
     "id": "entry_1761581176238_KV20250027",
