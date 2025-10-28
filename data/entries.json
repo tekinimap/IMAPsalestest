@@ -3793,5 +3793,21 @@
     "ts": 1761659318359,
     "freigabedatum": 1750636800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318359_KV20250144",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Bayern Süd",
+    "title": "Klausurtagung 2025",
+    "projectNumber": "DRV Bayern Süd-08-001",
+    "kv_nummer": "KV-2025-0144",
+    "amount": 9060,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318359,
+    "freigabedatum": 1750118400000,
+    "complete": false
   }
 ]
