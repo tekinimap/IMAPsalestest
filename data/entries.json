@@ -2773,55 +2773,6 @@
     "modified": 1761647138157
   },
   {
-    "id": "entry_1761643945712_KV20250048",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Vereinten Dienstleistungsgewerkschaft (ver.di)",
-    "title": "Systemische Coachings",
-    "projectNumber": "ver.di-01-001",
-    "kv_nummer": "KV-2025-0048",
-    "amount": 2880,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 2880
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945712,
-    "freigabedatum": 1751407200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647150958
-  },
-  {
     "id": "entry_1761643945820_KV20250058",
     "source": "erp-import",
     "projectType": "fix",
