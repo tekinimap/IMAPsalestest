@@ -3185,5 +3185,21 @@
     "ts": 1761657835593,
     "freigabedatum": 1743465600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835593_KV20250079",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Pulheim",
+    "title": "Interessensbekundung Klimaanpassungskonzept",
+    "projectNumber": "Pulheim-01-001",
+    "kv_nummer": "KV-2025-0079",
+    "amount": 36800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835593,
+    "freigabedatum": 1743465600000,
+    "complete": false
   }
 ]
