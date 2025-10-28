@@ -334,9 +334,17 @@
         "amount": 91062.5,
         "ts": 1761053193301,
         "freigabedatum": 1745272800000
+      },
+      {
+        "id": "trans_1761053193301_KV20250025",
+        "kv_nummer": "KV-2025-0025",
+        "type": "founder",
+        "amount": 3300,
+        "ts": 1761053193301,
+        "freigabedatum": 1736722800000
       }
     ],
-    "modified": 1761663506899
+    "modified": 1761663509296
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
