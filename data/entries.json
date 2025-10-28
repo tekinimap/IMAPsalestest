@@ -2387,22 +2387,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654017656_KV20250027",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Goethe-Institut",
-    "title": "Moderation Workshop - Bereich Recht in der Zentrale",
-    "projectNumber": "Goethe-08-001",
-    "kv_nummer": "KV-2025-0027",
-    "amount": 1880,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654017656,
-    "freigabedatum": 1736722800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654018772_KV20250078",
     "source": "erp-import",
     "projectType": "fix",
