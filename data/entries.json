@@ -1157,14 +1157,6 @@
         "freigabedatum": 1736290800000
       },
       {
-        "id": "trans_1761054223051_KV20250081",
-        "kv_nummer": "KV-2025-0081",
-        "type": "founder",
-        "amount": 731.2,
-        "ts": 1761054223051,
-        "freigabedatum": 1735945200000
-      },
-      {
         "id": "trans_1761054225458_KV20250082",
         "kv_nummer": "KV-2025-0082",
         "type": "founder",
@@ -1181,7 +1173,7 @@
         "freigabedatum": 1735945200000
       }
     ],
-    "modified": 1761664002530
+    "modified": 1761664004952
   },
   {
     "id": "manuell_stadt_mg_fke_a21082",
