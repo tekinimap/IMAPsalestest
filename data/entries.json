@@ -2689,56 +2689,6 @@
     "modified": 1761647099890
   },
   {
-    "id": "entry_1761581176252_KV20250029",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Landesamt für Besoldung und Versorgung NRW",
-    "title": "Moderation eines Workshops für die oberste Managementebene",
-    "projectNumber": "LBV NRW-01-001",
-    "kv_nummer": "KV-2025-0029",
-    "amount": 4800,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 4800
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581176252,
-    "freigabedatum": 1736895600000,
-    "complete": true,
-    "createdAt": 1761581244747,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647102594
-  },
-  {
     "id": "entry_1761581176267_KV20250034",
     "source": "erp-import",
     "projectType": "fix",
