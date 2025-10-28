@@ -4534,5 +4534,21 @@
     "ts": 1761643947356,
     "freigabedatum": 1757368800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947382_KV20250238",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Ministerium für Soziales, Gesundheit und Integration des Landes Baden-Württemberg",
+    "title": "kommunales Integrationsmanagement Herrenberg",
+    "projectNumber": "SGI BW-01-001",
+    "kv_nummer": "KV-2025-0238",
+    "amount": 3000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947382,
+    "freigabedatum": 1758060000000,
+    "complete": false
   }
 ]
