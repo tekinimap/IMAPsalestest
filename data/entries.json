@@ -3105,5 +3105,21 @@
     "ts": 1761657835247,
     "freigabedatum": 1742342400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835304_KV20250070",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Umweltbundesamt",
+    "title": "Teamcoaching",
+    "projectNumber": "UBA-01-001",
+    "kv_nummer": "KV-2025-0070",
+    "amount": 2880,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835304,
+    "freigabedatum": 1742947200000,
+    "complete": false
   }
 ]
