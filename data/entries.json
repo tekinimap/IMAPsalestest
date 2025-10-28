@@ -2961,5 +2961,21 @@
     "ts": 1761657834978,
     "freigabedatum": 1739923200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835089_KV20250057",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Heidelberg",
+    "title": "Qualifizierung kommunaler Antidiskriminierungsstellen Aufstockung",
+    "projectNumber": "ST HD-01-002",
+    "kv_nummer": "KV-2025-0057",
+    "amount": 20137.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835089,
+    "freigabedatum": 1740960000000,
+    "complete": false
   }
 ]
