@@ -3666,55 +3666,6 @@
     "modified": 1761647325829
   },
   {
-    "id": "entry_1761643946587_KV20250143",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Staatskanzlei und Ministerium für Kultur des Landes Sachsen-Anhalt",
-    "title": "Seminar Interkulturelle Kompetenz für Nachwuchsführungskräfte aus der Landesverwaltung Fortbildungsreihe Europa und Internationales",
-    "projectNumber": "SKM-04-001",
-    "kv_nummer": "KV-2025-0143",
-    "amount": 2800,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 2800
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946587,
-    "freigabedatum": 1750629600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647335783
-  },
-  {
     "id": "entry_1761643946587_KV20250145",
     "source": "erp-import",
     "projectType": "fix",
