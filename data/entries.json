@@ -2535,55 +2535,6 @@
     "modified": 1761647267817
   },
   {
-    "id": "entry_1761643946424_KV20250119",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Herne",
-    "title": "Moderationsauftrag",
-    "projectNumber": "Stadt Herne-06-001",
-    "kv_nummer": "KV-2025-0119",
-    "amount": 1100,
-    "list": [
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 100,
-        "money": 1100
-      }
-    ],
-    "rows": [
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946424,
-    "freigabedatum": 1746396000000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647279882
-  },
-  {
     "id": "entry_1761643946476_KV20250127",
     "source": "erp-import",
     "projectType": "fix",
