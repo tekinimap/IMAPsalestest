@@ -3153,5 +3153,21 @@
     "ts": 1761657835371,
     "freigabedatum": 1742947200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835593_KV20250077",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Staatskanzlei und Ministerium für Kultur des Landes Sachsen-Anhalt",
+    "title": "Interkulturelle Kompetenz für Nachwuchsführungskräfte der Landesverwaltung",
+    "projectNumber": "SKM-03-001",
+    "kv_nummer": "KV-2025-0077",
+    "amount": 2800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835593,
+    "freigabedatum": 1743638400000,
+    "complete": false
   }
 ]
