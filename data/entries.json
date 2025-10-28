@@ -2539,56 +2539,6 @@
     "modified": 1761647086605
   },
   {
-    "id": "entry_1761581176222_KV20250024",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stiftung BSW",
-    "title": "Workshop - Festenburg 2025",
-    "projectNumber": "ST BSW-10-001",
-    "kv_nummer": "KV-2025-0024",
-    "amount": 3900,
-    "list": [
-      {
-        "key": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 3900
-      }
-    ],
-    "rows": [
-      {
-        "name": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581176222,
-    "freigabedatum": 1736722800000,
-    "complete": true,
-    "createdAt": 1761581236996,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647094767
-  },
-  {
     "id": "entry_1761581176238_KV20250027",
     "source": "erp-import",
     "projectType": "fix",
