@@ -3585,5 +3585,21 @@
     "ts": 1761657836423,
     "freigabedatum": 1748822400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318106_KV20250127",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Digitales Führungskräftecoaching",
+    "projectNumber": "MGladbach-03-001",
+    "kv_nummer": "KV-2025-0127",
+    "amount": 234.38,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318114,
+    "freigabedatum": 1752019200000,
+    "complete": false
   }
 ]
