@@ -2913,5 +2913,21 @@
     "ts": 1761657834815,
     "freigabedatum": 1738886400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834977_KV20250052",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Barmer GEK",
+    "title": "Prepare2Lead – Talententwicklungsmodul für angehende Führungskräfte",
+    "projectNumber": "Barmer-04-001",
+    "kv_nummer": "KV-2025-0052",
+    "amount": 7000,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834977,
+    "freigabedatum": 1739491200000,
+    "complete": false
   }
 ]
