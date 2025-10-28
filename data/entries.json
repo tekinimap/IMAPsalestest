@@ -10250,5 +10250,21 @@
     "ts": 1761648557385,
     "freigabedatum": 1758492000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761648557385_KV20250262",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Change Partner - IMAP Verrechnungen 2025",
+    "projectNumber": "ChangePartner-03-001",
+    "kv_nummer": "KV-2025-0262",
+    "amount": 5500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761648557385,
+    "freigabedatum": 1767135600000,
+    "complete": false
   }
 ]
