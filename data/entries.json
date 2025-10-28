@@ -3260,5 +3260,21 @@
     "ts": 1761643946132,
     "freigabedatum": 1744754400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946132_KV20250091",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Senatsverwaltung für Inneres und Sport",
+    "title": "Konzept zur Dunkelfeldstudie/Jugendstudie",
+    "projectNumber": "SenInnSport-01-001",
+    "kv_nummer": "KV-2025-0091",
+    "amount": 47500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946132,
+    "freigabedatum": 1762210800000,
+    "complete": false
   }
 ]
