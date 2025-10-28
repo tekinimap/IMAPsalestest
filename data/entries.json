@@ -1388,17 +1388,9 @@
         "amount": 5362.5,
         "ts": 1761053193302,
         "freigabedatum": 1756072800000
-      },
-      {
-        "id": "trans_1761053193301_KV20250122",
-        "kv_nummer": "KV-2025-0122",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761053193301,
-        "freigabedatum": 1748469600000
       }
     ],
-    "modified": 1761663869464
+    "modified": 1761663876128
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
