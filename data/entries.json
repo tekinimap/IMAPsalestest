@@ -4044,12 +4044,45 @@
     "projectNumber": "GIZ-57-001",
     "kv_nummer": "KV-2025-0059",
     "amount": 999.99,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 1000
+      }
+    ],
+    "rows": [
+      {
+        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643945820,
     "freigabedatum": 1759442400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647174197
   },
   {
     "id": "entry_1761643945845_KV20250061",
