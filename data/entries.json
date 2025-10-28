@@ -3697,5 +3697,21 @@
     "ts": 1761659318114,
     "freigabedatum": 1748304000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318305_KV20250137",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Antenna ANT01 Career Development Dialogs",
+    "projectNumber": "ChangePartner-24-001",
+    "kv_nummer": "KV-2025-0137",
+    "amount": 14875,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318305,
+    "freigabedatum": 1749772800000,
+    "complete": false
   }
 ]
