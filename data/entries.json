@@ -611,16 +611,8 @@
     "projectNumber": "DRV Bund-12-001",
     "kv_nummer": "",
     "ts": 1761032940014,
-    "transactions": [
-      {
-        "id": "trans_1760970709373_KV20250075",
-        "kv_nummer": "KV-2025-0075",
-        "type": "founder",
-        "amount": 10800,
-        "ts": 1760970709373
-      }
-    ],
-    "modified": 1761663802840
+    "transactions": [],
+    "modified": 1761663804359
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
