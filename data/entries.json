@@ -2380,13 +2380,48 @@
     "projectNumber": "DRV Bund-13-001",
     "kv_nummer": "KV-2025-0023",
     "amount": 212532.57,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761581176222,
-    "freigabedatum": 1735686000000,
-    "complete": false,
-    "createdAt": 1761581234280
+    "list": [
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 100,
+        "money": 212533
+      }
+    ],
+    "rows": [
+      {
+        "personId": "p_1761054995370",
+        "name": "BU Lead OE",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1761646737095,
+    "freigabedatum": 1759276800000,
+    "complete": true,
+    "createdAt": 1761581234280,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "submittedBy": "Abdi Tekin",
+    "modified": 1761646737592
   },
   {
     "id": "entry_1761581176222_KV20250024",
