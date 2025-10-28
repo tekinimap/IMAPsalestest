@@ -6574,22 +6574,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761648545195_KV20250004",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "pro familia Bundesverband",
-    "title": "Best-Practice – Wie funktioniert ein datenbasiertes Projekt",
-    "projectNumber": "profamilia-02-001",
-    "kv_nummer": "KV-2025-0004",
-    "amount": 6475,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761648545195,
-    "freigabedatum": 1734649200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761648557385_KV20250248",
     "source": "erp-import",
     "projectType": "fix",
