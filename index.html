@@ -1501,6 +1501,7 @@ function editEntry(id) {
 }
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
+// *** NEU: btnYes click handler (mit bulk-delete) ***
 document.getElementById('btnYes').addEventListener('click',async()=>{
     const { id, ids, type, parentId } = pendingDelete;
     document.getElementById('confirmDlg').close();
@@ -1508,29 +1509,42 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
     showLoader();
     try {
         if (type === 'entry') {
+            // Einzelnes Löschen (bleibt gleich)
             if (!id) return;
             const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
             if (!r.ok) throw new Error(await r.text());
             showToast('Eintrag gelöscht.', 'ok');
             entries = entries.filter(x => x.id !== id);
+            window.entries = entries; // Auch window.entries aktualisieren
             renderHistory();
             renderFrameworkContracts();
+
         } else if (type === 'batch-entry') {
+            // *** NEU: BULK DELETE LOGIK ***
             if (!ids || ids.length === 0) return;
             hideLoader(); // Hide small loader, show batch progress
-            showBatchProgress('Lösche Einträge...', ids.length);
-            let count = 0;
-            for (const entryId of ids) {
-                count++;
-                updateBatchProgress(count, ids.length);
-                const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
-                if (!r.ok) throw new Error(`Fehler beim Löschen von ${entryId}: ${await r.text()}`);
-                await throttle();
+            showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
+            
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: ids })
+            });
+            updateBatchProgress(1, 1); // Schritt 1 von 1 erledigt
+            
+            if (!r.ok) {
+               const errData = await r.json().catch(() => ({ error: "Unbekannter Fehler beim Löschen" }));
+               throw new Error(errData.error || `Serverfehler ${r.status}`);
             }
-            showToast(`${count} Einträge gelöscht.`, 'ok');
-            await loadHistory(); // Reload all data
+            
+            const result = await r.json();
+            showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
+            await loadHistory(); // Lade alle Daten neu
             renderHistory();
+            // *** ENDE NEUE LOGIK ***
+
         } else if (type === 'transaction') {
+            // Transaktion löschen (bleibt gleich)
             if (!id || !parentId) return;
             const entry = entries.find(e => e.id === parentId);
             if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
@@ -1545,6 +1559,9 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
               throw new Error(await r.text());
             }
             showToast('Abruf gelöscht.', 'ok');
+            // Update window.entries auch hier
+            const entryIdx = window.entries.findIndex(e => e.id === parentId);
+            if (entryIdx > -1) window.entries[entryIdx] = entry;
             renderRahmenDetails(parentId);
         }
     } catch (e) {
@@ -2478,7 +2495,7 @@ async function handleErpImport() {
     }
 }
 
-/* ---------- Import: Legacy Sales (Team-Prozente) - CHUNKED VERSION ---------- */
+// *** NEU: handleLegacySalesImport (mit bulk-v2) ***
 async function handleLegacySalesImport() {
     const fileInput = document.getElementById('legacySalesFile');
     const importResult = document.getElementById('legacyImportResult');
@@ -2490,6 +2507,7 @@ async function handleLegacySalesImport() {
     showLoader();
     importResult.classList.add('hide');
     
+    // Spaltenzuordnung
     const columnToPersonMap = {
         "% Evaluation und Beteiligung": "Evaluation und Beteiligung Mitarbeiter:in",
         "% Vielfalt+": "Vielfalt+ Mitarbeiter:in",
@@ -2504,29 +2522,29 @@ async function handleLegacySalesImport() {
     };
     const percentageColumns = Object.keys(columnToPersonMap);
     const legacyWeights = [{key: 'cs', weight: 100}, {key: 'konzept', weight: 0}, {key: 'pitch', weight: 0}];
-    
-    // Konfiguration für die Blockverarbeitung
-    const CHUNK_SIZE = 10; // Anzahl der Einträge pro Speicherblock
-    const CHUNK_DELAY = 50; // Kurze Pause zwischen den Blöcken (zusätzlich zu throttle)
 
     try {
-        await loadHistory(); 
+        await loadHistory(); // Aktuelle Daten laden (setzt window.entries)
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheetName = workbook.SheetNames[0];
         const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        let updatedCount = 0;
         let skippedCount = 0;
         
-        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
-        const changesToPush = [];
+        // Verwende eine Kopie von window.entries für die Vorbereitung
+        const allEntriesCopy = JSON.parse(JSON.stringify(window.entries || []));
+        const changesToPush = []; // Hier sammeln wir die vollen, geänderten Objekte
+        
         const kvIndex = new Map();
         allEntriesCopy.forEach(entry => {
-            if (entry.kv_nummer) {
-                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
+            // Nur Fixaufträge indexieren
+            if (entry.kv_nummer && entry.projectType !== 'rahmen') {
+                kvIndex.set(entry.kv_nummer.trim(), { type: 'fix', entry: entry });
             }
-            // Rahmenvertrags-Transaktionen ignorieren wir hier, da wir nur Fixaufträge aktualisieren
+             if (entry.kv && entry.projectType !== 'rahmen') {
+                kvIndex.set(entry.kv.trim(), { type: 'fix', entry: entry });
+            }
         });
 
         // 1. Daten vorbereiten (synchron)
@@ -2534,7 +2552,7 @@ async function handleLegacySalesImport() {
             const newSalesRows = []; 
             let totalPoints = 0;
             for (const colName of percentageColumns) {
-                const percentageValue = parseFloat(getVal(row, colName) || 0);
+                const percentageValue = parseFloat(getVal(row, colName) || 0); // getVal aus index.html
                 if (percentageValue > 0) {
                     const personName = columnToPersonMap[colName];
                     const points = percentageValue * 100;
@@ -2547,16 +2565,14 @@ async function handleLegacySalesImport() {
             
             if (Math.abs(totalPoints - 100) > 0.1) {
                 console.warn(`Übersprungen (Vorb.): Zeile mit KV ${getVal(row, 'KV-Nummer')} hat Summe ${totalPoints}.`);
-                skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                skippedCount++;
                 continue;
             }
             
             const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
             if (!kvString) continue;
 
-            const kvList = kvString.split(',')
-                                 .map(kv => kv.trim())
-                                 .filter(kv => kv.length > 0);
+            const kvList = kvString.split(',').map(kv => kv.trim()).filter(kv => kv.length > 0);
             
             let firstFullKv = kvList.find(k => k.toLowerCase().startsWith('kv-')) || kvList[0];
             let kvPrefix = '';
@@ -2569,109 +2585,104 @@ async function handleLegacySalesImport() {
                 if (!kvToUpdate.toLowerCase().startsWith('kv-') && kvPrefix) {
                     kvToUpdate = kvPrefix + kvToUpdate;
                 } else if (!kvToUpdate.toLowerCase().startsWith('kv-') && !kvPrefix) {
-                     console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe diese KV.`);
-                     skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                     console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe.`);
+                     skippedCount++;
                      continue;
                 }
 
-                const existing = kvIndex.get(kvToUpdate);
+                const existing = kvIndex.get(kvToUpdate); // Suche im Index
                 
                 if (existing && existing.type === 'fix') { // Nur Fixaufträge bearbeiten
                     const entryToUpdate = existing.entry; 
                     
-                     // Verhindern, dass derselbe Eintrag mehrmals in die Liste kommt
                     if (changesToPush.some(item => item.id === entryToUpdate.id)) {
                         console.log(`Eintrag ${entryToUpdate.id} bereits für Update vorgemerkt.`);
-                        continue; // Gehe zur nächsten KV in der Liste
+                        continue;
                     }
 
-                    // Änderungen anwenden
+                    // Änderungen anwenden (auf die Kopie)
                     entryToUpdate.rows = newSalesRows;
                     entryToUpdate.weights = legacyWeights;
                     entryToUpdate.totals = {cs: 100, konzept: 0, pitch: 0}; 
-                    entryToUpdate.list = newSalesRows.map(r => ({ 
-                        key: r.name, name: r.name, pct: r.cs, 
-                        money: Math.round((entryToUpdate.amount || 0) * r.cs / 100)
-                    }));
-                    entryToUpdate.complete = true; 
+                    const resultData = compute(newSalesRows, legacyWeights, (entryToUpdate.amount || 0)); // 'compute' ist in index.html
+                    entryToUpdate.list = resultData.list; // Liste mit money-Werten
+                    entryToUpdate.complete = autoComplete(entryToUpdate); // 'autoComplete' ist in index.html
                     entryToUpdate.modified = Date.now();
                     
                     changesToPush.push(entryToUpdate); // Zum Speichern vormerken
                 } else if (!existing) {
                     console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} nicht gefunden.`);
-                    skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                    skippedCount++;
                 } else {
-                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} gehört zu Transaktion, nicht zu Fixauftrag.`);
-                     skippedCount++; // Zählt als übersprungen in der Vorbereitung
+                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} ist Transaktion, kein Fixauftrag.`);
+                     skippedCount++;
                 }
             }
         }
         
-        hideLoader(); // Loader ausblenden, bevor die Batch-Verarbeitung beginnt
+        hideLoader(); // Vorbereitungs-Loader ausblenden
 
-        // 2. Daten speichern (asynchron in Blöcken)
-        if (changesToPush.length > 0) {
-            showBatchProgress('Speichere Sales-Daten (Altdaten)...', changesToPush.length);
-            let processedCount = 0;
-
-            // Funktion, die einen Block verarbeitet
-            const processChunk = async (chunk) => {
-                for (const entry of chunk) {
-                    try {
-                        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(entry)
-                        });
-                        if (!r.ok) {
-                            throw new Error(`Fehler (PUT) für Eintrag ${entry.id}: ${await r.text()}`);
-                        }
-                         updatedCount++; // Nur bei Erfolg zählen
-                    } catch (error) {
-                         console.error(`Fehler beim Speichern von ${entry.id} (${entry.kv_nummer}):`, error);
-                         skippedCount++; // Bei Fehler als übersprungen zählen
-                         showToast(`Fehler bei KV ${entry.kv_nummer}: ${error.message}`, 'bad', 5000);
-                    } finally {
-                        processedCount++;
-                        updateBatchProgress(processedCount, changesToPush.length);
-                        await throttle(); // Wichtig: Latenz *nach jeder einzelnen* Anfrage
-                    }
-                }
-            };
-
-            // Schleife, die die Blöcke nacheinander aufruft
-            for (let i = 0; i < changesToPush.length; i += CHUNK_SIZE) {
-                const chunk = changesToPush.slice(i, i + CHUNK_SIZE);
-                await processChunk(chunk);
-                // Kurze zusätzliche Pause, um dem Browser sicher Zeit zu geben
-                await new Promise(resolve => setTimeout(resolve, CHUNK_DELAY)); 
-            }
+        if (changesToPush.length === 0) {
+            importResult.innerHTML = `Legacy-Import: Keine Einträge gefunden oder alle übersprungen. ${skippedCount} Zeilen/KVs übersprungen.`;
+            importResult.classList.remove('hide');
+            showToast('Legacy-Import: Nichts zu aktualisieren.', 'warn');
+            fileInput.value = '';
+            return;
         }
 
-        // 3. Ergebnis anzeigen
-        const resultMsg = `Legacy-Import abgeschlossen: ${updatedCount} Einträge erfolgreich aktualisiert. ${skippedCount} Einträge/KV-Nummern übersprungen (nicht gefunden, Fehler, falscher Typ oder Summe != 100).`;
-        importResult.innerHTML = resultMsg;
-        importResult.classList.remove('hide');
-        showToast('Sales-Daten (Altdaten) Import beendet.', 'ok');
-        await loadHistory(); // Lade die finale Version vom Server
+        // *** NEU: Bulk-Upload Logik ***
+        showBatchProgress(`Speichere ${changesToPush.length} Legacy-Änderungen...`, 1); // Nur 1 Schritt
+        
+        try {
+            const bulkPayload = { rows: changesToPush }; // Sende die vollen, geänderten Objekte
+            const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, { // Verwende den v2-Endpunkt
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bulkPayload)
+            });
+            
+            updateBatchProgress(1, 1);
+            const result = await r.json(); // Erwarte { ok: true/false, created, updated, skipped, errors, saved }
 
+            if (!r.ok || !result.ok) {
+                 const errorMsg = result.message || result.error || `Serverfehler ${r.status}`;
+                 throw new Error(`Bulk save failed: ${errorMsg} (Details: ${result.details || 'N/A'})`);
+            }
+
+            const resultMsg = `Legacy-Import abgeschlossen: ${result.updated} Einträge erfolgreich aktualisiert. ${skippedCount} Zeilen/KVs in Vorbereitung übersprungen, ${result.skipped} beim Speichern übersprungen. ${result.errors} Fehler beim Speichern.`;
+            importResult.innerHTML = resultMsg;
+            importResult.classList.remove('hide');
+            showToast('Sales-Daten (Altdaten) Import beendet.', result.errors > 0 ? 'warn' : 'ok');
+            await loadHistory(); // Lade die finale Version vom Server
+
+        } catch (e) {
+            hideLoader();
+            hideBatchProgress();
+            showToast('Fehler beim Speichern der Legacy-Daten.', 'bad');
+            console.error(e);
+            importResult.textContent = 'Fehler beim Speichern: ' + e.message;
+            importResult.classList.remove('hide');
+        } finally {
+            hideLoader();
+            hideBatchProgress();
+            fileInput.value = '';
+        }
+        // *** ENDE Bulk-Upload Logik ***
+        
     } catch (e) {
-        // Fehler bei der Dateiverarbeitung (vor dem Speichern)
-        hideLoader(); // Sicherstellen, dass der Loader aus ist
-        hideBatchProgress(); // Sicherstellen, dass der Batch-Progress aus ist
+        // Fehler beim Dateiverarbeiten (vor dem Speichern)
+        hideLoader();
+        hideBatchProgress();
         showToast('Fehler beim Verarbeiten der Datei.', 'bad');
         console.error(e);
         importResult.textContent = 'Fehler bei Dateiverarbeitung: ' + e.message;
         importResult.classList.remove('hide');
     } finally {
-        // Wird immer ausgeführt, egal ob Erfolg oder Fehler
-        hideLoader(); 
+        hideLoader();
         hideBatchProgress();
-        fileInput.value = ''; // Input leeren
+        fileInput.value = '';
     }
 }
-// *** NEUE FUNKTION ENDE ***
-
 
 /* ---------- Auswertung ---------- */
 const anaYear = document.getElementById('anaYear');
