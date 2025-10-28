@@ -3267,22 +3267,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654019453_KV20250105",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Eucon EUM03 KI Training 8.5.2025",
-    "projectNumber": "ChangePartner-23-001",
-    "kv_nummer": "KV-2025-0105",
-    "amount": 2160,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654019453,
-    "freigabedatum": 1754344800000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654019509_KV20250107",
     "source": "erp-import",
     "projectType": "fix",
