@@ -6364,55 +6364,6 @@
     "modified": 1761647499870
   },
   {
-    "id": "entry_1761643947356_KV20250235",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ARD ZDF Deutschlandradio Beitragsservice",
-    "title": "Strategisches Coaching",
-    "projectNumber": "ARD ZDF-04-001",
-    "kv_nummer": "KV-2025-0235",
-    "amount": 6705,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 6705
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643947356,
-    "freigabedatum": 1758060000000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647507003
-  },
-  {
     "id": "entry_1761643947356_KV20250236",
     "source": "erp-import",
     "projectType": "fix",
