@@ -4124,55 +4124,6 @@
     "modified": 1761647181022
   },
   {
-    "id": "entry_1761643945898_KV20250065",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Rhein-Kreis Neuss",
-    "title": "Optimierung und Digitalisierung des Front Office der Ausländerbehörde, Amt für Sicherheit und Ordnung",
-    "projectNumber": "RKN-02-001",
-    "kv_nummer": "KV-2025-0065",
-    "amount": 30800,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 30800
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945898,
-    "freigabedatum": 1742338800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647183850
-  },
-  {
     "id": "entry_1761643945898_KV20250066",
     "source": "erp-import",
     "projectType": "fix",
