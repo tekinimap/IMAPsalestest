@@ -1126,17 +1126,8 @@
     "projectNumber": "DRV Rheinland-01-001",
     "kv_nummer": "",
     "ts": 1761032940022,
-    "transactions": [
-      {
-        "id": "trans_1761648557384_KV20250246",
-        "kv_nummer": "KV-2025-0246",
-        "type": "founder",
-        "amount": 675,
-        "ts": 1761648557384,
-        "freigabedatum": 1736463600000
-      }
-    ],
-    "modified": 1761663563086
+    "transactions": [],
+    "modified": 1761663571538
   },
   {
     "id": "manuell_dfs_fk_trainings",
