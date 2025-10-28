@@ -3628,5 +3628,21 @@
     "ts": 1761643946476,
     "freigabedatum": 1746482400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946476_KV20250132",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Kreis Minden-Lübbecke",
+    "title": "Begleitung des Transformationsprojekts für das Jobcenter",
+    "projectNumber": "Kreis M-L-02-001",
+    "kv_nummer": "KV-2025-0132",
+    "amount": 95900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946476,
+    "freigabedatum": 1759701600000,
+    "complete": false
   }
 ]
