@@ -3110,22 +3110,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761664649062_KV20250081",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Sakina (62) - Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "Köln-08-018",
-    "kv_nummer": "KV-2025-0081",
-    "amount": 731.2,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761664649062,
-    "freigabedatum": 1743465600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761664649062_KV20250082",
     "source": "erp-import",
     "projectType": "fix",
