@@ -3059,22 +3059,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654019917_KV20250131",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "greenstorming GmbH",
-    "title": "Moderation des BID Kick-Off Workshops im Rahmen der GIZ MEG Diasporakooperation",
-    "projectNumber": "GS GmbH-04-001",
-    "kv_nummer": "KV-2025-0131",
-    "amount": 5400,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654019917,
-    "freigabedatum": 1746482400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654020126_KV20250139",
     "source": "erp-import",
     "projectType": "fix",
