@@ -222,13 +222,6 @@
     "ts": 1761032940004,
     "transactions": [
       {
-        "id": "trans_1760970709370_KV20250165",
-        "kv_nummer": "KV-2025-0165",
-        "type": "founder",
-        "amount": 15000,
-        "ts": 1760970709370
-      },
-      {
         "id": "trans_1760970709369_KV20250175",
         "kv_nummer": "KV-2025-0175",
         "type": "founder",
@@ -244,7 +237,7 @@
         "freigabedatum": 1752098400000
       }
     ],
-    "modified": 1761663476147
+    "modified": 1761663477742
   },
   {
     "id": "manuell_dlr_schulung_prozess",
