@@ -10266,5 +10266,21 @@
     "ts": 1761648557385,
     "freigabedatum": 1767135600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761648557385_KV20250263",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "AstraZeneca AZH06 Moderation Advanced",
+    "projectNumber": "ChangePartner-40-001",
+    "kv_nummer": "KV-2025-0263",
+    "amount": 6518.75,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761648557385,
+    "freigabedatum": 1760047200000,
+    "complete": false
   }
 ]
