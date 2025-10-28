@@ -2389,56 +2389,6 @@
     "modified": 1761647068711
   },
   {
-    "id": "entry_1761581176222_KV20250019",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "BG Verkehr",
-    "title": "Einzelcoaching für Führungsverantwortliche",
-    "projectNumber": "BG Verkehr-04-001",
-    "kv_nummer": "KV-2025-0019",
-    "amount": 2867.5,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 2868
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761581176222,
-    "freigabedatum": 1751320800000,
-    "complete": true,
-    "createdAt": 1761581223605,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647081286
-  },
-  {
     "id": "entry_1761581176222_KV20250021",
     "source": "erp-import",
     "projectType": "fix",
