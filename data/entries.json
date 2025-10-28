@@ -711,17 +711,9 @@
         "amount": 1747.5,
         "ts": 1761664649062,
         "freigabedatum": 1740960000000
-      },
-      {
-        "id": "trans_1761664649059_KV20250001",
-        "kv_nummer": "KV-2025-0001",
-        "type": "founder",
-        "amount": 19858.25,
-        "ts": 1761664649059,
-        "freigabedatum": 1672444800000
       }
     ],
-    "modified": 1761665937992
+    "modified": 1761665970379
   },
   {
     "id": "manuell_drv_bund_teamentw",
