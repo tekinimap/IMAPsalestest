@@ -2561,5 +2561,21 @@
     "ts": 1761657834438,
     "freigabedatum": 1736208000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834438_KV20250022",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
+    "title": "Projektschmiede KEPS 2025",
+    "projectNumber": "BAMF-12-002",
+    "kv_nummer": "KV-2025-0022",
+    "amount": 173608.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834438,
+    "freigabedatum": 1737590400000,
+    "complete": false
   }
 ]
