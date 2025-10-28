@@ -705,14 +705,6 @@
     "ts": 1761032940013,
     "transactions": [
       {
-        "id": "trans_1761664649059_KV20250001",
-        "kv_nummer": "KV-2025-0001",
-        "type": "founder",
-        "amount": 19858.25,
-        "ts": 1761664649059,
-        "freigabedatum": 1672444800000
-      },
-      {
         "id": "trans_1761664649062_KV20250055",
         "kv_nummer": "KV-2025-0055",
         "type": "founder",
@@ -721,23 +713,23 @@
         "freigabedatum": 1740960000000
       },
       {
+        "id": "trans_1761664649059_KV20250001",
+        "kv_nummer": "KV-2025-0001",
+        "type": "founder",
+        "amount": 19858.25,
+        "ts": 1761664649059,
+        "freigabedatum": 1672444800000
+      },
+      {
         "id": "trans_1761664649070_KV20260001",
         "kv_nummer": "KV-2026-0001",
         "type": "founder",
         "amount": 25300,
         "ts": 1761664649070,
         "freigabedatum": 1672444800000
-      },
-      {
-        "id": "trans_1761664649070_KV20270001",
-        "kv_nummer": "KV-2027-0001",
-        "type": "founder",
-        "amount": 25300,
-        "ts": 1761664649070,
-        "freigabedatum": 1672444800000
       }
     ],
-    "modified": 1761664685831
+    "modified": 1761665933210
   },
   {
     "id": "manuell_drv_bund_teamentw",
