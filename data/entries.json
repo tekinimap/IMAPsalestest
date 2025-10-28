@@ -3169,5 +3169,21 @@
     "ts": 1761654018772,
     "freigabedatum": 1741042800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654018772_KV20250078",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Aufstockung Konzeption der Entwicklungsprogramme JUMP und LEAD",
+    "projectNumber": "GIZ-47-001",
+    "kv_nummer": "KV-2025-0078",
+    "amount": 16800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654018772,
+    "freigabedatum": 1735945200000,
+    "complete": false
   }
 ]
