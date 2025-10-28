@@ -1180,17 +1180,8 @@
     "projectNumber": "Stadt Bochum-05-001",
     "kv_nummer": "",
     "ts": 1761032940029,
-    "transactions": [
-      {
-        "id": "trans_1761053193302_KV20250173",
-        "kv_nummer": "KV-2025-0173",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761053193302,
-        "freigabedatum": 1753740000000
-      }
-    ],
-    "modified": 1761663847654
+    "transactions": [],
+    "modified": 1761663852957
   },
   {
     "id": "manuell_stadt_koblenz_begl_teamentw",
