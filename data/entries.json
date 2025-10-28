@@ -3009,5 +3009,21 @@
     "ts": 1761657835089,
     "freigabedatum": 1741564800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835141_KV20250061",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "greenstorming GmbH",
+    "title": "04. - 05.04.2025 in Frankfurt - Workshop „DAB Meeting“",
+    "projectNumber": "GS GmbH-03-001",
+    "kv_nummer": "KV-2025-0061",
+    "amount": 3600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835141,
+    "freigabedatum": 1742169600000,
+    "complete": false
   }
 ]
