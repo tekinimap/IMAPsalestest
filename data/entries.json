@@ -7614,67 +7614,6 @@
     "modified": 1761647403866
   },
   {
-    "id": "entry_1761643946859_KV20250177",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Durchführung von Umfragen",
-    "projectNumber": "DAK-03-001",
-    "kv_nummer": "KV-2025-0177",
-    "amount": 241717,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 80,
-        "money": 193374
-      },
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 20,
-        "money": 48343
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 80,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 20,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946859,
-    "freigabedatum": 1749333600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647406998
-  },
-  {
     "id": "entry_1761643946888_KV20250179",
     "source": "erp-import",
     "projectType": "fix",
@@ -9804,66 +9743,6 @@
     }
   },
   {
-    "id": "entry_1761643946859_KV20250177",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Durchführung von Umfragen",
-    "projectNumber": "DAK-03-001",
-    "kv_nummer": "KV-2025-0177",
-    "amount": 26600,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 80,
-        "money": 193374
-      },
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 20,
-        "money": 48343
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 80,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 20,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946859,
-    "freigabedatum": 1749333600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    }
-  },
-  {
     "id": "entry_1761643946888_KV20250180",
     "source": "erp-import",
     "projectType": "fix",
@@ -10431,66 +10310,6 @@
     ],
     "ts": 1761643946726,
     "freigabedatum": 1753048800000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    }
-  },
-  {
-    "id": "entry_1761643946859_KV20250177",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Durchführung von Umfragen",
-    "projectNumber": "DAK-03-001",
-    "kv_nummer": "KV-2025-0177",
-    "amount": 26600,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 80,
-        "money": 193374
-      },
-      {
-        "key": "Vielfalt+ Mitarbeiter:in",
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "pct": 20,
-        "money": 48343
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 80,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "Vielfalt+ Mitarbeiter:in",
-        "cs": 20,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946859,
-    "freigabedatum": 1749333600000,
     "complete": true,
     "totals": {
       "cs": 100,
