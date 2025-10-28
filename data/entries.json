@@ -3134,22 +3134,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761664649062_KV20250083",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Nadine Thiel (44) - Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "Köln-08-015",
-    "kv_nummer": "KV-2025-0083",
-    "amount": 1681.76,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761664649062,
-    "freigabedatum": 1743465600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761664649062_KV20250084",
     "source": "erp-import",
     "projectType": "fix",
