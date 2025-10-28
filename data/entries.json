@@ -3905,5 +3905,21 @@
     "ts": 1761659318523,
     "freigabedatum": 1750896000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318523_KV20250154",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Duisburg",
+    "title": "Workshop Jahresbericht BGM 2030",
+    "projectNumber": "STD-10-001",
+    "kv_nummer": "KV-2025-0154",
+    "amount": 1200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318523,
+    "freigabedatum": 1751241600000,
+    "complete": false
   }
 ]
