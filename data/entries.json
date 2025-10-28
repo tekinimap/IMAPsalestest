@@ -3196,5 +3196,21 @@
     "ts": 1761643946132,
     "freigabedatum": 1756936800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946132_KV20250086",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Rentenversicherung Hessen",
+    "title": "Entwicklung Führungskultur: Teil II: Entwicklung der SOLL-Kultur",
+    "projectNumber": "DRV Hessen-03-002",
+    "kv_nummer": "KV-2025-0086",
+    "amount": 53987.49,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946132,
+    "freigabedatum": 1744581600000,
+    "complete": false
   }
 ]
