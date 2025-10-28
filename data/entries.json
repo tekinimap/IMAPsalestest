@@ -1107,9 +1107,33 @@
         "type": "founder",
         "amount": 2800,
         "ts": 1760970709374
+      },
+      {
+        "id": "trans_1761648545195_KV20250006",
+        "kv_nummer": "KV-2025-0006",
+        "type": "founder",
+        "amount": 3200,
+        "ts": 1761648545195,
+        "freigabedatum": 1728684000000
+      },
+      {
+        "id": "trans_1761648557385_KV20250271",
+        "kv_nummer": "KV-2025-0271",
+        "type": "founder",
+        "amount": 3600,
+        "ts": 1761648557385,
+        "freigabedatum": 1760911200000
+      },
+      {
+        "id": "trans_1761648557385_KV20250278",
+        "kv_nummer": "KV-2025-0278",
+        "type": "founder",
+        "amount": 4000,
+        "ts": 1761648557385,
+        "freigabedatum": 1761256800000
       }
     ],
-    "modified": 1760970709374
+    "modified": 1761648747127
   },
   {
     "id": "manuell_drv_kbs_fk_qual_i_basis",
