@@ -5844,12 +5844,45 @@
     "projectNumber": "STL-01-001",
     "kv_nummer": "KV-2025-0125",
     "amount": 28461.12,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Nachhaltigkeit Mitarbeiter:in",
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 28461
+      }
+    ],
+    "rows": [
+      {
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946450,
     "freigabedatum": 1738796400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647288834
   },
   {
     "id": "entry_1761643946476_KV20250127",
