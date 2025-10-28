@@ -362,17 +362,8 @@
     "projectNumber": "DRV Bund-02-006",
     "kv_nummer": "",
     "ts": 1761032940008,
-    "transactions": [
-      {
-        "id": "trans_1761053193302_KV20250151",
-        "kv_nummer": "KV-2025-0151",
-        "type": "founder",
-        "amount": 1093.75,
-        "ts": 1761648552866,
-        "freigabedatum": 1738882800000
-      }
-    ],
-    "modified": 1761663920130
+    "transactions": [],
+    "modified": 1761663924600
   },
   {
     "id": "manuell_drv_bund_interkult_komm",
