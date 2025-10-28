@@ -220,17 +220,8 @@
     "projectNumber": "BMDV-01-002",
     "kv_nummer": "",
     "ts": 1761032940004,
-    "transactions": [
-      {
-        "id": "trans_1761648557385_KV20250249",
-        "kv_nummer": "KV-2025-0249",
-        "type": "founder",
-        "amount": 8400,
-        "ts": 1761648557385,
-        "freigabedatum": 1752098400000
-      }
-    ],
-    "modified": 1761663487555
+    "transactions": [],
+    "modified": 1761663489532
   },
   {
     "id": "manuell_dlr_schulung_prozess",
