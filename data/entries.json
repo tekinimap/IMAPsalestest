@@ -1182,20 +1182,12 @@
     "ts": 1761032940029,
     "transactions": [
       {
-        "id": "trans_1761053193300_KV20250007",
-        "kv_nummer": "KV-2025-0007",
+        "id": "trans_1761648557385_KV20250260",
+        "kv_nummer": "KV-2025-0260",
         "type": "founder",
-        "amount": 1890,
-        "ts": 1761053193300,
-        "freigabedatum": 1738364400000
-      },
-      {
-        "id": "trans_1761053193301_KV20250069",
-        "kv_nummer": "KV-2025-0069",
-        "type": "founder",
-        "amount": 7500,
-        "ts": 1761053193301,
-        "freigabedatum": 1742943600000
+        "amount": 67200,
+        "ts": 1761648557385,
+        "freigabedatum": 1757455200000
       },
       {
         "id": "trans_1761053193302_KV20250173",
@@ -1206,23 +1198,23 @@
         "freigabedatum": 1753740000000
       },
       {
-        "id": "trans_1761053193302_KV20250231",
-        "kv_nummer": "KV-2025-0231",
+        "id": "trans_1761053193301_KV20250069",
+        "kv_nummer": "KV-2025-0069",
         "type": "founder",
-        "amount": 3890,
-        "ts": 1761648556745,
-        "freigabedatum": 1758060000000
+        "amount": 7500,
+        "ts": 1761053193301,
+        "freigabedatum": 1742943600000
       },
       {
-        "id": "trans_1761648557385_KV20250260",
-        "kv_nummer": "KV-2025-0260",
+        "id": "trans_1761053193300_KV20250007",
+        "kv_nummer": "KV-2025-0007",
         "type": "founder",
-        "amount": 67200,
-        "ts": 1761648557385,
-        "freigabedatum": 1757455200000
+        "amount": 1890,
+        "ts": 1761053193300,
+        "freigabedatum": 1738364400000
       }
     ],
-    "modified": 1761648737643
+    "modified": 1761663835510
   },
   {
     "id": "manuell_stadt_koblenz_begl_teamentw",
