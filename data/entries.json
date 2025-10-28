@@ -7684,12 +7684,57 @@
     "projectNumber": "DRV Bund-13-001",
     "kv_nummer": "KV-2025-0180",
     "amount": 100000,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 20,
+        "money": 20000
+      },
+      {
+        "key": "BU Lead OE",
+        "name": "BU Lead OE",
+        "pct": 80,
+        "money": 80000
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 20,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "BU Lead OE",
+        "cs": 80,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946888,
     "freigabedatum": 1744063200000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647414322
   },
   {
     "id": "entry_1761643946997_KV20250185",
