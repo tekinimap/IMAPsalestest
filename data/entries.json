@@ -3283,22 +3283,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654020747_KV20250177",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "DAK-Gesundheit",
-    "title": "Durchführung von Umfragen: VK Kultur & Puls",
-    "projectNumber": "DAK-03-001",
-    "kv_nummer": "KV-2025-0177",
-    "amount": 26600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654020747,
-    "freigabedatum": 1749333600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654020801_KV20250179",
     "source": "erp-import",
     "projectType": "fix",
