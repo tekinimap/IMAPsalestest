@@ -2912,55 +2912,6 @@
     "modified": 1761647240829
   },
   {
-    "id": "entry_1761643946253_KV20250101",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Industriegewerkschaft Bergbau, Chemie, Energie",
-    "title": "Workshop \"Team führen I – Zusammenarbeit\"",
-    "projectNumber": "IGW BCE-02-001",
-    "kv_nummer": "KV-2025-0101",
-    "amount": 1875,
-    "list": [
-      {
-        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "pct": 100,
-        "money": 1875
-      }
-    ],
-    "rows": [
-      {
-        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946253,
-    "freigabedatum": 1745877600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647246829
-  },
-  {
     "id": "entry_1761643946253_KV20250102",
     "source": "erp-import",
     "projectType": "fix",
