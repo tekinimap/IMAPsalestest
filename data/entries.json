@@ -8553,22 +8553,6 @@
     "modified": 1761667755282
   },
   {
-    "id": "entry_1761664649068_KV20250210",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Mona Jansen  - FK Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "Köln-08-024",
-    "kv_nummer": "KV-2025-0210",
-    "amount": 252,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761664649068,
-    "freigabedatum": 1756857600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761664649068_KV20250212",
     "source": "erp-import",
     "projectType": "fix",
