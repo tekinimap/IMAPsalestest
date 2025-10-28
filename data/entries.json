@@ -4142,12 +4142,57 @@
     "projectNumber": "ChangePartner-21-001",
     "kv_nummer": "KV-2025-0064",
     "amount": 29535.5,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 80,
+        "money": 23628
+      },
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 20,
+        "money": 5907
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 80,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 20,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643945898,
     "freigabedatum": 1742166000000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647181022
   },
   {
     "id": "entry_1761643945898_KV20250065",
