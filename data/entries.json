@@ -7301,12 +7301,45 @@
     "projectNumber": "F HB-01-002",
     "kv_nummer": "KV-2025-0164",
     "amount": 955,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 100,
+        "money": 955
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946726,
     "freigabedatum": 1753048800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647390816
   },
   {
     "id": "entry_1761643946753_KV20250166",
