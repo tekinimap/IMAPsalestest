@@ -10330,5 +10330,21 @@
     "ts": 1761648557385,
     "freigabedatum": 1744149600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761648557385_KV20250270",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bezirksamt Pankow",
+    "title": "Klimaschutz- und Anpassungskonzept Gewerbegebiet Storkower Straße",
+    "projectNumber": "BEP-01-001",
+    "kv_nummer": "KV-2025-0270",
+    "amount": 28521.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761648557385,
+    "freigabedatum": 1754776800000,
+    "complete": false
   }
 ]
