@@ -3188,55 +3188,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761643946831_KV20250174",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Qiado QIA01 Führungskräfte Coaching",
-    "projectNumber": "ChangePartner-28-001",
-    "kv_nummer": "KV-2025-0174",
-    "amount": 1224,
-    "list": [
-      {
-        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 1224
-      }
-    ],
-    "rows": [
-      {
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946831,
-    "freigabedatum": 1752703200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647400765
-  },
-  {
     "id": "entry_1761643947217_KV20250219",
     "source": "erp-import",
     "projectType": "fix",
