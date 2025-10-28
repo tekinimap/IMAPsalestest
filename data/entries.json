@@ -4097,5 +4097,21 @@
     "ts": 1761654020582,
     "freigabedatum": 1753394400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654020697_KV20250174",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Qiado QIA01 Führungskräfte Coaching",
+    "projectNumber": "ChangePartner-28-001",
+    "kv_nummer": "KV-2025-0174",
+    "amount": 1224,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654020697,
+    "freigabedatum": 1752703200000,
+    "complete": false
   }
 ]
