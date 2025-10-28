@@ -2226,13 +2226,46 @@
     "projectNumber": "BG Verkehr-02-001",
     "kv_nummer": "KV-2025-0009",
     "amount": 3500,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 100,
+        "money": 3500
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761580804127,
     "freigabedatum": 1748728800000,
-    "complete": false,
-    "createdAt": 1761580939367
+    "complete": true,
+    "createdAt": 1761580939367,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647059295
   },
   {
     "id": "entry_1761581176205_KV20250012",
