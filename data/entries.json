@@ -4460,5 +4460,21 @@
     "ts": 1761643947217,
     "freigabedatum": 1744149600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947217_KV20250220",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Dermapharm DPH04 Strategieworkshop 10./11. Sep 2025",
+    "projectNumber": "ChangePartner-35-001",
+    "kv_nummer": "KV-2025-0220",
+    "amount": 5070,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947217,
+    "freigabedatum": 1736377200000,
+    "complete": false
   }
 ]
