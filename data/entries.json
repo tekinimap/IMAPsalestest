@@ -5432,55 +5432,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761643947027_KV20250189",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Salzgitter",
-    "title": "Umsetzung und Erneuerung des Klimaschutzkonzepts",
-    "projectNumber": "Stadt Salzgitter-01-001",
-    "kv_nummer": "KV-2025-0189",
-    "amount": 6000,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 100,
-        "money": 6000
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643947027,
-    "freigabedatum": 1755727200000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647427915
-  },
-  {
     "id": "entry_1761643947027_KV20250190",
     "source": "erp-import",
     "projectType": "fix",
