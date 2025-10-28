@@ -1301,7 +1301,8 @@ async function loadHistory(){
   
 function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
 function filtered(type = 'fix'){
-  let arr = entries.filter(e => (e.projectType || 'fix') === type);
+  const currentEntries = Array.isArray(window.entries) ? window.entries : []; // Sicherstellen, dass es ein Array ist
+  let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
   const query = omniSearch.value.trim().toLowerCase();
   
   if (query) {
