@@ -973,17 +973,8 @@
     "projectNumber": "DRV KBS-03-007",
     "kv_nummer": "",
     "ts": 1761032940019,
-    "transactions": [
-      {
-        "id": "trans_1761648557385_KV20250271",
-        "kv_nummer": "KV-2025-0271",
-        "type": "founder",
-        "amount": 3600,
-        "ts": 1761648557385,
-        "freigabedatum": 1760911200000
-      }
-    ],
-    "modified": 1761663596394
+    "transactions": [],
+    "modified": 1761663597807
   },
   {
     "id": "manuell_drv_kbs_fk_qual_i_basis",
