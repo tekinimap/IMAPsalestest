@@ -4241,5 +4241,21 @@
     "ts": 1761654021026,
     "freigabedatum": 1755727200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654021026_KV20250190",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Einzelcoaching Daniel Schmidt",
+    "projectNumber": "BG Verkehr-04-001",
+    "kv_nummer": "KV-2025-0190",
+    "amount": 2940,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654021026,
+    "freigabedatum": 1756072800000,
+    "complete": false
   }
 ]
