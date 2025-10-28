@@ -2753,7 +2753,6 @@
     ],
     "rows": [
       {
-        "personId": "p_1761054995370",
         "name": "BU Lead OE",
         "cs": 100,
         "konzept": 0,
@@ -2784,7 +2783,7 @@
       "pitch": 0
     },
     "submittedBy": "Abdi Tekin",
-    "modified": 1761646737592
+    "modified": 1761647089442
   },
   {
     "id": "entry_1761581176222_KV20250024",
