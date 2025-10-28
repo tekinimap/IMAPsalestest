@@ -5100,55 +5100,6 @@
     "modified": 1761647313960
   },
   {
-    "id": "entry_1761643946557_KV20250137",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Antenna ANT01 Career Development Dialogs",
-    "projectNumber": "ChangePartner-24-001",
-    "kv_nummer": "KV-2025-0137",
-    "amount": 14875,
-    "list": [
-      {
-        "key": "ChangePartner Mitarbeiter:in",
-        "name": "ChangePartner Mitarbeiter:in",
-        "pct": 100,
-        "money": 14875
-      }
-    ],
-    "rows": [
-      {
-        "name": "ChangePartner Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946557,
-    "freigabedatum": 1749765600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647318034
-  },
-  {
     "id": "entry_1761643946557_KV20250138",
     "source": "erp-import",
     "projectType": "fix",
