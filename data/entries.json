@@ -3043,22 +3043,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654019917_KV20250128",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Münster",
-    "title": "Moderation Workshop Up2030 klimagerechte Quartiere",
-    "projectNumber": "Stadt Münster-04-001",
-    "kv_nummer": "KV-2025-0128",
-    "amount": 2870,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654019917,
-    "freigabedatum": 1746482400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654019917_KV20250130",
     "source": "erp-import",
     "projectType": "fix",
