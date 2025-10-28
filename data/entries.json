@@ -2213,13 +2213,6 @@
     "ts": 1761032940041,
     "transactions": [
       {
-        "id": "trans_1760970709368_KV20250237",
-        "kv_nummer": "KV-2025-0237",
-        "type": "founder",
-        "amount": 5450,
-        "ts": 1760970709368
-      },
-      {
         "id": "trans_1761648557385_KV20250267",
         "kv_nummer": "KV-2025-0267",
         "type": "founder",
@@ -2228,7 +2221,7 @@
         "freigabedatum": 1760652000000
       }
     ],
-    "modified": 1761663138916
+    "modified": 1761663388211
   },
   {
     "id": "manuell_giz_partnering_business",
