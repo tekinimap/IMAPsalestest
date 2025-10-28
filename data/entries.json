@@ -2388,55 +2388,6 @@
     "modified": 1761647138157
   },
   {
-    "id": "entry_1761643945820_KV20250059",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
-    "title": "Teamworkshop zum Thema „Positive Fehlerkultur & lösungsorientierte Kommunikation“",
-    "projectNumber": "GIZ-57-001",
-    "kv_nummer": "KV-2025-0059",
-    "amount": 999.99,
-    "list": [
-      {
-        "key": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 1000
-      }
-    ],
-    "rows": [
-      {
-        "name": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945820,
-    "freigabedatum": 1759442400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647174197
-  },
-  {
     "id": "entry_1761643946132_KV20250088",
     "source": "erp-import",
     "projectType": "fix",
