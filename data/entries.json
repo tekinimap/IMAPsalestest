@@ -3041,5 +3041,21 @@
     "ts": 1761657835247,
     "freigabedatum": 1742169600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835247_KV20250065",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Rhein-Kreis Neuss",
+    "title": "Optimierung und Digitalisierung des Front Office der Ausländerbehörde, Amt für Sicherheit und Ordnung",
+    "projectNumber": "RKN-02-001",
+    "kv_nummer": "KV-2025-0065",
+    "amount": 30800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835247,
+    "freigabedatum": 1742342400000,
+    "complete": false
   }
 ]
