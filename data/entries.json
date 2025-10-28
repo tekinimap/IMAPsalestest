@@ -2526,13 +2526,46 @@
     "projectNumber": "BG Verkehr-03-001",
     "kv_nummer": "KV-2025-0018",
     "amount": 25160,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 100,
+        "money": 25160
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176222,
     "freigabedatum": 1751320800000,
-    "complete": false,
-    "createdAt": 1761581221284
+    "complete": true,
+    "createdAt": 1761581221284,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647076193
   },
   {
     "id": "entry_1761581176222_KV20250019",
