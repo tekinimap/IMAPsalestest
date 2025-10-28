@@ -2497,5 +2497,21 @@
     "ts": 1761654017601,
     "freigabedatum": 1751320800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654017601_KV20250018",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "BG Verkehr",
+    "title": "Praxisbegleitung für Führungsverantwortliche",
+    "projectNumber": "BG Verkehr-03-001",
+    "kv_nummer": "KV-2025-0018",
+    "amount": 25160,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654017601,
+    "freigabedatum": 1751320800000,
+    "complete": false
   }
 ]
