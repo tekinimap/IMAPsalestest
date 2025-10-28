@@ -364,14 +364,6 @@
     "ts": 1761032940008,
     "transactions": [
       {
-        "id": "trans_1761053193302_KV20250134",
-        "kv_nummer": "KV-2025-0134",
-        "type": "founder",
-        "amount": 4312.5,
-        "ts": 1761648551926,
-        "freigabedatum": 1751061600000
-      },
-      {
         "id": "trans_1761053193302_KV20250151",
         "kv_nummer": "KV-2025-0151",
         "type": "founder",
@@ -380,7 +372,7 @@
         "freigabedatum": 1738882800000
       }
     ],
-    "modified": 1761648719225
+    "modified": 1761663920130
   },
   {
     "id": "manuell_drv_bund_interkult_komm",
