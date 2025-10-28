@@ -1147,17 +1147,8 @@
     "projectNumber": "Köln-08",
     "kv_nummer": "",
     "ts": 1761032940031,
-    "transactions": [
-      {
-        "id": "trans_1761054233273_KV20250178",
-        "kv_nummer": "KV-2025-0178",
-        "type": "founder",
-        "amount": 1440,
-        "ts": 1761054233273,
-        "freigabedatum": 1736290800000
-      }
-    ],
-    "modified": 1761664009168
+    "transactions": [],
+    "modified": 1761664011499
   },
   {
     "id": "manuell_stadt_mg_fke_a21082",
