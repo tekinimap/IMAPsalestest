@@ -4165,55 +4165,6 @@
     "modified": 1761647253879
   },
   {
-    "id": "entry_1761643946316_KV20250107",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Hamm",
-    "title": "Aufstockung - Hitzeaktionsplan Stadt Hamm",
-    "projectNumber": "Hamm-06-001",
-    "kv_nummer": "KV-2025-0107",
-    "amount": 7175,
-    "list": [
-      {
-        "key": "Nachhaltigkeit Mitarbeiter:in",
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "pct": 100,
-        "money": 7175
-      }
-    ],
-    "rows": [
-      {
-        "name": "Nachhaltigkeit Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946316,
-    "freigabedatum": 1749074400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647257940
-  },
-  {
     "id": "entry_1761643946340_KV20250110",
     "source": "erp-import",
     "projectType": "fix",
