@@ -4505,5 +4505,21 @@
     "ts": 1761643947328,
     "freigabedatum": 1757973600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947328_KV20250230",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Hennef",
+    "title": "Aufstockung: Umsetzung des Klimaanpassungskonzepts der Stadt Hennef – professionelle Projektunterstützung und Unterstützung bei der Akteursbeteiligung",
+    "projectNumber": "Hennef-01-001",
+    "kv_nummer": "KV-2025-0230",
+    "amount": 9240,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947328,
+    "freigabedatum": 1757973600000,
+    "complete": false
   }
 ]
