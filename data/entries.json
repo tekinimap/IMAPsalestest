@@ -4268,5 +4268,21 @@
     "ts": 1761643947053,
     "freigabedatum": 1756159200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947053_KV20250197",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "DAK-Gesundheit",
+    "title": "Einstieg in die Entwicklung eines Führungsteams",
+    "projectNumber": "DAK-04-001",
+    "kv_nummer": "KV-2025-0197",
+    "amount": 7020,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947053,
+    "freigabedatum": 1756072800000,
+    "complete": false
   }
 ]
