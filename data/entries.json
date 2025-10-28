@@ -3057,5 +3057,21 @@
     "ts": 1761657835247,
     "freigabedatum": 1742342400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835247_KV20250066",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesministerium für Bildung und Forschung",
+    "title": "Einzelcoachings",
+    "projectNumber": "BMBF-03-001",
+    "kv_nummer": "KV-2025-0066",
+    "amount": 2437.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835247,
+    "freigabedatum": 1742428800000,
+    "complete": false
   }
 ]
