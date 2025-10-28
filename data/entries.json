@@ -9705,22 +9705,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761648557385_KV20250265",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundeskanzleramt",
-    "title": "KommA II Netzwerkprojekt",
-    "projectNumber": "BKA-03-001",
-    "kv_nummer": "KV-2025-0265",
-    "amount": 122985,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761648557385,
-    "freigabedatum": 1759183200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761648557385_KV20250266",
     "source": "erp-import",
     "projectType": "fix",
