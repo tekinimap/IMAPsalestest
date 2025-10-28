@@ -3613,55 +3613,6 @@
     "modified": 1761647147810
   },
   {
-    "id": "entry_1761643947328_KV20250228",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "StudienInstitut NiederrheiN",
-    "title": "Interkulturelle Kompetenz und Kommunikation",
-    "projectNumber": "S.I.N.N.-05-001",
-    "kv_nummer": "KV-2025-0228",
-    "amount": 1600,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1600
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643947328,
-    "freigabedatum": 1757973600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647487977
-  },
-  {
     "id": "entry_1761643947356_KV20250232",
     "source": "erp-import",
     "projectType": "fix",
