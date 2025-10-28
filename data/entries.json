@@ -3809,5 +3809,21 @@
     "ts": 1761659318359,
     "freigabedatum": 1750118400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318359_KV20250145",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Kreis Gütersloh",
+    "title": "Integrationsarbeit lokal vor Ort gestalten",
+    "projectNumber": "KreisGL-06-001",
+    "kv_nummer": "KV-2025-0145",
+    "amount": 1625,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318359,
+    "freigabedatum": 1750032000000,
+    "complete": false
   }
 ]
