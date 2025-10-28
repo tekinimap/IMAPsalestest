@@ -3144,13 +3144,46 @@
     "projectNumber": "Goethe-09-001",
     "kv_nummer": "KV-2025-0034",
     "amount": 1375,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Kommunalverwaltungen Mitarbeiter:in",
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "pct": 100,
+        "money": 1375
+      }
+    ],
+    "rows": [
+      {
+        "name": "Kommunalverwaltungen Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176267,
     "freigabedatum": 1737673200000,
-    "complete": false,
-    "createdAt": 1761581255934
+    "complete": true,
+    "createdAt": 1761581265939,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647113178
   },
   {
     "id": "entry_1761581176267_KV20250034",
