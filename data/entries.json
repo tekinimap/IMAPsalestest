@@ -3848,12 +3848,45 @@
     "projectNumber": "ICM-03-001",
     "kv_nummer": "KV-2025-0053",
     "amount": 12375,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Nachhaltigkeit Mitarbeiter:in",
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "pct": 100,
+        "money": 12375
+      }
+    ],
+    "rows": [
+      {
+        "name": "Nachhaltigkeit Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643945769,
     "freigabedatum": 1739833200000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647157550
   },
   {
     "id": "entry_1761643945769_KV20250054",
