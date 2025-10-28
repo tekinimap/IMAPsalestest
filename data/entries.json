@@ -6395,12 +6395,45 @@
     "projectNumber": "BMAS-02-001",
     "kv_nummer": "KV-2025-0141",
     "amount": 2900,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 2900
+      }
+    ],
+    "rows": [
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946587,
     "freigabedatum": 1750024800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647328798
   },
   {
     "id": "entry_1761643946587_KV20250142",
