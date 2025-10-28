@@ -864,14 +864,6 @@
     "ts": 1761032940018,
     "transactions": [
       {
-        "id": "trans_1760970709371_KV20250136",
-        "kv_nummer": "KV-2025-0136",
-        "type": "founder",
-        "amount": 31500,
-        "ts": 1761648551979,
-        "freigabedatum": 1749765600000
-      },
-      {
         "id": "trans_1760970709370_KV20250181",
         "kv_nummer": "KV-2025-0181",
         "type": "founder",
@@ -880,7 +872,7 @@
         "freigabedatum": 1744063200000
       }
     ],
-    "modified": 1761663673737
+    "modified": 1761663675255
   },
   {
     "id": "manuell_drv_kbs_fk_qual_ii",
