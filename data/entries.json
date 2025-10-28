@@ -864,43 +864,6 @@
     "ts": 1761032940018,
     "transactions": [
       {
-        "id": "trans_1760970709369_KV20250223",
-        "kv_nummer": "KV-2025-0223",
-        "type": "founder",
-        "amount": 18650,
-        "ts": 1760970709369
-      },
-      {
-        "id": "trans_1760970709370_KV20250181",
-        "kv_nummer": "KV-2025-0181",
-        "type": "founder",
-        "amount": 25980,
-        "ts": 1761648554512,
-        "freigabedatum": 1744063200000
-      },
-      {
-        "id": "trans_1760970709370_KV20250169",
-        "kv_nummer": "KV-2025-0169",
-        "type": "founder",
-        "amount": 8250,
-        "ts": 1760970709370
-      },
-      {
-        "id": "trans_1760970709371_KV20250136",
-        "kv_nummer": "KV-2025-0136",
-        "type": "founder",
-        "amount": 31500,
-        "ts": 1761648551979,
-        "freigabedatum": 1749765600000
-      },
-      {
-        "id": "trans_1760970709372_KV20250113",
-        "kv_nummer": "KV-2025-0113",
-        "type": "founder",
-        "amount": 37050,
-        "ts": 1760970709372
-      },
-      {
         "id": "trans_1760970709373_KV20250076",
         "kv_nummer": "KV-2025-0076",
         "type": "founder",
@@ -915,19 +878,25 @@
         "ts": 1760970709373
       },
       {
-        "id": "trans_1760970709373_KV20250050",
-        "kv_nummer": "KV-2025-0050",
+        "id": "trans_1760970709372_KV20250113",
+        "kv_nummer": "KV-2025-0113",
         "type": "founder",
-        "amount": 18000,
-        "ts": 1761648547693,
-        "freigabedatum": 1739487600000
+        "amount": 37050,
+        "ts": 1760970709372
       },
       {
-        "id": "trans_1760970709375_KV20250008",
-        "kv_nummer": "KV-2025-0008",
+        "id": "trans_1760970709370_KV20250169",
+        "kv_nummer": "KV-2025-0169",
         "type": "founder",
-        "amount": 35940,
-        "ts": 1760970709375
+        "amount": 8250,
+        "ts": 1760970709370
+      },
+      {
+        "id": "trans_1760970709369_KV20250223",
+        "kv_nummer": "KV-2025-0223",
+        "type": "founder",
+        "amount": 18650,
+        "ts": 1760970709369
       },
       {
         "id": "trans_1761648557385_KV20250250",
@@ -936,9 +905,33 @@
         "amount": 8370,
         "ts": 1761648557385,
         "freigabedatum": 1752098400000
+      },
+      {
+        "id": "trans_1760970709371_KV20250136",
+        "kv_nummer": "KV-2025-0136",
+        "type": "founder",
+        "amount": 31500,
+        "ts": 1761648551979,
+        "freigabedatum": 1749765600000
+      },
+      {
+        "id": "trans_1760970709370_KV20250181",
+        "kv_nummer": "KV-2025-0181",
+        "type": "founder",
+        "amount": 25980,
+        "ts": 1761648554512,
+        "freigabedatum": 1744063200000
+      },
+      {
+        "id": "trans_1760970709373_KV20250050",
+        "kv_nummer": "KV-2025-0050",
+        "type": "founder",
+        "amount": 18000,
+        "ts": 1761648547693,
+        "freigabedatum": 1739487600000
       }
     ],
-    "modified": 1761648716537
+    "modified": 1761663651693
   },
   {
     "id": "manuell_drv_kbs_fk_qual_ii",
