@@ -613,13 +613,6 @@
     "ts": 1761032940014,
     "transactions": [
       {
-        "id": "trans_1760970709374_KV20250030",
-        "kv_nummer": "KV-2025-0030",
-        "type": "founder",
-        "amount": 7200,
-        "ts": 1760970709374
-      },
-      {
         "id": "trans_1760970709373_KV20250075",
         "kv_nummer": "KV-2025-0075",
         "type": "founder",
@@ -671,7 +664,7 @@
         "freigabedatum": 1734476400000
       }
     ],
-    "modified": 1761663776200
+    "modified": 1761663777911
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
