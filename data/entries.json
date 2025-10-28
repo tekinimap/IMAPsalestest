@@ -2696,21 +2696,5 @@
       "pitch": 0
     },
     "modified": 1761647147810
-  },
-  {
-    "id": "entry_1761648557385_KV20250248",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Aachener Siedlungs- und Wohnungsgesellschaft mbH",
-    "title": "Speaker bei Company Campus",
-    "projectNumber": "ASW-01-001",
-    "kv_nummer": "KV-2025-0248",
-    "amount": 600,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761648557385,
-    "freigabedatum": 1736463600000,
-    "complete": false
   }
 ]
