@@ -1148,17 +1148,9 @@
         "amount": 675,
         "ts": 1761648557384,
         "freigabedatum": 1736463600000
-      },
-      {
-        "id": "trans_1761648557385_KV20250273",
-        "kv_nummer": "KV-2025-0273",
-        "type": "founder",
-        "amount": 4425,
-        "ts": 1761648557385,
-        "freigabedatum": 1761084000000
       }
     ],
-    "modified": 1761648749991
+    "modified": 1761663555649
   },
   {
     "id": "manuell_dfs_fk_trainings",
