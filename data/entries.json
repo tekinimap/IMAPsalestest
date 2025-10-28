@@ -4108,5 +4108,21 @@
     "ts": 1761643946859,
     "freigabedatum": 1749333600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946888_KV20250179",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Managerfortbildung 2024.04 M5",
+    "projectNumber": "GIZ-46-001",
+    "kv_nummer": "KV-2025-0179",
+    "amount": 11875,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946888,
+    "freigabedatum": 1744063200000,
+    "complete": false
   }
 ]
