@@ -3708,5 +3708,21 @@
     "ts": 1761643946557,
     "freigabedatum": 1743890400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946587_KV20250141",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesministerium für Arbeit und Soziales",
+    "title": "Zwei eintägige Seminare zum Thema Unbewusste Vorurteile in der Personalgewinnung",
+    "projectNumber": "BMAS-02-001",
+    "kv_nummer": "KV-2025-0141",
+    "amount": 2900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946587,
+    "freigabedatum": 1750024800000,
+    "complete": false
   }
 ]
