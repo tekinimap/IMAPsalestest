@@ -1615,17 +1615,9 @@
         "amount": 8400,
         "ts": 1761053193302,
         "freigabedatum": 1744063200000
-      },
-      {
-        "id": "trans_1761053193302_KV20250241",
-        "kv_nummer": "KV-2025-0241",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761053193302,
-        "freigabedatum": 1759096800000
       }
     ],
-    "modified": 1761053193302
+    "modified": 1761663818151
   },
   {
     "id": "manuell_giz_ewfl_de_en",
