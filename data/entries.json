@@ -2611,22 +2611,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761654018075_KV20250053",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Innovation City Management GmbH",
-    "title": "Klimaanpassungskonzept",
-    "projectNumber": "ICM-03-001",
-    "kv_nummer": "KV-2025-0053",
-    "amount": 12375,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761654018075,
-    "freigabedatum": 1739833200000,
-    "complete": false
-  },
-  {
     "id": "entry_1761654018772_KV20250078",
     "source": "erp-import",
     "projectType": "fix",
