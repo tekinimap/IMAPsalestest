@@ -6071,55 +6071,6 @@
     "modified": 1761647328798
   },
   {
-    "id": "entry_1761643946587_KV20250142",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesarbeitsgemeinschaft religiös begründeter Extremismus e.V.",
-    "title": "Evaluation Kn:ix",
-    "projectNumber": "BAG RelEx-02-001",
-    "kv_nummer": "KV-2025-0142",
-    "amount": 52950,
-    "list": [
-      {
-        "key": "Evaluation und Beteiligung Mitarbeiter:in",
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "pct": 100,
-        "money": 52950
-      }
-    ],
-    "rows": [
-      {
-        "name": "Evaluation und Beteiligung Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946587,
-    "freigabedatum": 1743890400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647331788
-  },
-  {
     "id": "entry_1761643946587_KV20250143",
     "source": "erp-import",
     "projectType": "fix",
