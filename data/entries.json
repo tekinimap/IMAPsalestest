@@ -4094,22 +4094,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761664649065_KV20250178",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Köln",
-    "title": "Moniquie Offelder - SK Rahmenvertrag 3. FZ Leitlinienprozess",
-    "projectNumber": "Köln-08-021",
-    "kv_nummer": "KV-2025-0178",
-    "amount": 1440,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761664649065,
-    "freigabedatum": 1754006400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761664649065_KV20250179",
     "source": "erp-import",
     "projectType": "fix",
