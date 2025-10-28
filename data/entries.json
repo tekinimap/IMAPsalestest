@@ -467,17 +467,9 @@
         "amount": 9737,
         "ts": 1761053193300,
         "freigabedatum": 1751320800000
-      },
-      {
-        "id": "trans_1761053193302_KV20250157",
-        "kv_nummer": "KV-2025-0157",
-        "type": "founder",
-        "amount": 4035.2,
-        "ts": 1761053193302,
-        "freigabedatum": 1759788000000
       }
     ],
-    "modified": 1761053193302
+    "modified": 1761663975286
   },
   {
     "id": "manuell_drv_bund_next_campus",
