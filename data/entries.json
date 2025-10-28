@@ -9116,12 +9116,45 @@
     "projectNumber": "S.I.N.N.-06-001",
     "kv_nummer": "KV-2025-0236",
     "amount": 1600,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Vielfalt+ Mitarbeiter:in",
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "pct": 100,
+        "money": 1600
+      }
+    ],
+    "rows": [
+      {
+        "name": "Vielfalt+ Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643947356,
     "freigabedatum": 1757368800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647510856
   },
   {
     "id": "entry_1761643947382_KV20250238",
