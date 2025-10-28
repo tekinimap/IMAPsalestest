@@ -2626,13 +2626,46 @@
     "projectNumber": "UP Transfer-01-001",
     "kv_nummer": "KV-2025-0020",
     "amount": 19796.5,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "pct": 100,
+        "money": 19797
+      }
+    ],
+    "rows": [
+      {
+        "name": "Bundes- und Landesbehörden Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761581176222,
     "freigabedatum": 1751320800000,
-    "complete": false,
-    "createdAt": 1761581226618
+    "complete": true,
+    "createdAt": 1761581226618,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647084037
   },
   {
     "id": "entry_1761581176222_KV20250021",
