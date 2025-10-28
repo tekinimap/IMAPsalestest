@@ -3617,5 +3617,21 @@
     "ts": 1761659318114,
     "freigabedatum": 1749081600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318114_KV20250129",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Führen von Projektteams",
+    "projectNumber": "MGladbach-03-002",
+    "kv_nummer": "KV-2025-0129",
+    "amount": 437.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318114,
+    "freigabedatum": 1746748800000,
+    "complete": false
   }
 ]
