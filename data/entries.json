@@ -2535,55 +2535,6 @@
     "modified": 1761647322037
   },
   {
-    "id": "entry_1761643946673_KV20250156",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Goethe-Institut",
-    "title": "Workshop KI im Arbeitsalltag 2.7.2025 München",
-    "projectNumber": "Goethe-11-001",
-    "kv_nummer": "KV-2025-0156",
-    "amount": 500,
-    "list": [
-      {
-        "key": "BU Lead OE",
-        "name": "BU Lead OE",
-        "pct": 100,
-        "money": 500
-      }
-    ],
-    "rows": [
-      {
-        "name": "BU Lead OE",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946673,
-    "freigabedatum": 1744581600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647229814
-  },
-  {
     "id": "entry_1761643946753_KV20250167",
     "source": "erp-import",
     "projectType": "fix",
