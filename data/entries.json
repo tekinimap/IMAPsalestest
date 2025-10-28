@@ -8675,12 +8675,45 @@
     "projectNumber": "HAW-01-001",
     "kv_nummer": "KV-2025-0221",
     "amount": 12375,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "BU Lead PI",
+        "name": "BU Lead PI",
+        "pct": 100,
+        "money": 12375
+      }
+    ],
+    "rows": [
+      {
+        "name": "BU Lead PI",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643947217,
     "freigabedatum": 1765148400000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647480920
   },
   {
     "id": "entry_1761643947217_KV20250222",
