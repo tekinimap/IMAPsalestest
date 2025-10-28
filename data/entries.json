@@ -3369,55 +3369,6 @@
     "modified": 1761647153879
   },
   {
-    "id": "entry_1761643945769_KV20250054",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "ChangePartner AG",
-    "title": "Eucon EUM02 Beratung der Geschäftsleitung im Strategieprozess",
-    "projectNumber": "ChangePartner-20-001",
-    "kv_nummer": "KV-2025-0054",
-    "amount": 7395,
-    "list": [
-      {
-        "key": "ChangePartner Mitarbeiter:in",
-        "name": "ChangePartner Mitarbeiter:in",
-        "pct": 100,
-        "money": 7395
-      }
-    ],
-    "rows": [
-      {
-        "name": "ChangePartner Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643945769,
-    "freigabedatum": 1739919600000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647161010
-  },
-  {
     "id": "entry_1761643945820_KV20250058",
     "source": "erp-import",
     "projectType": "fix",
