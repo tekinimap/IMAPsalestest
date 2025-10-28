@@ -4521,5 +4521,21 @@
     "ts": 1761643947328,
     "freigabedatum": 1757973600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947356_KV20250232",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "",
+    "title": "Interkulturelle Kompetenz - Grundsensibilisierung (Kopie)",
+    "projectNumber": "",
+    "kv_nummer": "KV-2025-0232",
+    "amount": 1504,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947356,
+    "freigabedatum": 1758146400000,
+    "complete": false
   }
 ]
