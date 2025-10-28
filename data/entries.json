@@ -4566,5 +4566,21 @@
     "ts": 1761643947382,
     "freigabedatum": 1758751200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947382_KV20250240",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Bundesbank",
+    "title": "Design und Durchführung einer Teamentwicklung im Großgruppenformat",
+    "projectNumber": "DEB-01-001",
+    "kv_nummer": "KV-2025-0240",
+    "amount": 18900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947382,
+    "freigabedatum": 1758751200000,
+    "complete": false
   }
 ]
