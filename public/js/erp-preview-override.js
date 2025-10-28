@@ -37,16 +37,67 @@
     const k = Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(norm));
     return k ? row[k] : undefined;
   }
+  // *** NEU: parseExcelDate v4.8 - Priorisiert TT.MM.JJJJ ***
   function parseExcelDate(excelDate) {
-    if (typeof excelDate === 'number' && excelDate > 0) return new Date((excelDate - 25569) * 86400 * 1000);
-    if (typeof excelDate === 'string') {
-      const d = new Date(excelDate);
-      if (!isNaN(d.getTime())) return d;
-      const m = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
-      if (m) {
-        let d = new Date(m[3], m[2]-1, m[1]); if(!isNaN(d.getTime())) return d;
-        d = new Date(m[3], m[1]-1, m[2]); if(!isNaN(d.getTime())) return d;
+    // 1. Excel-Zahl (höchste Prio)
+    if (typeof excelDate === 'number' && excelDate > 25569) { // 25569 = 01.01.1970
+      try {
+        // Korrekte Umrechnung Excel-Datum (Tage seit 01.01.1900, Achtung Schaltjahr-Bug 1900) zu JS-Timestamp
+        const jsTimestamp = (excelDate - 25569) * 86400 * 1000;
+        const d = new Date(jsTimestamp);
+        // Zusätzliche Prüfung: Ist das Jahr plausibel? (z.B. > 2000)
+        if (d.getFullYear() > 2000) {
+           // UTC-Datumskorrektur: Excel-Zahlen haben keine Zeitzone, JS Date nimmt lokale an.
+           // Um Mitternacht UTC zu bekommen, addiere den Zeitzonen-Offset.
+           return new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+        }
+      } catch (e) {
+         console.warn("Excel date number parsing failed:", e);
       }
+    }
+
+    // 2. String-Verarbeitung
+    if (typeof excelDate === 'string') {
+      const dateString = excelDate.trim();
+
+      // Versuch 2a: Strenges TT.MM.JJJJ Format
+      const europeanMatch = dateString.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (europeanMatch) {
+        const day = parseInt(europeanMatch[1], 10);
+        const month = parseInt(europeanMatch[2], 10); // Monat ist 1-basiert
+        const year = parseInt(europeanMatch[3], 10);
+        // Validierung: Sind Tag, Monat, Jahr gültig?
+        if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year > 1900) {
+          // Erstelle Datum als UTC Mitternacht, um Zeitzonenprobleme zu vermeiden
+          const d = new Date(Date.UTC(year, month - 1, day)); // Monat ist 0-basiert in JS Date
+          // Prüfe, ob das erstellte Datum den Eingabewerten entspricht (verhindert ungültige Tage wie 31. Feb)
+          if (d.getUTCDate() === day && d.getUTCMonth() === month - 1 && d.getUTCFullYear() === year) {
+             console.log(`[parseExcelDate] Parsed TT.MM.JJJJ: ${dateString} -> ${d.toISOString()}`); // DEBUG
+             return d;
+          }
+        }
+      }
+
+      // Versuch 2b: ISO Format (YYYY-MM-DD) oder andere von new Date() unterstützte Formate
+      // Wichtig: Kann MM/DD/YYYY interpretieren, wenn kein TT.MM.JJJJ passt!
+      try {
+          const d = new Date(dateString);
+          // Validierung: Ist das Datum gültig und Jahr plausibel?
+          if (!isNaN(d.getTime()) && d.getFullYear() > 1900) {
+              console.log(`[parseExcelDate] Parsed via new Date(): ${dateString} -> ${d.toISOString()}`); // DEBUG
+              // Hier nehmen wir an, dass die Interpretation korrekt war, falls TT.MM.JJJJ nicht passte.
+              // Ggf. müsste man hier noch spezifischer prüfen, wenn MM/DD ausgeschlossen werden soll.
+             // Rückgabe als Mitternacht UTC könnte sinnvoll sein:
+             return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+             // return d; // Oder lokale Zeit? Hängt vom Zielsystem ab. UTC ist oft sicherer.
+          }
+      } catch(e) { /* Ignoriere Fehler von new Date() */ }
+    }
+
+    // 3. Fallback
+    console.warn(`[parseExcelDate] Could not parse date:`, excelDate); // DEBUG
+    return null; // Ungültiges Format oder Wert
+  }
     }
     return null;
   }
