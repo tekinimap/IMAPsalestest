@@ -3729,5 +3729,21 @@
     "ts": 1761659318305,
     "freigabedatum": 1750032000000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318305_KV20250139",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landratsamt Dachau",
+    "title": "Fachimpuls zum Thema Rassismus für den Migrations- und Integrationsbeirat im Landkreis Dachau",
+    "projectNumber": "LAD-01-001",
+    "kv_nummer": "KV-2025-0139",
+    "amount": 825,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318305,
+    "freigabedatum": 1748995200000,
+    "complete": false
   }
 ]
