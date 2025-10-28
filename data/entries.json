@@ -862,17 +862,8 @@
     "projectNumber": "DRV Bund-17-001",
     "kv_nummer": "",
     "ts": 1761032940018,
-    "transactions": [
-      {
-        "id": "trans_1760970709370_KV20250181",
-        "kv_nummer": "KV-2025-0181",
-        "type": "founder",
-        "amount": 25980,
-        "ts": 1761648554512,
-        "freigabedatum": 1744063200000
-      }
-    ],
-    "modified": 1761663675255
+    "transactions": [],
+    "modified": 1761663684507
   },
   {
     "id": "manuell_drv_kbs_fk_qual_ii",
