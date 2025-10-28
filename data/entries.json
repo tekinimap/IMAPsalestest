@@ -920,10 +920,11 @@
         "kv_nummer": "KV-2025-0188",
         "type": "founder",
         "amount": 100000,
-        "ts": 1760970709370
+        "ts": 1760970709370,
+        "freigabedatum": 1760918400000
       }
     ],
-    "modified": 1760970709370
+    "modified": 1761663368247
   },
   {
     "id": "manuell_drv_bund_abt30_veraend",
