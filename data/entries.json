@@ -1601,14 +1601,6 @@
     "ts": 1761032940037,
     "transactions": [
       {
-        "id": "trans_1761053193301_KV20250116",
-        "kv_nummer": "KV-2025-0116",
-        "type": "founder",
-        "amount": 0,
-        "ts": 1761053193301,
-        "freigabedatum": 1747087200000
-      },
-      {
         "id": "trans_1761053193302_KV20250183",
         "kv_nummer": "KV-2025-0183",
         "type": "founder",
@@ -1617,7 +1609,7 @@
         "freigabedatum": 1744063200000
       }
     ],
-    "modified": 1761663818151
+    "modified": 1761663822444
   },
   {
     "id": "manuell_giz_ewfl_de_en",
