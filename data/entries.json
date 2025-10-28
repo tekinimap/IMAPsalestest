@@ -3137,5 +3137,21 @@
     "ts": 1761654018526,
     "freigabedatum": 1742943600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654018604_KV20250073",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stiftung Polytechnische Gesellschaft",
+    "title": "Interkulturelles Coaching für junge Auszubildende",
+    "projectNumber": "SPG-01-001",
+    "kv_nummer": "KV-2025-0073",
+    "amount": 1300,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654018604,
+    "freigabedatum": 1742943600000,
+    "complete": false
   }
 ]
