@@ -2927,55 +2927,6 @@
     "modified": 1761647229814
   },
   {
-    "id": "entry_1761643946726_KV20250160",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Moderation „Retrospektive mit Visionsentwicklung“",
-    "projectNumber": "MGladbach-04-001",
-    "kv_nummer": "KV-2025-0160",
-    "amount": 1200,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1200
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946726,
-    "freigabedatum": 1751234400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "modified": 1761647375783
-  },
-  {
     "id": "entry_1761643946726_KV20250164",
     "source": "erp-import",
     "projectType": "fix",
@@ -3139,54 +3090,6 @@
     "modified": 1761647537960
   },
   {
-    "id": "entry_1761643946726_KV20250160",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Moderation „Retrospektive mit Visionsentwicklung“",
-    "projectNumber": "MGladbach-04-001",
-    "kv_nummer": "KV-2025-0160",
-    "amount": 209.5,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1200
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946726,
-    "freigabedatum": 1751234400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    }
-  },
-  {
     "id": "entry_1761643946726_KV20250164",
     "source": "erp-import",
     "projectType": "fix",
@@ -3281,54 +3184,6 @@
     "ts": 1761648557385,
     "freigabedatum": 1744149600000,
     "complete": false
-  },
-  {
-    "id": "entry_1761643946726_KV20250160",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Mönchengladbach",
-    "title": "Moderation „Retrospektive mit Visionsentwicklung“",
-    "projectNumber": "MGladbach-04-001",
-    "kv_nummer": "KV-2025-0160",
-    "amount": 209.5,
-    "list": [
-      {
-        "key": "Kommunalverwaltungen Mitarbeiter:in",
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "pct": 100,
-        "money": 1200
-      }
-    ],
-    "rows": [
-      {
-        "name": "Kommunalverwaltungen Mitarbeiter:in",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1761643946726,
-    "freigabedatum": 1751234400000,
-    "complete": true,
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    }
   },
   {
     "id": "entry_1761643946726_KV20250164",
