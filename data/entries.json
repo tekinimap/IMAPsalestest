@@ -4872,22 +4872,6 @@
     "modified": 1761647423965
   },
   {
-    "id": "entry_1761643946997_KV20250187",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Barmer GEK",
-    "title": "Begleitung Teamentwicklung - Team Lern- und Entwicklungsmanagement",
-    "projectNumber": "Barmer-05-001",
-    "kv_nummer": "KV-2025-0187",
-    "amount": 3718.75,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761643946997,
-    "freigabedatum": 1762556400000,
-    "complete": false
-  },
-  {
     "id": "entry_1761643947027_KV20250190",
     "source": "erp-import",
     "projectType": "fix",
