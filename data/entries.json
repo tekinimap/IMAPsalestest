@@ -1002,17 +1002,9 @@
         "amount": 3600,
         "ts": 1761648557385,
         "freigabedatum": 1760911200000
-      },
-      {
-        "id": "trans_1761648545195_KV20250006",
-        "kv_nummer": "KV-2025-0006",
-        "type": "founder",
-        "amount": 3200,
-        "ts": 1761648545195,
-        "freigabedatum": 1728684000000
       }
     ],
-    "modified": 1761663580893
+    "modified": 1761663582433
   },
   {
     "id": "manuell_drv_kbs_fk_qual_i_basis",
