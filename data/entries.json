@@ -3889,5 +3889,21 @@
     "ts": 1761659318359,
     "freigabedatum": 1751241600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761659318523_KV20250153",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Viega VIE10  Change Begleitung Global AI Initiative 2025",
+    "projectNumber": "ChangePartner-26-001",
+    "kv_nummer": "KV-2025-0153",
+    "amount": 6045,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761659318523,
+    "freigabedatum": 1750896000000,
+    "complete": false
   }
 ]
