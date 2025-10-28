@@ -325,7 +325,7 @@
             console.error(`Fehler (${method} ${url}) bei ${entry.kv_nummer||entry.kv||entry.id}:`, errText);
             showToast(`Fehler bei ${entry.kv_nummer||entry.kv||entry.id}: ${r.status}`, 'bad', 5000);
           }
-          await throttle(250);
+          await throttle(1100);
         }
 
         if (typeof window.hideBatchProgress === 'function') window.hideBatchProgress();
