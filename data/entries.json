@@ -4156,5 +4156,21 @@
     "ts": 1761643946997,
     "freigabedatum": 1749333600000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643946997_KV20250186",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Moderation KIM Fachtag Mönchengladbach",
+    "projectNumber": "MGladbach-05-001",
+    "kv_nummer": "KV-2025-0186",
+    "amount": 1950,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643946997,
+    "freigabedatum": 1744063200000,
+    "complete": false
   }
 ]
