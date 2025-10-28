@@ -41,13 +41,6 @@
         "ts": 1760970709372
       },
       {
-        "id": "trans_1760970709372_KV20250095",
-        "kv_nummer": "KV-2025-0095",
-        "type": "founder",
-        "amount": 4200,
-        "ts": 1760970709372
-      },
-      {
         "id": "trans_1760970709371_KV20250159",
         "kv_nummer": "KV-2025-0159",
         "type": "founder",
@@ -63,7 +56,7 @@
         "freigabedatum": 1746482400000
       }
     ],
-    "modified": 1761663935679
+    "modified": 1761663940148
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
