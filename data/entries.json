@@ -5048,12 +5048,45 @@
     "projectNumber": "Weiden-01-001",
     "kv_nummer": "KV-2025-0093",
     "amount": 6475,
-    "list": [],
-    "rows": [],
-    "weights": [],
+    "list": [
+      {
+        "key": "Evaluation und Beteiligung Mitarbeiter:in",
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "pct": 100,
+        "money": 6475
+      }
+    ],
+    "rows": [
+      {
+        "name": "Evaluation und Beteiligung Mitarbeiter:in",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
     "ts": 1761643946132,
     "freigabedatum": 1744840800000,
-    "complete": false
+    "complete": true,
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "modified": 1761647237845
   },
   {
     "id": "entry_1761643946253_KV20250098",
