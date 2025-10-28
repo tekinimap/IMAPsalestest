@@ -4364,5 +4364,21 @@
     "ts": 1761643947080,
     "freigabedatum": 1736290800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761643947080_KV20250204",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Eucon EUM05 Beratung Geschäftsführung Strategieprozess Teil 2",
+    "projectNumber": "ChangePartner-33-001",
+    "kv_nummer": "KV-2025-0204",
+    "amount": 5100,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761643947080,
+    "freigabedatum": 1736290800000,
+    "complete": false
   }
 ]
