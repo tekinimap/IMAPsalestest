@@ -3217,5 +3217,21 @@
     "ts": 1761657835817,
     "freigabedatum": 1744156800000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657835818_KV20250085",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Kulturstiftung des Bundes",
+    "title": "Auswertung des Förderprogramms  pik — Programm für inklusive  Kunstpraxis Netzwerk für inklusive  Theaterkooperationen",
+    "projectNumber": "KDB-06-001",
+    "kv_nummer": "KV-2025-0085",
+    "amount": 35500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657835818,
+    "freigabedatum": 1744156800000,
+    "complete": false
   }
 ]
