@@ -2897,5 +2897,21 @@
     "ts": 1761654017936,
     "freigabedatum": 1751407200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654017936_KV20250048",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Vereinten Dienstleistungsgewerkschaft (ver.di)",
+    "title": "Systemische Coachings",
+    "projectNumber": "ver.di-01-001",
+    "kv_nummer": "KV-2025-0048",
+    "amount": 2880,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654017936,
+    "freigabedatum": 1751407200000,
+    "complete": false
   }
 ]
