@@ -5999,22 +5999,6 @@
     "complete": false
   },
   {
-    "id": "entry_1761648557385_KV20250272",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Bundesministerium für Verkehr",
-    "title": "Aktivierender Impulsvortrag: Unconscious Bias",
-    "projectNumber": "BMDV-02-001",
-    "kv_nummer": "KV-2025-0272",
-    "amount": 5100,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1761648557385,
-    "freigabedatum": 1760565600000,
-    "complete": false
-  },
-  {
     "id": "entry_1761648557385_KV20250280",
     "source": "erp-import",
     "projectType": "fix",
