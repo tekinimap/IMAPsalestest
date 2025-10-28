@@ -229,13 +229,6 @@
         "ts": 1760970709372
       },
       {
-        "id": "trans_1760970709371_KV20250135",
-        "kv_nummer": "KV-2025-0135",
-        "type": "founder",
-        "amount": 3150,
-        "ts": 1760970709371
-      },
-      {
         "id": "trans_1760970709370_KV20250184",
         "kv_nummer": "KV-2025-0184",
         "type": "founder",
@@ -265,7 +258,7 @@
         "freigabedatum": 1752098400000
       }
     ],
-    "modified": 1761663467102
+    "modified": 1761663468737
   },
   {
     "id": "manuell_dlr_schulung_prozess",
