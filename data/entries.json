@@ -2641,5 +2641,21 @@
     "ts": 1761657834494,
     "freigabedatum": 1736726400000,
     "complete": false
+  },
+  {
+    "id": "entry_1761657834554_KV20250029",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landesamt für Besoldung und Versorgung NRW",
+    "title": "Moderation eines Workshops für die oberste Managementebene",
+    "projectNumber": "LBV NRW-01-001",
+    "kv_nummer": "KV-2025-0029",
+    "amount": 4800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761657834554,
+    "freigabedatum": 1736899200000,
+    "complete": false
   }
 ]
