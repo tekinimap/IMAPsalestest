@@ -3505,5 +3505,21 @@
     "ts": 1761654019583,
     "freigabedatum": 1757023200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654019642_KV20250114",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Ministerium für Kultur und Wissenschaft des Landes Nordrhein-Westfalen",
+    "title": "Diversitätsfonds: Empowermentkonzept",
+    "projectNumber": "MKW-01-002",
+    "kv_nummer": "KV-2025-0114",
+    "amount": 17609.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654019642,
+    "freigabedatum": 1747605600000,
+    "complete": false
   }
 ]
