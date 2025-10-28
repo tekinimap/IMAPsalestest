@@ -4033,5 +4033,21 @@
     "ts": 1761654020413,
     "freigabedatum": 1751839200000,
     "complete": false
+  },
+  {
+    "id": "entry_1761654020413_KV20250164",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Freie Hansestadt Bremen",
+    "title": "Berichterstellung für die Beteiligung von Jugendlichen zwischen 13 und 20 Jahren",
+    "projectNumber": "F HB-01-002",
+    "kv_nummer": "KV-2025-0164",
+    "amount": 885,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1761654020413,
+    "freigabedatum": 1753048800000,
+    "complete": false
   }
 ]
