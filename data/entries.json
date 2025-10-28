@@ -575,17 +575,8 @@
     "projectNumber": "DRV Bund-09-005",
     "kv_nummer": "",
     "ts": 1761032940013,
-    "transactions": [
-      {
-        "id": "trans_1761648557385_KV20260001",
-        "kv_nummer": "KV-2026-0001",
-        "type": "founder",
-        "amount": 25300,
-        "ts": 1761648557385,
-        "freigabedatum": 1672441200000
-      }
-    ],
-    "modified": 1761663713020
+    "transactions": [],
+    "modified": 1761663717124
   },
   {
     "id": "manuell_drv_bund_teamentw",
