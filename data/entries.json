@@ -61,17 +61,9 @@
         "amount": 3850,
         "ts": 1761648551547,
         "freigabedatum": 1746482400000
-      },
-      {
-        "id": "trans_1760970709374_KV20250028",
-        "kv_nummer": "KV-2025-0028",
-        "type": "founder",
-        "amount": 4725,
-        "ts": 1761648546248,
-        "freigabedatum": 1736895600000
       }
     ],
-    "modified": 1761663930696
+    "modified": 1761663935679
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
