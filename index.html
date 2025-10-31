@@ -321,9 +321,13 @@
     <div class="ct">
       <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
+        <select id="personFilter">
+          <option value="">Alle Personen</option>
+        </select>
         <div class="batch-actions">
             <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
             <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
+            <button class="btn hide" id="btnMergeFixEntries">Aufträge zusammenführen</button>
             <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
         </div>
       </div>
@@ -332,9 +336,11 @@
         <table>
           <thead><tr>
             <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
+            <th class="sortable" data-sort="projectNumber">Projektnummer<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span></th>
             <th style="width:14%">Status</th>
             <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
@@ -552,6 +558,38 @@
         <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
             <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="mergeFixDlg" style="min-width: 720px;">
+    <div class="hd">
+        <h1>Aufträge zusammenführen</h1>
+        <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+    </div>
+    <div class="ct">
+        <div id="mergeFixValidation" class="validation-summary"></div>
+        <p id="mergeFixProjectNumber" class="note"></p>
+        <div class="table-wrapper" style="margin-bottom: 16px;">
+            <table style="min-width:auto;">
+                <thead><tr><th>ID</th><th>Titel</th><th>Auftraggeber</th><th>Projektnummer</th><th>Wert</th></tr></thead>
+                <tbody id="mergeFixSelectionBody"></tbody>
+            </table>
+        </div>
+        <div id="mergeFixPreview" class="hide">
+            <div class="sum-display">💰 Zusammengeführter Wert: <span id="mergeFixTotal"></span></div>
+            <p class="note">Anteile nach Zusammenführung:</p>
+            <div class="table-wrapper">
+                <table style="min-width:auto;">
+                    <thead><tr><th>Person</th><th>Anteil %</th><th>Betrag</th></tr></thead>
+                    <tbody id="mergeFixListBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn" id="btnMergeFixCancel">Abbrechen</button>
+            <button class="btn ok" id="btnMergeFixConfirm">Zusammenführen</button>
         </div>
     </div>
 </dialog>
@@ -1267,14 +1305,26 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 /* ---------- Übersicht & Rahmenverträge ---------- */
 const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
+const personFilter = document.getElementById('personFilter');
 const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
 const btnBatchDelete=document.getElementById('btnBatchDelete');
 const btnMoveToFramework=document.getElementById('btnMoveToFramework');
+const btnMergeFixEntries=document.getElementById('btnMergeFixEntries');
+const mergeFixDlg=document.getElementById('mergeFixDlg');
+const mergeFixValidation=document.getElementById('mergeFixValidation');
+const mergeFixSelectionBody=document.getElementById('mergeFixSelectionBody');
+const mergeFixListBody=document.getElementById('mergeFixListBody');
+const mergeFixProjectNumber=document.getElementById('mergeFixProjectNumber');
+const mergeFixPreview=document.getElementById('mergeFixPreview');
+const mergeFixTotal=document.getElementById('mergeFixTotal');
+const btnMergeFixCancel=document.getElementById('btnMergeFixCancel');
+const btnMergeFixConfirm=document.getElementById('btnMergeFixConfirm');
 const checkAllFix=document.getElementById('checkAllFix');
-let entries=[]; 
+let entries=[];
 let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
+let currentMergeContext = null;
 
 async function loadHistory(){
   showLoader();
@@ -1304,7 +1354,13 @@ function filtered(type = 'fix'){
   const currentEntries = Array.isArray(window.entries) ? window.entries : []; // Sicherstellen, dass es ein Array ist
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
   const query = omniSearch.value.trim().toLowerCase();
-  
+  const selectedPerson = personFilter ? personFilter.value : '';
+
+  if (selectedPerson) {
+    const selectedLower = selectedPerson.toLowerCase();
+    arr = arr.filter(e => (e.submittedBy || '').toLowerCase() === selectedLower);
+  }
+
   if (query) {
       const terms = query.split(/\s+/);
       const filters = [];
@@ -1372,9 +1428,51 @@ function filtered(type = 'fix'){
   return arr;
 }
 
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function updatePersonFilterOptions() {
+  if (!personFilter) return;
+
+  const currentEntries = Array.isArray(window.entries) ? window.entries : [];
+  const names = new Map();
+
+  currentEntries
+    .filter(e => (e.projectType || 'fix') === 'fix')
+    .forEach(e => {
+      const name = (e.submittedBy || '').trim();
+      if (name && !names.has(name.toLowerCase())) {
+        names.set(name.toLowerCase(), name);
+      }
+    });
+
+  const previousValue = personFilter.value || '';
+  const sortedNames = Array.from(names.values()).sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+  const options = ['<option value="">Alle Personen</option>'];
+  sortedNames.forEach(name => {
+    const escaped = escapeHtml(name);
+    options.push(`<option value="${escaped}">${escaped}</option>`);
+  });
+  personFilter.innerHTML = options.join('');
+
+  if (previousValue) {
+    const match = sortedNames.find(name => name.toLowerCase() === previousValue.toLowerCase());
+    personFilter.value = match || '';
+  } else {
+    personFilter.value = '';
+  }
+}
+
 function renderHistory(){
   historyBody.innerHTML='';
   updateSortIcons();
+  updatePersonFilterOptions();
   const arr = filtered('fix');
   let totalSum = 0;
 
@@ -1394,9 +1492,9 @@ function renderHistory(){
     const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td class="col-check"><input type="checkbox" class="row-check" data-id="${entry.id}"></td>
-      <td>${entry.title||'–'}</td><td>${entry.client||'–'}</td><td>${entry.source||'–'}</td><td>${status}</td>
-      <td>${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td>${datum}</td>
+      <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
+      <td>${e.projectNumber||'–'}</td><td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${e.submittedBy||'–'}</td><td>${status}</td>
+      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -1425,6 +1523,9 @@ function renderHistory(){
   updateBatchButtons();
 }
 omniSearch.addEventListener('input', renderHistory);
+if (personFilter) {
+  personFilter.addEventListener('change', renderHistory);
+}
 rahmenSearch.addEventListener('input', renderFrameworkContracts);
 
 function getSelectedFixIds() {
@@ -1438,9 +1539,24 @@ function updateBatchButtons() {
         btnMoveToFramework.classList.remove('hide');
         btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
         btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
+        if (selectedIds.length >= 2) {
+            const selectedEntries = entries.filter(e => selectedIds.includes(e.id));
+            const projectNumbers = Array.from(new Set(selectedEntries.map(e => (e.projectNumber || '').trim())));
+            const hasMismatch = projectNumbers.length > 1;
+            btnMergeFixEntries.classList.remove('hide');
+            btnMergeFixEntries.textContent = `Aufträge zusammenführen (${selectedIds.length})`;
+            btnMergeFixEntries.title = hasMismatch
+                ? 'Auswahl enthält unterschiedliche Projektnummern.'
+                : '';
+        } else {
+            btnMergeFixEntries.classList.add('hide');
+            btnMergeFixEntries.title = '';
+        }
     } else {
         btnBatchDelete.classList.add('hide');
         btnMoveToFramework.classList.add('hide');
+        btnMergeFixEntries.classList.add('hide');
+        btnMergeFixEntries.title = '';
     }
     checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
@@ -1458,6 +1574,290 @@ historyBody.addEventListener('change', (ev) => {
     }
 });
 
+btnMergeFixEntries.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length < 2) {
+        showToast('Bitte wählen Sie mindestens zwei Aufträge aus.', 'warn');
+        return;
+    }
+    const selectedEntries = entries.filter(e => selectedIds.includes(e.id));
+    if (selectedEntries.length < 2) {
+        showToast('Die ausgewählten Einträge konnten nicht geladen werden.', 'bad');
+        return;
+    }
+    currentMergeContext = prepareMergeContext(selectedEntries);
+    renderMergeDialog(currentMergeContext);
+    mergeFixDlg.showModal();
+});
+
+btnMergeFixCancel.addEventListener('click', () => {
+    mergeFixDlg.close();
+    currentMergeContext = null;
+});
+
+mergeFixDlg.addEventListener('close', () => {
+    currentMergeContext = null;
+});
+
+btnMergeFixConfirm.addEventListener('click', async () => {
+    if (!currentMergeContext || currentMergeContext.error || !currentMergeContext.mergedEntry || !currentMergeContext.primaryId) {
+        return;
+    }
+    mergeFixDlg.close();
+    showLoader();
+    try {
+        const { primaryId, mergedEntry, deleteIds } = currentMergeContext;
+        const putRes = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(primaryId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mergedEntry)
+        });
+        if (!putRes.ok) {
+            throw new Error(await putRes.text());
+        }
+
+        for (const delId of deleteIds) {
+            const delRes = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(delId)}`, { method: 'DELETE' });
+            if (!delRes.ok) {
+                throw new Error(await delRes.text());
+            }
+        }
+
+        showToast('Aufträge zusammengeführt.', 'ok');
+        await loadHistory();
+        renderHistory();
+    } catch (err) {
+        console.error('Fehler bei der Zusammenführung', err);
+        showToast('Zusammenführung fehlgeschlagen.', 'bad');
+    } finally {
+        hideLoader();
+        currentMergeContext = null;
+    }
+});
+
+function prepareMergeContext(selectedEntries) {
+    const sortedEntries = [...selectedEntries].sort((a, b) => {
+        const aTs = Number.isFinite(a.freigabedatum) ? a.freigabedatum : (Number.isFinite(a.ts) ? a.ts : 0);
+        const bTs = Number.isFinite(b.freigabedatum) ? b.freigabedatum : (Number.isFinite(b.ts) ? b.ts : 0);
+        return aTs - bTs;
+    });
+
+    const projectNumbers = sortedEntries.map(e => (e.projectNumber || '').trim());
+    const uniqueProjectNumbers = Array.from(new Set(projectNumbers));
+    const context = {
+        selectedEntries: sortedEntries,
+        projectNumbers: uniqueProjectNumbers,
+        projectNumber: uniqueProjectNumbers[0] || '',
+        mismatch: uniqueProjectNumbers.length > 1,
+        error: null,
+        totalAmount: 0,
+        combinedList: [],
+        combinedRows: [],
+        combinedTotals: { cs: 0, konzept: 0, pitch: 0 },
+        combinedWeights: [],
+        mergedEntry: null,
+        deleteIds: [],
+        primaryId: sortedEntries[0]?.id || null,
+        kvNumbers: []
+    };
+
+    if (context.mismatch) {
+        context.error = 'Die ausgewählten Aufträge haben unterschiedliche Projektnummern und können nicht zusammengeführt werden.';
+        return context;
+    }
+
+    const totalAmount = sortedEntries.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+    context.totalAmount = Number(totalAmount.toFixed(2));
+
+    const listMap = new Map();
+    sortedEntries.forEach(entry => {
+        (entry.list || []).forEach(item => {
+            const key = (item.name || item.key || '').trim() || item.key || item.name || `person_${listMap.size}`;
+            const current = listMap.get(key) || { key, name: item.name || item.key || '–', money: 0 };
+            current.money += Number(item.money) || 0;
+            listMap.set(key, current);
+        });
+    });
+
+    let combinedList = Array.from(listMap.values()).map(item => {
+        const money = Number(item.money.toFixed(2));
+        const pct = totalAmount > 0 ? Number(((money / totalAmount) * 100).toFixed(4)) : 0;
+        return { key: item.key, name: item.name, money, pct };
+    });
+    combinedList.sort((a, b) => b.money - a.money);
+    if (combinedList.length > 0) {
+        const pctSum = combinedList.reduce((sum, item) => sum + item.pct, 0);
+        const adjust = Number((100 - pctSum).toFixed(4));
+        combinedList[0].pct = Number((combinedList[0].pct + adjust).toFixed(4));
+        const moneySum = combinedList.reduce((sum, item) => sum + item.money, 0);
+        const moneyAdjust = Number((totalAmount - moneySum).toFixed(2));
+        if (moneyAdjust !== 0) {
+            combinedList[0].money = Number((combinedList[0].money + moneyAdjust).toFixed(2));
+        }
+    }
+
+    const rowMap = new Map();
+    const fallbackWeightArr = [
+        { key: 'cs', weight: DEFAULT_WEIGHTS.cs },
+        { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept },
+        { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }
+    ];
+
+    sortedEntries.forEach(entry => {
+        const entryAmount = Number(entry.amount) || 0;
+        const factor = totalAmount > 0
+            ? entryAmount / totalAmount
+            : (sortedEntries.length > 0 ? 1 / sortedEntries.length : 0);
+        const rows = Array.isArray(entry.rows) ? entry.rows : [];
+        rows.forEach(row => {
+            const key = (row.name || '').trim() || `person_${rowMap.size}`;
+            const current = rowMap.get(key) || { name: row.name || '', cs: 0, konzept: 0, pitch: 0 };
+            current.cs += (Number(row.cs) || 0) * factor;
+            current.konzept += (Number(row.konzept) || 0) * factor;
+            current.pitch += (Number(row.pitch) || 0) * factor;
+            rowMap.set(key, current);
+        });
+    });
+
+    let combinedRows = Array.from(rowMap.values()).map(row => ({
+        name: row.name,
+        cs: Math.max(0, Math.min(100, Number(row.cs.toFixed(2)))),
+        konzept: Math.max(0, Math.min(100, Number(row.konzept.toFixed(2)))),
+        pitch: Math.max(0, Math.min(100, Number(row.pitch.toFixed(2))))
+    })).filter(row => (row.name && (row.cs || row.konzept || row.pitch)));
+
+    if (combinedRows.length === 0 && sortedEntries[0]) {
+        combinedRows = Array.isArray(sortedEntries[0].rows)
+            ? sortedEntries[0].rows.map(row => ({ ...row }))
+            : [];
+    }
+
+    const weightTotals = { cs: 0, konzept: 0, pitch: 0 };
+    sortedEntries.forEach(entry => {
+        const entryAmount = Number(entry.amount) || 0;
+        const factor = totalAmount > 0
+            ? entryAmount / totalAmount
+            : (sortedEntries.length > 0 ? 1 / sortedEntries.length : 0);
+        const entryWeights = Array.isArray(entry.weights) && entry.weights.length > 0
+            ? entry.weights
+            : fallbackWeightArr;
+        entryWeights.forEach(w => {
+            if (weightTotals[w.key] === undefined) weightTotals[w.key] = 0;
+            weightTotals[w.key] += (Number(w.weight) || 0) * factor;
+        });
+    });
+
+    let combinedWeights = Object.keys(weightTotals).map(key => ({
+        key,
+        weight: Math.round(weightTotals[key])
+    }));
+
+    if (totalAmount <= 0) {
+        combinedWeights = Array.isArray(sortedEntries[0]?.weights) && sortedEntries[0].weights.length > 0
+            ? sortedEntries[0].weights.map(w => ({ ...w }))
+            : fallbackWeightArr.map(w => ({ ...w }));
+    } else if (combinedWeights.length > 0) {
+        const weightSum = combinedWeights.reduce((sum, w) => sum + w.weight, 0);
+        if (weightSum !== 100) {
+            combinedWeights[0].weight += (100 - weightSum);
+        }
+    }
+
+    const primaryClone = sortedEntries[0] ? JSON.parse(JSON.stringify(sortedEntries[0])) : {};
+    primaryClone.amount = context.totalAmount;
+    primaryClone.list = combinedList.map(item => ({
+        key: item.key,
+        name: item.name,
+        pct: Math.max(0, Math.min(100, Number(item.pct.toFixed(2)))),
+        money: Number(item.money.toFixed(2))
+    }));
+    const pctSumAfter = primaryClone.list.reduce((sum, item) => sum + (Number(item.pct) || 0), 0);
+    const pctDiffAfter = Number((100 - pctSumAfter).toFixed(2));
+    if (primaryClone.list.length > 0 && pctDiffAfter !== 0) {
+        primaryClone.list[0].pct = Math.max(0, Math.min(100, Number((primaryClone.list[0].pct + pctDiffAfter).toFixed(2))));
+    }
+    const moneySumAfter = primaryClone.list.reduce((sum, item) => sum + (Number(item.money) || 0), 0);
+    const moneyDiffAfter = Number((primaryClone.amount - moneySumAfter).toFixed(2));
+    if (primaryClone.list.length > 0 && moneyDiffAfter !== 0) {
+        primaryClone.list[0].money = Number((primaryClone.list[0].money + moneyDiffAfter).toFixed(2));
+    }
+    primaryClone.rows = combinedRows.map(row => ({
+        name: row.name,
+        cs: Number(row.cs),
+        konzept: Number(row.konzept),
+        pitch: Number(row.pitch)
+    }));
+    primaryClone.weights = combinedWeights.map(w => ({ key: w.key, weight: Number(w.weight) }));
+    primaryClone.totals = totals(primaryClone.rows || []);
+    primaryClone.projectNumber = context.projectNumber || '';
+    const kvNumbers = Array.from(new Set(sortedEntries.map(e => (e.kv_nummer || '').trim()).filter(Boolean)));
+    primaryClone.kv_nummer = kvNumbers.length === 1 ? kvNumbers[0] : '';
+    primaryClone.modified = Date.now();
+    primaryClone.complete = (primaryClone.amount > 0) && Array.isArray(primaryClone.list) && primaryClone.list.length > 0;
+
+    context.combinedList = primaryClone.list;
+    context.combinedRows = primaryClone.rows;
+    context.combinedTotals = primaryClone.totals;
+    context.combinedWeights = primaryClone.weights;
+    context.mergedEntry = primaryClone;
+    context.kvNumbers = kvNumbers;
+    context.deleteIds = sortedEntries.slice(1).map(e => e.id);
+
+    return context;
+}
+
+function renderMergeDialog(ctx) {
+    mergeFixSelectionBody.innerHTML = '';
+    ctx.selectedEntries.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${entry.id}</td>
+            <td>${entry.title || '–'}</td>
+            <td>${entry.client || '–'}</td>
+            <td>${(entry.projectNumber || '').trim() || '–'}</td>
+            <td>${entry.amount ? fmtCurr2.format(entry.amount) : '–'}</td>
+        `;
+        mergeFixSelectionBody.appendChild(tr);
+    });
+
+    const pnLabel = ctx.mismatch
+        ? `Projektnummern der Auswahl: ${ctx.projectNumbers.map(p => p || '–').join(', ')}`
+        : `Gemeinsame Projektnummer: ${ctx.projectNumber || '–'}`;
+    mergeFixProjectNumber.textContent = pnLabel;
+
+    if (ctx.error) {
+        mergeFixValidation.textContent = ctx.error;
+        mergeFixValidation.classList.remove('hide');
+        mergeFixPreview.classList.add('hide');
+        btnMergeFixConfirm.classList.add('disabled');
+        btnMergeFixConfirm.disabled = true;
+    } else {
+        mergeFixValidation.textContent = '';
+        mergeFixValidation.classList.add('hide');
+        mergeFixPreview.classList.remove('hide');
+        btnMergeFixConfirm.classList.remove('disabled');
+        btnMergeFixConfirm.disabled = false;
+
+        mergeFixTotal.textContent = fmtCurr2.format(ctx.totalAmount || 0);
+        mergeFixListBody.innerHTML = '';
+        if (!ctx.combinedList || ctx.combinedList.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="3" style="text-align:center; color: var(--muted);">Keine Verteilungsdaten vorhanden.</td>`;
+            mergeFixListBody.appendChild(tr);
+        } else {
+            ctx.combinedList.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.name || '–'}</td>
+                    <td>${fmtPct.format(item.pct || 0)}</td>
+                    <td>${fmtCurr2.format(item.money || 0)}</td>
+                `;
+                mergeFixListBody.appendChild(tr);
+            });
+        }
+    }
+}
+
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.sort;
@@ -1466,7 +1866,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
     } else {
       currentSort.key = key;
       // Default sort direction based on column type
-      currentSort.direction = (key === 'title' || key === 'client' || key === 'source') ? 'asc' : 'desc';
+      currentSort.direction = (key === 'title' || key === 'client' || key === 'source' || key === 'projectNumber' || key === 'submittedBy') ? 'asc' : 'desc';
     }
     renderHistory();
   });
