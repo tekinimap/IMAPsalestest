@@ -1475,24 +1475,50 @@ function renderHistory(){
   updatePersonFilterOptions();
   const arr = filtered('fix');
   let totalSum = 0;
-  
+
+  const groups = {
+    complete: [],
+    incomplete: []
+  };
+
   for(const e of arr){
-    const ok = autoComplete(e); 
+    const ok = autoComplete(e);
     totalSum += (e.amount || 0);
+    groups[ok ? 'complete' : 'incomplete'].push({ entry: e, ok });
+  }
+
+  const createRow = (entry, ok) => {
     const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
-    const datum = e.freigabedatum ? new Date(e.freigabedatum).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
+    const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
       <td>${e.projectNumber||'–'}</td><td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${e.submittedBy||'–'}</td><td>${status}</td>
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
-        <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>`;
-    historyBody.appendChild(tr);
-  }
-  
+    return tr;
+  };
+
+  const appendSection = (title, entries) => {
+    const sectionFragment = document.createDocumentFragment();
+    const headerRow = document.createElement('tr');
+    headerRow.classList.add('history-section-header');
+    headerRow.innerHTML = `<td colspan="8">${title}</td>`;
+    sectionFragment.appendChild(headerRow);
+
+    for (const { entry, ok } of entries) {
+      sectionFragment.appendChild(createRow(entry, ok));
+    }
+
+    historyBody.appendChild(sectionFragment);
+  };
+
+  appendSection('Vollständig', groups.complete);
+  appendSection('Unvollständig', groups.incomplete);
+
   document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
   updateBatchButtons();
 }
