@@ -92,6 +92,13 @@
   input.invalid-field, select.invalid-field {border-color:var(--bad) !important; box-shadow:0 0 0 3px rgba(239, 68, 68, .25) !important;}
   .checkbox-wrapper{display:flex; align-items:center; gap:8px; margin-top: 8px;}
 
+  .kv-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .kv-item{display:flex;gap:8px;align-items:center;}
+  .kv-item input{flex:1;}
+  .kv-item .kv-remove{min-width:36px;height:36px;display:grid;place-items:center;}
+  .kv-item .kv-remove[disabled]{opacity:.5;cursor:not-allowed;}
+  #btnAddKv{margin-top:6px;}
+
   .iconbtn{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer}
   .iconbtn:hover{background:var(--panel2);}
   .iconbtn svg { width: 20px; height: 20px; }
@@ -295,9 +302,10 @@
               <div class="field-error" data-validation-for="projectNumber"></div>
             </div>
             <div>
-              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer</label>
-              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 170px;">
-               <div class="field-error" data-validation-for="kvNummer"></div>
+              <label for="kvNummernContainer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummern</label>
+              <div id="kvNummernContainer" class="kv-list"></div>
+              <button type="button" class="btn" id="btnAddKv" style="padding:8px 12px; width:auto;">+ KV</button>
+               <div class="field-error" data-validation-for="kvNummern"></div>
             </div>
             <div>
               <label for="freigabedatum" style="font-weight:500; font-size:13px; color: var(--muted);">Freigabedatum *</label>
@@ -334,6 +342,7 @@
             <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
             <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
+            <th>KV-Nummern</th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th style="width:14%">Status</th>
             <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
@@ -874,7 +883,8 @@ const auftragswert = document.getElementById('auftragswert');
 const auftragswertBekannt = document.getElementById('auftragswertBekannt');
 const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
-const kvNummer = document.getElementById('kvNummer');
+const kvListContainer = document.getElementById('kvNummernContainer');
+const btnAddKv = document.getElementById('btnAddKv');
 const freigabedatum = document.getElementById('freigabedatum');
 const w_cs = document.getElementById('w_cs');
 const w_konzept = document.getElementById('w_konzept');
@@ -908,6 +918,107 @@ function bindRow(tr){
   tr.querySelector('.delrow').addEventListener('click',()=>{tr.remove(); hasUnsavedChanges = true; saveCurrentInputState(); recalc();});
 }
 function addRow(focus=false){const tr=rowTemplate();tbody.appendChild(tr);bindRow(tr);if(focus)tr.querySelector('.name').focus();saveCurrentInputState(); recalc();}
+function createKvInput(value = '') {
+  const item = document.createElement('div');
+  item.className = 'kv-item';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'kv-input';
+  input.value = value;
+  input.placeholder = 'KV-Nummer eintragen';
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'iconbtn kv-remove';
+  removeBtn.innerHTML = '<span aria-hidden="true">&times;</span>';
+  removeBtn.title = 'KV entfernen';
+  removeBtn.setAttribute('aria-label', 'KV entfernen');
+  item.appendChild(input);
+  item.appendChild(removeBtn);
+  return item;
+}
+function updateKvRemoveButtons(){
+  const items = kvListContainer ? kvListContainer.querySelectorAll('.kv-item') : [];
+  items.forEach(btnWrap => {
+    const btn = btnWrap.querySelector('.kv-remove');
+    if (btn) btn.disabled = items.length <= 1;
+  });
+}
+function setKvNumbers(numbers = []) {
+  if (!kvListContainer) return;
+  kvListContainer.innerHTML = '';
+  const list = (Array.isArray(numbers) && numbers.length > 0) ? numbers : [''];
+  list.forEach(num => {
+    const item = createKvInput(num);
+    kvListContainer.appendChild(item);
+  });
+  updateKvRemoveButtons();
+}
+function getKvNumbers(){
+  if (!kvListContainer) return [];
+  return Array.from(kvListContainer.querySelectorAll('.kv-input'))
+    .map(input => input.value.trim())
+    .filter(val => val.length > 0);
+}
+function setKvInputsDisabled(disabled){
+  if (!kvListContainer) return;
+  kvListContainer.querySelectorAll('.kv-input').forEach(input => {
+    input.disabled = disabled;
+  });
+  kvListContainer.querySelectorAll('.kv-remove').forEach(btn => {
+    btn.disabled = disabled;
+  });
+  if (btnAddKv) {
+    btnAddKv.disabled = disabled;
+    btnAddKv.classList.toggle('hide', disabled);
+  }
+  if (!disabled) updateKvRemoveButtons();
+}
+function updateKvPlaceholders(text){
+  if (!kvListContainer) return;
+  kvListContainer.querySelectorAll('.kv-input').forEach(input => {
+    input.placeholder = text;
+  });
+}
+function normalizeKvArray(value) {
+  if (Array.isArray(value)) {
+    return value.map(v => String(v || '').trim()).filter(v => v.length > 0);
+  }
+  if (typeof value === 'string') {
+    if (!value.trim()) return [];
+    return value.split(/[,;\n]/).map(v => v.trim()).filter(v => v.length > 0);
+  }
+  if (value && typeof value === 'object' && 'value' in value) {
+    return normalizeKvArray(value.value);
+  }
+  return [];
+}
+function ensureTransactionKvStructure(trans) {
+  if (!trans || typeof trans !== 'object') return trans;
+  const kvNumbers = normalizeKvArray(trans.kv_nummern ?? trans.kv_nummer ?? trans.kv);
+  trans.kv_nummern = kvNumbers;
+  trans.kv_nummer = kvNumbers[0] || '';
+  return trans;
+}
+function ensureEntryKvStructure(entry) {
+  if (!entry || typeof entry !== 'object') return entry;
+  const kvNumbers = normalizeKvArray(entry.kv_nummern ?? entry.kv_nummer ?? entry.kvNummer ?? entry.kv);
+  entry.kv_nummern = kvNumbers;
+  entry.kv_nummer = kvNumbers[0] || '';
+  if (Array.isArray(entry.transactions)) {
+    entry.transactions = entry.transactions.map(t => ensureTransactionKvStructure({ ...t }));
+  }
+  return entry;
+}
+function formatKvList(kvNumbers) {
+  const list = normalizeKvArray(kvNumbers);
+  return list.length ? list.join(', ') : '–';
+}
+function kvArrayToString(kvNumbers) {
+  return normalizeKvArray(kvNumbers).join(', ');
+}
+function parseKvInputString(value) {
+  return normalizeKvArray(value);
+}
 function readRows(tbodySelector = '#tbody'){
   const rows=[]; document.querySelector(tbodySelector).querySelectorAll('tr').forEach(tr=>{
     rows.push({
@@ -936,14 +1047,18 @@ function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=
 function validateInput(forLive = false) {
     const errors = {};
     const st = loadState() || {};
+    const kvNumbers = getKvNumbers();
+    const projectTypeSelection = document.querySelector('input[name="projectType"]:checked');
+    const currentProjectType = projectTypeSelection ? projectTypeSelection.value : (st.input?.projectType || 'fix');
     if (!forLive) {
         if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
         if (!freigabedatum.value) errors.freigabedatum = 'Freigabedatum ist erforderlich.';
-        
-        if (st.isAbrufMode && !kvNummer.value.trim()) {
-            errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
+
+        const requireKvNumbers = st.isAbrufMode || currentProjectType !== 'rahmen';
+        if (requireKvNumbers && kvNumbers.length === 0) {
+            errors.kvNummern = st.isAbrufMode ? 'KV-Nummer ist für Abrufe erforderlich.' : 'Mindestens eine KV-Nummer angeben.';
         }
 
         if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
@@ -984,9 +1099,13 @@ function displayValidation(errors){
     Object.keys(errors).forEach(key => {
         const el = document.querySelector(`[data-validation-for="${key}"]`);
         if (el) el.textContent = errors[key];
-        
-        const input = document.getElementById(key);
-        if(input) input.classList.add('invalid-field');
+
+        if (key === 'kvNummern' && kvListContainer) {
+            kvListContainer.querySelectorAll('.kv-input').forEach(input => input.classList.add('invalid-field'));
+        } else {
+            const input = document.getElementById(key);
+            if(input) input.classList.add('invalid-field');
+        }
     });
 }
 
@@ -1037,6 +1156,7 @@ function updateLiveResults(resultList) {
 
 function saveCurrentInputState() {
     const stPrev = loadState() || {};
+    const kvNumbers = getKvNumbers();
     const currentInput = {
         client: auftraggeber.value.trim(),
         title: projekttitel.value.trim(),
@@ -1047,13 +1167,14 @@ function saveCurrentInputState() {
         weights: currentWeights(),
         submittedBy: submittedBy.value,
         projectNumber: projectNumber.value.trim(),
-        kvNummer: kvNummer.value.trim(),
+        kvNummern: kvNumbers,
+        kvNummer: kvNumbers[0] || '',
         freigabedatum: freigabedatum.value || getTodayDate()
     };
     saveState({ ...stPrev, input: currentInput });
 }
 
-[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
+[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, freigabedatum].forEach(el => { el.addEventListener('input', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }); });
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { hasUnsavedChanges=true; saveCurrentInputState(); recalc(); }));
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -1073,9 +1194,46 @@ auftragswert.addEventListener('blur',()=>{
     hasUnsavedChanges=true; updateWeightNote(); saveCurrentInputState(); recalc();
 }));
 btnAddRow.addEventListener('click',()=>addRow(true));
+if (btnAddKv) {
+  btnAddKv.addEventListener('click', () => {
+    if (!kvListContainer) return;
+    const item = createKvInput('');
+    kvListContainer.appendChild(item);
+    updateKvRemoveButtons();
+    const input = item.querySelector('.kv-input');
+    if (input) input.focus();
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+  });
+}
+if (kvListContainer) {
+  kvListContainer.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('.kv-remove');
+    if (!btn || btn.disabled) return;
+    const item = btn.closest('.kv-item');
+    if (!item) return;
+    if (kvListContainer.querySelectorAll('.kv-item').length <= 1) {
+      const input = item.querySelector('.kv-input');
+      if (input) input.value = '';
+    } else {
+      item.remove();
+    }
+    updateKvRemoveButtons();
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+  });
+  kvListContainer.addEventListener('input', (ev) => {
+    if (!ev.target.classList.contains('kv-input')) return;
+    hasUnsavedChanges = true;
+    saveCurrentInputState();
+    recalc();
+  });
+}
 
 btnSave.addEventListener('click', async () => {
-  const errors = validateInput(); 
+  const errors = validateInput();
   if (Object.keys(errors).length > 0) {
     displayValidation(errors);
     return;
@@ -1096,18 +1254,20 @@ btnSave.addEventListener('click', async () => {
 async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
   const resultData = compute(st.input.rows, st.input.weights, finalAmount);
-  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  const kvNumbers = Array.isArray(st.input.kvNummern) ? st.input.kvNummern : (st.input.kvNummer ? [st.input.kvNummer] : []);
+  const isFramework = st.input.projectType === 'rahmen';
+  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0) && (isFramework || kvNumbers.length > 0));
   const date = new Date(st.input.freigabedatum).getTime();
   const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
 
   const payload={
     source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
-    title:st.input.title||'', amount:finalAmount, 
+    title:st.input.title||'', amount:finalAmount,
     projectType: st.input.projectType || 'fix',
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
+    projectNumber: st.input.projectNumber || '', kv_nummern: kvNumbers, kv_nummer: kvNumbers[0] || '',
     freigabedatum: date,
     ts: ts,
     modified: st.editingId ? Date.now() : undefined, // Only set modified on update
@@ -1137,11 +1297,14 @@ function loadInputForm(inputData, isEditing = false) {
     const abrufInfo = document.getElementById('abrufInfo');
     const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
-    
+    const kvValues = Array.isArray(inputData.kvNummern)
+        ? inputData.kvNummern
+        : (inputData.kvNummer ? [inputData.kvNummer] : []);
+    setKvNumbers(kvValues);
+
     // Reset all fields first
     auftraggeber.disabled = false;
     projectNumber.disabled = true;
-    kvNummer.disabled = true;
     freigabedatum.disabled = false;
     freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
 
@@ -1154,9 +1317,6 @@ function loadInputForm(inputData, isEditing = false) {
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
         projectNumber.disabled = true;
-        kvNummer.value = inputData.kvNummer || '';
-        kvNummer.disabled = false;
-        kvNummer.placeholder = 'KV-Nummer des Abrufs';
         freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
 
     } else {
@@ -1166,16 +1326,22 @@ function loadInputForm(inputData, isEditing = false) {
         auftraggeber.value = inputData.client || '';
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
-        kvNummer.value = inputData.kvNummer || '';
 
         projectNumber.disabled = !isEditing;
-        kvNummer.disabled = !isEditing;
         // Freigabedatum sollte editierbar sein, außer bei Erstellung eines Rahmenvertrags (da noch keine Abrufe)
-        freigabedatum.disabled = (!isEditing && inputData.projectType === 'rahmen'); 
-        
+        freigabedatum.disabled = (!isEditing && inputData.projectType === 'rahmen');
+
         projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
-        kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
     }
+
+    const isAbrufMode = st.isAbrufMode && st.parentEntry;
+    const isFramework = inputData.projectType === 'rahmen';
+    const disableKv = isFramework && !isAbrufMode;
+    const placeholderText = isAbrufMode
+        ? 'KV-Nummer des Abrufs'
+        : (disableKv ? 'Nicht erforderlich' : 'KV-Nummer eintragen');
+    updateKvPlaceholders(placeholderText);
+    setKvInputsDisabled(disableKv);
 
     auftragswertBekannt.checked = inputData.amountKnown !== false;
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -1281,10 +1447,11 @@ async function loadHistory(){
   try{
     const r = await fetch(`${WORKER_BASE}/entries`);
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
+    const normalizedEntries = fetchedEntries.map(entry => ensureEntryKvStructure(entry));
 
     // Weise BEIDEN zu: der globalen 'entries' UND 'window.entries'
-    entries = fetchedEntries;        // Für Funktionen innerhalb von index.html
-    window.entries = fetchedEntries; // Für externe Skripte wie erp-preview-override.js
+    entries = normalizedEntries;        // Für Funktionen innerhalb von index.html
+    window.entries = normalizedEntries; // Für externe Skripte wie erp-preview-override.js
 
   } catch (err) { // Fehlerobjekt fangen für bessere Logs
     console.error("Fehler in loadHistory:", err); // Logge den Fehler
@@ -1299,7 +1466,12 @@ async function loadHistory(){
   renderHistory();
 }
   
-function autoComplete(e){ return !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0); }
+function autoComplete(e){
+  const hasBasics = !!(e.client && e.title && (e.amount > 0) && Array.isArray(e.list) && e.list.length > 0);
+  if (!hasBasics) return false;
+  if ((e.projectType || 'fix') === 'rahmen') return true;
+  return normalizeKvArray(e.kv_nummern ?? e.kv_nummer).length > 0;
+}
 function filtered(type = 'fix'){
   const currentEntries = Array.isArray(window.entries) ? window.entries : []; // Sicherstellen, dass es ein Array ist
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
@@ -1323,9 +1495,10 @@ function filtered(type = 'fix'){
 
       const searchText = searchTerms.join(' ');
       if (searchText) {
-        arr = arr.filter(e => 
-          String(e.title || '').toLowerCase().includes(searchText) || 
-          String(e.client || '').toLowerCase().includes(searchText)
+        arr = arr.filter(e =>
+          String(e.title || '').toLowerCase().includes(searchText) ||
+          String(e.client || '').toLowerCase().includes(searchText) ||
+          normalizeKvArray(e.kv_nummern).some(kv => kv.toLowerCase().includes(searchText))
         );
       }
 
@@ -1343,6 +1516,10 @@ function filtered(type = 'fix'){
             if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
             if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
           }
+        }
+        if (key === 'kv') {
+          const cmp = value.toLowerCase();
+          arr = arr.filter(e => normalizeKvArray(e.kv_nummern).some(kv => kv.toLowerCase().includes(cmp)));
         }
       });
   }
@@ -1379,14 +1556,15 @@ function renderHistory(){
   let totalSum = 0;
   
   for(const e of arr){
-    const ok = autoComplete(e); 
+    const ok = autoComplete(e);
     totalSum += (e.amount || 0);
     const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const datum = e.freigabedatum ? new Date(e.freigabedatum).toLocaleDateString('de-DE') : (e.ts ? new Date(e.ts).toLocaleDateString('de-DE') : '–');
+    const kvDisplay = formatKvList(e.kv_nummern);
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
-      <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
+      <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${kvDisplay}</td><td>${e.source||'–'}</td><td>${status}</td>
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -1491,8 +1669,9 @@ historyBody.addEventListener('click', async(ev)=>{
 
 function editEntry(id) {
   const e=entries.find(x=>x.id===id); if(!e) return;
+  const kvNumbers = normalizeKvArray(e.kv_nummern ?? e.kv_nummer);
   const st={ source:e.source||'manuell', editingId:e.id,
-    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummer: e.kv_nummer || '',
+    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummern: kvNumbers, kvNummer: kvNumbers[0] || '',
             freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
             rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
@@ -1578,7 +1757,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
 /* Export XLSX */
 btnXlsx.addEventListener('click',()=>{
   const arr=filtered('fix').map(e=>({
-    Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
+    Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', 'KV-Nummern': formatKvList(e.kv_nummern), Quelle: e.source||'',
     Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
     Freigabedatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
   }));
@@ -1683,13 +1862,17 @@ async function saveHunterAbruf(st) {
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
     const date = new Date(st.input.freigabedatum).getTime();
+    const kvNumbers = Array.isArray(st.input.kvNummern) ? st.input.kvNummern : (st.input.kvNummer ? [st.input.kvNummer] : []);
+    const primaryKv = kvNumbers[0] || '';
+    const transactionIdSuffix = primaryKv ? primaryKv.replace(/\W/g,'') : Date.now();
 
     const newTransaction = {
-        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
-        kv_nummer: st.input.kvNummer,
-        type: 'hunter', 
-        title: st.input.title, 
-        amount: abrufAmount, 
+        id: `trans_${Date.now()}_${transactionIdSuffix}`,
+        kv_nummern: kvNumbers,
+        kv_nummer: primaryKv,
+        type: 'hunter',
+        title: st.input.title,
+        amount: abrufAmount,
         ts: Date.now(),
         freigabedatum: date,
         submittedBy: st.input.submittedBy, 
@@ -1799,7 +1982,7 @@ function renderRahmenDetails(id) {
         tr.dataset.transId = trans.id;
         const datum = trans.freigabedatum ? new Date(trans.freigabedatum).toLocaleDateString('de-DE') : (trans.ts ? new Date(trans.ts).toLocaleDateString('de-DE') : '–');
         tr.innerHTML = `
-            <td>${trans.kv_nummer || '–'}</td>
+            <td>${formatKvList(trans.kv_nummern)}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
             <td>${fmtCurr2.format(trans.amount)}</td>
@@ -1893,13 +2076,17 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
         for (const entry of fixEntriesToMove) {
             count++;
             updateBatchProgress(count, selectedIds.length);
-            
+
             // 1. Create new transaction
             let newTransaction;
+            const kvNumbers = normalizeKvArray(entry.kv_nummern ?? entry.kv_nummer);
+            const primaryKv = kvNumbers[0] || '';
+            const idSuffix = primaryKv ? primaryKv.replace(/\W/g, '') : Date.now();
             if (moveType === 'founder') {
                 newTransaction = {
-                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
-                    kv_nummer: entry.kv_nummer,
+                    id: `trans_${Date.now()}_${idSuffix}`,
+                    kv_nummern: kvNumbers,
+                    kv_nummer: primaryKv,
                     type: 'founder',
                     amount: entry.amount,
                     ts: Date.now(),
@@ -1910,7 +2097,9 @@ document.getElementById('btnConfirmMove').addEventListener('click', async () => 
                 const { id, projectType, transactions, ...restOfEntry } = entry;
                 newTransaction = {
                     ...restOfEntry, // copy relevant data
-                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
+                    kv_nummern: kvNumbers,
+                    kv_nummer: primaryKv,
+                    id: `trans_${Date.now()}_${idSuffix}`,
                     type: 'hunter',
                     ts: Date.now() // new internal timestamp
                     // freigabedatum is already part of 'restOfEntry'
@@ -1977,7 +2166,7 @@ function openEditTransactionModal(transaction, parentEntry) {
     if (transaction.type === 'founder') {
         editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
         editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
-        editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
+        editFounderKvNummer.value = editingTransactionId ? kvArrayToString(transaction.kv_nummern) : '';
         editFounderFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
         editFounderTransView.classList.remove('hide');
         editHunterTransView.classList.add('hide');
@@ -1985,7 +2174,7 @@ function openEditTransactionModal(transaction, parentEntry) {
         editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
         editHunterTitle.value = transaction.title || '';
         editHunterAmount.value = formatAmountInput(transaction.amount);
-        editHunterKvNummer.value = transaction.kv_nummer || '';
+        editHunterKvNummer.value = kvArrayToString(transaction.kv_nummern);
         editHunterFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
         
         const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
@@ -2047,24 +2236,29 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
         const resultData = compute(rows, weights, hunterShareAmount);
         
-        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim(), freigabedatum: new Date(editHunterFreigabedatum.value).getTime() };
+        const kvNumbers = parseKvInputString(editHunterKvNummer.value);
+        if (kvNumbers.length === 0 && !validationError) validationError = 'KV-Nummer ist erforderlich.';
+        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummern: kvNumbers, kv_nummer: kvNumbers[0] || '', freigabedatum: new Date(editHunterFreigabedatum.value).getTime() };
 
     } else { // Saving a Founder transaction
-        if(!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
+        const kvNumbers = parseKvInputString(editFounderKvNummer.value);
+        if(kvNumbers.length === 0) validationError = 'KV-Nummer ist erforderlich.';
         if(!editFounderFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
-        
+
         transaction.amount = parseAmountInput(editFounderValueInput.value);
-        transaction.kv_nummer = editFounderKvNummer.value.trim();
+        transaction.kv_nummern = kvNumbers;
+        transaction.kv_nummer = kvNumbers[0] || '';
         transaction.freigabedatum = new Date(editFounderFreigabedatum.value).getTime();
     }
-    
+
     if (validationError) {
         document.getElementById('editTransValidationSummary').innerHTML = validationError;
         return;
     }
-    
+
     if (transIndex === -1) { // New founder transaction
-        transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g,'')}`;
+        const suffix = transaction.kv_nummer ? transaction.kv_nummer.replace(/\W/g,'') : Date.now();
+        transaction.id = `trans_${Date.now()}_${suffix}`;
         transaction.ts = Date.now();
         transaction.type = 'founder';
         if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = []; // Ensure array exists
@@ -2311,20 +2505,18 @@ async function handleErpImport() {
         let skippedCount = 0;
 
         // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
-        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
+        const allEntriesCopy = JSON.parse(JSON.stringify(entries)).map(entry => ensureEntryKvStructure(entry));
         const changesToPush = [];
         
         // Erstelle einen schnellen Index für KV-Nummern aus der Kopie
         const kvIndex = new Map();
         allEntriesCopy.forEach(entry => {
-            if (entry.kv_nummer) {
-                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
-            }
+            const kvNumbers = normalizeKvArray(entry.kv_nummern ?? entry.kv_nummer);
+            kvNumbers.forEach(kv => kvIndex.set(kv, { type: 'fix', entry: entry }));
             if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
                 entry.transactions.forEach(trans => {
-                    if (trans.kv_nummer) {
-                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
-                    }
+                    const transKvs = normalizeKvArray(trans.kv_nummern ?? trans.kv_nummer);
+                    transKvs.forEach(kv => kvIndex.set(kv, { type: 'transaction', entry: entry, transaction: trans }));
                 });
             }
         });
@@ -2403,9 +2595,10 @@ async function handleErpImport() {
                         parentFramework.transactions = [];
                     }
                      // Prüfen ob die Transaktion (KV) nicht doch schon da ist (Sicherheitsnetz)
-                    if (!parentFramework.transactions.some(t => t.kv_nummer === kvNummer)) {
+                    if (!parentFramework.transactions.some(t => normalizeKvArray(t.kv_nummern ?? t.kv_nummer).includes(kvNummer))) {
                         parentFramework.transactions.push({
                             id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+                            kv_nummern: [kvNummer],
                             kv_nummer: kvNummer,
                             type: 'founder', // Standard auf 'founder' (passiv)
                             amount: amount,
@@ -2429,6 +2622,7 @@ async function handleErpImport() {
                         client: clientName,
                         title: title,
                         projectNumber: projektNummer,
+                        kv_nummern: [kvNummer],
                         kv_nummer: kvNummer,
                         amount: amount,
                         list: [],
@@ -2463,17 +2657,19 @@ async function handleErpImport() {
 
                 // Stelle sicher, dass für PUT eine ID vorhanden ist
                 if(method === 'PUT' && !entry.id) {
-                     throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
+                     const kvForLog = normalizeKvArray(entry.kv_nummern || entry.kv_nummer).join(', ') || 'unbekannt';
+                     throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${kvForLog})`);
                 }
 
-                console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`); // Debugging-Ausgabe
+                console.log(`Sending ${method} request to ${url} for KV ${normalizeKvArray(entry.kv_nummern || entry.kv_nummer).join(', ')}`); // Debugging-Ausgabe
 
                 const r = await fetchWithRetry(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(entry)
                 });
-                if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+entry.kv_nummer+')')}: ${await r.text()}`);
+                const kvForMessage = normalizeKvArray(entry.kv_nummern || entry.kv_nummer).join(', ');
+                if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+kvForMessage+')')}: ${await r.text()}`);
                 await throttle();
             }
         }
@@ -2533,17 +2729,15 @@ async function handleLegacySalesImport() {
         let skippedCount = 0;
         
         // Verwende eine Kopie von window.entries für die Vorbereitung
-        const allEntriesCopy = JSON.parse(JSON.stringify(window.entries || []));
+        const allEntriesCopy = JSON.parse(JSON.stringify(window.entries || [])).map(entry => ensureEntryKvStructure(entry));
         const changesToPush = []; // Hier sammeln wir die vollen, geänderten Objekte
         
         const kvIndex = new Map();
         allEntriesCopy.forEach(entry => {
-            // Nur Fixaufträge indexieren
-            if (entry.kv_nummer && entry.projectType !== 'rahmen') {
-                kvIndex.set(entry.kv_nummer.trim(), { type: 'fix', entry: entry });
-            }
-             if (entry.kv && entry.projectType !== 'rahmen') {
-                kvIndex.set(entry.kv.trim(), { type: 'fix', entry: entry });
+            if (entry.projectType !== 'rahmen') {
+                normalizeKvArray(entry.kv_nummern ?? entry.kv_nummer ?? entry.kv).forEach(kv => {
+                    kvIndex.set(kv, { type: 'fix', entry: entry });
+                });
             }
         });
 
@@ -2965,11 +3159,18 @@ function initFromState(isEditing = false){
   const st=loadState();
   if(st?.input){
     const isEditFromHistory = !!st.editingId;
-    loadInputForm(st.input, isEditFromHistory);
+    const normalizedKv = normalizeKvArray(st.input.kvNummern ?? st.input.kvNummer);
+    const normalizedInput = {
+      ...st.input,
+      kvNummern: normalizedKv,
+      kvNummer: normalizedKv[0] || ''
+    };
+    loadInputForm(normalizedInput, isEditFromHistory);
+    saveState({ ...st, input: normalizedInput });
   } else {
     loadInputForm({}, false); // Ensure default freigabedatum is set
   }
-  updateWeightNote(); 
+  updateWeightNote();
 }
 
 // Warnung bei ungespeicherten Änderungen oder laufendem Batch
