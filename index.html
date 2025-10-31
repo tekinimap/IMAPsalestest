@@ -78,10 +78,6 @@
   .search-wrapper input {flex-grow:1;}
   .batch-actions { display: flex; gap: 10px; }
 
-  .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
-  .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
-  .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
-  
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
@@ -97,6 +93,112 @@
   .iconbtn svg { width: 20px; height: 20px; }
   .iconbtn[data-act="del"] svg{stroke-width:1.5;stroke:rgba(239,68,68,.8)}
   .iconbtn[data-act="edit"] svg{stroke-width:1.5}
+
+  /* Fixaufträge – kompaktere Tabelle */
+  #viewFixauftraege .table-wrapper{overflow-x:auto;}
+  #viewFixauftraege table{min-width:0;table-layout:fixed;}
+  #viewFixauftraege thead th{font-size:11px;padding:9px 10px;white-space:normal;}
+  #viewFixauftraege tbody td{padding:7px 10px;font-size:12px;white-space:normal;word-break:break-word;}
+  #viewFixauftraege th.col-check,#viewFixauftraege td.col-check{width:42px;padding-left:8px;padding-right:8px;}
+  #viewFixauftraege th[data-sort="projectNumber"],#viewFixauftraege td:nth-child(2){width:12%;}
+  #viewFixauftraege th[data-sort="title"],#viewFixauftraege td:nth-child(3){width:20%;}
+  #viewFixauftraege th[data-sort="client"],#viewFixauftraege td:nth-child(4){width:14%;}
+  #viewFixauftraege th[data-sort="source"],#viewFixauftraege td:nth-child(5){width:10%;}
+  #viewFixauftraege th[data-sort="submittedBy"],#viewFixauftraege td:nth-child(6){width:14%;}
+  #viewFixauftraege th:nth-child(7),#viewFixauftraege td:nth-child(7){width:8%;}
+  #viewFixauftraege th[data-sort="amount"],#viewFixauftraege td:nth-child(8),
+  #viewFixauftraege th.col-amount,#viewFixauftraege td.col-amount{width:7%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege th[data-sort="freigabedatum"],#viewFixauftraege td:nth-child(9),
+  #viewFixauftraege th.col-date,#viewFixauftraege td.col-date{width:7%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege td.col-amount,#viewFixauftraege td.col-date{font-variant-numeric:tabular-nums;}
+  #viewFixauftraege th:last-child{width:8%;}
+  #viewFixauftraege td.cell-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  #viewFixauftraege td.cell-actions .iconbtn{width:32px;height:32px;}
+  #viewFixauftraege td .status-wrapper{display:flex;align-items:center;gap:6px;}
+  #viewFixauftraege td .status-wrapper .status-indicator{flex:none;}
+  #viewFixauftraege td .status-wrapper span:last-child{flex:1;min-width:0;display:block;}
+  #viewFixauftraege .history-section-header td{
+    padding:9px 10px;
+    font-size:11px;
+    font-weight:700;
+    color:#cbd5e1;
+    background:#111a2d;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    border-top:1px solid rgba(148,163,184,.2);
+  }
+  #viewFixauftraege .history-section-header td span{
+    color:var(--muted);
+    font-weight:600;
+    text-transform:none;
+    letter-spacing:normal;
+  }
+  #viewFixauftraege .history-section-header .section-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 14px;
+    border-radius:999px;
+    background:rgba(15,23,42,.35);
+    color:#e2e8f0;
+    font-size:12px;
+    font-weight:700;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad{background:rgba(127,29,29,.25);border:1px solid rgba(248,113,113,.4);}
+  #viewFixauftraege .history-section-header .section-tag.ok{background:rgba(20,83,45,.25);border:1px solid rgba(74,222,128,.35);}
+  #viewFixauftraege .history-section-header .section-tag .section-title{font-weight:700;color:#f8fafc;display:inline-flex;align-items:center;}
+  #viewFixauftraege .history-section-header .section-tag .section-count{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:26px;
+    padding:3px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:600;
+    background:rgba(15,23,42,.45);
+    color:#cbd5e1;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad .section-count{background:rgba(127,29,29,.35);color:#fee2e2;}
+  #viewFixauftraege .history-section-header .section-tag.ok .section-count{background:rgba(20,83,45,.35);color:#bbf7d0;}
+  #viewFixauftraege .history-section-header .section-tag .section-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:rgba(15,23,42,.55);
+    font-size:12px;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad .section-icon{background:rgba(127,29,29,.55);color:#fff;}
+  #viewFixauftraege .history-section-header .section-tag.ok .section-icon{background:rgba(20,83,45,.55);color:#fff;}
+  #viewFixauftraege .status-indicator{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    margin-right:0;
+  }
+  #viewFixauftraege .status-indicator.ok{
+    background:rgba(34,197,94,.18);
+    border:1px solid rgba(34,197,94,.4);
+    color:#86efac;
+  }
+  #viewFixauftraege .status-indicator.bad{
+    background:rgba(239,68,68,.18);
+    border:1px solid rgba(239,68,68,.4);
+    color:#fecaca;
+  }
+  #viewFixauftraege .filter-group{display:flex;flex-direction:column;gap:4px;min-width:220px;}
+  #viewFixauftraege .filter-group label{font-size:12px;font-weight:600;color:var(--muted);margin:0;}
+  #viewFixauftraege select#personFilter{width:auto;min-width:220px;max-width:260px;padding:8px 12px;font-size:13px;}
 
   .chart{background:#0c1324;border:1px solid var(--border);border-radius:12px;padding:14px}
   .chart h3{margin:0 0 10px 0;font-size:15px;color:#cbd5e1}
@@ -321,9 +423,12 @@
     <div class="ct">
       <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
-        <select id="personFilter">
-          <option value="">Alle Personen</option>
-        </select>
+        <div class="filter-group">
+          <label for="personFilter">Einschätzung abgegeben oder abzugeben von:</label>
+          <select id="personFilter">
+            <option value="">Alle Personen</option>
+          </select>
+        </div>
         <div class="batch-actions">
             <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
             <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
@@ -341,9 +446,8 @@
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span></th>
-            <th style="width:14%">Status</th>
-            <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
-            <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
+            <th class="sortable col-amount" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
+            <th class="sortable col-date" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
             <th style="width:10%">Aktionen</th>
           </tr></thead>
           <tbody id="historyBody"></tbody>
@@ -1437,6 +1541,13 @@ function escapeHtml(str = '') {
     .replace(/'/g, '&#39;');
 }
 
+function buildStatusIndicator(ok) {
+  const variant = ok ? 'ok' : 'bad';
+  const label = ok ? 'Vollständig' : 'Unvollständig';
+  const symbol = ok ? '✓' : '!';
+  return `<span class="status-indicator ${variant}" aria-label="${label}" title="${label}">${symbol}</span>`;
+}
+
 function updatePersonFilterOptions() {
   if (!personFilter) return;
 
@@ -1488,25 +1599,52 @@ function renderHistory(){
   }
 
   const createRow = (entry, ok) => {
-    const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
     const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
+    const safeProjectNumber = escapeHtml(entry.projectNumber || '–');
+    const safeTitle = escapeHtml(entry.title || '–');
+    const safeClient = escapeHtml(entry.client || '–');
+    const safeSource = escapeHtml(entry.source || '–');
+    const safeSubmitted = escapeHtml(entry.submittedBy || '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${entry.id}"></td>
-      <td>${entry.projectNumber||'–'}</td><td>${entry.title||'–'}</td><td>${entry.client||'–'}</td><td>${entry.source||'–'}</td><td>${entry.submittedBy||'–'}</td><td>${status}</td>
-      <td>${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td>${datum}</td>
-      <td style="display:flex;gap:8px;align-items:center">
+      <td>${safeProjectNumber}</td><td><div class="status-wrapper">${buildStatusIndicator(ok)}<span>${safeTitle}</span></div></td><td>${safeClient}</td><td>${safeSource}</td><td>${safeSubmitted}</td>
+      <td class="col-amount">${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td class="col-date">${datum}</td>
+      <td class="cell-actions">
         <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
       </td>`;
     return tr;
   };
 
-  const appendSection = (title, entries) => {
+  const appendSection = (title, entries, variant) => {
+    if (!entries.length) return;
     const sectionFragment = document.createDocumentFragment();
     const headerRow = document.createElement('tr');
     headerRow.classList.add('history-section-header');
-    headerRow.innerHTML = `<td colspan="10">${title}</td>`;
+
+    const td = document.createElement('td');
+    td.colSpan = 9;
+
+    const badge = document.createElement('span');
+    badge.className = `section-tag ${variant}`;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'section-icon';
+    iconSpan.setAttribute('aria-hidden', 'true');
+    iconSpan.textContent = variant === 'bad' ? '!' : '✓';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'section-title';
+    titleSpan.textContent = title || '';
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'section-count';
+    countSpan.textContent = String(entries.length);
+
+    badge.append(iconSpan, titleSpan, countSpan);
+    td.appendChild(badge);
+    headerRow.appendChild(td);
     sectionFragment.appendChild(headerRow);
 
     for (const { entry, ok } of entries) {
@@ -1516,8 +1654,8 @@ function renderHistory(){
     historyBody.appendChild(sectionFragment);
   };
 
-  appendSection('Vollständig', groups.complete);
-  appendSection('Unvollständig', groups.incomplete);
+  appendSection('Unvollständig', groups.incomplete, 'bad');
+  appendSection('Vollständig', groups.complete, 'ok');
 
   document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
   updateBatchButtons();
