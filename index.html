@@ -77,6 +77,16 @@
   .search-wrapper{display:flex; gap:10px; margin-bottom:12px; align-items: center; flex-wrap: wrap;}
   .search-wrapper input {flex-grow:1;}
   .batch-actions { display: flex; gap: 10px; }
+  .merge-suggestions { background:#0b1220; border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+  .merge-suggestions-title { margin:0 0 8px; font-weight:600; font-size:13px; color:var(--muted); }
+  .merge-suggestions-list { display:flex; flex-direction:column; gap:8px; }
+  .merge-suggestion-item { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; background:#0d162a; border:1px solid rgba(148,163,184,.25); border-radius:10px; padding:10px 12px; }
+  .merge-suggestion-text { display:flex; flex-direction:column; gap:2px; font-size:13px; color:var(--text); }
+  .merge-suggestion-text strong { font-size:14px; }
+  .merge-suggestion-text span { color:var(--muted); font-size:12px; }
+  .merge-suggestion-detail { color:var(--muted); font-size:12px; }
+  .btn.tight { padding:8px 12px; font-size:13px; white-space:nowrap; }
+  #historyBody tr.merge-suggestion-highlight { outline:1px solid var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.35); }
 
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
@@ -458,6 +468,8 @@
             <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
         </div>
       </div>
+
+      <div id="mergeSuggestions" class="merge-suggestions hide"></div>
 
       <div class="table-wrapper">
         <table>
@@ -1437,6 +1449,7 @@ const btnXlsx=document.getElementById('btnXlsx');
 const btnBatchDelete=document.getElementById('btnBatchDelete');
 const btnMoveToFramework=document.getElementById('btnMoveToFramework');
 const btnMergeFixEntries=document.getElementById('btnMergeFixEntries');
+const mergeSuggestions=document.getElementById('mergeSuggestions');
 const mergeFixDlg=document.getElementById('mergeFixDlg');
 const mergeFixValidation=document.getElementById('mergeFixValidation');
 const mergeFixSelectionBody=document.getElementById('mergeFixSelectionBody');
@@ -1595,11 +1608,92 @@ function updatePersonFilterOptions() {
   }
 }
 
+function renderMergeSuggestions(list) {
+  if (!mergeSuggestions) return;
+
+  const groups = new Map();
+  (Array.isArray(list) ? list : []).forEach(entry => {
+    const projectNumber = (entry.projectNumber || '').trim();
+    if (!projectNumber) {
+      return;
+    }
+    if (!groups.has(projectNumber)) {
+      groups.set(projectNumber, []);
+    }
+    groups.get(projectNumber).push(entry);
+  });
+
+  const duplicates = Array.from(groups.entries()).filter(([, items]) => items.length >= 2);
+  mergeSuggestions.innerHTML = '';
+
+  if (!duplicates.length) {
+    mergeSuggestions.classList.add('hide');
+    return;
+  }
+
+  mergeSuggestions.classList.remove('hide');
+
+  const title = document.createElement('p');
+  title.className = 'merge-suggestions-title';
+  title.textContent = duplicates.length === 1
+    ? 'Hinweis: 1 Projektnummer taucht mehrfach auf. Jetzt zusammenführen?'
+    : `Hinweis: ${duplicates.length} Projektnummern tauchen mehrfach auf. Jetzt zusammenführen?`;
+  mergeSuggestions.appendChild(title);
+
+  const listEl = document.createElement('div');
+  listEl.className = 'merge-suggestions-list';
+
+  const collator = new Intl.Collator('de', { numeric: true, sensitivity: 'base' });
+  duplicates.sort((a, b) => collator.compare(a[0], b[0]));
+
+  duplicates.forEach(([projectNumber, items]) => {
+    const item = document.createElement('div');
+    item.className = 'merge-suggestion-item';
+
+    const textWrap = document.createElement('div');
+    textWrap.className = 'merge-suggestion-text';
+
+    const pnEl = document.createElement('strong');
+    pnEl.textContent = projectNumber;
+    textWrap.appendChild(pnEl);
+
+    const countSpan = document.createElement('span');
+    const count = items.length;
+    countSpan.textContent = count === 2 ? '2 passende Aufträge' : `${count} passende Aufträge`;
+    textWrap.appendChild(countSpan);
+
+    const titles = items.map(e => e.title).filter(Boolean);
+    if (titles.length) {
+      const detail = document.createElement('span');
+      detail.className = 'merge-suggestion-detail';
+      const preview = titles.slice(0, 2);
+      detail.textContent = preview.join(' · ') + (titles.length > 2 ? ' …' : '');
+      textWrap.appendChild(detail);
+    }
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn tight';
+    btn.textContent = 'Markieren & zusammenführen';
+    const ids = items.map(e => e.id);
+    btn.addEventListener('click', () => {
+      selectFixEntries(ids, true);
+    });
+
+    item.appendChild(textWrap);
+    item.appendChild(btn);
+    listEl.appendChild(item);
+  });
+
+  mergeSuggestions.appendChild(listEl);
+}
+
 function renderHistory(){
   historyBody.innerHTML='';
   updateSortIcons();
   updatePersonFilterOptions();
   const arr = filtered('fix');
+  renderMergeSuggestions(arr);
   let totalSum = 0;
 
   const groups = {
@@ -1680,6 +1774,42 @@ rahmenSearch.addEventListener('input', renderFrameworkContracts);
 
 function getSelectedFixIds() {
     return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
+}
+
+function selectFixEntries(ids = [], autoOpenMerge = false) {
+    const idSet = new Set(Array.isArray(ids) ? ids : []);
+    const highlightRows = [];
+
+    document.querySelectorAll('#historyBody tr').forEach(row => row.classList.remove('merge-suggestion-highlight'));
+
+    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+        const shouldSelect = idSet.has(cb.dataset.id);
+        cb.checked = shouldSelect;
+        if (shouldSelect) {
+            const row = cb.closest('tr');
+            if (row) {
+                highlightRows.push(row);
+            }
+        }
+    });
+
+    updateBatchButtons();
+
+    if (highlightRows.length) {
+        highlightRows.forEach(row => row.classList.add('merge-suggestion-highlight'));
+        highlightRows[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            highlightRows.forEach(row => row.classList.remove('merge-suggestion-highlight'));
+        }, 2000);
+    }
+
+    if (autoOpenMerge && ids.length >= 2) {
+        setTimeout(() => {
+            if (!btnMergeFixEntries.classList.contains('hide')) {
+                btnMergeFixEntries.click();
+            }
+        }, 100);
+    }
 }
 
 function updateBatchButtons() {
