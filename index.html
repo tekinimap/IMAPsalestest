@@ -321,6 +321,9 @@
     <div class="ct">
       <div class="search-wrapper">
         <input id="omniSearch" type="text" placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
+        <select id="personFilter">
+          <option value="">Alle Personen</option>
+        </select>
         <div class="batch-actions">
             <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
             <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
@@ -332,9 +335,11 @@
         <table>
           <thead><tr>
             <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
+            <th class="sortable" data-sort="projectNumber">Projektnummer<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
+            <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span></th>
             <th style="width:14%">Status</th>
             <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
@@ -1267,6 +1272,7 @@ function normalizeWeightsForUsed(allWeights, usedKeys){
 /* ---------- Übersicht & Rahmenverträge ---------- */
 const historyBody=document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
+const personFilter = document.getElementById('personFilter');
 const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
 const btnBatchDelete=document.getElementById('btnBatchDelete');
@@ -1304,7 +1310,13 @@ function filtered(type = 'fix'){
   const currentEntries = Array.isArray(window.entries) ? window.entries : []; // Sicherstellen, dass es ein Array ist
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
   const query = omniSearch.value.trim().toLowerCase();
-  
+  const selectedPerson = personFilter ? personFilter.value : '';
+
+  if (selectedPerson) {
+    const selectedLower = selectedPerson.toLowerCase();
+    arr = arr.filter(e => (e.submittedBy || '').toLowerCase() === selectedLower);
+  }
+
   if (query) {
       const terms = query.split(/\s+/);
       const filters = [];
@@ -1372,9 +1384,51 @@ function filtered(type = 'fix'){
   return arr;
 }
 
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function updatePersonFilterOptions() {
+  if (!personFilter) return;
+
+  const currentEntries = Array.isArray(window.entries) ? window.entries : [];
+  const names = new Map();
+
+  currentEntries
+    .filter(e => (e.projectType || 'fix') === 'fix')
+    .forEach(e => {
+      const name = (e.submittedBy || '').trim();
+      if (name && !names.has(name.toLowerCase())) {
+        names.set(name.toLowerCase(), name);
+      }
+    });
+
+  const previousValue = personFilter.value || '';
+  const sortedNames = Array.from(names.values()).sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+  const options = ['<option value="">Alle Personen</option>'];
+  sortedNames.forEach(name => {
+    const escaped = escapeHtml(name);
+    options.push(`<option value="${escaped}">${escaped}</option>`);
+  });
+  personFilter.innerHTML = options.join('');
+
+  if (previousValue) {
+    const match = sortedNames.find(name => name.toLowerCase() === previousValue.toLowerCase());
+    personFilter.value = match || '';
+  } else {
+    personFilter.value = '';
+  }
+}
+
 function renderHistory(){
-  historyBody.innerHTML=''; 
+  historyBody.innerHTML='';
   updateSortIcons();
+  updatePersonFilterOptions();
   const arr = filtered('fix');
   let totalSum = 0;
   
@@ -1386,7 +1440,7 @@ function renderHistory(){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
-      <td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${status}</td>
+      <td>${e.projectNumber||'–'}</td><td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${e.submittedBy||'–'}</td><td>${status}</td>
       <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
@@ -1399,6 +1453,9 @@ function renderHistory(){
   updateBatchButtons();
 }
 omniSearch.addEventListener('input', renderHistory);
+if (personFilter) {
+  personFilter.addEventListener('change', renderHistory);
+}
 rahmenSearch.addEventListener('input', renderFrameworkContracts);
 
 function getSelectedFixIds() {
@@ -1440,7 +1497,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
     } else {
       currentSort.key = key;
       // Default sort direction based on column type
-      currentSort.direction = (key === 'title' || key === 'client' || key === 'source') ? 'asc' : 'desc';
+      currentSort.direction = (key === 'title' || key === 'client' || key === 'source' || key === 'projectNumber' || key === 'submittedBy') ? 'asc' : 'desc';
     }
     renderHistory();
   });
