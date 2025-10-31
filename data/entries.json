@@ -2803,13 +2803,13 @@
     "title": "Praxisbegleitung für Führungsverantwortliche",
     "projectNumber": "BG Verkehr-03-001",
     "kv_nummer": "KV-2025-0018",
-    "amount": 25160,
+    "amount": 30410,
     "list": [
       {
         "key": "Bundes- und Landesbehörden Mitarbeiter:in",
         "name": "Bundes- und Landesbehörden Mitarbeiter:in",
         "pct": 100,
-        "money": 25160
+        "money": 30410
       }
     ],
     "rows": [
@@ -2842,7 +2842,7 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1761667755282,
+    "modified": 1761927579052,
     "kvNummern": [
       "KV-2025-0018"
     ],
