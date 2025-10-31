@@ -104,20 +104,34 @@
   #viewFixauftraege th[data-sort="title"],#viewFixauftraege td:nth-child(3){width:20%;}
   #viewFixauftraege th[data-sort="client"],#viewFixauftraege td:nth-child(4){width:14%;}
   #viewFixauftraege th[data-sort="source"],#viewFixauftraege td:nth-child(5){width:10%;}
-  #viewFixauftraege th[data-sort="submittedBy"],#viewFixauftraege td:nth-child(6){width:16%;}
-  #viewFixauftraege th.col-amount,#viewFixauftraege td.col-amount{width:9%;white-space:nowrap;text-align:right;}
-  #viewFixauftraege th.col-date,#viewFixauftraege td.col-date{width:9%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege th[data-sort="submittedBy"],#viewFixauftraege td:nth-child(6){width:14%;}
+  #viewFixauftraege th:nth-child(7),#viewFixauftraege td:nth-child(7){width:8%;}
+  #viewFixauftraege th[data-sort="amount"],#viewFixauftraege td:nth-child(8),
+  #viewFixauftraege th.col-amount,#viewFixauftraege td.col-amount{width:7%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege th[data-sort="freigabedatum"],#viewFixauftraege td:nth-child(9),
+  #viewFixauftraege th.col-date,#viewFixauftraege td.col-date{width:7%;white-space:nowrap;text-align:right;}
   #viewFixauftraege td.col-amount,#viewFixauftraege td.col-date{font-variant-numeric:tabular-nums;}
-  #viewFixauftraege th:last-child{width:10%;}
-  #viewFixauftraege td .status-wrapper{display:flex;align-items:center;}
-  #viewFixauftraege td .status-wrapper .status-indicator{flex:none;}
-  #viewFixauftraege td .status-wrapper span:last-child{flex:1;min-width:0;display:block;}
+  #viewFixauftraege th:last-child{width:8%;}
   #viewFixauftraege td.cell-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   #viewFixauftraege td.cell-actions .iconbtn{width:32px;height:32px;}
+  #viewFixauftraege td .status-wrapper{display:flex;align-items:center;gap:6px;}
+  #viewFixauftraege td .status-wrapper .status-indicator{flex:none;}
+  #viewFixauftraege td .status-wrapper span:last-child{flex:1;min-width:0;display:block;}
   #viewFixauftraege .history-section-header td{
-    padding:16px 12px 6px;
-    background:transparent;
-    border-top:1px solid var(--border);
+    padding:9px 10px;
+    font-size:11px;
+    font-weight:700;
+    color:#cbd5e1;
+    background:#111a2d;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    border-top:1px solid rgba(148,163,184,.2);
+  }
+  #viewFixauftraege .history-section-header td span{
+    color:var(--muted);
+    font-weight:600;
+    text-transform:none;
+    letter-spacing:normal;
   }
   #viewFixauftraege .history-section-header .section-tag{
     display:inline-flex;
@@ -125,15 +139,16 @@
     gap:8px;
     padding:6px 14px;
     border-radius:999px;
+    background:rgba(15,23,42,.35);
+    color:#e2e8f0;
     font-size:12px;
     font-weight:700;
-    letter-spacing:0.01em;
     text-transform:none;
+    letter-spacing:0;
   }
-  #viewFixauftraege .history-section-header .section-tag .section-title{
-    display:inline-flex;
-    align-items:center;
-  }
+  #viewFixauftraege .history-section-header .section-tag.bad{background:rgba(127,29,29,.25);border:1px solid rgba(248,113,113,.4);}
+  #viewFixauftraege .history-section-header .section-tag.ok{background:rgba(20,83,45,.25);border:1px solid rgba(74,222,128,.35);}
+  #viewFixauftraege .history-section-header .section-tag .section-title{font-weight:700;color:#f8fafc;display:inline-flex;align-items:center;}
   #viewFixauftraege .history-section-header .section-tag .section-count{
     display:inline-flex;
     align-items:center;
@@ -143,26 +158,11 @@
     border-radius:999px;
     font-size:11px;
     font-weight:600;
-    letter-spacing:normal;
+    background:rgba(15,23,42,.45);
+    color:#cbd5e1;
   }
-  #viewFixauftraege .history-section-header .section-tag.bad{
-    background:rgba(239,68,68,.18);
-    border:1px solid rgba(239,68,68,.35);
-    color:#fecaca;
-  }
-  #viewFixauftraege .history-section-header .section-tag.bad .section-count{
-    background:rgba(239,68,68,.35);
-    color:#fff;
-  }
-  #viewFixauftraege .history-section-header .section-tag.ok{
-    background:rgba(34,197,94,.16);
-    border:1px solid rgba(34,197,94,.32);
-    color:#bbf7d0;
-  }
-  #viewFixauftraege .history-section-header .section-tag.ok .section-count{
-    background:rgba(34,197,94,.32);
-    color:#052e16;
-  }
+  #viewFixauftraege .history-section-header .section-tag.bad .section-count{background:rgba(127,29,29,.35);color:#fee2e2;}
+  #viewFixauftraege .history-section-header .section-tag.ok .section-count{background:rgba(20,83,45,.35);color:#bbf7d0;}
   #viewFixauftraege .history-section-header .section-tag .section-icon{
     display:inline-flex;
     align-items:center;
@@ -170,11 +170,11 @@
     width:18px;
     height:18px;
     border-radius:50%;
-    background:rgba(15,23,36,.45);
+    background:rgba(15,23,42,.55);
     font-size:12px;
   }
-  #viewFixauftraege .history-section-header .section-tag.bad .section-icon{background:rgba(127,29,29,.65);color:#fff;}
-  #viewFixauftraege .history-section-header .section-tag.ok .section-icon{background:rgba(20,83,45,.65);color:#fff;}
+  #viewFixauftraege .history-section-header .section-tag.bad .section-icon{background:rgba(127,29,29,.55);color:#fff;}
+  #viewFixauftraege .history-section-header .section-tag.ok .section-icon{background:rgba(20,83,45,.55);color:#fff;}
   #viewFixauftraege .status-indicator{
     display:inline-flex;
     align-items:center;
@@ -184,7 +184,7 @@
     border-radius:999px;
     font-size:12px;
     font-weight:700;
-    margin-right:6px;
+    margin-right:0;
   }
   #viewFixauftraege .status-indicator.ok{
     background:rgba(34,197,94,.18);
@@ -1622,17 +1622,28 @@ function renderHistory(){
     const sectionFragment = document.createDocumentFragment();
     const headerRow = document.createElement('tr');
     headerRow.classList.add('history-section-header');
+
     const td = document.createElement('td');
     td.colSpan = 9;
 
-    const safeTitle = escapeHtml(title);
-    td.innerHTML = `
-      <span class="section-tag ${variant}">
-        <span class="section-icon" aria-hidden="true">${variant === 'bad' ? '!' : '✓'}</span>
-        <span class="section-title">${safeTitle}</span>
-        <span class="section-count">${entries.length}</span>
-      </span>
-    `;
+    const badge = document.createElement('span');
+    badge.className = `section-tag ${variant}`;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'section-icon';
+    iconSpan.setAttribute('aria-hidden', 'true');
+    iconSpan.textContent = variant === 'bad' ? '!' : '✓';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'section-title';
+    titleSpan.textContent = title || '';
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'section-count';
+    countSpan.textContent = String(entries.length);
+
+    badge.append(iconSpan, titleSpan, countSpan);
+    td.appendChild(badge);
     headerRow.appendChild(td);
     sectionFragment.appendChild(headerRow);
 
