@@ -104,6 +104,98 @@
   #viewFixauftraege th[data-sort="title"],#viewFixauftraege td:nth-child(3){width:20%;}
   #viewFixauftraege th[data-sort="client"],#viewFixauftraege td:nth-child(4){width:14%;}
   #viewFixauftraege th[data-sort="source"],#viewFixauftraege td:nth-child(5){width:10%;}
+  #viewFixauftraege th[data-sort="submittedBy"],#viewFixauftraege td:nth-child(6){width:16%;}
+  #viewFixauftraege th.col-amount,#viewFixauftraege td.col-amount{width:9%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege th.col-date,#viewFixauftraege td.col-date{width:9%;white-space:nowrap;text-align:right;}
+  #viewFixauftraege td.col-amount,#viewFixauftraege td.col-date{font-variant-numeric:tabular-nums;}
+  #viewFixauftraege th:last-child{width:10%;}
+  #viewFixauftraege td .status-wrapper{display:flex;align-items:center;}
+  #viewFixauftraege td .status-wrapper .status-indicator{flex:none;}
+  #viewFixauftraege td .status-wrapper span:last-child{flex:1;min-width:0;display:block;}
+  #viewFixauftraege td.cell-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  #viewFixauftraege td.cell-actions .iconbtn{width:32px;height:32px;}
+  #viewFixauftraege .history-section-header td{
+    padding:16px 12px 6px;
+    background:transparent;
+    border-top:1px solid var(--border);
+  }
+  #viewFixauftraege .history-section-header .section-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    text-transform:none;
+  }
+  #viewFixauftraege .history-section-header .section-tag .section-title{
+    display:inline-flex;
+    align-items:center;
+  }
+  #viewFixauftraege .history-section-header .section-tag .section-count{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:26px;
+    padding:3px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:normal;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad{
+    background:rgba(239,68,68,.18);
+    border:1px solid rgba(239,68,68,.35);
+    color:#fecaca;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad .section-count{
+    background:rgba(239,68,68,.35);
+    color:#fff;
+  }
+  #viewFixauftraege .history-section-header .section-tag.ok{
+    background:rgba(34,197,94,.16);
+    border:1px solid rgba(34,197,94,.32);
+    color:#bbf7d0;
+  }
+  #viewFixauftraege .history-section-header .section-tag.ok .section-count{
+    background:rgba(34,197,94,.32);
+    color:#052e16;
+  }
+  #viewFixauftraege .history-section-header .section-tag .section-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:rgba(15,23,36,.45);
+    font-size:12px;
+  }
+  #viewFixauftraege .history-section-header .section-tag.bad .section-icon{background:rgba(127,29,29,.65);color:#fff;}
+  #viewFixauftraege .history-section-header .section-tag.ok .section-icon{background:rgba(20,83,45,.65);color:#fff;}
+  #viewFixauftraege .status-indicator{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    margin-right:6px;
+  }
+  #viewFixauftraege .status-indicator.ok{
+    background:rgba(34,197,94,.18);
+    border:1px solid rgba(34,197,94,.4);
+    color:#86efac;
+  }
+  #viewFixauftraege .status-indicator.bad{
+    background:rgba(239,68,68,.18);
+    border:1px solid rgba(239,68,68,.4);
+    color:#fecaca;
+  }
   #viewFixauftraege th[data-sort="submittedBy"],#viewFixauftraege td:nth-child(6){width:14%;}
   #viewFixauftraege th:nth-child(7),#viewFixauftraege td:nth-child(7){width:8%;}
   #viewFixauftraege th[data-sort="amount"],#viewFixauftraege td:nth-child(8){width:7%;}
@@ -1522,11 +1614,19 @@ function renderHistory(){
   }
 
   const createRow = (entry, ok) => {
+    const statusIndicator = `<span class="status-indicator ${ok ? 'ok' : 'bad'}" aria-label="${ok ? 'Vollständig' : 'Unvollständig'}" title="${ok ? 'Vollständig' : 'Unvollständig'}">${ok ? '✓' : '!'}</span>`;
     const statusIndicator = `<span class="status-indicator ${ok ? 'ok' : 'bad'}" title="${ok ? 'Vollständig' : 'Unvollständig'}">${ok ? '✓' : '!'}</span>`;
     const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
+    const safeProjectNumber = escapeHtml(entry.projectNumber || '–');
+    const safeTitle = escapeHtml(entry.title || '–');
+    const safeClient = escapeHtml(entry.client || '–');
+    const safeSource = escapeHtml(entry.source || '–');
+    const safeSubmitted = escapeHtml(entry.submittedBy || '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${entry.id}"></td>
+      <td>${safeProjectNumber}</td><td><div class="status-wrapper">${statusIndicator}<span>${safeTitle}</span></div></td><td>${safeClient}</td><td>${safeSource}</td><td>${safeSubmitted}</td>
+      <td class="col-amount">${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td class="col-date">${datum}</td>
       <td>${entry.projectNumber||'–'}</td><td>${entry.title||'–'}</td><td>${entry.client||'–'}</td><td>${entry.source||'–'}</td><td>${entry.submittedBy||'–'}</td><td>${status}</td>
       <td>${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td>${datum}</td>
       <td class="cell-actions">
@@ -1536,11 +1636,24 @@ function renderHistory(){
     return tr;
   };
 
+  const appendSection = (title, entries, variant) => {
   const appendSection = (title, entries) => {
     if (!entries.length) return;
     const sectionFragment = document.createDocumentFragment();
     const headerRow = document.createElement('tr');
     headerRow.classList.add('history-section-header');
+    const td = document.createElement('td');
+    td.colSpan = 9;
+
+    const safeTitle = escapeHtml(title);
+    td.innerHTML = `
+      <span class="section-tag ${variant}">
+        <span class="section-icon" aria-hidden="true">${variant === 'bad' ? '!' : '✓'}</span>
+        <span class="section-title">${safeTitle}</span>
+        <span class="section-count">${entries.length}</span>
+      </span>
+    `;
+    headerRow.appendChild(td);
     headerRow.innerHTML = `<td colspan="10">${title} <span>(${entries.length})</span></td>`;
     sectionFragment.appendChild(headerRow);
 
@@ -1551,6 +1664,8 @@ function renderHistory(){
     historyBody.appendChild(sectionFragment);
   };
 
+  appendSection('Unvollständig', groups.incomplete, 'bad');
+  appendSection('Vollständig', groups.complete, 'ok');
   appendSection('Unvollständig', groups.incomplete);
   appendSection('Vollständig', groups.complete);
 
