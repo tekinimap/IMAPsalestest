@@ -78,6 +78,17 @@
   .search-wrapper input {flex-grow:1;}
   .batch-actions { display: flex; gap: 10px; }
 
+  .merge-suggestions { margin-bottom: 16px; display: none; flex-direction: column; gap: 12px; }
+  .merge-suggestions.visible { display: flex; }
+  .merge-suggestion { display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border); background: var(--panel2); padding: 14px 16px; border-radius: 12px; }
+  .merge-suggestion-header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .merge-suggestion h3 { margin: 0; font-size: 16px; }
+  .merge-suggestion p { margin: 0; color: var(--muted); font-size: 13px; }
+  .merge-suggestion-list { margin: 6px 0 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .merge-suggestion-list li { margin-bottom: 4px; }
+  .merge-suggestion-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .merge-suggestion-actions .btn { font-size: 13px; padding: 8px 12px; }
+
   .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
   .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
   .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
@@ -331,6 +342,8 @@
             <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
         </div>
       </div>
+
+      <div id="mergeSuggestionPanel" class="merge-suggestions"></div>
 
       <div class="table-wrapper">
         <table>
@@ -1318,6 +1331,44 @@ const mergeFixListBody=document.getElementById('mergeFixListBody');
 const mergeFixProjectNumber=document.getElementById('mergeFixProjectNumber');
 const mergeFixPreview=document.getElementById('mergeFixPreview');
 const mergeFixTotal=document.getElementById('mergeFixTotal');
+const mergeSuggestionPanel = document.getElementById('mergeSuggestionPanel');
+
+const MERGE_SUGGESTION_STORAGE_KEY = 'salesTool.dismissedMergeSuggestions';
+const mergeSuggestionStorageAvailable = (() => {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return false;
+    const testKey = '__mergeSuggestionTest__';
+    window.localStorage.setItem(testKey, '1');
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch (err) {
+    console.warn('Lokaler Speicher nicht verfügbar:', err);
+    return false;
+  }
+})();
+
+let dismissedMergeSuggestions = new Set();
+if (mergeSuggestionStorageAvailable) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(MERGE_SUGGESTION_STORAGE_KEY) || '[]');
+    if (Array.isArray(stored)) {
+      dismissedMergeSuggestions = new Set(stored.filter(Boolean));
+    }
+  } catch (err) {
+    console.warn('Konnte Merge-Vorschlags-Status nicht laden:', err);
+  }
+}
+
+let currentMergeSuggestions = new Map();
+
+function persistDismissedMergeSuggestions() {
+  if (!mergeSuggestionStorageAvailable) return;
+  try {
+    localStorage.setItem(MERGE_SUGGESTION_STORAGE_KEY, JSON.stringify(Array.from(dismissedMergeSuggestions)));
+  } catch (err) {
+    console.warn('Konnte Merge-Vorschlags-Status nicht speichern:', err);
+  }
+}
 const btnMergeFixCancel=document.getElementById('btnMergeFixCancel');
 const btnMergeFixConfirm=document.getElementById('btnMergeFixConfirm');
 const checkAllFix=document.getElementById('checkAllFix');
@@ -1437,6 +1488,117 @@ function escapeHtml(str = '') {
     .replace(/'/g, '&#39;');
 }
 
+function formatKvList(entry) {
+  if (!entry) return '–';
+  const kvs = Array.isArray(entry.kvNummern)
+    ? entry.kvNummern.filter(kv => typeof kv === 'string' && kv.trim().length > 0)
+    : [];
+  if (kvs.length > 0) {
+    return kvs.join(', ');
+  }
+  const fallback = entry.kv_nummer || entry.kv || '';
+  return fallback ? String(fallback) : '–';
+}
+
+function makeSuggestionKey(projectNumber, entries) {
+  const pn = (projectNumber || '').trim().toLowerCase();
+  const ids = (entries || []).map(e => e.id).filter(Boolean).sort().join('|');
+  return `${pn}#${ids}`;
+}
+
+function markSuggestedRows(entryIds) {
+  if (!Array.isArray(entryIds) || entryIds.length === 0) return;
+  const ids = new Set(entryIds);
+  document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+    cb.checked = ids.has(cb.dataset.id);
+  });
+  updateBatchButtons();
+}
+
+function openMergeSuggestionDialog(suggestion) {
+  if (!suggestion || !Array.isArray(suggestion.entries) || suggestion.entries.length < 2) {
+    showToast('Nicht genügend Aufträge für einen Merge-Vorschlag.', 'warn');
+    return;
+  }
+  markSuggestedRows(suggestion.entries.map(e => e.id));
+  const context = prepareMergeContext(suggestion.entries);
+  if (context.error) {
+    showToast(context.error, 'bad');
+    return;
+  }
+  currentMergeContext = context;
+  renderMergeDialog(context);
+  mergeFixDlg.showModal();
+}
+
+function renderMergeSuggestions() {
+  if (!mergeSuggestionPanel) return;
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  const fixEntries = allEntries.filter(e => (e.projectType || 'fix') === 'fix');
+  const grouped = new Map();
+
+  fixEntries.forEach(entry => {
+    const pnRaw = (entry.projectNumber || '').trim();
+    if (!pnRaw) return;
+    const pnKey = pnRaw.toLowerCase();
+    if (!grouped.has(pnKey)) {
+      grouped.set(pnKey, { projectNumber: pnRaw, entries: [] });
+    }
+    grouped.get(pnKey).entries.push(entry);
+  });
+
+  const suggestionBlocks = [];
+  currentMergeSuggestions = new Map();
+
+  for (const group of grouped.values()) {
+    if (group.entries.length < 2) continue;
+    const sortedEntries = [...group.entries].sort((a, b) => {
+      const aTs = Number.isFinite(a.freigabedatum) ? a.freigabedatum : (a.modified || a.ts || 0);
+      const bTs = Number.isFinite(b.freigabedatum) ? b.freigabedatum : (b.modified || b.ts || 0);
+      return aTs - bTs;
+    });
+    const suggestionKey = makeSuggestionKey(group.projectNumber, sortedEntries);
+    if (dismissedMergeSuggestions.has(suggestionKey)) continue;
+
+    currentMergeSuggestions.set(suggestionKey, { projectNumber: group.projectNumber, entries: sortedEntries });
+
+    const totalAmount = sortedEntries.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+    const listItems = sortedEntries.map(entry => {
+      const title = escapeHtml(entry.title || '–');
+      const kvList = escapeHtml(formatKvList(entry));
+      const amount = entry.amount ? fmtCurr2.format(entry.amount) : '–';
+      const statusLabel = autoComplete(entry) ? 'vollständig' : 'unvollständig';
+      return `<li><strong>${title}</strong> · KV: ${kvList} · Status: ${statusLabel} · Wert: ${amount}</li>`;
+    }).join('');
+
+    const infoText = `${sortedEntries.length} Fixaufträge teilen sich diese Projektnummer (${fmtCurr2.format(totalAmount)} Gesamtwert).`;
+
+    suggestionBlocks.push(`
+      <div class="merge-suggestion" data-key="${escapeHtml(suggestionKey)}">
+        <div class="merge-suggestion-header">
+          <div>
+            <h3>Zusammenführung vorgeschlagen: Projektnummer ${escapeHtml(group.projectNumber)}</h3>
+            <p>${infoText}</p>
+          </div>
+        </div>
+        <ul class="merge-suggestion-list">${listItems}</ul>
+        <div class="merge-suggestion-actions">
+          <button class="btn primary" data-act="suggest-merge" data-key="${escapeHtml(suggestionKey)}">Aufträge prüfen &amp; zusammenführen</button>
+          <button class="btn" data-act="suggest-dismiss" data-key="${escapeHtml(suggestionKey)}">Ablehnen</button>
+        </div>
+      </div>
+    `);
+  }
+
+  if (suggestionBlocks.length === 0) {
+    mergeSuggestionPanel.innerHTML = '';
+    mergeSuggestionPanel.classList.remove('visible');
+  } else {
+    mergeSuggestionPanel.innerHTML = suggestionBlocks.join('');
+    mergeSuggestionPanel.classList.add('visible');
+  }
+}
+
 function updatePersonFilterOptions() {
   if (!personFilter) return;
 
@@ -1492,9 +1654,9 @@ function renderHistory(){
     const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td class="col-check"><input type="checkbox" class="row-check" data-id="${e.id}"></td>
-      <td>${e.projectNumber||'–'}</td><td>${e.title||'–'}</td><td>${e.client||'–'}</td><td>${e.source||'–'}</td><td>${e.submittedBy||'–'}</td><td>${status}</td>
-      <td>${e.amount?fmtCurr2.format(e.amount):'–'}</td><td>${datum}</td>
+      <td class="col-check"><input type="checkbox" class="row-check" data-id="${entry.id}"></td>
+      <td>${entry.projectNumber||'–'}</td><td>${entry.title||'–'}</td><td>${entry.client||'–'}</td><td>${entry.source||'–'}</td><td>${entry.submittedBy||'–'}</td><td>${status}</td>
+      <td>${entry.amount?fmtCurr2.format(entry.amount):'–'}</td><td>${datum}</td>
       <td style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -1506,7 +1668,7 @@ function renderHistory(){
     const sectionFragment = document.createDocumentFragment();
     const headerRow = document.createElement('tr');
     headerRow.classList.add('history-section-header');
-    headerRow.innerHTML = `<td colspan="8">${title}</td>`;
+    headerRow.innerHTML = `<td colspan="10">${title}</td>`;
     sectionFragment.appendChild(headerRow);
 
     for (const { entry, ok } of entries) {
@@ -1521,6 +1683,7 @@ function renderHistory(){
 
   document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
   updateBatchButtons();
+  renderMergeSuggestions();
 }
 omniSearch.addEventListener('input', renderHistory);
 if (personFilter) {
@@ -1573,6 +1736,32 @@ historyBody.addEventListener('change', (ev) => {
         updateBatchButtons();
     }
 });
+
+if (mergeSuggestionPanel) {
+    mergeSuggestionPanel.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('button[data-act]');
+        if (!btn) return;
+        const action = btn.dataset.act;
+        const key = btn.dataset.key;
+
+        if (action === 'suggest-dismiss' && key) {
+            dismissedMergeSuggestions.add(key);
+            persistDismissedMergeSuggestions();
+            renderMergeSuggestions();
+            return;
+        }
+
+        if (action === 'suggest-merge' && key) {
+            const suggestion = currentMergeSuggestions.get(key);
+            if (!suggestion) {
+                renderMergeSuggestions();
+                showToast('Dieser Vorschlag ist nicht mehr verfügbar.', 'warn');
+                return;
+            }
+            openMergeSuggestionDialog(suggestion);
+        }
+    });
+}
 
 btnMergeFixEntries.addEventListener('click', () => {
     const selectedIds = getSelectedFixIds();
