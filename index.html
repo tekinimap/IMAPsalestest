@@ -78,10 +78,6 @@
   .search-wrapper input {flex-grow:1;}
   .batch-actions { display: flex; gap: 10px; }
 
-  .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
-  .status.ok{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.4);color:#86efac}
-  .status.bad{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fecaca}
-  
   th.sortable{cursor:pointer;}
   th.sortable:hover{background-color: var(--panel2);}
   th .sort-icon{display:inline-block; width:1em; opacity:0.5;}
@@ -380,9 +376,8 @@
             <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span></th>
-            <th style="width:14%">Status</th>
-            <th class="sortable" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
-            <th class="sortable" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
+            <th class="sortable col-amount" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
+            <th class="sortable col-date" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
             <th style="width:10%">Aktionen</th>
           </tr></thead>
           <tbody id="historyBody"></tbody>
@@ -1527,7 +1522,7 @@ function renderHistory(){
   }
 
   const createRow = (entry, ok) => {
-    const status=`<span class="status ${ok?'ok':'bad'}">${ok?'vollständig':'unvollständig'}</span>`;
+    const statusIndicator = `<span class="status-indicator ${ok ? 'ok' : 'bad'}" title="${ok ? 'Vollständig' : 'Unvollständig'}">${ok ? '✓' : '!'}</span>`;
     const datum = entry.freigabedatum ? new Date(entry.freigabedatum).toLocaleDateString('de-DE') : (entry.ts ? new Date(entry.ts).toLocaleDateString('de-DE') : '–');
     const tr=document.createElement('tr');
     tr.innerHTML=`
