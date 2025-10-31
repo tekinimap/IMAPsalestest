@@ -10730,11 +10730,14 @@
       }
     ],
     "submittedBy": "Philipp Breer",
-    "projectNumber": "",
-    "kv_nummer": "",
+    "projectNumber": "Lahn-Dill-02-001",
+    "kv_nummer": "KV-2025-0300",
     "freigabedatum": 1761868800000,
-    "ts": 1761916604017,
-    "kvNummern": [],
-    "kv": ""
+    "ts": 1761916644405,
+    "kvNummern": [
+      "KV-2025-0300"
+    ],
+    "kv": "KV-2025-0300",
+    "modified": 1761916644762
   }
 ]
