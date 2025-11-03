@@ -72,9 +72,57 @@
         "amount": 1925,
         "ts": 1761664649070,
         "freigabedatum": 1761091200000
+      },
+      {
+        "id": "trans_1762176059208_KV-000-0000",
+        "kv_nummer": "KV-000-0000",
+        "type": "hunter",
+        "title": "Abruf 01",
+        "amount": 100000,
+        "ts": 1762176059208,
+        "freigabedatum": 1762128000000,
+        "submittedBy": "Lotta Burron",
+        "rows": [
+          {
+            "personId": "p_pi_ev_10",
+            "name": "Sophia Braun",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          },
+          {
+            "personId": null,
+            "name": "",
+            "cs": 0,
+            "konzept": 0,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Sophia Braun",
+            "name": "Sophia Braun",
+            "pct": 100,
+            "money": 80000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 100
+          },
+          {
+            "key": "konzept",
+            "weight": 0
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ]
       }
     ],
-    "modified": 1761664685831,
+    "modified": 1762176059956,
     "kvNummern": [],
     "kv": ""
   },
