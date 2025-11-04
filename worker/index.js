@@ -35,6 +35,20 @@ function b64encodeUtf8(str) {
   }
 }
 function b64decodeUtf8(b64){ try { return decodeURIComponent(escape(atob(b64))); } catch { return atob(b64); } }
+function base64ToUint8Array(value){
+  if (!value) return null;
+  try {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = "=".repeat((4 - (normalized.length % 4)) % 4);
+    const binary = atob(normalized + padding);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  } catch (err) {
+    console.error("Failed to decode base64 signature", err);
+    return null;
+  }
+}
 function ghHeaders(env){ return {
   "Authorization": `Bearer ${env.GH_TOKEN || env.GITHUB_TOKEN}`,
   "Accept": "application/vnd.github+json",
@@ -196,7 +210,56 @@ async function appendFile(env, path, text, message) { let tries = 0; const maxTr
 async function logJSONL(env, events){ if (!events || !events.length) return; const dateStr = todayStr(); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env); const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = events.map(e => JSON.stringify({ ts: Date.now(), ...e })).join("\n") + "\n"; try { await appendFile(env, path, text, `log ${events.length} events`); } catch (logErr) { console.error(`Failed to write to log file ${path}:`, logErr); } }
 
 /* ------------------------ HubSpot ------------------------ */
-async function verifyHubSpotSignatureV3(request, env, rawBody) { const sig = request.headers.get("X-HubSpot-Signature-V3") || ""; const ts = request.headers.get("X-HubSpot-Request-Timestamp") || ""; const secret = env.HUBSPOT_APP_SECRET; if (!secret || !sig || !ts) return false; const u = new URL(request.url); const data = ts + request.method + u.pathname + (u.search || "") + (rawBody || ""); const enc = new TextEncoder(); const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]); const signature = await crypto.subtle.sign("HMAC", key, enc.encode(data)); const actual = btoa(String.fromCharCode(...new Uint8Array(signature))); return actual === sig; }
+async function verifyHubSpotSignatureV3(request, env, rawBody) {
+  const sigHeader = (request.headers.get("X-HubSpot-Signature-V3") || "").trim();
+  const ts = (request.headers.get("X-HubSpot-Request-Timestamp") || "").trim();
+  const secret = (env.HUBSPOT_APP_SECRET || "").trim();
+  if (!secret) {
+    console.error("HubSpot signature check failed: missing HUBSPOT_APP_SECRET");
+    return false;
+  }
+  if (!sigHeader) {
+    console.error("HubSpot signature check failed: missing X-HubSpot-Signature-V3 header");
+    return false;
+  }
+  if (!ts) {
+    console.error("HubSpot signature check failed: missing X-HubSpot-Request-Timestamp header");
+    return false;
+  }
+
+  const provided = base64ToUint8Array(sigHeader);
+  if (!provided) {
+    console.error("HubSpot signature check failed: signature header is not valid base64");
+    return false;
+  }
+
+  const u = new URL(request.url);
+  const method = request.method.toUpperCase();
+  const pathAndQuery = u.pathname + (u.search || "");
+  const originAndPath = u.origin + pathAndQuery;
+  const body = rawBody || "";
+  const candidates = [
+    ts + method + pathAndQuery + body,
+    ts + method + originAndPath + body,
+    method + pathAndQuery + body + ts,
+    method + originAndPath + body + ts,
+  ];
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const previews = [];
+  for (const data of candidates) {
+    const expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(data)));
+    if (expected.byteLength === provided.byteLength) {
+      let mismatch = 0;
+      for (let i = 0; i < expected.length; i++) mismatch |= expected[i] ^ provided[i];
+      if (mismatch === 0) return true;
+    }
+    previews.push(btoa(String.fromCharCode(...expected)).slice(0, 8));
+  }
+  const providedPreview = btoa(String.fromCharCode(...provided)).slice(0, 8);
+  console.error("HubSpot signature mismatch", { candidates: candidates.length, candidatePreviews: previews, providedPreview });
+  return false;
+}
 async function hsFetchDeal(dealId, env) { if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing"); const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,amount,dealstage,closedate,hs_object_id,pipeline`; const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } }); if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`); return r.json(); }
 function upsertByHubSpotId(entries, deal) {
   const id = String(deal?.id || deal?.properties?.hs_object_id || "");
