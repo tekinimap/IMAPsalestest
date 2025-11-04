@@ -49,6 +49,23 @@ function base64ToUint8Array(value){
     return null;
   }
 }
+function hexToUint8Array(value){
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!/^[0-9a-fA-F]+$/.test(trimmed) || trimmed.length % 2 !== 0) return null;
+  const bytes = new Uint8Array(trimmed.length / 2);
+  for (let i = 0; i < trimmed.length; i += 2) bytes[i / 2] = parseInt(trimmed.slice(i, i + 2), 16);
+  return bytes;
+}
+function uint8ArrayToHex(bytes){
+  return Array.from(bytes || []).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function timingSafeEqualBytes(a, b){
+  if (!a || !b || a.byteLength !== b.byteLength) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.byteLength; i++) mismatch |= a[i] ^ b[i];
+  return mismatch === 0;
+}
 function ghHeaders(env){ return {
   "Authorization": `Bearer ${env.GH_TOKEN || env.GITHUB_TOKEN}`,
   "Accept": "application/vnd.github+json",
@@ -211,53 +228,75 @@ async function logJSONL(env, events){ if (!events || !events.length) return; con
 
 /* ------------------------ HubSpot ------------------------ */
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
-  const sigHeader = (request.headers.get("X-HubSpot-Signature-V3") || "").trim();
-  const ts = (request.headers.get("X-HubSpot-Request-Timestamp") || "").trim();
   const secret = (env.HUBSPOT_APP_SECRET || "").trim();
   if (!secret) {
     console.error("HubSpot signature check failed: missing HUBSPOT_APP_SECRET");
     return false;
   }
-  if (!sigHeader) {
-    console.error("HubSpot signature check failed: missing X-HubSpot-Signature-V3 header");
-    return false;
-  }
-  if (!ts) {
-    console.error("HubSpot signature check failed: missing X-HubSpot-Request-Timestamp header");
-    return false;
-  }
 
-  const provided = base64ToUint8Array(sigHeader);
-  if (!provided) {
-    console.error("HubSpot signature check failed: signature header is not valid base64");
-    return false;
-  }
-
-  const u = new URL(request.url);
   const method = request.method.toUpperCase();
+  const u = new URL(request.url);
   const pathAndQuery = u.pathname + (u.search || "");
   const originAndPath = u.origin + pathAndQuery;
   const body = rawBody || "";
-  const candidates = [
-    ts + method + pathAndQuery + body,
-    ts + method + originAndPath + body,
-    method + pathAndQuery + body + ts,
-    method + originAndPath + body + ts,
-  ];
   const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const previews = [];
-  for (const data of candidates) {
-    const expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(data)));
-    if (expected.byteLength === provided.byteLength) {
-      let mismatch = 0;
-      for (let i = 0; i < expected.length; i++) mismatch |= expected[i] ^ provided[i];
-      if (mismatch === 0) return true;
+
+  const sigV3Header = (request.headers.get("X-HubSpot-Signature-V3") || "").trim();
+  const ts = (request.headers.get("X-HubSpot-Request-Timestamp") || "").trim();
+  if (sigV3Header && ts) {
+    const provided = base64ToUint8Array(sigV3Header);
+    if (provided) {
+      const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const candidates = [
+        ts + method + pathAndQuery + body,
+        ts + method + originAndPath + body,
+        method + pathAndQuery + body + ts,
+        method + originAndPath + body + ts,
+      ];
+      const previews = [];
+      for (const data of candidates) {
+        const expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(data)));
+        if (timingSafeEqualBytes(expected, provided)) return true;
+        previews.push(btoa(String.fromCharCode(...expected)).slice(0, 8));
+      }
+      const providedPreview = btoa(String.fromCharCode(...provided)).slice(0, 8);
+      console.error("HubSpot signature mismatch (v3)", { candidates: candidates.length, candidatePreviews: previews, providedPreview });
+    } else {
+      console.error("HubSpot signature check failed: signature header is not valid base64");
     }
-    previews.push(btoa(String.fromCharCode(...expected)).slice(0, 8));
   }
-  const providedPreview = btoa(String.fromCharCode(...provided)).slice(0, 8);
-  console.error("HubSpot signature mismatch", { candidates: candidates.length, candidatePreviews: previews, providedPreview });
+
+  const sigV2Header = (request.headers.get("X-HubSpot-Signature") || "").trim();
+  if (sigV2Header) {
+    const provided = hexToUint8Array(sigV2Header);
+    if (!provided) {
+      console.error("HubSpot legacy signature invalid hex");
+    } else {
+      const candidates = [
+        secret + method + pathAndQuery + body,
+        secret + method + originAndPath + body,
+        method + pathAndQuery + body + secret,
+        method + originAndPath + body + secret,
+        secret + body,
+        body + secret,
+      ];
+      const previews = [];
+      for (const data of candidates) {
+        const expected = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(data)));
+        if (timingSafeEqualBytes(expected, provided)) return true;
+        previews.push(uint8ArrayToHex(expected).slice(0, 8));
+      }
+      console.error("HubSpot signature mismatch (legacy)", {
+        candidates: candidates.length,
+        candidatePreviews: previews,
+        providedPreview: uint8ArrayToHex(provided).slice(0, 8),
+      });
+    }
+  }
+
+  if (!sigV3Header && !sigV2Header) {
+    console.error("HubSpot signature check failed: missing signature headers");
+  }
   return false;
 }
 async function hsFetchDeal(dealId, env) { if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing"); const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,amount,dealstage,closedate,hs_object_id,pipeline`; const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } }); if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`); return r.json(); }
