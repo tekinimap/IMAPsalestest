@@ -3,6 +3,8 @@
  * - NEU: Mehrfach-KV-Unterstützung, Merge-Endpunkt und aktualisierte Persistenzlogik.
  */
 
+import { computeLogMetrics } from './log-analytics.js';
+
 const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 
@@ -208,6 +210,37 @@ async function appendFile(env, path, text, message) { let tries = 0; const maxTr
 
 /* ------------------------ Logging (JSONL pro Tag) ------------------------ */
 async function logJSONL(env, events){ if (!events || !events.length) return; const dateStr = todayStr(); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env); const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = events.map(e => JSON.stringify({ ts: Date.now(), ...e })).join("\n") + "\n"; try { await appendFile(env, path, text, `log ${events.length} events`); } catch (logErr) { console.error(`Failed to write to log file ${path}:`, logErr); } }
+
+async function readLogEntries(env, rootDir, from, to){
+  const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
+  const entries = [];
+  for (const day of dateRange(from, to)){
+    const y = day.slice(0,4);
+    const m = day.slice(5,7);
+    const path = `${trimmedRoot}/${y}-${m}/${day}.jsonl`;
+    try {
+      const file = await ghGetContent(env, path);
+      const content = file?.content || '';
+      if (!content) continue;
+      const lines = content.split(/\n+/);
+      for (const line of lines){
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          entries.push(JSON.parse(trimmed));
+        } catch (parseErr){
+          console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
+        }
+      }
+    } catch (err){
+      const msg = String(err || '');
+      if (!msg.includes('404')){
+        console.error(`Error reading log file ${path}:`, err);
+      }
+    }
+  }
+  return entries;
+}
 
 /* ------------------------ HubSpot ------------------------ */
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
@@ -685,6 +718,35 @@ export default {
         const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = (payload.lines||[]).map(String).join("\n") + "\n";
         const result = await appendFile(env, path, text, `log: ${dateStr} (+${(payload.lines||[]).length})`);
         return jsonResponse({ ok: true, path, committed: result }, 200, env);
+      }
+      if (url.pathname === "/log/metrics" && request.method === "GET") {
+        const from = url.searchParams.get("from") || undefined;
+        const to = url.searchParams.get("to") || undefined;
+        const team = (url.searchParams.get("team") || "").trim();
+        const root = LOG_DIR(env);
+        const rawLogs = await readLogEntries(env, root, from, to);
+        let peopleItems = [];
+        try {
+          const peopleFile = await ghGetFile(env, peoplePath, branch);
+          if (peopleFile && Array.isArray(peopleFile.items)) {
+            peopleItems = peopleFile.items;
+          }
+        } catch (peopleErr) {
+          const msg = String(peopleErr || "");
+          if (!msg.includes("404")) {
+            console.error("Failed to load people for log metrics:", peopleErr);
+          }
+        }
+        const teamMap = new Map();
+        for (const person of peopleItems) {
+          if (!person || typeof person !== 'object') continue;
+          const name = (person.name || '').trim();
+          if (!name) continue;
+          const teamName = (person.team || 'Ohne Team').trim() || 'Ohne Team';
+          teamMap.set(name, teamName);
+        }
+        const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
+        return jsonResponse(metrics, 200, env);
       }
       if (url.pathname === "/log/list" && request.method === "GET") {
         const from = url.searchParams.get("from"); const to = url.searchParams.get("to"); const out = []; const root = LOG_DIR(env);

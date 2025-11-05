@@ -2521,6 +2521,16 @@ const anaEndDate = document.getElementById('anaEndDate');
 const btnAnaThisYear = document.getElementById('btnAnaThisYear');
 const btnAnaLastYear = document.getElementById('btnAnaLastYear');
 const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
+const logMetricsFrom = document.getElementById('logMetricsFrom');
+const logMetricsTo = document.getElementById('logMetricsTo');
+const logMetricsTeam = document.getElementById('logMetricsTeam');
+const btnLogMetricsLoad = document.getElementById('btnLogMetricsLoad');
+const btnLogMetricsCsv = document.getElementById('btnLogMetricsCsv');
+const btnLogMetricsXlsx = document.getElementById('btnLogMetricsXlsx');
+const logMetricsSummary = document.getElementById('logMetricsSummary');
+const logMetricsMonthlyChart = document.getElementById('logMetricsMonthlyChart');
+const logMetricsSuccessChart = document.getElementById('logMetricsSuccessChart');
+const logMetricsEventChart = document.getElementById('logMetricsEventChart');
 
 function initAnalytics() {
     // Fülle Jahres-Dropdown (für Top-Listen)
@@ -2533,10 +2543,12 @@ function initAnalytics() {
     
     // Setze Standard-Datum (für Aktivitäts-Chart)
     setAnaDateRange('thisYear');
-    
+
     // Führe beide Render-Funktionen aus
     renderAnalytics(); // Jährliche Auswertung
     renderActivityAnalytics(); // Zeitintervall-Auswertung
+    initLogMetricsControls();
+    loadLogMetrics();
 }
 
 function setAnaDateRange(rangeType) {
@@ -2568,6 +2580,8 @@ document.getElementById('anaRefresh').addEventListener('click', renderAnalytics)
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
 let analyticsData = { persons: [], teams: [], totals: [] };
+let logMetricsInitialized = false;
+let logMetricsData = null;
 
 // Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
@@ -2672,80 +2686,544 @@ function renderActivityAnalytics() {
 }
 
 
-function drawBars(hostId, items, showCount = false) {
-  const host = document.getElementById(hostId);
-  host.innerHTML = ''; // Clear previous chart
-  const max = items.reduce((m, x) => Math.max(m, x.val), 0) || 1; // Avoid division by zero
-  const barH = 30, gap = 8, w = 1060; // Fixed width
-  const h = items.length > 0 ? (items.length * (barH + gap) + 10) : 50; // Dynamic height or fixed minimum
-  const svgNS = "http://www.w3.org/2000/svg";
+function drawLineChart(hostOrId, points, options = {}) {
+  const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
+  if (!host) return;
+  host.innerHTML = '';
+  const list = Array.isArray(points) ? points : [];
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'log-metrics-empty';
+    empty.textContent = options.emptyMessage || 'Keine Daten verfügbar.';
+    host.appendChild(empty);
+    return;
+  }
+
+  const formatter = options.formatter || ((value) => String(value));
+  const color = options.color || '#3b82f6';
+  const width = options.width || 1060;
+  const height = options.height || 260;
+  const padding = { top: 20, right: 24, bottom: 46, left: 80 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  const coords = list.map((point, idx) => ({
+    label: point.label,
+    value: Number(point.value) || 0,
+    raw: point,
+    index: idx,
+  }));
+
+  let minVal = coords.reduce((min, p) => Math.min(min, p.value), Number.POSITIVE_INFINITY);
+  let maxVal = coords.reduce((max, p) => Math.max(max, p.value), Number.NEGATIVE_INFINITY);
+  if (!Number.isFinite(minVal)) minVal = 0;
+  if (!Number.isFinite(maxVal)) maxVal = 0;
+  if (typeof options.minValue === 'number') minVal = options.minValue;
+  if (typeof options.maxValue === 'number') maxVal = options.maxValue;
+  if (options.zeroBased) {
+    if (minVal > 0) minVal = 0;
+    if (maxVal < 0) maxVal = 0;
+  }
+  if (maxVal === minVal) {
+    const adjust = Math.abs(maxVal || 1);
+    maxVal += adjust;
+    minVal -= adjust;
+  }
+  const range = maxVal - minVal || 1;
+  const denom = Math.max(1, coords.length - 1);
+
+  const positioned = coords.map((point) => {
+    const ratio = coords.length === 1 ? 0.5 : point.index / denom;
+    const x = padding.left + ratio * chartWidth;
+    const y = padding.top + ((maxVal - point.value) / range) * chartHeight;
+    return { ...point, x, y };
+  });
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+
+  const yAxis = document.createElementNS(svgNS, 'line');
+  yAxis.setAttribute('x1', padding.left);
+  yAxis.setAttribute('x2', padding.left);
+  yAxis.setAttribute('y1', padding.top);
+  yAxis.setAttribute('y2', height - padding.bottom);
+  yAxis.setAttribute('stroke', '#1f2937');
+  yAxis.setAttribute('stroke-width', '1');
+  svg.appendChild(yAxis);
+
+  const xAxis = document.createElementNS(svgNS, 'line');
+  xAxis.setAttribute('x1', padding.left);
+  xAxis.setAttribute('x2', width - padding.right);
+  xAxis.setAttribute('y1', height - padding.bottom);
+  xAxis.setAttribute('y2', height - padding.bottom);
+  xAxis.setAttribute('stroke', '#1f2937');
+  xAxis.setAttribute('stroke-width', '1');
+  svg.appendChild(xAxis);
+
+  const linePath = positioned
+    .map((point, idx) => `${idx === 0 ? 'M' : 'L'}${point.x} ${point.y}`)
+    .join(' ');
+
+  const area = document.createElementNS(svgNS, 'path');
+  const first = positioned[0];
+  const last = positioned[positioned.length - 1];
+  const baselineY = height - padding.bottom;
+  const areaPath = `${linePath} L${last.x} ${baselineY} L${first.x} ${baselineY} Z`;
+  area.setAttribute('d', areaPath);
+  area.setAttribute('fill', 'rgba(59,130,246,0.18)');
+  svg.appendChild(area);
+
+  const line = document.createElementNS(svgNS, 'path');
+  line.setAttribute('d', linePath);
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', '2');
+  svg.appendChild(line);
+
+  positioned.forEach((point) => {
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', String(point.x));
+    circle.setAttribute('cy', String(point.y));
+    circle.setAttribute('r', '4');
+    circle.setAttribute('fill', color);
+    const title = document.createElementNS(svgNS, 'title');
+    const formatted = formatter(point.value, point.raw);
+    title.textContent = `${point.label}: ${formatted}`;
+    circle.appendChild(title);
+    svg.appendChild(circle);
+
+    const valueLabel = document.createElementNS(svgNS, 'text');
+    valueLabel.setAttribute('x', String(point.x));
+    valueLabel.setAttribute('y', String(point.y - 10));
+    valueLabel.setAttribute('fill', '#cbd5e1');
+    valueLabel.setAttribute('font-size', '12');
+    valueLabel.setAttribute('text-anchor', 'middle');
+    valueLabel.textContent = formatted;
+    svg.appendChild(valueLabel);
+
+    const xLabel = document.createElementNS(svgNS, 'text');
+    xLabel.setAttribute('x', String(point.x));
+    xLabel.setAttribute('y', String(baselineY + 18));
+    xLabel.setAttribute('fill', '#94a3b8');
+    xLabel.setAttribute('font-size', '12');
+    xLabel.setAttribute('text-anchor', 'middle');
+    xLabel.textContent = point.label;
+    svg.appendChild(xLabel);
+  });
+
+  const maxLabel = document.createElementNS(svgNS, 'text');
+  maxLabel.setAttribute('x', String(padding.left - 12));
+  maxLabel.setAttribute('y', String(padding.top + 4));
+  maxLabel.setAttribute('fill', '#94a3b8');
+  maxLabel.setAttribute('font-size', '12');
+  maxLabel.setAttribute('text-anchor', 'end');
+  maxLabel.textContent = formatter(maxVal, { label: 'max' });
+  svg.appendChild(maxLabel);
+
+  const minLabel = document.createElementNS(svgNS, 'text');
+  minLabel.setAttribute('x', String(padding.left - 12));
+  minLabel.setAttribute('y', String(baselineY));
+  minLabel.setAttribute('fill', '#94a3b8');
+  minLabel.setAttribute('font-size', '12');
+  minLabel.setAttribute('text-anchor', 'end');
+  minLabel.textContent = formatter(minVal, { label: 'min' });
+  svg.appendChild(minLabel);
+
+  host.appendChild(svg);
+}
+
+function drawBars(hostOrId, items, showCount = false, options = {}) {
+  const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
+  if (!host) return;
+  host.innerHTML = '';
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'log-metrics-empty';
+    empty.textContent = options.emptyMessage || 'Keine Daten verfügbar.';
+    host.appendChild(empty);
+    return;
+  }
+
+  const formatter = options.formatter || fmtCurr0;
+  const valueFormatter = options.valueFormatter;
+  const titleFormatter = options.titleFormatter;
+  const barColor = options.barColor || '#3b82f6';
+  const suffix = options.suffix || '';
+
+  const max = list.reduce((m, x) => Math.max(m, Number(x.val) || 0), 0) || 1;
+  const barH = 30;
+  const gap = 8;
+  const w = 1060;
+  const h = list.length > 0 ? list.length * (barH + gap) + 10 : 50;
+  const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
   svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet'); // Ensure it scales correctly if container width changes
-  
-  let y = 10;
-  const textWidth = 240, barStartX = textWidth;
-  const valueOffset = 100; // Space for value label at the end
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
 
-  items.forEach(it => {
-    // Calculate bar length based on available space minus text label and value offset
-    const len = Math.max(4, Math.round((it.val / max) * (w - barStartX - valueOffset)));
+  let y = 10;
+  const textWidth = 240;
+  const barStartX = textWidth;
+  const valueOffset = 120;
+
+  list.forEach((item) => {
+    const value = Number(item.val) || 0;
+    const len = Math.max(4, Math.round((value / max) * (w - barStartX - valueOffset)));
     const g = document.createElementNS(svgNS, 'g');
-    
-    const titleText = `${it.name}: ${fmtCurr0.format(it.val)}` + (showCount && it.count ? ` (${it.count} Abrufe)` : '');
+
+    const formattedValue = valueFormatter ? valueFormatter(item) : `${formatter.format(value)}${suffix}`;
+    const countText = showCount && item.count ? ` (${item.count})` : '';
+    const titleText = titleFormatter
+      ? titleFormatter(item, formattedValue)
+      : `${item.name}: ${formattedValue}${countText}`;
     const title = document.createElementNS(svgNS, 'title');
     title.textContent = titleText;
     g.appendChild(title);
 
     const rect = document.createElementNS(svgNS, 'rect');
-    rect.setAttribute('x', String(barStartX)); rect.setAttribute('y', String(y));
-    rect.setAttribute('rx', '6'); rect.setAttribute('ry', '6');
-    rect.setAttribute('width', String(len)); rect.setAttribute('height', String(barH));
-    rect.setAttribute('fill', '#3b82f6');
+    rect.setAttribute('x', String(barStartX));
+    rect.setAttribute('y', String(y));
+    rect.setAttribute('rx', '6');
+    rect.setAttribute('ry', '6');
+    rect.setAttribute('width', String(len));
+    rect.setAttribute('height', String(barH));
+    rect.setAttribute('fill', barColor);
 
     const labelL = document.createElementNS(svgNS, 'text');
-    labelL.setAttribute('x', '10'); labelL.setAttribute('y', String(y + barH * 0.68));
-    labelL.setAttribute('fill', '#cbd5e1'); labelL.setAttribute('font-size', '14');
-    labelL.textContent = it.name.length > 30 ? it.name.substring(0,28)+'...' : it.name;
+    labelL.setAttribute('x', '10');
+    labelL.setAttribute('y', String(y + barH * 0.68));
+    labelL.setAttribute('fill', '#cbd5e1');
+    labelL.setAttribute('font-size', '14');
+    labelL.textContent = item.name && item.name.length > 30 ? `${item.name.substring(0, 28)}…` : (item.name || '–');
 
     const labelV = document.createElementNS(svgNS, 'text');
     labelV.setAttribute('y', String(y + barH * 0.68));
     labelV.setAttribute('font-weight', '700');
     labelV.setAttribute('font-size', '14');
-    // Add count if requested
-    const valueText = fmtCurr0.format(it.val) + (showCount && it.count ? ` (${it.count})` : '');
+    const valueText = `${formattedValue}${countText}`;
     labelV.textContent = valueText;
-    
-    // Position value label inside or outside based on bar length
-    const valueTextLengthEstimate = valueText.length * 8; // Rough estimate
-    if(len < valueTextLengthEstimate + 10) { // Place outside if bar is too short
+
+    const valueTextLengthEstimate = valueText.length * 8;
+    if (len < valueTextLengthEstimate + 10) {
       labelV.setAttribute('x', String(barStartX + len + 8));
       labelV.setAttribute('fill', '#cbd5e1');
-    } else { // Place inside
+    } else {
       labelV.setAttribute('x', String(barStartX + 10));
       labelV.setAttribute('fill', '#0a0f16');
     }
 
-    g.appendChild(rect); g.appendChild(labelL); g.appendChild(labelV);
+    g.appendChild(rect);
+    g.appendChild(labelL);
+    g.appendChild(labelV);
     svg.appendChild(g);
     y += barH + gap;
   });
-  
-  // Display message if no data
-  if (items.length === 0) {
-      const noData = document.createElementNS(svgNS, 'text');
-      noData.setAttribute('x', '10'); noData.setAttribute('y', '30');
-      noData.setAttribute('fill', '#cbd5e1'); noData.setAttribute('font-size', '14');
-      noData.textContent = 'Für diesen Zeitraum/dieses Jahr liegen keine Daten vor.';
-      svg.appendChild(noData);
-  }
+
   host.appendChild(svg);
+}
+
+function initLogMetricsControls() {
+  if (logMetricsInitialized) {
+    return;
+  }
+  if (logMetricsTeam) {
+    const existing = new Set(Array.from(logMetricsTeam.options || []).map((opt) => opt.value));
+    (TEAMS || []).forEach((teamName) => {
+      if (!existing.has(teamName)) {
+        const opt = document.createElement('option');
+        opt.value = teamName;
+        opt.textContent = teamName;
+        logMetricsTeam.appendChild(opt);
+      }
+    });
+  }
+  setDefaultLogMetricsRange();
+  btnLogMetricsLoad?.addEventListener('click', () => loadLogMetrics());
+  btnLogMetricsCsv?.addEventListener('click', exportLogMetricsCsv);
+  btnLogMetricsXlsx?.addEventListener('click', exportLogMetricsXlsx);
+  logMetricsInitialized = true;
+}
+
+function setDefaultLogMetricsRange() {
+  if (!logMetricsFrom || !logMetricsTo) return;
+  const now = new Date();
+  const end = formatDateForInput(now.getTime());
+  const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  logMetricsTo.value = end;
+  logMetricsFrom.value = formatDateForInput(start.getTime());
+}
+
+function validateLogMetricsRange(from, to) {
+  if (!from || !to) return true;
+  const start = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T23:59:59`);
+  return !(start > end);
+}
+
+async function loadLogMetrics() {
+  if (!logMetricsFrom || !logMetricsTo) return;
+  const from = logMetricsFrom.value;
+  const to = logMetricsTo.value;
+  if (!validateLogMetricsRange(from, to)) {
+    showToast('Ungültiger Zeitraum für Log-Insights.', 'bad');
+    return;
+  }
+  const params = new URLSearchParams();
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  if (logMetricsTeam && logMetricsTeam.value) params.set('team', logMetricsTeam.value);
+  const url = `${WORKER_BASE}/log/metrics${params.toString() ? `?${params.toString()}` : ''}`;
+
+  if (logMetricsSummary) {
+    logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Lade Logdaten…</div>';
+  }
+  if (logMetricsMonthlyChart) logMetricsMonthlyChart.innerHTML = '';
+  if (logMetricsSuccessChart) logMetricsSuccessChart.innerHTML = '';
+  if (logMetricsEventChart) logMetricsEventChart.innerHTML = '';
+
+  try {
+    const response = await fetchWithRetry(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    logMetricsData = data;
+    renderLogMetrics(data);
+  } catch (err) {
+    console.error('Log metrics fetch failed:', err);
+    showToast('Log-Insights konnten nicht geladen werden.', 'bad');
+    if (logMetricsSummary) {
+      logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Fehler beim Laden der Daten.</div>';
+    }
+  }
+}
+
+function formatIsoDate(dateString) {
+  if (!dateString) return '–';
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString('de-DE');
+}
+
+function renderLogMetrics(data) {
+  if (!logMetricsSummary) return;
+  if (!data || !data.totals) {
+    logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Keine Daten verfügbar.</div>';
+    return;
+  }
+
+  const totals = data.totals;
+  const period = data.period || {};
+  const filters = data.filters || {};
+  const successRatePct = totals.successRate != null ? totals.successRate * 100 : null;
+
+  logMetricsSummary.innerHTML = `
+    <div class="metric-card">
+      <div class="label">Zeitraum</div>
+      <div class="value">${formatIsoDate(period.from)} – ${formatIsoDate(period.to)}</div>
+      <div class="sub">${filters.team || 'Alle Teams'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Netto-Delta</div>
+      <div class="value">${fmtCurr2.format(totals.amount || 0)}</div>
+      <div class="sub">Positiv: ${fmtCurr2.format(totals.positiveAmount || 0)} · Negativ: ${fmtCurr2.format(totals.negativeAmount || 0)}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Ereignisse</div>
+      <div class="value">${fmtInt.format(totals.count || 0)}</div>
+      <div class="sub">Erfolgreich: ${fmtInt.format(totals.positiveCount || 0)} · Negativ: ${fmtInt.format(totals.negativeCount || 0)}</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Erfolgsquote</div>
+      <div class="value">${successRatePct != null ? `${fmtPct.format(successRatePct)} %` : '–'}</div>
+      <div class="sub">Neutrale Logs: ${fmtInt.format(totals.neutralCount || 0)}</div>
+    </div>
+  `;
+
+  const monthSeries = Array.isArray(data.months)
+    ? data.months.map((month) => ({
+        label: month.month,
+        value: month.amount,
+        count: month.count,
+      }))
+    : [];
+  drawLineChart(logMetricsMonthlyChart, monthSeries, {
+    formatter: (value) => fmtCurr2.format(value || 0),
+    emptyMessage: 'Keine Logbewegungen im Zeitraum.',
+  });
+
+  const successSeries = Array.isArray(data.months)
+    ? data.months
+        .filter((month) => month.successRate != null)
+        .map((month) => ({ label: month.month, value: month.successRate * 100 }))
+    : [];
+  drawLineChart(logMetricsSuccessChart, successSeries, {
+    formatter: (value) => `${fmtPct.format(value || 0)} %`,
+    minValue: 0,
+    maxValue: 100,
+    zeroBased: true,
+    emptyMessage: 'Für diesen Zeitraum ist keine Erfolgsquote verfügbar.',
+    color: '#22c55e',
+  });
+
+  const events = Array.isArray(data.events)
+    ? data.events.map((event) => ({
+        name: event.event,
+        val: event.count,
+        count: event.count,
+        amount: event.amount,
+        successRate: event.successRate,
+        positiveCount: event.positiveCount,
+        negativeCount: event.negativeCount,
+      }))
+    : [];
+  drawBars(logMetricsEventChart, events, false, {
+    formatter: fmtInt,
+    valueFormatter: (item) => fmtInt.format(item.val || 0),
+    titleFormatter: (item, formattedValue) => {
+      const amountText = fmtCurr2.format(item.amount || 0);
+      const rateText = item.successRate != null ? `${fmtPct.format(item.successRate * 100)} %` : '–';
+      return `${item.name}: ${formattedValue} • Δ ${amountText} • Erfolgsquote ${rateText}`;
+    },
+    barColor: '#38bdf8',
+    emptyMessage: 'Keine Ereignisse im Zeitraum.',
+  });
+}
+
+function buildLogExportFilename(extension) {
+  const from = logMetricsData?.period?.from || 'start';
+  const to = logMetricsData?.period?.to || 'ende';
+  const suffix = `${from}_${to}`.replace(/[^0-9A-Za-z_-]+/g, '_');
+  return `log_insights_${suffix}.${extension}`;
+}
+
+function downloadBlob(content, mimeType, filename) {
+  try {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 0);
+  } catch (err) {
+    console.error('Download fehlgeschlagen:', err);
+    showToast('Download konnte nicht gestartet werden.', 'bad');
+  }
+}
+
+function exportLogMetricsCsv() {
+  if (!logMetricsData) {
+    showToast('Keine Logdaten zum Exportieren vorhanden.', 'warn');
+    return;
+  }
+  const { period = {}, filters = {}, totals = {}, months = [], events = [] } = logMetricsData;
+  const lines = [];
+  lines.push('Abschnitt;Spalte1;Spalte2;Spalte3;Spalte4;Spalte5;Spalte6');
+  lines.push(`Übersicht;Von;${period.from || ''};Bis;${period.to || ''};Team;${filters.team || 'Alle Teams'}`);
+  lines.push(
+    `Übersicht;Netto_Delta_EUR;${(totals.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};Ereignisse;${totals.count || 0};Erfolgsquote_%;${
+      totals.successRate != null ? (totals.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''
+    }`
+  );
+  lines.push(
+    `Übersicht;Positiv_EUR;${(totals.positiveAmount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};Negativ_EUR;${(totals.negativeAmount || 0).toLocaleString('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })};Neutrale;${totals.neutralCount || 0}`
+  );
+  lines.push('');
+  lines.push('Monate;Monat;Netto_Delta_EUR;Ereignisse;Erfolgreich;Negativ;Erfolgsquote_%');
+  months.forEach((month) => {
+    const rate = month.successRate != null ? (month.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    lines.push(
+      `Monat;${month.month};${(month.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};${month.count || 0};${month.positiveCount || 0};${month.negativeCount || 0};${rate}`
+    );
+  });
+  lines.push('');
+  lines.push('Ereignisse;Ereignis;Anzahl;Netto_Delta_EUR;Erfolgreich;Negativ;Erfolgsquote_%');
+  events.forEach((event) => {
+    const rate = event.successRate != null ? (event.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    lines.push(
+      `Ereignis;${event.event};${event.count || 0};${(event.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};${event.positiveCount || 0};${event.negativeCount || 0};${rate}`
+    );
+  });
+
+  const csvContent = '\ufeff' + lines.join('\n');
+  downloadBlob(csvContent, 'text/csv;charset=utf-8;', buildLogExportFilename('csv'));
+}
+
+function exportLogMetricsXlsx() {
+  if (!logMetricsData) {
+    showToast('Keine Logdaten zum Exportieren vorhanden.', 'warn');
+    return;
+  }
+  if (typeof XLSX === 'undefined') {
+    showToast('XLSX-Bibliothek nicht verfügbar.', 'bad');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  const { period = {}, filters = {}, totals = {}, months = [], events = [], daily = [] } = logMetricsData;
+
+  const summarySheet = [
+    { Kennzahl: 'Von', Wert: period.from || '' },
+    { Kennzahl: 'Bis', Wert: period.to || '' },
+    { Kennzahl: 'Team', Wert: filters.team || 'Alle Teams' },
+    { Kennzahl: 'Netto Delta EUR', Wert: Number((totals.amount || 0).toFixed(2)) },
+    { Kennzahl: 'Ereignisse', Wert: totals.count || 0 },
+    {
+      Kennzahl: 'Erfolgsquote %',
+      Wert: totals.successRate != null ? Number((totals.successRate * 100).toFixed(2)) : null,
+    },
+    { Kennzahl: 'Positiv EUR', Wert: Number((totals.positiveAmount || 0).toFixed(2)) },
+    { Kennzahl: 'Negativ EUR', Wert: Number((totals.negativeAmount || 0).toFixed(2)) },
+    { Kennzahl: 'Neutrale Ereignisse', Wert: totals.neutralCount || 0 },
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summarySheet), 'Übersicht');
+
+  const monthSheet = months.map((month) => ({
+    Monat: month.month,
+    Netto_Delta_EUR: Number((month.amount || 0).toFixed(2)),
+    Ereignisse: month.count || 0,
+    Erfolgreich: month.positiveCount || 0,
+    Negativ: month.negativeCount || 0,
+    Erfolgsquote_Prozent: month.successRate != null ? Number((month.successRate * 100).toFixed(2)) : null,
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthSheet), 'Monate');
+
+  const eventSheet = events.map((event) => ({
+    Ereignis: event.event,
+    Anzahl: event.count || 0,
+    Netto_Delta_EUR: Number((event.amount || 0).toFixed(2)),
+    Erfolgreich: event.positiveCount || 0,
+    Negativ: event.negativeCount || 0,
+    Erfolgsquote_Prozent: event.successRate != null ? Number((event.successRate * 100).toFixed(2)) : null,
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(eventSheet), 'Ereignisse');
+
+  const dailySheet = daily.map((day) => ({
+    Datum: day.date,
+    Netto_Delta_EUR: Number((day.amount || 0).toFixed(2)),
+    Ereignisse: day.count || 0,
+    Erfolgreich: day.positiveCount || 0,
+    Negativ: day.negativeCount || 0,
+    Erfolgsquote_Prozent: day.successRate != null ? Number((day.successRate * 100).toFixed(2)) : null,
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dailySheet), 'Tage');
+
+  XLSX.writeFile(wb, buildLogExportFilename('xlsx'));
 }
 
 btnAnaXlsx.addEventListener('click', () => {
     const year = anaYear.value;
     const wb = XLSX.utils.book_new();
-    
+
     // Ensure data exists before creating sheets
     if (analyticsData.persons && analyticsData.persons.length > 0) {
         const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
