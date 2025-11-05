@@ -10624,5 +10624,39 @@
       "KV-2025-0281"
     ],
     "kv": "KV-2025-0281"
+  },
+  {
+    "id": "hubspot_bd82535728885be091d489de6dfe1e7a",
+    "hubspotId": "45326972175",
+    "title": "Change-Begleitung",
+    "amount": 250000,
+    "source": "hubspot",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Merlin Klein",
+    "list": [
+      {
+        "key": "hubspot_collab_0",
+        "name": "Merlin Klein",
+        "money": 83333.33,
+        "pct": 33.33
+      },
+      {
+        "key": "hubspot_collab_1",
+        "name": "Christopher van den Hövel",
+        "money": 83333.33,
+        "pct": 33.33
+      },
+      {
+        "key": "hubspot_collab_2",
+        "name": "Jens Maaßen",
+        "money": 83333.33,
+        "pct": 33.33
+      }
+    ],
+    "updatedAt": 1762338074153,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
