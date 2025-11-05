@@ -1,6 +1,7 @@
 /**
  * Cloudflare Worker – GitHub JSON/JSONL Proxy + HubSpot Webhook + Logbuch (v8.0 - Mehrfach-KV & Merge)
  * - NEU: Mehrfach-KV-Unterstützung, Merge-Endpunkt und aktualisierte Persistenzlogik.
+ * - v8.8 (Gemini): Finale Version. Kombiniert Owner + Collaborators in 'list' mit 0% Zuweisung, um "Unvollständig" zu erzwingen.
  */
 
 import { computeLogMetrics } from './log-analytics.js';
@@ -299,30 +300,110 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
   return false;
 }
-async function hsFetchDeal(dealId, env) { if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing"); const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,amount,dealstage,closedate,hs_object_id,pipeline`; const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } }); if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`); return r.json(); }
+async function hsFetchDeal(dealId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing");
+
+  const properties = [
+    "dealname", "amount", "dealstage", "closedate", "hs_object_id", "pipeline",
+    "hubspot_owner_id",
+    "hs_all_collaborator_owner_ids"
+  ];
+
+  const associations = "company";
+
+  const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=${properties.join(",")}&associations=${associations}`;
+
+  const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+  if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+async function hsFetchCompany(companyId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for company fetch");
+  if (!companyId) return "";
+  try {
+    const url = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name`;
+    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+    if (!r.ok) {
+      console.error(`HubSpot GET company ${companyId} failed: ${r.status}`);
+      return "";
+    }
+    const data = await r.json();
+    return data?.properties?.name || "";
+  } catch (e) {
+    console.error(`Error fetching company ${companyId}:`, e);
+    return "";
+  }
+}
+
+async function hsFetchOwner(ownerId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for owner fetch");
+  if (!ownerId) return "";
+  try {
+    const url = `https://api.hubapi.com/crm/v3/owners/${ownerId}`;
+    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+    if (!r.ok) {
+      console.error(`HubSpot GET owner ${ownerId} failed: ${r.status}`);
+      return "";
+    }
+    const data = await r.json();
+    return `${data.firstName || ''} ${data.lastName || ''}`.trim();
+  } catch (e) {
+    console.error(`Error fetching owner ${ownerId}:`, e);
+    return "";
+  }
+}
+
 function upsertByHubSpotId(entries, deal) {
   const id = String(deal?.id || deal?.properties?.hs_object_id || "");
   if (!id) return;
+
   const name = deal?.properties?.dealname || `Deal ${id}`;
   const amount = Number(deal?.properties?.amount || 0);
+
+  const companyName = deal?.properties?.fetched_company_name || "";
+  const ownerName = deal?.properties?.fetched_owner_name || "";
+  const collaboratorNames = deal?.properties?.fetched_collaborator_names || [];
+
+  const allNames = new Set([ownerName, ...collaboratorNames]);
+  const salesList = [];
+  allNames.forEach((nameValue, index) => {
+    if (nameValue) {
+      salesList.push({
+        key: `hubspot_user_${index}`,
+        name: nameValue,
+        money: 0,
+        pct: 0,
+      });
+    }
+  });
+
   const idx = entries.findIndex(e => String(e.hubspotId||"") === id);
-  const previousKv = idx >=0 ? kvListFrom(entries[idx]) : [];
+  const previousKv = idx >= 0 ? kvListFrom(entries[idx]) : [];
+
   const base = {
     id: entries[idx]?.id || rndId('hubspot_'),
     hubspotId: id,
     title: name,
     amount,
     source: "hubspot",
+    projectType: "fix",
     projectNumber: entries[idx]?.projectNumber || "",
-    client: entries[idx]?.client || "",
+    client: companyName,
+    submittedBy: ownerName,
+    list: salesList,
     updatedAt: Date.now(),
     kvNummern: previousKv,
     kv_nummer: previousKv[0] || '',
     kv: previousKv[0] || ''
   };
+
   const normalized = ensureKvStructure(base);
-  if (idx >= 0) entries[idx] = { ...entries[idx], ...normalized };
-  else entries.push(normalized);
+  if (idx >= 0) {
+    entries[idx] = { ...entries[idx], ...normalized };
+  } else {
+    entries.push(normalized);
+  }
 }
 
 /* ------------------------ Router ------------------------ */
@@ -772,9 +853,69 @@ export default {
 
       /* ===== HubSpot Webhook ===== */
       if (url.pathname === "/hubspot" && request.method === "POST") {
-        const raw = await request.text(); const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false); if (!okSig) return jsonResponse({ error: "invalid signature" }, 401, env); let events = []; try { events = JSON.parse(raw); } catch { return jsonResponse({ error: "bad payload" }, 400, env); } if (!Array.isArray(events) || events.length === 0) return jsonResponse({ ok: true, processed: 0 }, 200, env); const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s=>s.trim()).filter(Boolean)); if (wonIds.size === 0) return jsonResponse({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env); let ghData = await ghGetFile(env, ghPath, branch); let itemsChanged = false; let lastDeal = null;
-        for (const ev of events) { if (ev.subscriptionType === "deal.propertyChange" && ev.propertyName === "dealstage") { const newStage = String(ev.propertyValue || ""); const dealId = ev.objectId; if (!wonIds.has(newStage)) continue; try { const deal = await hsFetchDeal(dealId, env); lastDeal = deal; upsertByHubSpotId(ghData.items, deal); ghData.items = canonicalizeEntries(ghData.items); itemsChanged = true; } catch (hsErr){ console.error(`HubSpot fail ${dealId}:`, hsErr); } } }
-        if (itemsChanged) { try { await ghPutFile(env, ghPath, canonicalizeEntries(ghData.items), ghData.sha, "hubspot webhook upsert", branch); } catch (e) { console.error("HubSpot save failed", e); }
+        const raw = await request.text();
+        const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false);
+        if (!okSig) return jsonResponse({ error: "invalid signature" }, 401, env);
+        let events = [];
+        try { events = JSON.parse(raw); }
+        catch { return jsonResponse({ error: "bad payload" }, 400, env); }
+        if (!Array.isArray(events) || events.length === 0) return jsonResponse({ ok: true, processed: 0 }, 200, env);
+        const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s=>s.trim()).filter(Boolean));
+        if (wonIds.size === 0) return jsonResponse({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env);
+        let ghData = await ghGetFile(env, ghPath, branch);
+        let itemsChanged = false;
+        let lastDeal = null;
+
+        for (const ev of events) {
+          if (ev.subscriptionType === "object.propertyChange" && ev.propertyName === "dealstage") {
+            const newStage = String(ev.propertyValue || "");
+            const dealId = ev.objectId;
+
+            if (!wonIds.has(newStage)) continue;
+
+            try {
+              console.log(`VERARBEITE "WON" DEAL: ${dealId}`);
+
+              const deal = await hsFetchDeal(dealId, env);
+
+              let companyName = "";
+              const companyAssoc = deal?.associations?.companies?.results?.[0];
+              if (companyAssoc && companyAssoc.id) {
+                companyName = await hsFetchCompany(companyAssoc.id, env);
+                deal.properties.fetched_company_name = companyName;
+              }
+
+              const ownerId = deal?.properties?.hubspot_owner_id;
+              let ownerName = "";
+              if (ownerId) {
+                ownerName = await hsFetchOwner(ownerId, env);
+                deal.properties.fetched_owner_name = ownerName;
+              }
+
+              const collaboratorIds = (deal?.properties?.hs_all_collaborator_owner_ids || "")
+                .split(';')
+                .filter(Boolean);
+
+              const collaboratorPromises = collaboratorIds.map(id => hsFetchOwner(id, env));
+              const collaboratorNames = (await Promise.all(collaboratorPromises)).filter(Boolean);
+              deal.properties.fetched_collaborator_names = collaboratorNames;
+
+              lastDeal = deal;
+              upsertByHubSpotId(ghData.items, deal);
+              ghData.items = canonicalizeEntries(ghData.items);
+              itemsChanged = true;
+            } catch (hsErr){
+              console.error(`HubSpot API-Fehler (hsFetchDeal/hsFetchCompany/hsFetchOwner) bei Deal ${dealId}:`, hsErr);
+            }
+          }
+        }
+        if (itemsChanged) {
+          try {
+            await ghPutFile(env, ghPath, canonicalizeEntries(ghData.items), ghData.sha, "hubspot webhook upsert", branch);
+            console.log(`Änderungen für ${events.length} Events erfolgreich auf GitHub gespeichert.`);
+          } catch (e) {
+            console.error("GitHub PUT (ghPutFile) FEHLER:", e);
+          }
         }
         return jsonResponse({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
       }
