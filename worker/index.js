@@ -234,28 +234,37 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   }
 
   const u = new URL(request.url);
-  const data = ts + request.method + u.pathname + (u.search || "") + (rawBody || "");
   const enc = new TextEncoder();
+  const payload = (rawBody || "");
+  const candidates = [
+    request.method + u.pathname + (u.search || "") + payload + ts,
+    request.method + u.origin + u.pathname + (u.search || "") + payload + ts,
+  ];
   const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const expectedBuffer = await crypto.subtle.sign("HMAC", key, enc.encode(data));
-  const expected = new Uint8Array(expectedBuffer);
 
-  if (expected.byteLength !== provided.byteLength) {
-    console.error("HubSpot signature mismatch: length differs", { provided: provided.byteLength, expected: expected.byteLength });
-    return false;
+  const attempted = [];
+  for (const data of candidates) {
+    const expectedBuffer = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+    const expected = new Uint8Array(expectedBuffer);
+    attempted.push(expected);
+
+    if (expected.byteLength !== provided.byteLength) {
+      continue;
+    }
+
+    let mismatch = 0;
+    for (let i = 0; i < expected.length; i++) {
+      mismatch |= expected[i] ^ provided[i];
+    }
+    if (mismatch === 0) {
+      return true;
+    }
   }
 
-  let mismatch = 0;
-  for (let i = 0; i < expected.length; i++) {
-    mismatch |= expected[i] ^ provided[i];
-  }
-  if (mismatch !== 0) {
-    const expectedPreview = btoa(String.fromCharCode(...expected)).slice(0, 8);
-    const providedPreview = btoa(String.fromCharCode(...provided)).slice(0, 8);
-    console.error("HubSpot signature mismatch", { expectedPreview, providedPreview });
-    return false;
-  }
-  return true;
+  const providedPreview = btoa(String.fromCharCode(...provided)).slice(0, 8);
+  const expectedPreview = attempted.length ? btoa(String.fromCharCode(...attempted[0])).slice(0, 8) : "";
+  console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
+  return false;
 }
 async function hsFetchDeal(dealId, env) { if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing"); const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,amount,dealstage,closedate,hs_object_id,pipeline`; const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } }); if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`); return r.json(); }
 function upsertByHubSpotId(entries, deal) {
