@@ -4,6 +4,8 @@ import {
   DEFAULT_WEIGHTS,
   CATEGORY_NAMES,
   FOUNDER_SHARE_PCT,
+  CONFIG_WARNINGS,
+  CONFIG_ERRORS,
 } from './config.js';
 import {
   saveState,
@@ -34,6 +36,39 @@ import {
   updateBatchProgress,
   hideBatchProgress,
 } from './ui/feedback.js';
+
+const hasConfigWarnings = CONFIG_WARNINGS.length > 0;
+const hasConfigErrors = CONFIG_ERRORS.length > 0;
+
+if (hasConfigWarnings) {
+  if (typeof console !== 'undefined' && CONFIG_WARNINGS.length) {
+    console.groupCollapsed?.('Konfiguration – Hinweise');
+    CONFIG_WARNINGS.forEach((msg) => console.warn(msg));
+    console.groupEnd?.();
+  }
+}
+
+if (hasConfigErrors) {
+  if (typeof console !== 'undefined' && CONFIG_ERRORS.length) {
+    console.groupCollapsed?.('Konfiguration – Fehler');
+    CONFIG_ERRORS.forEach((msg) => console.error(msg));
+    console.groupEnd?.();
+  }
+}
+
+if (hasConfigErrors) {
+  showToast(
+    `Konfiguration konnte nicht vollständig geladen werden (${CONFIG_ERRORS.length} Fehler). Es werden Standardwerte verwendet. Siehe Konsole für Details.`,
+    'bad',
+    9000
+  );
+} else if (hasConfigWarnings) {
+  const summary =
+    CONFIG_WARNINGS.length === 1
+      ? CONFIG_WARNINGS[0]
+      : `Konfiguration geladen mit ${CONFIG_WARNINGS.length} Hinweis(en). Siehe Konsole für Details.`;
+  showToast(summary, 'warn', 7000);
+}
 import {
   appendRow as appendFormRow,
   readRows,
