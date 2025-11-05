@@ -10624,5 +10624,20 @@
       "KV-2025-0281"
     ],
     "kv": "KV-2025-0281"
+  },
+  {
+    "id": "hubspot_b5d087787aaa3fd1cfbad87a999b636a",
+    "hubspotId": "45326972175",
+    "title": "Change-Begleitung",
+    "amount": 250000,
+    "source": "hubspot",
+    "projectNumber": "",
+    "client": "CompanyID: ?",
+    "assessedByOwnerId": "359780262",
+    "salesCreditIds": [],
+    "updatedAt": 1762335568090,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
