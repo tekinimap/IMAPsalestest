@@ -10632,10 +10632,12 @@
     "amount": 250000,
     "source": "hubspot",
     "projectNumber": "",
-    "client": "",
-    "updatedAt": 1762334883485,
+    "client": "CompanyID: ?",
+    "updatedAt": 1762335536816,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "assessedByOwnerId": "359780262",
+    "salesCreditIds": []
   }
 ]
