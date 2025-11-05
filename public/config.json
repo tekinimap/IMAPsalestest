@@ -1,0 +1,29 @@
+{
+  "workerBase": "https://imap-sales-worker.tekin-6af.workers.dev",
+  "teams": [
+    "Vielfalt+",
+    "Evaluation und Beteiligung",
+    "Nachhaltigkeit",
+    "Sozial- und Krankenversicherungen",
+    "ChangePartner",
+    "Bundes- und Landesbehörden",
+    "Kommunalverwaltungen",
+    "Internationale Zusammenarbeit",
+    "Head of Organisational Excellence",
+    "Head of Public Impact"
+  ],
+  "defaultWeights": {
+    "cs": 50,
+    "konzept": 30,
+    "pitch": 20
+  },
+  "categoryNames": {
+    "cs": "Consultative Selling",
+    "konzept": "Konzepterstellung",
+    "pitch": "Pitch"
+  },
+  "founderSharePct": 20,
+  "throttleMs": 1100,
+  "retryLimit": 2,
+  "retryBackoffMs": 3000
+}
