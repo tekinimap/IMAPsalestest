@@ -10626,25 +10626,6 @@
     "kv": "KV-2025-0281"
   },
   {
-    "id": "hubspot_1c55fb8c3fdcd1dfc728a1c158f32669",
-    "hubspotId": "48181081968",
-    "title": "Test Projekt",
-    "amount": 50,
-    "source": "hubspot",
-    "projectNumber": "",
-    "client": "",
-    "assessedByOwnerId": "359780262",
-    "salesCreditIds": [
-      "359780262",
-      "57964863",
-      "80655300"
-    ],
-    "updatedAt": 1762336875724,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": ""
-  },
-  {
     "id": "hubspot_c68cacfe62a8cd9bf78b2dcf69f10f28",
     "hubspotId": "45326972175",
     "title": "Change-Begleitung",
