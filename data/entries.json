@@ -10638,23 +10638,23 @@
       {
         "key": "hubspot_collab_0",
         "name": "Merlin Klein",
-        "money": 83333.33,
-        "pct": 33.33
+        "money": 0,
+        "pct": 0
       },
       {
         "key": "hubspot_collab_1",
         "name": "Christopher van den Hövel",
-        "money": 83333.33,
-        "pct": 33.33
+        "money": 0,
+        "pct": 0
       },
       {
         "key": "hubspot_collab_2",
         "name": "Jens Maaßen",
-        "money": 83333.33,
-        "pct": 33.33
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1762338103487,
+    "updatedAt": 1762338596489,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
