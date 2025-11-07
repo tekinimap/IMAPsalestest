@@ -618,12 +618,17 @@ async function readLogEntries(env, rootDir, from, to){
 /* ------------------------ HubSpot ------------------------ */
 const HUBSPOT_UPDATE_MAX_ATTEMPTS = 5;
 
+function formatHubspotAmount(value) {
+  const numeric = toNumberMaybe(value);
+  if (numeric == null) return null;
+  const rounded = Math.round((numeric + Number.EPSILON) * 100) / 100;
+  return rounded.toFixed(2);
+}
+
 function collectHubspotSyncPayload(before, after) {
   if (!after || typeof after !== 'object') return null;
-  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
-  if (!dealId) return null;
-  if (!before || typeof before !== 'object') return null;
 
+  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
   const beforeFields = fieldsOf(before || {});
   const afterFields = fieldsOf(after || {});
 
@@ -632,7 +637,35 @@ function collectHubspotSyncPayload(before, after) {
   const previousKvNummer = normalizeString(beforeFields.kv);
   const nextKvNummer = normalizeString(afterFields.kv);
 
-  if (previousProjectNumber === nextProjectNumber && previousKvNummer === nextKvNummer) {
+  const previousAmount = toNumberMaybe(before?.amount ?? beforeFields.amount);
+  const nextAmount = toNumberMaybe(after?.amount ?? afterFields.amount);
+  let amountChanged = false;
+  if (previousAmount == null && nextAmount != null) {
+    amountChanged = true;
+  } else if (previousAmount != null && nextAmount == null) {
+    amountChanged = true;
+  } else if (Number.isFinite(previousAmount) && Number.isFinite(nextAmount)) {
+    amountChanged = Math.abs(previousAmount - nextAmount) >= 0.01;
+  }
+
+  const properties = {};
+  if (previousProjectNumber !== nextProjectNumber) {
+    properties.projektnummer = nextProjectNumber;
+  }
+  if (previousKvNummer !== nextKvNummer) {
+    properties.kvnummer = nextKvNummer;
+  }
+  if (amountChanged && nextAmount != null) {
+    properties.amount = nextAmount;
+    if (!('projektnummer' in properties)) {
+      properties.projektnummer = nextProjectNumber;
+    }
+    if (!('kvnummer' in properties)) {
+      properties.kvnummer = nextKvNummer;
+    }
+  }
+
+  if (!Object.keys(properties).length) {
     return null;
   }
 
@@ -640,10 +673,17 @@ function collectHubspotSyncPayload(before, after) {
     dealId,
     entryId: after.id,
     source: after.source,
-    previousProjectNumber,
-    nextProjectNumber,
-    previousKvNummer,
-    nextKvNummer,
+    previous: {
+      projektnummer: previousProjectNumber,
+      kvnummer: previousKvNummer,
+      amount: previousAmount,
+    },
+    next: {
+      projektnummer: nextProjectNumber,
+      kvnummer: nextKvNummer,
+      amount: nextAmount,
+    },
+    properties,
   };
 }
 
@@ -661,6 +701,12 @@ async function hsUpdateDealProperties(dealId, properties, env) {
   if (properties && typeof properties === 'object') {
     if (properties.projektnummer != null) payload.projektnummer = normalizeString(properties.projektnummer);
     if (properties.kvnummer != null) payload.kvnummer = normalizeString(properties.kvnummer);
+    if (properties.amount != null) {
+      const formattedAmount = formatHubspotAmount(properties.amount);
+      if (formattedAmount != null) {
+        payload.amount = formattedAmount;
+      }
+    }
   }
 
   if (!Object.keys(payload).length) {
@@ -713,55 +759,323 @@ async function hsUpdateDealProperties(dealId, properties, env) {
   return { ok: false, status: lastStatus, attempts: HUBSPOT_UPDATE_MAX_ATTEMPTS, error: lastError || 'unknown_error' };
 }
 
-async function processHubspotSyncQueue(env, updates) {
+const DEFAULT_HUBSPOT_THROTTLE_MS = 1100;
+const DEFAULT_HUBSPOT_RETRY_BACKOFF_MS = 3000;
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function processHubspotSyncQueue(env, updates, options = {}) {
   if (!updates || !updates.length) return;
+  const { mode = 'single', reason = 'hubspot_sync_after_persist' } = options;
+
   const logs = [];
+  let successCount = 0;
+  let skippedMissingId = 0;
+  let failureCount = 0;
 
-  for (const update of updates) {
-    try {
-      const result = await hsUpdateDealProperties(update.dealId, {
-        projektnummer: update.nextProjectNumber,
-        kvnummer: update.nextKvNummer,
-      }, env);
-
-      const logEntry = {
-        event: 'hubspot_update',
-        source: update.source || 'worker',
-        reason: 'hubspot_sync_after_persist',
-        entryId: update.entryId,
-        dealId: update.dealId,
-        projektnummer: update.nextProjectNumber,
-        kvnummer: update.nextKvNummer,
-        previousProjektnummer: update.previousProjectNumber,
-        previousKvnummer: update.previousKvNummer,
-        attempts: result.attempts,
-        status: result.ok ? (result.skipped ? 'skipped' : 'success') : 'failure',
-      };
-
-      if (result.status != null) logEntry.httpStatus = result.status;
-      if (result.error) logEntry.error = result.error;
-
-      logs.push(logEntry);
-    } catch (err) {
+  if (mode === 'batch') {
+    const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
+    if (!token) {
+      failureCount += updates.length;
       logs.push({
         event: 'hubspot_update',
-        source: update.source || 'worker',
-        reason: 'hubspot_sync_after_persist',
-        entryId: update.entryId,
-        dealId: update.dealId,
-        projektnummer: update.nextProjectNumber,
-        kvnummer: update.nextKvNummer,
-        previousProjektnummer: update.previousProjectNumber,
-        previousKvnummer: update.previousKvNummer,
-        status: 'exception',
-        error: String(err || 'unknown_error'),
+        mode,
+        reason,
+        status: 'failure',
+        error: 'missing_hubspot_access_token',
       });
+      await logJSONL(env, logs);
+      return;
+    }
+
+    const aggregated = new Map();
+    for (const update of updates) {
+      if (!update || typeof update !== 'object') continue;
+      const properties = update.properties && typeof update.properties === 'object' ? { ...update.properties } : {};
+      if (!Object.keys(properties).length) continue;
+      const normalizedDealId = normalizeString(update.dealId);
+      if (!normalizedDealId) {
+        skippedMissingId++;
+        logs.push({
+          event: 'hubspot_update',
+          mode,
+          reason,
+          status: 'skipped',
+          skipReason: 'missing_hubspot_id',
+          entryId: update.entryId,
+          source: update.source || 'worker',
+          properties,
+          previous: update.previous,
+          next: update.next,
+        });
+        continue;
+      }
+
+      if (!aggregated.has(normalizedDealId)) {
+        aggregated.set(normalizedDealId, {
+          dealId: normalizedDealId,
+          properties: {},
+          entryIds: new Set(),
+          sources: new Set(),
+          previous: {},
+          next: {},
+        });
+      }
+      const record = aggregated.get(normalizedDealId);
+      if (update.entryId) record.entryIds.add(update.entryId);
+      if (update.source) record.sources.add(update.source);
+      if (update.previous && typeof update.previous === 'object') {
+        record.previous = { ...record.previous, ...update.previous };
+      }
+      if (update.next && typeof update.next === 'object') {
+        record.next = { ...record.next, ...update.next };
+      }
+
+      for (const [key, value] of Object.entries(properties)) {
+        if (key === 'amount') {
+          const formatted = formatHubspotAmount(value ?? update.next?.amount);
+          if (formatted != null) {
+            record.properties.amount = formatted;
+          }
+        } else if (key === 'projektnummer' || key === 'kvnummer') {
+          record.properties[key] = normalizeString(value ?? (update.next ? update.next[key] : ''));
+        } else {
+          record.properties[key] = value;
+        }
+      }
+    }
+
+    const aggregatedUpdates = [...aggregated.values()].filter(item => Object.keys(item.properties).length);
+    if (!aggregatedUpdates.length) {
+      if (logs.length) {
+        logs.push({
+          event: 'hubspot_update_summary',
+          mode,
+          reason,
+          total: updates.length,
+          successCount,
+          skippedMissingId,
+          failureCount,
+        });
+        await logJSONL(env, logs);
+      }
+      return;
+    }
+
+    const throttleMsRaw = Number(env.HUBSPOT_THROTTLE_MS ?? env.THROTTLE_MS);
+    const throttleMs = Number.isFinite(throttleMsRaw) && throttleMsRaw >= 0 ? throttleMsRaw : DEFAULT_HUBSPOT_THROTTLE_MS;
+    const backoffRaw = Number(env.HUBSPOT_RETRY_BACKOFF_MS ?? env.RETRY_BACKOFF_MS);
+    const baseBackoff = Number.isFinite(backoffRaw) && backoffRaw > 0 ? backoffRaw : DEFAULT_HUBSPOT_RETRY_BACKOFF_MS;
+
+    const batches = chunkArray(aggregatedUpdates, 100);
+
+    for (const batch of batches) {
+      if (throttleMs) {
+        await sleep(throttleMs);
+      }
+      const payload = {
+        inputs: batch.map(item => ({
+          id: item.dealId,
+          properties: item.properties,
+        })),
+      };
+
+      let attempt = 0;
+      let lastError = '';
+      let lastStatus = null;
+      let success = false;
+
+      while (attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+        attempt++;
+        if (attempt > 1) {
+          const delay = baseBackoff * Math.pow(2, attempt - 2);
+          await sleep(delay);
+        }
+        try {
+          const response = await fetch('https://api.hubapi.com/crm/v3/objects/deals/batch/update', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          lastStatus = response.status;
+          const responseText = await response.text();
+          if (response.ok) {
+            success = true;
+            successCount += batch.length;
+            for (const record of batch) {
+              logs.push({
+                event: 'hubspot_update',
+                mode,
+                reason,
+                status: 'success',
+                entryIds: Array.from(record.entryIds).filter(Boolean),
+                sources: Array.from(record.sources).filter(Boolean),
+                dealId: record.dealId,
+                properties: record.properties,
+                previous: record.previous,
+                next: record.next,
+                attempts: attempt,
+                httpStatus: response.status,
+              });
+            }
+            break;
+          }
+
+          lastError = responseText || `HTTP ${response.status}`;
+          if ((response.status === 429 || response.status >= 500) && attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+            continue;
+          }
+          failureCount += batch.length;
+          for (const record of batch) {
+            logs.push({
+              event: 'hubspot_update',
+              mode,
+              reason,
+              status: 'failure',
+              entryIds: Array.from(record.entryIds).filter(Boolean),
+              sources: Array.from(record.sources).filter(Boolean),
+              dealId: record.dealId,
+              properties: record.properties,
+              previous: record.previous,
+              next: record.next,
+              attempts: attempt,
+              httpStatus: response.status,
+              error: lastError,
+            });
+          }
+          break;
+        } catch (err) {
+          lastError = String(err || 'unknown_error');
+          if (attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+            failureCount += batch.length;
+            for (const record of batch) {
+              logs.push({
+                event: 'hubspot_update',
+                mode,
+                reason,
+                status: 'exception',
+                entryIds: Array.from(record.entryIds).filter(Boolean),
+                sources: Array.from(record.sources).filter(Boolean),
+                dealId: record.dealId,
+                properties: record.properties,
+                previous: record.previous,
+                next: record.next,
+                attempts: attempt,
+                error: lastError,
+              });
+            }
+          }
+        }
+      }
+
+      if (!success && lastStatus == null && lastError && attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+        // ensure logs for exhaustion without HTTP response are present
+        for (const record of batch) {
+          logs.push({
+            event: 'hubspot_update',
+            mode,
+            reason,
+            status: 'failure',
+            entryIds: Array.from(record.entryIds).filter(Boolean),
+            sources: Array.from(record.sources).filter(Boolean),
+            dealId: record.dealId,
+            properties: record.properties,
+            previous: record.previous,
+            next: record.next,
+            attempts: HUBSPOT_UPDATE_MAX_ATTEMPTS,
+            error: lastError,
+          });
+        }
+      }
+    }
+  } else {
+    for (const update of updates) {
+      if (!update || typeof update !== 'object') continue;
+      const properties = update.properties && typeof update.properties === 'object' ? { ...update.properties } : {};
+      if (!Object.keys(properties).length) continue;
+      const normalizedDealId = normalizeString(update.dealId);
+      if (!normalizedDealId) {
+        skippedMissingId++;
+        logs.push({
+          event: 'hubspot_update',
+          mode,
+          reason,
+          status: 'skipped',
+          skipReason: 'missing_hubspot_id',
+          entryId: update.entryId,
+          source: update.source || 'worker',
+          properties,
+          previous: update.previous,
+          next: update.next,
+        });
+        continue;
+      }
+
+      try {
+        const result = await hsUpdateDealProperties(normalizedDealId, properties, env);
+        if (result.ok && !result.skipped) {
+          successCount++;
+        } else if (!result.ok) {
+          failureCount++;
+        }
+
+        const logEntry = {
+          event: 'hubspot_update',
+          mode,
+          reason,
+          entryId: update.entryId,
+          dealId: normalizedDealId,
+          source: update.source || 'worker',
+          properties,
+          previous: update.previous,
+          next: update.next,
+          attempts: result.attempts,
+          status: result.ok ? (result.skipped ? 'skipped' : 'success') : 'failure',
+        };
+
+        if (result.status != null) logEntry.httpStatus = result.status;
+        if (result.error) logEntry.error = result.error;
+
+        logs.push(logEntry);
+      } catch (err) {
+        failureCount++;
+        logs.push({
+          event: 'hubspot_update',
+          mode,
+          reason,
+          entryId: update.entryId,
+          dealId: normalizedDealId,
+          source: update.source || 'worker',
+          properties,
+          previous: update.previous,
+          next: update.next,
+          status: 'exception',
+          error: String(err || 'unknown_error'),
+        });
+      }
     }
   }
 
-  if (logs.length) {
-    await logJSONL(env, logs);
-  }
+  logs.push({
+    event: 'hubspot_update_summary',
+    mode,
+    reason,
+    total: updates.length,
+    successCount,
+    skippedMissingId,
+    failureCount,
+  });
+
+  await logJSONL(env, logs);
 }
 
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
@@ -1021,9 +1335,9 @@ export default {
                          await saveEntries(refItems, ref.sha, `upsert entry (retry): ${entry.kv || entry.id}`);
                      } else { throw e; }
                  }
-                 if (hubspotUpdates.length) {
-                     await processHubspotSyncQueue(env, hubspotUpdates);
-                 }
+                if (hubspotUpdates.length) {
+                    await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_post' });
+                }
             }
             return jsonResponse(entry, status, env);
         }
@@ -1065,7 +1379,7 @@ export default {
                 await logJSONL(env, [{ event:'update', ...f, before: beforeSnapshot, after: changes }]);
             }
             if (hubspotUpdates.length) {
-                await processHubspotSyncQueue(env, hubspotUpdates);
+                await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_put' });
             }
             return jsonResponse(updatedEntry, 200, env);
         }
@@ -1188,7 +1502,7 @@ export default {
                 }
              } else { console.log("Bulk v2: No changes detected."); }
              if (changed && hubspotUpdates.length) {
-                await processHubspotSyncQueue(env, hubspotUpdates);
+                await processHubspotSyncQueue(env, hubspotUpdates, { mode: 'batch', reason: 'entries_bulk_v2' });
              }
              await logJSONL(env, logs);
              return jsonResponse({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
