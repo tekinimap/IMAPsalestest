@@ -4,7 +4,6 @@
  * - v8.8 (Gemini): Finale Version. Kombiniert Owner + Collaborators in 'list' mit 0% Zuweisung, um "Unvollständig" zu erzwingen.
  */
 
-import { computeLogMetrics } from './log-analytics.js';
 
 const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
@@ -1119,7 +1118,7 @@ export default {
           const teamName = (person.team || 'Ohne Team').trim() || 'Ohne Team';
           teamMap.set(name, teamName);
         }
-        const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
+        const metrics = __computeLogMetrics(rawLogs, { team, from, to }, teamMap);
         const headers = url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : undefined;
         return jsonResponse(metrics, 200, env, headers);
       }
