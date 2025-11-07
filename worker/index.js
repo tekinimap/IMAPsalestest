@@ -165,6 +165,22 @@ function indexTransactionKvs(entry, entryId, kvsAddedInThisBatch, itemsByKV) {
   });
 }
 
+function logCalloffDealEvent(logs, entry, transaction, kv, reason, status, extra = {}) {
+  if (!Array.isArray(logs)) return;
+  logs.push({
+    event: 'hubspot_calloff_deal',
+    status,
+    entryId: entry?.id,
+    transactionId: transaction?.id,
+    kv,
+    reason,
+    projectNumber: entry?.projectNumber || '',
+    amount: toNumberMaybe(transaction?.amount),
+    source: entry?.source || 'erp',
+    ...extra,
+  });
+}
+
 function toEpochMillis(value){
   if (value == null) return null;
   if (value instanceof Date){
@@ -247,17 +263,8 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
   const accessToken = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
   if (!accessToken) {
     for (const { transaction, kv, reason } of candidates) {
-      logs.push({
-        event: 'hubspot_calloff_deal',
-        status: 'skipped',
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'skipped', {
         skipReason: 'missing_hubspot_access_token',
-        entryId: updatedEntry.id,
-        transactionId: transaction?.id,
-        kv,
-        reason,
-        projectNumber: updatedEntry.projectNumber || '',
-        amount: toNumberMaybe(transaction?.amount),
-        source: updatedEntry.source || 'erp',
       });
     }
     return;
@@ -271,29 +278,9 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
         transaction.hubspotId = hubspotId;
         transaction.hs_object_id = hubspotId;
       }
-      logs.push({
-        event: 'hubspot_calloff_deal',
-        status: 'success',
-        entryId: updatedEntry.id,
-        transactionId: transaction?.id,
-        kv,
-        reason,
-        hubspotId,
-        projectNumber: updatedEntry.projectNumber || '',
-        amount: toNumberMaybe(transaction?.amount),
-        source: updatedEntry.source || 'erp',
-      });
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'success', { hubspotId });
     } catch (err) {
-      logs.push({
-        event: 'hubspot_calloff_deal',
-        status: 'failure',
-        entryId: updatedEntry.id,
-        transactionId: transaction?.id,
-        kv,
-        reason,
-        projectNumber: updatedEntry.projectNumber || '',
-        amount: toNumberMaybe(transaction?.amount),
-        source: updatedEntry.source || 'erp',
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'failure', {
         error: String(err?.message || err || 'unknown_error'),
       });
     }
@@ -808,22 +795,17 @@ async function hsCreateCalloffDeal(transaction, parentEntry, env) {
     kv
   );
 
-  const stageCandidates = [
+  const dealstage = firstNonEmpty(
     env.HUBSPOT_CALL_OFF_STAGE_ID,
     env.HUBSPOT_CALL_OFF_DEALSTAGE,
-    ...(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean)),
-  ];
-  const dealstage = stageCandidates.map(s => normalizeString(s)).find(Boolean) || '';
+    String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || '').split(',').map(part => part.trim())
+  );
 
-  const pipelineCandidates = [
+  const pipeline = firstNonEmpty(
     env.HUBSPOT_CALL_OFF_PIPELINE,
     env.HUBSPOT_PIPELINE_ID,
-    env.HUBSPOT_DEFAULT_PIPELINE,
-  ];
-  const pipeline = pipelineCandidates.map(s => normalizeString(s)).find(Boolean) || '';
+    env.HUBSPOT_DEFAULT_PIPELINE
+  );
 
   const ownerId = firstNonEmpty(
     transaction.hubspotOwnerId,
