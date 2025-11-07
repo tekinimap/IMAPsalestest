@@ -790,6 +790,15 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
         status: 'failure',
         error: 'missing_hubspot_access_token',
       });
+      logs.push({
+        event: 'hubspot_update_summary',
+        mode,
+        reason,
+        total: updates.length,
+        successCount,
+        skippedMissingId,
+        failureCount,
+      });
       await logJSONL(env, logs);
       return;
     }
