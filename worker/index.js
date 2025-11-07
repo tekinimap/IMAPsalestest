@@ -764,6 +764,29 @@ async function processHubspotSyncQueue(env, updates) {
   }
 }
 
+function enqueueHubspotSync(ctx, env, updates) {
+  if (!updates || !updates.length) {
+    return;
+  }
+
+  const pending = processHubspotSyncQueue(env, updates.map(update => ({ ...update })));
+
+  const handleError = (err) => {
+    console.error('HubSpot sync task failed', err);
+  };
+
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    try {
+      ctx.waitUntil(pending.catch(handleError));
+    } catch (err) {
+      console.error('Unable to queue HubSpot sync task', err);
+      pending.catch(handleError);
+    }
+  } else {
+    pending.catch(handleError);
+  }
+}
+
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
   const sigHeader = request.headers.get("X-HubSpot-Signature-V3") || "";
   const ts = request.headers.get("X-HubSpot-Request-Timestamp") || "";
@@ -928,7 +951,7 @@ function upsertByHubSpotId(entries, deal) {
 
 /* ------------------------ Router ------------------------ */
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: getCorsHeaders(env) });
     }
@@ -1022,7 +1045,7 @@ export default {
                      } else { throw e; }
                  }
                  if (hubspotUpdates.length) {
-                     await processHubspotSyncQueue(env, hubspotUpdates);
+                     enqueueHubspotSync(ctx, env, hubspotUpdates);
                  }
             }
             return jsonResponse(entry, status, env);
@@ -1065,7 +1088,7 @@ export default {
                 await logJSONL(env, [{ event:'update', ...f, before: beforeSnapshot, after: changes }]);
             }
             if (hubspotUpdates.length) {
-                await processHubspotSyncQueue(env, hubspotUpdates);
+                enqueueHubspotSync(ctx, env, hubspotUpdates);
             }
             return jsonResponse(updatedEntry, 200, env);
         }
@@ -1188,7 +1211,7 @@ export default {
                 }
              } else { console.log("Bulk v2: No changes detected."); }
              if (changed && hubspotUpdates.length) {
-                await processHubspotSyncQueue(env, hubspotUpdates);
+                enqueueHubspotSync(ctx, env, hubspotUpdates);
              }
              await logJSONL(env, logs);
              return jsonResponse({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
