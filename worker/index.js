@@ -62,6 +62,12 @@ function rndId(prefix = 'item_'){ const a=new Uint8Array(16); crypto.getRandomVa
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 const LOG_DIR = (env)=> (env.GH_LOG_DIR || "data/logs");
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+async function throttle(delayMs) {
+  const ms = Number(delayMs);
+  if (Number.isFinite(ms) && ms > 0) {
+    await sleep(ms);
+  }
+}
 
 function normKV(v){ return String(v ?? '').trim(); }
 function normalizeString(value){ return String(value ?? '').trim(); }
@@ -88,6 +94,20 @@ function uniqueNormalizedKvList(list){
     }
   }
   return out;
+}
+
+function firstNonEmpty(...values) {
+  for (const value of values) {
+    if (value == null) continue;
+    if (Array.isArray(value)) {
+      const candidate = value.map(v => normalizeString(v)).find(Boolean);
+      if (candidate) return candidate;
+      continue;
+    }
+    const normalized = normalizeString(value);
+    if (normalized) return normalized;
+  }
+  return "";
 }
 function kvListFrom(obj){
   if (!obj || typeof obj !== 'object') return [];
@@ -127,6 +147,40 @@ function ensureKvStructure(entry){
   return applyKvList(entry, kvListFrom(entry));
 }
 
+function indexTransactionKvs(entry, entryId, kvsAddedInThisBatch, itemsByKV) {
+  if (!entry || typeof entry !== 'object') return;
+  if (entry.projectType !== 'rahmen' || !Array.isArray(entry.transactions)) return;
+  const ownerId = entryId || entry.id;
+  entry.transactions.forEach(transaction => {
+    const txKvs = kvListFrom(transaction);
+    txKvs.forEach(txKv => {
+      if (!txKv) return;
+      if (kvsAddedInThisBatch) {
+        kvsAddedInThisBatch.add(txKv);
+      }
+      if (itemsByKV && ownerId) {
+        itemsByKV.set(txKv, ownerId);
+      }
+    });
+  });
+}
+
+function logCalloffDealEvent(logs, entry, transaction, kv, reason, status, extra = {}) {
+  if (!Array.isArray(logs)) return;
+  logs.push({
+    event: 'hubspot_calloff_deal',
+    status,
+    entryId: entry?.id,
+    transactionId: transaction?.id,
+    kv,
+    reason,
+    projectNumber: entry?.projectNumber || '',
+    amount: toNumberMaybe(transaction?.amount),
+    source: entry?.source || 'erp',
+    ...extra,
+  });
+}
+
 function toEpochMillis(value){
   if (value == null) return null;
   if (value instanceof Date){
@@ -151,6 +205,86 @@ function extractFreigabedatumFromEntry(entry){
   if (!entry || typeof entry !== 'object') return null;
   const direct = toEpochMillis(entry.freigabedatum ?? entry.freigabeDatum ?? entry.releaseDate ?? entry.freigabe_datum);
   return direct != null ? direct : null;
+}
+
+function normalizeTransactionKv(transaction) {
+  if (!transaction || typeof transaction !== 'object') return "";
+  return firstNonEmpty(
+    transaction.kv_nummer,
+    transaction.kvNummer,
+    transaction.kv,
+    transaction.kvnummer
+  );
+}
+
+function findTransactionsNeedingCalloffDeal(beforeEntry, afterEntry) {
+  const results = [];
+  if (!afterEntry || typeof afterEntry !== 'object') return results;
+
+  const afterList = Array.isArray(afterEntry.transactions) ? afterEntry.transactions : [];
+  if (!afterList.length) return results;
+
+  const beforeList = Array.isArray(beforeEntry?.transactions) ? beforeEntry.transactions : [];
+  const beforeByKv = new Map();
+  for (const tx of beforeList) {
+    const kv = normalizeTransactionKv(tx);
+    if (!kv) continue;
+    beforeByKv.set(kv, tx);
+  }
+
+  for (const transaction of afterList) {
+    if (!transaction || typeof transaction !== 'object') continue;
+    const type = normalizeString(transaction.type || '').toLowerCase();
+    if (type && type !== 'founder') continue;
+    const kv = normalizeTransactionKv(transaction);
+    if (!kv) continue;
+    const hubspotId = firstNonEmpty(transaction.hubspotId, transaction.hs_object_id);
+    if (!beforeByKv.has(kv)) {
+      if (!hubspotId) {
+        results.push({ transaction, kv, reason: 'new_kv' });
+      }
+      continue;
+    }
+    if (!hubspotId) {
+      results.push({ transaction, kv, reason: 'missing_hubspot_id' });
+    }
+  }
+
+  return results;
+}
+
+async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
+  if (!updatedEntry || typeof updatedEntry !== 'object') return;
+  if (normalizeString(updatedEntry.projectType || '') !== 'rahmen') return;
+
+  const candidates = findTransactionsNeedingCalloffDeal(beforeEntry, updatedEntry);
+  if (!candidates.length) return;
+
+  const accessToken = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
+  if (!accessToken) {
+    for (const { transaction, kv, reason } of candidates) {
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'skipped', {
+        skipReason: 'missing_hubspot_access_token',
+      });
+    }
+    return;
+  }
+
+  for (const { transaction, kv, reason } of candidates) {
+    try {
+      const result = await hsCreateCalloffDeal(transaction, updatedEntry, env);
+      const hubspotId = normalizeString(result?.id);
+      if (hubspotId) {
+        transaction.hubspotId = hubspotId;
+        transaction.hs_object_id = hubspotId;
+      }
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'success', { hubspotId });
+    } catch (err) {
+      logCalloffDealEvent(logs, updatedEntry, transaction, kv, reason, 'failure', {
+        error: String(err?.message || err || 'unknown_error'),
+      });
+    }
+  }
 }
 
 function resolveFreigabedatum(logEntry, fallbackTs){
@@ -623,6 +757,136 @@ function formatHubspotAmount(value) {
   if (numeric == null) return null;
   const rounded = Math.round((numeric + Number.EPSILON) * 100) / 100;
   return rounded.toFixed(2);
+}
+
+async function hsCreateCalloffDeal(transaction, parentEntry, env) {
+  const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
+  if (!token) throw new Error('HUBSPOT_ACCESS_TOKEN missing');
+
+  if (!transaction || typeof transaction !== 'object') {
+    throw new Error('transaction missing');
+  }
+
+  const kv = normalizeTransactionKv(transaction);
+  if (!kv) {
+    throw new Error('transaction kv_nummer missing');
+  }
+
+  const amountFormatted = formatHubspotAmount(transaction.amount);
+  const projectNumber = firstNonEmpty(
+    transaction.projectNumber,
+    transaction.projektnummer,
+    parentEntry?.projectNumber,
+    parentEntry?.projektnummer
+  );
+
+  const freigabeTs = extractFreigabedatumFromEntry(transaction) ?? extractFreigabedatumFromEntry(parentEntry) ?? Date.now();
+  const closedate = Number.isFinite(Number(freigabeTs)) ? Math.trunc(Number(freigabeTs)) : Date.now();
+
+  const parentTitle = firstNonEmpty(
+    transaction.title,
+    parentEntry?.title,
+    parentEntry?.dealname
+  );
+  const clientName = firstNonEmpty(transaction.client, parentEntry?.client);
+  const dealname = firstNonEmpty(
+    parentTitle && kv ? `${parentTitle} – ${kv}` : '',
+    clientName && kv ? `${clientName} – ${kv}` : '',
+    kv
+  );
+
+  const dealstage = firstNonEmpty(
+    env.HUBSPOT_CALL_OFF_STAGE_ID,
+    env.HUBSPOT_CALL_OFF_DEALSTAGE,
+    String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || '').split(',').map(part => part.trim())
+  );
+
+  const pipeline = firstNonEmpty(
+    env.HUBSPOT_CALL_OFF_PIPELINE,
+    env.HUBSPOT_PIPELINE_ID,
+    env.HUBSPOT_DEFAULT_PIPELINE
+  );
+
+  const ownerId = firstNonEmpty(
+    transaction.hubspotOwnerId,
+    transaction.hubspot_owner_id,
+    parentEntry?.hubspotOwnerId,
+    parentEntry?.hubspot_owner_id,
+    parentEntry?.ownerId,
+    parentEntry?.owner_id
+  );
+
+  const companyId = firstNonEmpty(
+    transaction.hubspotCompanyId,
+    transaction.hubspot_company_id,
+    parentEntry?.hubspotCompanyId,
+    parentEntry?.hubspot_company_id,
+    parentEntry?.companyId,
+    parentEntry?.company_id
+  );
+
+  const properties = {
+    dealname,
+    kvnummer: kv,
+    closedate: String(closedate),
+  };
+
+  if (amountFormatted != null) {
+    properties.amount = amountFormatted;
+  }
+  if (projectNumber) {
+    properties.projektnummer = projectNumber;
+  }
+  if (dealstage) {
+    properties.dealstage = dealstage;
+  }
+  if (pipeline) {
+    properties.pipeline = pipeline;
+  }
+  if (ownerId) {
+    properties.hubspot_owner_id = ownerId;
+  }
+
+  const associations = [];
+  if (companyId) {
+    associations.push({
+      to: { id: companyId },
+      types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }],
+    });
+  }
+
+  const payload = { properties };
+  if (associations.length) {
+    payload.associations = associations;
+  }
+
+  const delayCandidates = [env.HUBSPOT_CALL_DELAY_MS, env.HUBSPOT_THROTTLE_MS, env.THROTTLE_MS];
+  const delayMs = delayCandidates
+    .map(value => Number(value))
+    .find(value => Number.isFinite(value) && value >= 0) ?? 200;
+  await throttle(delayMs);
+
+  const response = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HubSpot create deal failed (${response.status}): ${text}`);
+  }
+
+  const data = await response.json();
+  const newId = firstNonEmpty(data.id, data.properties?.hs_object_id);
+  if (!newId) {
+    throw new Error('HubSpot create deal response missing id');
+  }
+
+  return { id: String(newId), raw: data };
 }
 
 function collectHubspotSyncPayload(before, after) {
@@ -1482,6 +1746,8 @@ export default {
                         const entry = ensureKvStructure({ ...row, id: newId, ts: row.ts || Date.now(), modified: undefined });
                         if(Array.isArray(entry.transactions)){ entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
                         items.push(entry); itemsById.set(newId, entry); kvList.forEach(kv => { if (kv) { kvsAddedInThisBatch.add(kv); itemsByKV.set(kv, newId); } });
+                        indexTransactionKvs(entry, newId, kvsAddedInThisBatch, itemsByKV);
+                        await syncCalloffDealsForEntry(null, entry, env, logs);
                         created++; changed = true; const f = fieldsOf(entry); logs.push({ event:'create', source: entry.source || 'erp', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason:'bulk_import_new' });
                     } else {
                         const existingEntry = itemsById.get(row.id); if (!existingEntry) { errors++; logs.push({ event:'error', source: row.source || 'erp', entryId: row.id, reason: 'update_id_not_found'}); console.error(`Update failed: ID ${row.id} not found.`); continue; }
@@ -1498,6 +1764,8 @@ export default {
                             const beforeKvs = kvListFrom(before);
                             beforeKvs.forEach(kv => { if (!updatedKvs.includes(kv)) itemsByKV.delete(kv); });
                             updatedKvs.forEach(kv => { itemsByKV.set(kv, row.id); kvsAddedInThisBatch.add(kv); });
+                            indexTransactionKvs(updatedEntry, row.id, kvsAddedInThisBatch, itemsByKV);
+                            await syncCalloffDealsForEntry(before, updatedEntry, env, logs);
                             const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
                             if (syncPayload) hubspotUpdates.push(syncPayload);
                             updated++; changed = true; const f = fieldsOf(updatedEntry); logs.push({ event:'update', source: updatedEntry.source || 'erp', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason: 'bulk_import_update' });
