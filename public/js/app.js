@@ -179,6 +179,16 @@ const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
 const kvNummer = document.getElementById('kvNummer');
 const freigabedatum = document.getElementById('freigabedatum');
+const metaEditSection = document.getElementById('metaEditSection');
+const btnMetaEditToggle = document.getElementById('btnMetaEditToggle');
+const metaSummary = document.getElementById('metaSummary');
+const metaSummaryFields = metaSummary ? {
+  projectNumber: metaSummary.querySelector('[data-meta-field="projectNumber"]'),
+  kvNummer: metaSummary.querySelector('[data-meta-field="kvNummer"]'),
+  freigabedatum: metaSummary.querySelector('[data-meta-field="freigabedatum"]'),
+} : null;
+let metaQuickEditEnabled = false;
+let metaBaseDisabledState = { projectNumber: false, kvNummer: false, freigabedatum: false };
 const w_cs = document.getElementById('w_cs');
 const w_konzept = document.getElementById('w_konzept');
 const w_pitch = document.getElementById('w_pitch');
@@ -216,7 +226,6 @@ function validateInput(forLive = false) {
         if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
         if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
         if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
-        if (!freigabedatum.value) errors.freigabedatum = 'Freigabedatum ist erforderlich.';
         
         if (st.isAbrufMode && !kvNummer.value.trim()) {
             errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
@@ -324,12 +333,88 @@ function saveCurrentInputState() {
         submittedBy: submittedBy.value,
         projectNumber: projectNumber.value.trim(),
         kvNummer: kvNummer.value.trim(),
-        freigabedatum: freigabedatum.value || getTodayDate()
+        freigabedatum: freigabedatum.value || ''
     };
     saveState({ ...stPrev, input: currentInput });
 }
 
+function updateMetaSummary() {
+    if (!metaSummaryFields) return;
+    const pn = projectNumber?.value.trim();
+    const kv = kvNummer?.value.trim();
+    const dateValue = freigabedatum?.value;
+    metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
+    metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
+    metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDate(dateValue) : '–';
+}
+
+function applyMetaDisabledState(forceDisabled = false) {
+    if (!projectNumber || !kvNummer || !freigabedatum) return;
+    if (forceDisabled) {
+        projectNumber.disabled = true;
+        kvNummer.disabled = true;
+        freigabedatum.disabled = true;
+    } else {
+        projectNumber.disabled = !!metaBaseDisabledState.projectNumber;
+        kvNummer.disabled = !!metaBaseDisabledState.kvNummer;
+        freigabedatum.disabled = !!metaBaseDisabledState.freigabedatum;
+    }
+}
+
+function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false }) {
+    metaBaseDisabledState = { ...baseDisabled };
+    metaQuickEditEnabled = false;
+    if (!btnMetaEditToggle || !metaEditSection) {
+        applyMetaDisabledState(false);
+        return;
+    }
+    btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
+    btnMetaEditToggle.textContent = 'Bearbeiten';
+    btnMetaEditToggle.disabled = false;
+    metaEditSection.classList.remove('is-editing');
+    metaEditSection.classList.toggle('meta-edit-inline', !showQuickEdit);
+    if (showQuickEdit) {
+        metaEditSection.classList.add('meta-edit-available');
+        applyMetaDisabledState(true);
+    } else {
+        metaEditSection.classList.remove('meta-edit-available');
+        applyMetaDisabledState(false);
+    }
+    updateMetaSummary();
+}
+
+function setMetaQuickEditActive(active) {
+    metaQuickEditEnabled = active;
+    if (!btnMetaEditToggle || !metaEditSection) {
+        applyMetaDisabledState(false);
+        return;
+    }
+    if (active) {
+        metaEditSection.classList.add('is-editing');
+        btnMetaEditToggle.textContent = 'Speichern';
+        applyMetaDisabledState(false);
+    } else {
+        metaEditSection.classList.remove('is-editing');
+        btnMetaEditToggle.textContent = 'Bearbeiten';
+        const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
+        applyMetaDisabledState(quickEditAvailable);
+    }
+    updateMetaSummary();
+}
+
 [auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }); });
+if (projectNumber) {
+    projectNumber.addEventListener('input', updateMetaSummary);
+    projectNumber.addEventListener('change', updateMetaSummary);
+}
+if (kvNummer) {
+    kvNummer.addEventListener('input', updateMetaSummary);
+    kvNummer.addEventListener('change', updateMetaSummary);
+}
+if (freigabedatum) {
+    freigabedatum.addEventListener('input', updateMetaSummary);
+    freigabedatum.addEventListener('change', updateMetaSummary);
+}
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -351,13 +436,13 @@ auftragswert.addEventListener('blur',()=>{
 btnAddRow.addEventListener('click',()=>addRow(true));
 
 btnSave.addEventListener('click', async () => {
-  const errors = validateInput(); 
+  const errors = validateInput();
   if (Object.keys(errors).length > 0) {
     displayValidation(errors);
     return;
   }
   setHasUnsavedChanges(false);
-  
+
   const st = loadState(); if(!st?.input) return;
 
   if (st.isAbrufMode) {
@@ -369,22 +454,87 @@ btnSave.addEventListener('click', async () => {
   }
 });
 
+if (btnMetaEditToggle) {
+    btnMetaEditToggle.addEventListener('click', async () => {
+        if (!metaQuickEditEnabled) {
+            setMetaQuickEditActive(true);
+            projectNumber?.focus();
+            return;
+        }
+
+        const st = loadState() || {};
+        const entryId = st.editingId;
+        if (!entryId) {
+            setMetaQuickEditActive(false);
+            return;
+        }
+
+        btnMetaEditToggle.disabled = true;
+        showLoader();
+        let metaSaveSuccess = false;
+        try {
+            const payload = {
+                projectNumber: projectNumber.value.trim(),
+                kv_nummer: kvNummer.value.trim(),
+            };
+            let dateMs = null;
+            if (freigabedatum.value) {
+                const parsed = Date.parse(freigabedatum.value);
+                if (!Number.isNaN(parsed)) {
+                    dateMs = parsed;
+                }
+            }
+            payload.freigabedatum = dateMs != null ? dateMs : null;
+
+            const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            showToast('Metadaten aktualisiert.', 'ok');
+            metaSaveSuccess = true;
+            if (st.input) {
+                st.input.projectNumber = payload.projectNumber;
+                st.input.kvNummer = payload.kv_nummer;
+                st.input.freigabedatum = freigabedatum.value || '';
+                saveState(st);
+            }
+            await loadHistory();
+            renderHistory();
+            renderFrameworkContracts();
+        } catch (err) {
+            console.error(err);
+            showToast('Aktualisierung fehlgeschlagen.', 'bad');
+        } finally {
+            hideLoader();
+            btnMetaEditToggle.disabled = false;
+            if (metaSaveSuccess) {
+                setMetaQuickEditActive(false);
+            }
+        }
+    });
+}
+
 async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
   const resultData = compute(st.input.rows, st.input.weights, finalAmount);
   const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
-  const date = new Date(st.input.freigabedatum).getTime();
+  const date = st.input.freigabedatum ? Date.parse(st.input.freigabedatum) : null;
   const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
 
   const payload={
     source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
-    title:st.input.title||'', amount:finalAmount, 
+    title:st.input.title||'', amount:finalAmount,
     projectType: st.input.projectType || 'fix',
     rows: st.input.rows || [],
     list:resultData.list||[],
     totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
     projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
-    freigabedatum: date,
+    freigabedatum: Number.isFinite(date) ? date : null,
     ts: ts,
     modified: st.editingId ? Date.now() : undefined, // Only set modified on update
     id:st.editingId||undefined,
@@ -416,10 +566,17 @@ function loadInputForm(inputData, isEditing = false) {
     
     // Reset all fields first
     auftraggeber.disabled = false;
-    projectNumber.disabled = true;
-    kvNummer.disabled = true;
-    freigabedatum.disabled = false;
-    freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+    const baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false };
+    let defaultDate = '';
+    if (inputData.freigabedatum) {
+        defaultDate = formatDateForInput(inputData.freigabedatum);
+    } else if (isEditing && inputData.ts) {
+        defaultDate = formatDateForInput(inputData.ts);
+    }
+    if (!defaultDate && !isEditing) {
+        defaultDate = getTodayDate();
+    }
+    freigabedatum.value = defaultDate;
 
     if (st.isAbrufMode && st.parentEntry) {
         // Hunter Abruf
@@ -429,11 +586,13 @@ function loadInputForm(inputData, isEditing = false) {
         auftraggeber.disabled = true;
         projekttitel.value = inputData.title || '';
         projectNumber.value = inputData.projectNumber || '';
-        projectNumber.disabled = true;
         kvNummer.value = inputData.kvNummer || '';
-        kvNummer.disabled = false;
         kvNummer.placeholder = 'KV-Nummer des Abrufs';
-        freigabedatum.value = inputData.freigabedatum ? formatDateForInput(inputData.freigabedatum) : getTodayDate();
+        freigabedatum.value = freigabedatum.value || getTodayDate();
+        baseDisabled.projectNumber = true;
+        baseDisabled.kvNummer = false;
+        baseDisabled.freigabedatum = false;
+        configureMetaQuickEdit(false, baseDisabled);
 
     } else {
         // Neue Erfassung oder Bearbeitung
@@ -444,11 +603,15 @@ function loadInputForm(inputData, isEditing = false) {
         projectNumber.value = inputData.projectNumber || '';
         kvNummer.value = inputData.kvNummer || '';
 
-        projectNumber.disabled = !isEditing;
-        kvNummer.disabled = !isEditing;
-        // Freigabedatum sollte editierbar sein, außer bei Erstellung eines Rahmenvertrags (da noch keine Abrufe)
-        freigabedatum.disabled = (!isEditing && inputData.projectType === 'rahmen'); 
-        
+        baseDisabled.projectNumber = !isEditing;
+        baseDisabled.kvNummer = !isEditing;
+        baseDisabled.freigabedatum = (!isEditing && inputData.projectType === 'rahmen');
+        const showQuickEdit = Boolean(isEditing);
+        if (!freigabedatum.value && !isEditing) {
+            freigabedatum.value = getTodayDate();
+        }
+        configureMetaQuickEdit(showQuickEdit, baseDisabled);
+
         projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
         kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
     }
@@ -480,6 +643,7 @@ function loadInputForm(inputData, isEditing = false) {
     } else { addRow(true); addRow(false); }
     setHasUnsavedChanges(false);
     recalc();
+    updateMetaSummary();
 }
 
 function clearInputFields() {
@@ -1411,7 +1575,7 @@ btnXlsx.addEventListener('click',()=>{
   const arr=filtered('fix').map(e=>({
     Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
     Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
-    Freigabedatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
+    Abschlussdatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
   }));
   const ws=XLSX.utils.json_to_sheet(arr);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
@@ -1513,12 +1677,19 @@ async function saveHunterAbruf(st) {
     const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
-    const date = new Date(st.input.freigabedatum).getTime();
+    let date = null;
+    const rawDate = st.input.freigabedatum;
+    if (rawDate) {
+        const parsed = Date.parse(rawDate);
+        if (Number.isFinite(parsed)) {
+            date = parsed;
+        }
+    }
 
     const newTransaction = {
-        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
+        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`,
         kv_nummer: st.input.kvNummer,
-        type: 'hunter', 
+        type: 'hunter',
         title: st.input.title, 
         amount: abrufAmount, 
         ts: Date.now(),
@@ -1809,7 +1980,8 @@ function openEditTransactionModal(transaction, parentEntry) {
         editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
         editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
         editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
-        editFounderFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
+        const founderDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
+        editFounderFreigabedatum.value = founderDateSource ? formatDateForInput(founderDateSource) : '';
         editFounderTransView.classList.remove('hide');
         editHunterTransView.classList.add('hide');
     } else { // hunter
@@ -1817,7 +1989,8 @@ function openEditTransactionModal(transaction, parentEntry) {
         editHunterTitle.value = transaction.title || '';
         editHunterAmount.value = formatAmountInput(transaction.amount);
         editHunterKvNummer.value = transaction.kv_nummer || '';
-        editHunterFreigabedatum.value = formatDateForInput(transaction.freigabedatum || transaction.ts || getTodayDate());
+        const hunterDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
+        editHunterFreigabedatum.value = hunterDateSource ? formatDateForInput(hunterDateSource) : '';
         
         const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
         const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
@@ -1872,21 +2045,29 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
             document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
             return;
         }
-        if (!editHunterFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
-
         const amount = parseAmountInput(editHunterAmount.value);
         const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
         const resultData = compute(rows, weights, hunterShareAmount);
-        
-        transaction = { ...transaction, title: editHunterTitle.value.trim(), amount, rows, weights, list: resultData.list, kv_nummer: editHunterKvNummer.value.trim(), freigabedatum: new Date(editHunterFreigabedatum.value).getTime() };
+        const hunterDate = editHunterFreigabedatum.value ? Date.parse(editHunterFreigabedatum.value) : null;
+
+        transaction = {
+            ...transaction,
+            title: editHunterTitle.value.trim(),
+            amount,
+            rows,
+            weights,
+            list: resultData.list,
+            kv_nummer: editHunterKvNummer.value.trim(),
+            freigabedatum: Number.isFinite(hunterDate) ? hunterDate : null
+        };
 
     } else { // Saving a Founder transaction
         if(!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
-        if(!editFounderFreigabedatum.value) validationError = 'Freigabedatum ist erforderlich.';
-        
+        const founderDate = editFounderFreigabedatum.value ? Date.parse(editFounderFreigabedatum.value) : null;
+
         transaction.amount = parseAmountInput(editFounderValueInput.value);
         transaction.kv_nummer = editFounderKvNummer.value.trim();
-        transaction.freigabedatum = new Date(editFounderFreigabedatum.value).getTime();
+        transaction.freigabedatum = Number.isFinite(founderDate) ? founderDate : null;
     }
     
     if (validationError) {
@@ -2213,16 +2394,16 @@ async function handleErpImport() {
             const title = getVal(row, 'Titel') || '';
             
             let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
-            const excelDate = getVal(row, 'Freigabedatum'); // Suche nach Freigabedatum
+            const excelDate = getVal(row, 'Abschlussdatum') || getVal(row, 'Freigabedatum'); // Suche nach Abschluss-/Freigabedatum
             if (excelDate) {
                 const parsedDate = parseExcelDate(excelDate);
                 if (parsedDate) {
                     freigabeTimestamp = parsedDate.getTime();
                 } else {
-                     console.warn(`Ungültiges Freigabedatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
+                     console.warn(`Ungültiges Abschlussdatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
                 }
             } else {
-                 console.warn(`Kein Freigabedatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
+                 console.warn(`Kein Abschlussdatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
             }
 
             const existing = kvIndex.get(kvNummer);
@@ -2239,11 +2420,11 @@ async function handleErpImport() {
                 if (Math.abs(currentAmount - amount) > 0.001) {
                     if (existing.type === 'transaction') {
                         existing.transaction.amount = amount;
-                        // Optional: Freigabedatum aktualisieren, falls es sich geändert hat?
+                        // Optional: Abschlussdatum aktualisieren, falls es sich geändert hat?
                         // existing.transaction.freigabedatum = freigabeTimestamp; 
                     } else {
                         existing.entry.amount = amount;
-                         // Optional: Freigabedatum aktualisieren?
+                        // Optional: Abschlussdatum aktualisieren?
                         // existing.entry.freigabedatum = freigabeTimestamp;
                     }
                     existing.entry.modified = Date.now();
@@ -2634,7 +2815,7 @@ function renderAnalytics() {
   let rahmenTotal = 0;
   
  (window.entries || []).forEach(e => {
-    const datum = e.freigabedatum || e.ts || 0; // Verwende Freigabedatum primär
+    const datum = e.freigabedatum || e.ts || 0; // Verwende Abschlussdatum primär
     
     if(e.projectType === 'fix') {
         // Prüfe, ob das Datum im gewählten Jahr liegt
@@ -2697,7 +2878,7 @@ function renderActivityAnalytics() {
         let total = 0;
         let count = 0;
         (e.transactions || []).forEach(t => {
-            const datum = t.freigabedatum || t.ts || 0; // Freigabedatum primär
+            const datum = t.freigabedatum || t.ts || 0; // Abschlussdatum primär
             if (datum >= start && datum <= end) {
                 total += (t.amount || 0);
                 count++;
