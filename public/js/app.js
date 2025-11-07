@@ -130,15 +130,16 @@ navLinks.forEach(link => {
   });
 });
 
- async function handleAdminClick() {
-  try { 
+async function handleAdminClick() {
+  try {
     showLoader();
-    await loadPeople(); 
-    renderPeopleAdmin(); 
-    showView('admin'); 
-  } catch (e) { 
-    console.error('Admin init failed', e); 
-    showToast('Konnte Admin-Daten nicht laden.', 'bad'); 
+    await loadPeople();
+    populateAdminTeamOptions();
+    renderPeopleAdmin();
+    showView('admin');
+  } catch (e) {
+    console.error('Admin init failed', e);
+    showToast('Konnte Admin-Daten nicht laden.', 'bad');
   } finally { 
     hideLoader(); 
   }
@@ -2024,6 +2025,35 @@ function validateModalInput(rows, weights) {
 
 /* ---------- Admin ---------- */
 const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
+
+function populateAdminTeamOptions() {
+  if (!admTeam) return;
+  const previousValue = admTeam.value;
+  const placeholderText = admTeam.getAttribute('data-placeholder') || '— bitte wählen —';
+  const fragment = document.createDocumentFragment();
+
+  const placeholderOption = document.createElement('option');
+  placeholderOption.value = '';
+  placeholderOption.textContent = placeholderText;
+  fragment.appendChild(placeholderOption);
+
+  (TEAMS || []).forEach((teamName) => {
+    const option = document.createElement('option');
+    option.value = teamName;
+    option.textContent = teamName;
+    fragment.appendChild(option);
+  });
+
+  admTeam.innerHTML = '';
+  admTeam.appendChild(fragment);
+
+  if (previousValue && (TEAMS || []).includes(previousValue)) {
+    admTeam.value = previousValue;
+  } else {
+    admTeam.value = '';
+  }
+}
+
 document.getElementById('adm_add').onclick = () => adminCreate();
 admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
 adminSearch.addEventListener('input', renderPeopleAdmin);
@@ -3290,6 +3320,7 @@ Object.assign(window, {
   fetchWithRetry,
   throttle,
   loadHistory,
+  populateAdminTeamOptions,
 });
 
 // Warnung bei ungespeicherten Änderungen oder laufendem Batch
@@ -3303,10 +3334,11 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // Initialisierung nach Laden der Personenliste
-loadPeople().then(()=>{ 
-    initFromState(); 
-    showView('erfassung'); 
-    
+loadPeople().then(()=>{
+    populateAdminTeamOptions();
+    initFromState();
+    showView('erfassung');
+
     // *** KORREKTUR: Event Listener HIER hinzufügen ***
     const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
     // Sicherheitscheck: Nur hinzufügen, wenn der Button existiert
