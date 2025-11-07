@@ -61,6 +61,9 @@ Optional – nur falls du HubSpot oder andere Funktionen nutzt:
 | `HUBSPOT_ACCESS_TOKEN` | Für automatische Updates aus HubSpot. |
 | `HUBSPOT_APP_SECRET` & `HUBSPOT_CLOSED_WON_STAGE_IDS` | Für Webhooks aus HubSpot. |
 | `HUBSPOT_UPDATE_BACKOFF_MS` | Optional: Basiswartezeit (in Millisekunden) für wiederholte HubSpot-Updates bei Rate-Limits/Fehlern. |
+| `HUBSPOT_CALL_DELAY_MS` | Optional: Mindestens so lange wartet der Worker zwischen einzelnen HubSpot-Abruf-Deals (Standard: 200 ms). |
+| `HUBSPOT_CALL_OFF_STAGE_ID` / `HUBSPOT_CALL_OFF_DEALSTAGE` | Optional: Stage-ID für neu erzeugte Abruf-Deals (Fallback ist der erste Eintrag aus `HUBSPOT_CLOSED_WON_STAGE_IDS`). |
+| `HUBSPOT_CALL_OFF_PIPELINE` | Optional: Pipeline-ID für Abruf-Deals. |
 
 > **Wichtig:** Wenn du HubSpot-Deals synchronisierst, müssen im HubSpot-Portal die benutzerdefinierten Deal-Felder `projektnummer` und `kvnummer` existieren. Die Worker-Updates schlagen sonst fehl.
 
@@ -98,7 +101,13 @@ Sollte eine Fehlermeldung erscheinen:
 
 ---
 
-## 7. Zusammenfassung
+## 7. Betrieb & Limits
+
+* Cloudflare-Worker laufen maximal einige Sekunden. Der eingebaute Abruf-Deal-Import respektiert das, indem er vor jedem HubSpot-Aufruf mindestens `HUBSPOT_CALL_DELAY_MS` (Standard: 200 ms) wartet.
+* HubSpot erlaubt nur begrenzte API-Aufrufe pro Sekunde. Plane deine Imports deshalb in kleineren Paketen (empfohlen: höchstens ca. 50 Abrufe pro `/entries/bulk-v2`-Import) oder splitte große Excel-Dateien.
+* Bei sehr großen Datenmengen lohnt sich eine Stapelverarbeitung: mehrere kleinere Uploads nacheinander, sodass der Worker Zeit hat, die HubSpot-Ratenbegrenzung einzuhalten.
+
+## 8. Zusammenfassung
 
 * Worker-Code in Cloudflare manuell mit `worker/index.js` abgleichen.
 * GitHub-Zugangsdaten als Umgebungsvariablen hinterlegen.
