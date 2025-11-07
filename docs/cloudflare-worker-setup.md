@@ -60,6 +60,9 @@ Optional – nur falls du HubSpot oder andere Funktionen nutzt:
 | ---- | ------ |
 | `HUBSPOT_ACCESS_TOKEN` | Für automatische Updates aus HubSpot. |
 | `HUBSPOT_APP_SECRET` & `HUBSPOT_CLOSED_WON_STAGE_IDS` | Für Webhooks aus HubSpot. |
+| `HUBSPOT_UPDATE_BACKOFF_MS` | Optional: Basiswartezeit (in Millisekunden) für wiederholte HubSpot-Updates bei Rate-Limits/Fehlern. |
+
+> **Wichtig:** Wenn du HubSpot-Deals synchronisierst, müssen im HubSpot-Portal die benutzerdefinierten Deal-Felder `projektnummer` und `kvnummer` existieren. Die Worker-Updates schlagen sonst fehl.
 
 Speichere jede Variable nach dem Eintragen. Cloudflare schützt geheime Werte (z. B. Tokens), du siehst sie danach nicht mehr – das ist normal.
 
