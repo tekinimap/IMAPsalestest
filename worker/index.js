@@ -1481,9 +1481,11 @@ async function hsFetchOwner(ownerId, env) {
   }
 }
 
-function upsertByHubSpotId(entries, deal) {
+export function upsertByHubSpotId(entries, deal) {
   const id = String(deal?.id || deal?.properties?.hs_object_id || "");
-  if (!id) return;
+  if (!id) {
+    return { action: 'skip', reason: 'missing_hubspot_id' };
+  }
 
   const name = deal?.properties?.dealname || `Deal ${id}`;
   const amount = Number(deal?.properties?.amount || 0);
@@ -1491,6 +1493,38 @@ function upsertByHubSpotId(entries, deal) {
   const companyName = deal?.properties?.fetched_company_name || "";
   const ownerName = deal?.properties?.fetched_owner_name || "";
   const collaboratorNames = deal?.properties?.fetched_collaborator_names || [];
+
+  const kvList = kvListFrom(deal?.properties);
+  const projectNumber = normalizeString(firstNonEmpty(
+    deal?.properties?.projektnummer,
+    deal?.properties?.projectNumber,
+    deal?.properties?.project_no,
+    deal?.properties?.projectId,
+    deal?.properties?.Projektnummer
+  ));
+
+  const idx = entries.findIndex(e => String(e.hubspotId||"") === id);
+
+  if (idx < 0 && projectNumber && kvList.length) {
+    const conflict = entries.find(entry => {
+      if (!entry) return false;
+      if (String(entry.hubspotId || "") === id) return false;
+      const entryProjectNumber = normalizeString(fieldsOf(entry).projectNumber);
+      if (!entryProjectNumber || entryProjectNumber !== projectNumber) return false;
+      const entryKvs = kvListFrom(entry);
+      return entryKvs.some(kv => kvList.includes(kv));
+    });
+    if (conflict) {
+      return {
+        action: 'skip',
+        reason: 'duplicate_project_kv',
+        hubspotId: id,
+        projectNumber,
+        kvList,
+        conflictingEntryId: conflict.id,
+      };
+    }
+  }
 
   const allNames = new Set([ownerName, ...collaboratorNames]);
   const salesList = [];
@@ -1505,7 +1539,6 @@ function upsertByHubSpotId(entries, deal) {
     }
   });
 
-  const idx = entries.findIndex(e => String(e.hubspotId||"") === id);
   const previousKv = idx >= 0 ? kvListFrom(entries[idx]) : [];
 
   const base = {
@@ -1520,17 +1553,25 @@ function upsertByHubSpotId(entries, deal) {
     submittedBy: ownerName,
     list: salesList,
     updatedAt: Date.now(),
-    kvNummern: previousKv,
-    kv_nummer: previousKv[0] || '',
-    kv: previousKv[0] || ''
   };
+
+  if (projectNumber) {
+    base.projectNumber = projectNumber;
+  }
+
+  const nextKvList = previousKv.length ? previousKv : kvList;
+  if (nextKvList.length) {
+    applyKvList(base, nextKvList);
+  }
 
   const normalized = ensureKvStructure(base);
   if (idx >= 0) {
     entries[idx] = { ...entries[idx], ...normalized };
-  } else {
-    entries.push(normalized);
+    return { action: 'update', hubspotId: id, entry: entries[idx] };
   }
+
+  entries.push(normalized);
+  return { action: 'create', hubspotId: id, entry: normalized };
 }
 
 /* ------------------------ Router ------------------------ */
@@ -2025,6 +2066,7 @@ export default {
         let ghData = await ghGetFile(env, ghPath, branch);
         let itemsChanged = false;
         let lastDeal = null;
+        const hubspotLogs = [];
 
         for (const ev of events) {
           if (ev.subscriptionType === "object.propertyChange" && ev.propertyName === "dealstage") {
@@ -2061,13 +2103,31 @@ export default {
               deal.properties.fetched_collaborator_names = collaboratorNames;
 
               lastDeal = deal;
-              upsertByHubSpotId(ghData.items, deal);
-              ghData.items = canonicalizeEntries(ghData.items);
-              itemsChanged = true;
+              const upsertResult = upsertByHubSpotId(ghData.items, deal);
+              if (upsertResult?.action === 'create' || upsertResult?.action === 'update') {
+                ghData.items = canonicalizeEntries(ghData.items);
+                itemsChanged = true;
+              } else if (upsertResult?.action === 'skip' && upsertResult.reason === 'duplicate_project_kv') {
+                hubspotLogs.push({
+                  event: 'skip',
+                  source: 'hubspot',
+                  reason: upsertResult.reason,
+                  message: 'Deal aus Hubspot wurde abgeblockt, weil Eintrag mit Projektnummer und KV-Nummer bereits vorhanden ist.',
+                  hubspotId: upsertResult.hubspotId || String(dealId),
+                  dealId: String(dealId),
+                  projectNumber: upsertResult.projectNumber,
+                  kvList: upsertResult.kvList,
+                  kv: upsertResult.kvList?.[0] || '',
+                  existingEntryId: upsertResult.conflictingEntryId,
+                });
+              }
             } catch (hsErr){
               console.error(`HubSpot API-Fehler (hsFetchDeal/hsFetchCompany/hsFetchOwner) bei Deal ${dealId}:`, hsErr);
             }
           }
+        }
+        if (hubspotLogs.length) {
+          await logJSONL(env, hubspotLogs);
         }
         if (itemsChanged) {
           try {
