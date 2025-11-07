@@ -61,8 +61,10 @@ function ghHeaders(env){ return {
 function rndId(prefix = 'item_'){ const a=new Uint8Array(16); crypto.getRandomValues(a); return `${prefix}${[...a].map(b=>b.toString(16).padStart(2,'0')).join('')}`; }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 const LOG_DIR = (env)=> (env.GH_LOG_DIR || "data/logs");
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function normKV(v){ return String(v ?? '').trim(); }
+function normalizeString(value){ return String(value ?? '').trim(); }
 function splitKvString(value){
   const trimmed = String(value ?? '').trim();
   if (!trimmed) return [];
@@ -614,6 +616,177 @@ async function readLogEntries(env, rootDir, from, to){
 }
 
 /* ------------------------ HubSpot ------------------------ */
+const HUBSPOT_UPDATE_MAX_ATTEMPTS = 5;
+
+function collectHubspotSyncPayload(before, after) {
+  if (!after || typeof after !== 'object') return null;
+  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
+  if (!dealId) return null;
+  if (!before || typeof before !== 'object') return null;
+
+  const beforeFields = fieldsOf(before || {});
+  const afterFields = fieldsOf(after || {});
+
+  const previousProjectNumber = normalizeString(beforeFields.projectNumber);
+  const nextProjectNumber = normalizeString(afterFields.projectNumber);
+  const previousKvNummer = normalizeString(beforeFields.kv);
+  const nextKvNummer = normalizeString(afterFields.kv);
+
+  if (previousProjectNumber === nextProjectNumber && previousKvNummer === nextKvNummer) {
+    return null;
+  }
+
+  return {
+    dealId,
+    entryId: after.id,
+    source: after.source,
+    previousProjectNumber,
+    nextProjectNumber,
+    previousKvNummer,
+    nextKvNummer,
+  };
+}
+
+async function hsUpdateDealProperties(dealId, properties, env) {
+  const normalizedDealId = normalizeString(dealId);
+  if (!normalizedDealId) {
+    return { ok: false, error: 'missing_deal_id', attempts: 0, status: null };
+  }
+  const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
+  if (!token) {
+    return { ok: false, error: 'missing_hubspot_access_token', attempts: 0, status: null };
+  }
+
+  const payload = {};
+  if (properties && typeof properties === 'object') {
+    if (properties.projektnummer != null) payload.projektnummer = normalizeString(properties.projektnummer);
+    if (properties.kvnummer != null) payload.kvnummer = normalizeString(properties.kvnummer);
+  }
+
+  if (!Object.keys(payload).length) {
+    return { ok: true, skipped: true, attempts: 0, status: null };
+  }
+
+  const baseBackoff = Number(env.HUBSPOT_UPDATE_BACKOFF_MS);
+  const backoffMs = Number.isFinite(baseBackoff) && baseBackoff >= 0 ? baseBackoff : 1000;
+  let attempt = 0;
+  let lastStatus = null;
+  let lastError = '';
+
+  while (attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+    attempt++;
+    try {
+      const response = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${encodeURIComponent(normalizedDealId)}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ properties: payload }),
+      });
+
+      lastStatus = response.status;
+      const responseText = await response.text();
+
+      if (response.ok) {
+        return { ok: true, status: response.status, attempts: attempt };
+      }
+
+      lastError = responseText || `HTTP ${response.status}`;
+      if ((response.status === 429 || response.status >= 500) && attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+        const delay = backoffMs * Math.pow(2, attempt - 1);
+        await sleep(delay);
+        continue;
+      }
+
+      return { ok: false, status: response.status, attempts: attempt, error: lastError };
+    } catch (err) {
+      lastError = String(err);
+      if (attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
+        return { ok: false, status: lastStatus, attempts: attempt, error: lastError };
+      }
+      const delay = backoffMs * Math.pow(2, attempt - 1);
+      await sleep(delay);
+    }
+  }
+
+  return { ok: false, status: lastStatus, attempts: HUBSPOT_UPDATE_MAX_ATTEMPTS, error: lastError || 'unknown_error' };
+}
+
+async function processHubspotSyncQueue(env, updates) {
+  if (!updates || !updates.length) return;
+  const logs = [];
+
+  for (const update of updates) {
+    try {
+      const result = await hsUpdateDealProperties(update.dealId, {
+        projektnummer: update.nextProjectNumber,
+        kvnummer: update.nextKvNummer,
+      }, env);
+
+      const logEntry = {
+        event: 'hubspot_update',
+        source: update.source || 'worker',
+        reason: 'hubspot_sync_after_persist',
+        entryId: update.entryId,
+        dealId: update.dealId,
+        projektnummer: update.nextProjectNumber,
+        kvnummer: update.nextKvNummer,
+        previousProjektnummer: update.previousProjectNumber,
+        previousKvnummer: update.previousKvNummer,
+        attempts: result.attempts,
+        status: result.ok ? (result.skipped ? 'skipped' : 'success') : 'failure',
+      };
+
+      if (result.status != null) logEntry.httpStatus = result.status;
+      if (result.error) logEntry.error = result.error;
+
+      logs.push(logEntry);
+    } catch (err) {
+      logs.push({
+        event: 'hubspot_update',
+        source: update.source || 'worker',
+        reason: 'hubspot_sync_after_persist',
+        entryId: update.entryId,
+        dealId: update.dealId,
+        projektnummer: update.nextProjectNumber,
+        kvnummer: update.nextKvNummer,
+        previousProjektnummer: update.previousProjectNumber,
+        previousKvnummer: update.previousKvNummer,
+        status: 'exception',
+        error: String(err || 'unknown_error'),
+      });
+    }
+  }
+
+  if (logs.length) {
+    await logJSONL(env, logs);
+  }
+}
+
+function enqueueHubspotSync(ctx, env, updates) {
+  if (!updates || !updates.length) {
+    return;
+  }
+
+  const pending = processHubspotSyncQueue(env, updates.map(update => ({ ...update })));
+
+  const handleError = (err) => {
+    console.error('HubSpot sync task failed', err);
+  };
+
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    try {
+      ctx.waitUntil(pending.catch(handleError));
+    } catch (err) {
+      console.error('Unable to queue HubSpot sync task', err);
+      pending.catch(handleError);
+    }
+  } else {
+    pending.catch(handleError);
+  }
+}
+
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
   const sigHeader = request.headers.get("X-HubSpot-Signature-V3") || "";
   const ts = request.headers.get("X-HubSpot-Request-Timestamp") || "";
@@ -778,7 +951,7 @@ function upsertByHubSpotId(entries, deal) {
 
 /* ------------------------ Router ------------------------ */
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: getCorsHeaders(env) });
     }
@@ -813,6 +986,7 @@ export default {
             const cur = await ghGetFile(env, ghPath, branch);
             const items = cur.items || [];
             let entry; let status = 201; let skipSave = false;
+            const hubspotUpdates = [];
 
             if (isFullEntry(body)) { /* Create Full Entry Logic */
                 const existingById = items.find(e => e.id === body.id);
@@ -847,6 +1021,8 @@ export default {
                      if (updated) {
                         ensureKvStructure(existing);
                         existing.modified = Date.now();
+                        const syncPayload = collectHubspotSyncPayload(before, existing);
+                        if (syncPayload) hubspotUpdates.push(syncPayload);
                         await logJSONL(env, [{ event:'update', source: existing.source || v.source || 'erp', before, after: existing, kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason:'excel_override' }]);
                      } else {
                         skipSave = true; await logJSONL(env, [{ event:'skip', source: existing.source || v.source || 'erp', kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason:'no_change' }]);
@@ -868,6 +1044,9 @@ export default {
                          await saveEntries(refItems, ref.sha, `upsert entry (retry): ${entry.kv || entry.id}`);
                      } else { throw e; }
                  }
+                 if (hubspotUpdates.length) {
+                     enqueueHubspotSync(ctx, env, hubspotUpdates);
+                 }
             }
             return jsonResponse(entry, status, env);
         }
@@ -880,16 +1059,21 @@ export default {
             const idx = cur.items.findIndex(x => String(x.id) === id);
             if (idx < 0) return jsonResponse({ error: "not found" }, 404, env);
             const before = JSON.parse(JSON.stringify(cur.items[idx])); let updatedEntry;
+            const hubspotUpdates = [];
 
             if (isFullEntry(body)) {
                  if(Array.isArray(body.transactions)){ body.transactions = body.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
                  updatedEntry = ensureKvStructure({ ...before, ...body, id, modified: Date.now() }); cur.items[idx] = updatedEntry;
+                 const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
+                 if (syncPayload) hubspotUpdates.push(syncPayload);
                  await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
                  const f = fieldsOf(updatedEntry); await logJSONL(env, [{ event:'update', source: updatedEntry.source||'manuell', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
             } else {
                 const v = validateRow({ ...before, ...body });
                 if (!v.ok) { await logJSONL(env, [{ event:'skip', ...v }]); return jsonResponse({ error:'validation_failed', ...v }, 422, env); }
                 updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() }); cur.items[idx] = updatedEntry;
+                const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
+                if (syncPayload) hubspotUpdates.push(syncPayload);
                 await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);
                 const f = fieldsOf(updatedEntry); const changes = {}; for(const k in body){ if(before[k] !== body[k]) changes[k] = body[k]; } if (before.amount !== v.amount) changes.amount = v.amount;
                 if (changes.freigabedatum == null && updatedEntry.freigabedatum != null) { changes.freigabedatum = updatedEntry.freigabedatum; }
@@ -902,6 +1086,9 @@ export default {
                   }
                 }
                 await logJSONL(env, [{ event:'update', ...f, before: beforeSnapshot, after: changes }]);
+            }
+            if (hubspotUpdates.length) {
+                enqueueHubspotSync(ctx, env, hubspotUpdates);
             }
             return jsonResponse(updatedEntry, 200, env);
         }
@@ -974,6 +1161,7 @@ export default {
              if (!rows.length) return jsonResponse({ created: 0, updated: 0, skipped: 0, errors: 0, message:'rows empty' }, 200, env);
              const cur = await ghGetFile(env, ghPath, branch);
              const items = cur.items || []; const logs = []; let created=0, updated=0, skipped=0, errors=0; let changed = false;
+             const hubspotUpdates = [];
              const itemsById = new Map(items.map(item => [item.id, item]));
              const itemsByKV = new Map(); items.forEach(item => { const kvs = kvListFrom(item); kvs.forEach(kv => { if (kv && !itemsByKV.has(kv)) { itemsByKV.set(kv, item.id); } }); if(item.projectType === 'rahmen' && Array.isArray(item.transactions)){ item.transactions.forEach(t => { const tkvList = kvListFrom(t); tkvList.forEach(tkv => { if (tkv && !itemsByKV.has(tkv)) { itemsByKV.set(tkv, item.id); } }); }); } });
              const kvsAddedInThisBatch = new Set();
@@ -1006,6 +1194,8 @@ export default {
                             const beforeKvs = kvListFrom(before);
                             beforeKvs.forEach(kv => { if (!updatedKvs.includes(kv)) itemsByKV.delete(kv); });
                             updatedKvs.forEach(kv => { itemsByKV.set(kv, row.id); kvsAddedInThisBatch.add(kv); });
+                            const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
+                            if (syncPayload) hubspotUpdates.push(syncPayload);
                             updated++; changed = true; const f = fieldsOf(updatedEntry); logs.push({ event:'update', source: updatedEntry.source || 'erp', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason: 'bulk_import_update' });
                         } else { errors++; logs.push({ event:'error', source: row.source || 'erp', entryId: row.id, reason: 'update_sync_error'}); console.error(`Update sync error: ID ${row.id}`); }
                     }
@@ -1020,6 +1210,9 @@ export default {
                      } else { console.error("Bulk v2 save failed (Other):", e); throw e; }
                 }
              } else { console.log("Bulk v2: No changes detected."); }
+             if (changed && hubspotUpdates.length) {
+                enqueueHubspotSync(ctx, env, hubspotUpdates);
+             }
              await logJSONL(env, logs);
              return jsonResponse({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
         } // Ende /entries/bulk-v2
