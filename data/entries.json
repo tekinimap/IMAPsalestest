@@ -10443,7 +10443,8 @@
     "kvNummern": [
       "KV-2025-0262"
     ],
-    "kv": "KV-2025-0262"
+    "kv": "KV-2025-0262",
+    "modified": 1762528242922
   },
   {
     "id": "entry_1761664649069_KV20250263",
@@ -10624,101 +10625,5 @@
       "KV-2025-0281"
     ],
     "kv": "KV-2025-0281"
-  },
-  {
-    "id": "hubspot_471382308e2de0736a4a53e4cf98d6bb",
-    "hubspotId": "45326972175",
-    "title": "Change-Begleitung",
-    "amount": 300000,
-    "source": "hubspot",
-    "projectType": "fix",
-    "projectNumber": "IMAP-001-001",
-    "client": "IMAP GmbH",
-    "submittedBy": "Merlin Klein",
-    "list": [
-      {
-        "key": "Christopher van den Hövel",
-        "name": "Christopher van den Hövel",
-        "pct": 50,
-        "money": 150000
-      },
-      {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
-        "pct": 45,
-        "money": 135000
-      },
-      {
-        "key": "Ralf Fischer",
-        "name": "Ralf Fischer",
-        "pct": 5,
-        "money": 15000
-      },
-      {
-        "key": "Jens Maaßen",
-        "name": "Jens Maaßen",
-        "pct": 0,
-        "money": 0
-      }
-    ],
-    "updatedAt": 1762524172392,
-    "kvNummern": [
-      "KF-2025-0001"
-    ],
-    "kv_nummer": "KF-2025-0001",
-    "kv": "KF-2025-0001",
-    "complete": true,
-    "rows": [
-      {
-        "personId": "p_oe_head_02",
-        "name": "Merlin Klein",
-        "cs": 90,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_komm_03",
-        "name": "Christopher van den Hövel",
-        "cs": 0,
-        "konzept": 100,
-        "pitch": 100
-      },
-      {
-        "personId": "p_pi_head_01",
-        "name": "Jens Maaßen",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_komm_08",
-        "name": "Ralf Fischer",
-        "cs": 10,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 100,
-      "pitch": 100
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 50
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 20
-      }
-    ],
-    "freigabedatum": 1761955200000,
-    "ts": 1762526151707,
-    "modified": 1762526152059
   }
 ]
