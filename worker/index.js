@@ -900,6 +900,10 @@ function collectHubspotSyncPayload(before, after) {
   const nextProjectNumber = normalizeString(afterFields.projectNumber);
   const previousKvNummer = normalizeString(beforeFields.kv);
   const nextKvNummer = normalizeString(afterFields.kv);
+  const previousFreigabeTs = extractFreigabedatumFromEntry(before);
+  const nextFreigabeTs = extractFreigabedatumFromEntry(after);
+  const previousClosedate = previousFreigabeTs != null ? Math.trunc(Number(previousFreigabeTs)) : null;
+  const nextClosedate = nextFreigabeTs != null ? Math.trunc(Number(nextFreigabeTs)) : null;
 
   const previousAmount = toNumberMaybe(before?.amount ?? beforeFields.amount);
   const nextAmount = toNumberMaybe(after?.amount ?? afterFields.amount);
@@ -918,6 +922,9 @@ function collectHubspotSyncPayload(before, after) {
   }
   if (previousKvNummer !== nextKvNummer) {
     properties.kvnummer = nextKvNummer;
+  }
+  if (previousClosedate !== nextClosedate) {
+    properties.closedate = nextClosedate;
   }
   if (amountChanged && nextAmount != null) {
     properties.amount = nextAmount;
@@ -941,11 +948,13 @@ function collectHubspotSyncPayload(before, after) {
       projektnummer: previousProjectNumber,
       kvnummer: previousKvNummer,
       amount: previousAmount,
+      closedate: previousClosedate,
     },
     next: {
       projektnummer: nextProjectNumber,
       kvnummer: nextKvNummer,
       amount: nextAmount,
+      closedate: nextClosedate,
     },
     properties,
   };
@@ -965,6 +974,10 @@ async function hsUpdateDealProperties(dealId, properties, env) {
   if (properties && typeof properties === 'object') {
     if (properties.projektnummer != null) payload.projektnummer = normalizeString(properties.projektnummer);
     if (properties.kvnummer != null) payload.kvnummer = normalizeString(properties.kvnummer);
+    if ('closedate' in properties) {
+      const ts = toEpochMillis(properties.closedate);
+      payload.closedate = ts != null ? String(Math.trunc(ts)) : null;
+    }
     if (properties.amount != null) {
       const formattedAmount = formatHubspotAmount(properties.amount);
       if (formattedAmount != null) {
@@ -1118,6 +1131,9 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
           }
         } else if (key === 'projektnummer' || key === 'kvnummer') {
           record.properties[key] = normalizeString(value ?? (update.next ? update.next[key] : ''));
+        } else if (key === 'closedate') {
+          const ts = toEpochMillis(value ?? (update.next ? update.next.closedate : null));
+          record.properties.closedate = ts != null ? String(Math.trunc(ts)) : null;
         } else {
           record.properties[key] = value;
         }

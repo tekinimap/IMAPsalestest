@@ -468,7 +468,7 @@
         preview._excelSum += amount||0;
 
         let freeTS = Date.now();
-        const excelDate = getVal(row,'Freigabedatum');
+        const excelDate = getVal(row,'Abschlussdatum') || getVal(row,'Freigabedatum');
         let parsedDateObject = null;
         if (excelDate) {
             parsedDateObject = parseExcelDate(excelDate); // Uses v4.9

@@ -103,6 +103,34 @@
   .iconbtn svg { width: 20px; height: 20px; }
   .iconbtn[data-act="del"] svg{stroke-width:1.5;stroke:rgba(239,68,68,.8)}
   .iconbtn[data-act="edit"] svg{stroke-width:1.5}
+  .form-bottom-actions{display:flex;gap:20px;align-items:flex-end;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;}
+  .form-bottom-buttons{display:flex;gap:10px;}
+  .meta-edit-section{position:relative;margin-right:auto;display:flex;flex-direction:column;gap:16px;width:280px;padding:18px 20px;border-radius:16px;background:rgba(13,20,36,.85);border:1px solid rgba(148,163,184,.25);box-shadow:0 16px 28px rgba(2,6,23,.45);backdrop-filter:blur(12px);}
+  .meta-edit-section .meta-edit-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .meta-edit-section .meta-edit-title{display:flex;flex-direction:column;gap:4px;}
+  .meta-edit-section .meta-edit-eyebrow{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(148,163,184,.85);}
+  .meta-edit-section .meta-edit-title h3{margin:0;font-size:15px;font-weight:700;color:#e2e8f0;}
+  .meta-edit-section .meta-edit-header .btn{width:auto;padding:6px 14px;font-size:13px;border-radius:999px;}
+  .meta-edit-section .meta-edit-header .hide{display:none;}
+  .meta-edit-section .meta-edit-summary{display:flex;flex-direction:column;gap:12px;padding-top:2px;}
+  .meta-summary-row{display:flex;flex-direction:column;gap:4px;}
+  .meta-summary-label{font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:rgba(148,163,184,.7);}
+  .meta-summary-value{font-size:15px;font-weight:600;color:#f8fafc;word-break:break-word;}
+  .meta-edit-section .meta-edit-fields{display:none;flex-direction:column;gap:12px;}
+  .meta-edit-section .meta-edit-fields .meta-field{display:flex;flex-direction:column;gap:6px;}
+  .meta-edit-section .meta-edit-fields label{font-weight:600;font-size:12px;color:rgba(203,213,225,.85);text-transform:uppercase;letter-spacing:0.04em;}
+  .meta-edit-section .meta-edit-fields input{padding:10px 12px;font-size:14px;border-radius:10px;background:rgba(11,17,32,.9);border:1px solid rgba(51,65,85,.6);width:100%;}
+  .meta-edit-section .meta-edit-fields input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.25);}
+  .meta-edit-section .meta-edit-fields .field-error{min-height:0;}
+  .meta-edit-section.is-editing,.meta-edit-section.meta-edit-inline{border-color:rgba(59,130,246,.4);box-shadow:0 18px 34px rgba(15,23,42,.55);}
+  .meta-edit-section.meta-edit-available:not(.is-editing){border-color:rgba(59,130,246,.25);}
+  .meta-edit-section.is-editing .meta-edit-summary,.meta-edit-section.meta-edit-inline .meta-edit-summary{display:none;}
+  .meta-edit-section.is-editing .meta-edit-fields,.meta-edit-section.meta-edit-inline .meta-edit-fields{display:flex;}
+  @media (max-width:768px){
+    .meta-edit-section{width:100%;margin-right:0;}
+    .form-bottom-actions{flex-direction:column;align-items:stretch;}
+    .form-bottom-actions .btn.primary{width:100%;}
+  }
 
   /* Fixaufträge – kompaktere Tabelle */
   #viewFixauftraege .table-wrapper{overflow-x:auto;}
@@ -428,25 +456,48 @@
 
       <div class="hr"></div>
 
-      <div class="form-bottom-actions" style="display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap: wrap;">
-        <div class="form-fields-group" style="display:flex; gap:10px; flex-wrap: wrap;">
-            <div>
-              <label for="projectNumber" style="font-weight:500; font-size:13px; color: var(--muted);">Projektnummer</label>
-              <input id="projectNumber" type="text" style="padding: 8px 12px; width: 170px;">
+      <div class="form-bottom-actions">
+        <div class="meta-edit-section" id="metaEditSection">
+          <div class="meta-edit-header">
+            <div class="meta-edit-title">
+              <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
+              <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
+            </div>
+            <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
+          </div>
+          <div class="meta-edit-summary" id="metaSummary">
+            <div class="meta-summary-row">
+              <span class="meta-summary-label">Projektnummer</span>
+              <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
+            </div>
+            <div class="meta-summary-row">
+              <span class="meta-summary-label">KV-Nummer</span>
+              <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
+            </div>
+            <div class="meta-summary-row">
+              <span class="meta-summary-label">Abschlussdatum</span>
+              <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
+            </div>
+          </div>
+          <div class="meta-edit-fields">
+            <div class="meta-field">
+              <label for="projectNumber">Projektnummer</label>
+              <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
               <div class="field-error" data-validation-for="projectNumber"></div>
             </div>
-            <div>
-              <label for="kvNummer" style="font-weight:500; font-size:13px; color: var(--muted);">KV-Nummer</label>
-              <input id="kvNummer" type="text" style="padding: 8px 12px; width: 170px;">
-               <div class="field-error" data-validation-for="kvNummer"></div>
+            <div class="meta-field">
+              <label for="kvNummer">KV-Nummer</label>
+              <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
+              <div class="field-error" data-validation-for="kvNummer"></div>
             </div>
-            <div>
-              <label for="freigabedatum" style="font-weight:500; font-size:13px; color: var(--muted);">Freigabedatum *</label>
-              <input id="freigabedatum" type="date" style="padding: 8px 12px; width: 170px;">
-               <div class="field-error" data-validation-for="freigabedatum"></div>
+            <div class="meta-field">
+              <label for="freigabedatum">Abschlussdatum</label>
+              <input id="freigabedatum" type="date">
+              <div class="field-error" data-validation-for="freigabedatum"></div>
             </div>
+          </div>
         </div>
-        <div style="display:flex;gap:10px; justify-content: flex-end;">
+        <div class="form-bottom-buttons">
           <button class="btn primary disabled" id="btnSave">Speichern</button>
         </div>
       </div>
@@ -488,7 +539,7 @@
             <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
             <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span></th>
             <th class="sortable col-amount" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
-            <th class="sortable col-date" data-sort="freigabedatum">Freigabe<span class="sort-icon"></span></th>
+            <th class="sortable col-date" data-sort="freigabedatum">Abschluss<span class="sort-icon"></span></th>
             <th style="width:10%">Aktionen</th>
           </tr></thead>
           <tbody id="historyBody"></tbody>
@@ -552,7 +603,7 @@
       <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
        <div class="table-wrapper">
         <table style="min-width:auto;">
-          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Freigabe</th><th>Aktionen</th></tr></thead>
+          <thead><tr><th>KV-Nummer</th><th>Typ</th><th>Titel</th><th>Wert</th><th>Abschluss</th><th>Aktionen</th></tr></thead>
           <tbody id="rahmenTransaktionenBody"></tbody>
         </table>
       </div>
@@ -663,11 +714,11 @@
       <div id="logMetricsSummary" class="metrics-grid"></div>
       <div class="grid-3">
         <div class="chart" style="grid-column:1/-1">
-          <h3>Summen nach Freigabemonat (Δ)</h3>
+          <h3>Summen nach Abschlussmonat (Δ)</h3>
           <div id="logMetricsMonthlyChart" class="chart-canvas"></div>
         </div>
         <div class="chart" style="grid-column:1/-1">
-          <h3>Erfolgsquoten nach Freigabemonat</h3>
+          <h3>Erfolgsquoten nach Abschlussmonat</h3>
           <div id="logMetricsSuccessChart" class="chart-canvas"></div>
         </div>
         <div class="chart" style="grid-column:1/-1">
@@ -777,7 +828,7 @@
                 </div>
             </div>
              <div style="margin-top: 10px;">
-                <label for="editFounderFreigabedatum">Freigabedatum</label>
+                <label for="editFounderFreigabedatum">Abschlussdatum</label>
                 <input type="date" id="editFounderFreigabedatum">
             </div>
         </div>
@@ -789,7 +840,7 @@
                 <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer"></div>
             </div>
             <div style="margin-top: 10px;">
-                <label for="editHunterFreigabedatum">Freigabedatum</label>
+                <label for="editHunterFreigabedatum">Abschlussdatum</label>
                 <input type="date" id="editHunterFreigabedatum">
             </div>
             <div class="hr"></div>
