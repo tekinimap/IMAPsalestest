@@ -713,14 +713,18 @@ async function hsUpdateDealProperties(dealId, properties, env) {
     return { ok: true, skipped: true, attempts: 0, status: null };
   }
 
-  const baseBackoff = Number(env.HUBSPOT_UPDATE_BACKOFF_MS);
-  const backoffMs = Number.isFinite(baseBackoff) && baseBackoff >= 0 ? baseBackoff : 1000;
+  const backoffRaw = Number(env.HUBSPOT_RETRY_BACKOFF_MS ?? env.RETRY_BACKOFF_MS);
+  const backoffMs = Number.isFinite(backoffRaw) && backoffRaw > 0 ? backoffRaw : DEFAULT_HUBSPOT_RETRY_BACKOFF_MS;
   let attempt = 0;
   let lastStatus = null;
   let lastError = '';
 
   while (attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
     attempt++;
+    if (attempt > 1) {
+      const delay = backoffMs * Math.pow(2, attempt - 2);
+      await sleep(delay);
+    }
     try {
       const response = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${encodeURIComponent(normalizedDealId)}`, {
         method: 'PATCH',
@@ -740,8 +744,6 @@ async function hsUpdateDealProperties(dealId, properties, env) {
 
       lastError = responseText || `HTTP ${response.status}`;
       if ((response.status === 429 || response.status >= 500) && attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
-        const delay = backoffMs * Math.pow(2, attempt - 1);
-        await sleep(delay);
         continue;
       }
 
@@ -751,8 +753,6 @@ async function hsUpdateDealProperties(dealId, properties, env) {
       if (attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
         return { ok: false, status: lastStatus, attempts: attempt, error: lastError };
       }
-      const delay = backoffMs * Math.pow(2, attempt - 1);
-      await sleep(delay);
     }
   }
 
@@ -986,25 +986,6 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
         }
       }
 
-      if (!success && lastStatus == null && lastError && attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
-        // ensure logs for exhaustion without HTTP response are present
-        for (const record of batch) {
-          logs.push({
-            event: 'hubspot_update',
-            mode,
-            reason,
-            status: 'failure',
-            entryIds: Array.from(record.entryIds).filter(Boolean),
-            sources: Array.from(record.sources).filter(Boolean),
-            dealId: record.dealId,
-            properties: record.properties,
-            previous: record.previous,
-            next: record.next,
-            attempts: HUBSPOT_UPDATE_MAX_ATTEMPTS,
-            error: lastError,
-          });
-        }
-      }
     }
   } else {
     for (const update of updates) {
