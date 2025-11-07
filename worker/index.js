@@ -188,7 +188,7 @@ function normalizeNumber(value) {
   return Number.isFinite(num) ? num : 0;
 }
 
-export function extractPersonAmounts(entry) {
+function extractPersonAmounts(entry) {
   const map = new Map();
   if (!entry || typeof entry !== 'object') {
     return map;
@@ -217,7 +217,7 @@ export function extractPersonAmounts(entry) {
   return map;
 }
 
-export function computeEntryTotal(entry) {
+function computeEntryTotal(entry) {
   if (!entry || typeof entry !== 'object') {
     return 0;
   }
@@ -318,7 +318,7 @@ function bucketToObject(key, bucket, keyName) {
   };
 }
 
-export function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
+function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
   const teamFilter = (options.team || '').trim();
   const filteredLogs = Array.isArray(logEntries)
     ? logEntries.filter((entry) => entry && typeof entry === 'object' && Number.isFinite(Number(entry.ts)))
@@ -389,7 +389,13 @@ export function computeLogMetrics(logEntries = [], options = {}, personTeamMap =
   };
 }
 
-export { sumPersonAmountsForTeam as __sumPersonAmountsForTeam, round2 as __round2 };
+export {
+  computeLogMetrics,
+  extractPersonAmounts,
+  computeEntryTotal,
+  sumPersonAmountsForTeam as __sumPersonAmountsForTeam,
+  round2 as __round2,
+};
 
 // Hilfsfunktionen
 function toNumberMaybe(v){ if (v==null || v==='') return null; if (typeof v === 'number' && Number.isFinite(v)) return v; if (typeof v === 'string'){ let t = v.trim().replace(/\s/g,''); if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) { t = t.replace(/\./g,'').replace(',', '.'); } else { t = t.replace(/,/g,''); } const n = Number(t); return Number.isFinite(n) ? n : null; } return null; }
