@@ -240,6 +240,13 @@
   .analytics-controls label { margin: 0; font-weight: 500; color: var(--muted); }
   .analytics-controls input[type="date"], .analytics-controls select { padding: 8px 10px; font-size: 14px; width: auto; }
   .analytics-controls .btn { padding: 8px 14px; font-size: 14px; }
+  .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:16px 0;}
+  .metric-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;min-height:96px;display:flex;flex-direction:column;justify-content:center;}
+  .metric-card .label{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;}
+  .metric-card .value{font-size:20px;font-weight:700;margin-top:6px;color:var(--text);}
+  .metric-card .sub{color:var(--muted);font-size:13px;margin-top:4px;}
+  .chart-canvas{min-height:220px;}
+  .log-metrics-empty{color:var(--muted);font-size:14px;padding:10px;}
   
   /* --- Feedback & Loader --- */
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);color:var(--text);padding:12px 20px;border-radius:10px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9999;opacity:0;transition:opacity .3s, bottom .3s;font-weight:600;}
@@ -647,6 +654,37 @@
          <div class="chart" style="grid-column:1/-1">
           <h3 id="chartActivityTitle">Aktivste Rahmenverträge</h3>
           <div id="chartActivity"></div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+      <h2>Log Insights</h2>
+      <div class="analytics-controls">
+        <label for="logMetricsFrom">Von</label>
+        <input type="date" id="logMetricsFrom">
+        <label for="logMetricsTo">Bis</label>
+        <input type="date" id="logMetricsTo">
+        <label for="logMetricsTeam">Team</label>
+        <select id="logMetricsTeam">
+          <option value="">Alle Teams</option>
+        </select>
+        <button class="btn" id="btnLogMetricsLoad">Laden</button>
+        <button class="btn" id="btnLogMetricsCsv">Export CSV</button>
+        <button class="btn" id="btnLogMetricsXlsx">Export XLSX</button>
+      </div>
+      <div id="logMetricsSummary" class="metrics-grid"></div>
+      <div class="grid-3">
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Monatliche Summen (Δ)</h3>
+          <div id="logMetricsMonthlyChart" class="chart-canvas"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Erfolgsquoten nach Monat</h3>
+          <div id="logMetricsSuccessChart" class="chart-canvas"></div>
+        </div>
+        <div class="chart" style="grid-column:1/-1">
+          <h3>Ereignisse nach Typ</h3>
+          <div id="logMetricsEventChart" class="chart-canvas"></div>
         </div>
       </div>
 

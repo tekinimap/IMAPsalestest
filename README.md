@@ -109,3 +109,9 @@ if (new URL(request.url).pathname === '/public/config.json') {
 ```
 
 Dadurch lassen sich Worker-Settings direkt in die Anwendung spiegeln, ohne statische Assets erneut auszuliefern.
+
+### Cloudflare-Worker aktualisieren (Schritt-für-Schritt)
+
+Dein Cloudflare-Worker synchronisiert sich nicht automatisch mit diesem GitHub-Repository. Eine leicht verständliche Anleitung, wie du den Code manuell kopierst, die benötigten Zugangsdaten einträgst und das Frontend verbindest, findest du unter [`docs/cloudflare-worker-setup.md`](docs/cloudflare-worker-setup.md).
+
+Wenn beim Mergen neue Worker-Versionen Konflikte erzeugen, hilft dir der Leitfaden [`docs/worker-merge-guide.md`](docs/worker-merge-guide.md) Schritt für Schritt weiter.

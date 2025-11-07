@@ -1,6 +1,7 @@
 /**
  * Cloudflare Worker – GitHub JSON/JSONL Proxy + HubSpot Webhook + Logbuch (v8.0 - Mehrfach-KV & Merge)
  * - NEU: Mehrfach-KV-Unterstützung, Merge-Endpunkt und aktualisierte Persistenzlogik.
+ * - v8.8 (Gemini): Finale Version. Kombiniert Owner + Collaborators in 'list' mit 0% Zuweisung, um "Unvollständig" zu erzwingen.
  */
 
 const GH_API = "https://api.github.com";
@@ -176,6 +177,297 @@ function mergeContributionLists(entries, totalAmount){
   return result;
 }
 
+/* ------------------------ Log Analytics ------------------------ */
+
+var __LOG_ANALYTICS__ = ((existing) => {
+  if (existing) {
+    return existing;
+  }
+
+  const LOG_ANALYTICS_EPSILON = 1e-6;
+
+  function normalizeNumber(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  }
+
+  function extractPersonAmounts(entry) {
+    const map = new Map();
+    if (!entry || typeof entry !== 'object') {
+      return map;
+    }
+
+    const list = Array.isArray(entry.list) ? entry.list : [];
+    const baseAmount = normalizeNumber(entry.amount);
+
+    for (const item of list) {
+      if (!item || typeof item !== 'object') continue;
+      const name = (item.name || item.key || '').trim();
+      if (!name) continue;
+
+      const amount = normalizeNumber(item.money ?? item.amount ?? item.value);
+      const pct = normalizeNumber(item.pct);
+
+      if (!Number.isFinite(amount) || Math.abs(amount) < LOG_ANALYTICS_EPSILON) {
+        if (Number.isFinite(pct) && Math.abs(pct) > LOG_ANALYTICS_EPSILON && baseAmount) {
+          map.set(name, (map.get(name) || 0) + (pct / 100) * baseAmount);
+        }
+        continue;
+      }
+
+      map.set(name, (map.get(name) || 0) + amount);
+    }
+
+    if (map.size === 0 && baseAmount) {
+      const submittedBy = (entry.submittedBy || '').trim();
+      if (submittedBy) {
+        map.set(submittedBy, baseAmount);
+      }
+    }
+
+    return map;
+  }
+
+  function computeEntryTotal(entry) {
+    if (!entry || typeof entry !== 'object') {
+      return 0;
+    }
+
+    const byPerson = extractPersonAmounts(entry);
+    if (byPerson.size > 0) {
+      let sum = 0;
+      for (const value of byPerson.values()) {
+        const normalized = normalizeNumber(value);
+        if (Math.abs(normalized) > LOG_ANALYTICS_EPSILON) {
+          sum += normalized;
+        }
+      }
+      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
+        return sum;
+      }
+    }
+
+    if (Array.isArray(entry.transactions) && entry.transactions.length) {
+      let sum = 0;
+      for (const tx of entry.transactions) {
+        const txAmount = normalizeNumber(tx?.amount);
+        if (Math.abs(txAmount) > LOG_ANALYTICS_EPSILON) {
+          sum += txAmount;
+        }
+      }
+      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
+        return sum;
+      }
+    }
+
+    const amount = normalizeNumber(entry.amount);
+    if (Math.abs(amount) > LOG_ANALYTICS_EPSILON) {
+      return amount;
+    }
+
+    return 0;
+  }
+
+  function sumPersonAmountsForTeam(entry, teamName, personTeamMap) {
+    if (!entry || typeof entry !== 'object') {
+      return 0;
+    }
+
+    const team = (teamName || '').trim();
+    const teamsEnabled = team.length > 0;
+    const amounts = extractPersonAmounts(entry);
+
+    if (!teamsEnabled) {
+      let sum = 0;
+      for (const value of amounts.values()) {
+        sum += value;
+      }
+      return sum;
+    }
+
+    if (!(personTeamMap instanceof Map) || personTeamMap.size === 0) {
+      return 0;
+    }
+
+    let total = 0;
+    for (const [person, amount] of amounts.entries()) {
+      const teamForPerson = (personTeamMap.get(person) || '').trim();
+      if (!teamForPerson) continue;
+      if (teamForPerson.toLowerCase() === team.toLowerCase()) {
+        total += amount;
+      }
+    }
+
+    return total;
+  }
+
+  function round2(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      return 0;
+    }
+
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  function createEmptyBucket() {
+    return {
+      amount: 0,
+      count: 0,
+      positiveCount: 0,
+      positiveAmount: 0,
+      negativeCount: 0,
+      negativeAmount: 0,
+      neutralCount: 0,
+    };
+  }
+
+  function applyDelta(bucket, delta) {
+    if (!bucket) return;
+
+    bucket.amount += delta;
+    bucket.count += 1;
+
+    if (delta > LOG_ANALYTICS_EPSILON) {
+      bucket.positiveCount += 1;
+      bucket.positiveAmount += delta;
+    } else if (delta < -LOG_ANALYTICS_EPSILON) {
+      bucket.negativeCount += 1;
+      bucket.negativeAmount += delta;
+    } else {
+      bucket.neutralCount += 1;
+    }
+  }
+
+  function bucketToObject(key, bucket, keyName) {
+    const successDenominator = bucket.count || 0;
+    const successRate = successDenominator > 0 ? bucket.positiveCount / successDenominator : null;
+    return {
+      [keyName]: key,
+      amount: round2(bucket.amount),
+      count: bucket.count,
+      positiveCount: bucket.positiveCount,
+      positiveAmount: round2(bucket.positiveAmount),
+      negativeCount: bucket.negativeCount,
+      negativeAmount: round2(bucket.negativeAmount),
+      neutralCount: bucket.neutralCount,
+      successRate,
+    };
+  }
+
+  function updateBucket(collection, key, delta) {
+    if (!collection || !key) return;
+    const bucket = collection.get(key) || createEmptyBucket();
+    applyDelta(bucket, delta);
+    collection.set(key, bucket);
+  }
+
+  function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
+    const teamFilter = (options.team || '').trim();
+    const filteredLogs = Array.isArray(logEntries)
+      ? logEntries.filter((entry) => entry && typeof entry === 'object' && Number.isFinite(Number(entry.ts)))
+      : [];
+
+    filteredLogs.sort((a, b) => Number(a.ts) - Number(b.ts));
+
+    const totals = createEmptyBucket();
+    let minDate = null;
+    let maxDate = null;
+
+    const monthlyBuckets = new Map();
+    const dailyBuckets = new Map();
+    const eventBuckets = new Map();
+
+    for (const log of filteredLogs) {
+      const ts = Number(log.ts);
+      if (!Number.isFinite(ts)) continue;
+
+      const dateIso = new Date(ts).toISOString();
+      const day = dateIso.slice(0, 10);
+      const month = dateIso.slice(0, 7);
+
+      if (!minDate || day < minDate) minDate = day;
+      if (!maxDate || day > maxDate) maxDate = day;
+
+      const beforeVal = sumPersonAmountsForTeam(log.before, teamFilter, personTeamMap);
+      const afterVal = sumPersonAmountsForTeam(log.after, teamFilter, personTeamMap);
+      const delta = afterVal - beforeVal;
+
+      updateBucket(monthlyBuckets, month, delta);
+      updateBucket(dailyBuckets, day, delta);
+      updateBucket(eventBuckets, log.event || 'unbekannt', delta);
+      applyDelta(totals, delta);
+    }
+
+    const successDenominator = totals.count || 0;
+    const successRate = successDenominator > 0 ? totals.positiveCount / successDenominator : null;
+
+    const months = Array.from(monthlyBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'month'))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    const daily = Array.from(dailyBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'date'))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const events = Array.from(eventBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'event'))
+      .sort((a, b) => b.count - a.count || a.event.localeCompare(b.event));
+
+    return {
+      period: { from: options.from || minDate, to: options.to || maxDate },
+      filters: { team: teamFilter || null },
+      totals: {
+        count: totals.count,
+        amount: round2(totals.amount),
+        positiveCount: totals.positiveCount,
+        positiveAmount: round2(totals.positiveAmount),
+        negativeCount: totals.negativeCount,
+        negativeAmount: round2(totals.negativeAmount),
+        neutralCount: totals.neutralCount,
+        successRate,
+      },
+      months,
+      daily,
+      events,
+    };
+  }
+
+  const api = {
+    computeLogMetrics,
+    extractPersonAmounts,
+    computeEntryTotal,
+    sumPersonAmountsForTeam,
+    round2,
+  };
+
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__LOG_ANALYTICS__ = api;
+  }
+
+  return api;
+})(typeof globalThis !== 'undefined' && globalThis.__LOG_ANALYTICS__
+  ? globalThis.__LOG_ANALYTICS__
+  : typeof __LOG_ANALYTICS__ !== 'undefined'
+    ? __LOG_ANALYTICS__
+    : undefined);
+
+const {
+  computeLogMetrics: __computeLogMetrics,
+  extractPersonAmounts: __extractPersonAmounts,
+  computeEntryTotal: __computeEntryTotal,
+  sumPersonAmountsForTeam: __sumPersonAmountsForTeam,
+  round2: __round2,
+} = __LOG_ANALYTICS__;
+
+export {
+  __computeLogMetrics as computeLogMetrics,
+  __extractPersonAmounts as extractPersonAmounts,
+  __computeEntryTotal as computeEntryTotal,
+  __sumPersonAmountsForTeam,
+  __round2,
+};
+
 // Hilfsfunktionen
 function toNumberMaybe(v){ if (v==null || v==='') return null; if (typeof v === 'number' && Number.isFinite(v)) return v; if (typeof v === 'string'){ let t = v.trim().replace(/\s/g,''); if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) { t = t.replace(/\./g,'').replace(',', '.'); } else { t = t.replace(/,/g,''); } const n = Number(t); return Number.isFinite(n) ? n : null; } return null; }
 const pick = (o, keys)=> (o && typeof o==='object' ? (keys.find(k => o[k]!=null && o[k]!=='' ) ? o[keys.find(k => o[k]!=null && o[k]!=='' )] : '') : '');
@@ -208,6 +500,37 @@ async function appendFile(env, path, text, message) { let tries = 0; const maxTr
 
 /* ------------------------ Logging (JSONL pro Tag) ------------------------ */
 async function logJSONL(env, events){ if (!events || !events.length) return; const dateStr = todayStr(); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env); const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = events.map(e => JSON.stringify({ ts: Date.now(), ...e })).join("\n") + "\n"; try { await appendFile(env, path, text, `log ${events.length} events`); } catch (logErr) { console.error(`Failed to write to log file ${path}:`, logErr); } }
+
+async function readLogEntries(env, rootDir, from, to){
+  const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
+  const entries = [];
+  for (const day of dateRange(from, to)){
+    const y = day.slice(0,4);
+    const m = day.slice(5,7);
+    const path = `${trimmedRoot}/${y}-${m}/${day}.jsonl`;
+    try {
+      const file = await ghGetContent(env, path);
+      const content = file?.content || '';
+      if (!content) continue;
+      const lines = content.split(/\n+/);
+      for (const line of lines){
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          entries.push(JSON.parse(trimmed));
+        } catch (parseErr){
+          console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
+        }
+      }
+    } catch (err){
+      const msg = String(err || '');
+      if (!msg.includes('404')){
+        console.error(`Error reading log file ${path}:`, err);
+      }
+    }
+  }
+  return entries;
+}
 
 /* ------------------------ HubSpot ------------------------ */
 async function verifyHubSpotSignatureV3(request, env, rawBody) {
@@ -266,30 +589,110 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
   return false;
 }
-async function hsFetchDeal(dealId, env) { if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing"); const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=dealname,amount,dealstage,closedate,hs_object_id,pipeline`; const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } }); if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`); return r.json(); }
+async function hsFetchDeal(dealId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing");
+
+  const properties = [
+    "dealname", "amount", "dealstage", "closedate", "hs_object_id", "pipeline",
+    "hubspot_owner_id",
+    "hs_all_collaborator_owner_ids"
+  ];
+
+  const associations = "company";
+
+  const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=${properties.join(",")}&associations=${associations}`;
+
+  const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+  if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+async function hsFetchCompany(companyId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for company fetch");
+  if (!companyId) return "";
+  try {
+    const url = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name`;
+    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+    if (!r.ok) {
+      console.error(`HubSpot GET company ${companyId} failed: ${r.status}`);
+      return "";
+    }
+    const data = await r.json();
+    return data?.properties?.name || "";
+  } catch (e) {
+    console.error(`Error fetching company ${companyId}:`, e);
+    return "";
+  }
+}
+
+async function hsFetchOwner(ownerId, env) {
+  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for owner fetch");
+  if (!ownerId) return "";
+  try {
+    const url = `https://api.hubapi.com/crm/v3/owners/${ownerId}`;
+    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
+    if (!r.ok) {
+      console.error(`HubSpot GET owner ${ownerId} failed: ${r.status}`);
+      return "";
+    }
+    const data = await r.json();
+    return `${data.firstName || ''} ${data.lastName || ''}`.trim();
+  } catch (e) {
+    console.error(`Error fetching owner ${ownerId}:`, e);
+    return "";
+  }
+}
+
 function upsertByHubSpotId(entries, deal) {
   const id = String(deal?.id || deal?.properties?.hs_object_id || "");
   if (!id) return;
+
   const name = deal?.properties?.dealname || `Deal ${id}`;
   const amount = Number(deal?.properties?.amount || 0);
+
+  const companyName = deal?.properties?.fetched_company_name || "";
+  const ownerName = deal?.properties?.fetched_owner_name || "";
+  const collaboratorNames = deal?.properties?.fetched_collaborator_names || [];
+
+  const allNames = new Set([ownerName, ...collaboratorNames]);
+  const salesList = [];
+  allNames.forEach((nameValue, index) => {
+    if (nameValue) {
+      salesList.push({
+        key: `hubspot_user_${index}`,
+        name: nameValue,
+        money: 0,
+        pct: 0,
+      });
+    }
+  });
+
   const idx = entries.findIndex(e => String(e.hubspotId||"") === id);
-  const previousKv = idx >=0 ? kvListFrom(entries[idx]) : [];
+  const previousKv = idx >= 0 ? kvListFrom(entries[idx]) : [];
+
   const base = {
     id: entries[idx]?.id || rndId('hubspot_'),
     hubspotId: id,
     title: name,
     amount,
     source: "hubspot",
+    projectType: "fix",
     projectNumber: entries[idx]?.projectNumber || "",
-    client: entries[idx]?.client || "",
+    client: companyName,
+    submittedBy: ownerName,
+    list: salesList,
     updatedAt: Date.now(),
     kvNummern: previousKv,
     kv_nummer: previousKv[0] || '',
     kv: previousKv[0] || ''
   };
+
   const normalized = ensureKvStructure(base);
-  if (idx >= 0) entries[idx] = { ...entries[idx], ...normalized };
-  else entries.push(normalized);
+  if (idx >= 0) {
+    entries[idx] = { ...entries[idx], ...normalized };
+  } else {
+    entries.push(normalized);
+  }
 }
 
 /* ------------------------ Router ------------------------ */
@@ -686,6 +1089,38 @@ export default {
         const result = await appendFile(env, path, text, `log: ${dateStr} (+${(payload.lines||[]).length})`);
         return jsonResponse({ ok: true, path, committed: result }, 200, env);
       }
+      const isMetricsRequest =
+        request.method === "GET" && (url.pathname === "/log/metrics" || url.pathname === "/analytics/metrics");
+      if (isMetricsRequest) {
+        const from = url.searchParams.get("from") || undefined;
+        const to = url.searchParams.get("to") || undefined;
+        const team = (url.searchParams.get("team") || "").trim();
+        const root = LOG_DIR(env);
+        const rawLogs = await readLogEntries(env, root, from, to);
+        let peopleItems = [];
+        try {
+          const peopleFile = await ghGetFile(env, peoplePath, branch);
+          if (peopleFile && Array.isArray(peopleFile.items)) {
+            peopleItems = peopleFile.items;
+          }
+        } catch (peopleErr) {
+          const msg = String(peopleErr || "");
+          if (!msg.includes("404")) {
+            console.error("Failed to load people for log metrics:", peopleErr);
+          }
+        }
+        const teamMap = new Map();
+        for (const person of peopleItems) {
+          if (!person || typeof person !== 'object') continue;
+          const name = (person.name || '').trim();
+          if (!name) continue;
+          const teamName = (person.team || 'Ohne Team').trim() || 'Ohne Team';
+          teamMap.set(name, teamName);
+        }
+        const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
+        const headers = url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : undefined;
+        return jsonResponse(metrics, 200, env, headers);
+      }
       if (url.pathname === "/log/list" && request.method === "GET") {
         const from = url.searchParams.get("from"); const to = url.searchParams.get("to"); const out = []; const root = LOG_DIR(env);
         for (const day of dateRange(from, to)) {
@@ -707,9 +1142,69 @@ export default {
 
       /* ===== HubSpot Webhook ===== */
       if (url.pathname === "/hubspot" && request.method === "POST") {
-        const raw = await request.text(); const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false); if (!okSig) return jsonResponse({ error: "invalid signature" }, 401, env); let events = []; try { events = JSON.parse(raw); } catch { return jsonResponse({ error: "bad payload" }, 400, env); } if (!Array.isArray(events) || events.length === 0) return jsonResponse({ ok: true, processed: 0 }, 200, env); const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s=>s.trim()).filter(Boolean)); if (wonIds.size === 0) return jsonResponse({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env); let ghData = await ghGetFile(env, ghPath, branch); let itemsChanged = false; let lastDeal = null;
-        for (const ev of events) { if (ev.subscriptionType === "deal.propertyChange" && ev.propertyName === "dealstage") { const newStage = String(ev.propertyValue || ""); const dealId = ev.objectId; if (!wonIds.has(newStage)) continue; try { const deal = await hsFetchDeal(dealId, env); lastDeal = deal; upsertByHubSpotId(ghData.items, deal); ghData.items = canonicalizeEntries(ghData.items); itemsChanged = true; } catch (hsErr){ console.error(`HubSpot fail ${dealId}:`, hsErr); } } }
-        if (itemsChanged) { try { await ghPutFile(env, ghPath, canonicalizeEntries(ghData.items), ghData.sha, "hubspot webhook upsert", branch); } catch (e) { console.error("HubSpot save failed", e); }
+        const raw = await request.text();
+        const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false);
+        if (!okSig) return jsonResponse({ error: "invalid signature" }, 401, env);
+        let events = [];
+        try { events = JSON.parse(raw); }
+        catch { return jsonResponse({ error: "bad payload" }, 400, env); }
+        if (!Array.isArray(events) || events.length === 0) return jsonResponse({ ok: true, processed: 0 }, 200, env);
+        const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s=>s.trim()).filter(Boolean));
+        if (wonIds.size === 0) return jsonResponse({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env);
+        let ghData = await ghGetFile(env, ghPath, branch);
+        let itemsChanged = false;
+        let lastDeal = null;
+
+        for (const ev of events) {
+          if (ev.subscriptionType === "object.propertyChange" && ev.propertyName === "dealstage") {
+            const newStage = String(ev.propertyValue || "");
+            const dealId = ev.objectId;
+
+            if (!wonIds.has(newStage)) continue;
+
+            try {
+              console.log(`VERARBEITE "WON" DEAL: ${dealId}`);
+
+              const deal = await hsFetchDeal(dealId, env);
+
+              let companyName = "";
+              const companyAssoc = deal?.associations?.companies?.results?.[0];
+              if (companyAssoc && companyAssoc.id) {
+                companyName = await hsFetchCompany(companyAssoc.id, env);
+                deal.properties.fetched_company_name = companyName;
+              }
+
+              const ownerId = deal?.properties?.hubspot_owner_id;
+              let ownerName = "";
+              if (ownerId) {
+                ownerName = await hsFetchOwner(ownerId, env);
+                deal.properties.fetched_owner_name = ownerName;
+              }
+
+              const collaboratorIds = (deal?.properties?.hs_all_collaborator_owner_ids || "")
+                .split(';')
+                .filter(Boolean);
+
+              const collaboratorPromises = collaboratorIds.map(id => hsFetchOwner(id, env));
+              const collaboratorNames = (await Promise.all(collaboratorPromises)).filter(Boolean);
+              deal.properties.fetched_collaborator_names = collaboratorNames;
+
+              lastDeal = deal;
+              upsertByHubSpotId(ghData.items, deal);
+              ghData.items = canonicalizeEntries(ghData.items);
+              itemsChanged = true;
+            } catch (hsErr){
+              console.error(`HubSpot API-Fehler (hsFetchDeal/hsFetchCompany/hsFetchOwner) bei Deal ${dealId}:`, hsErr);
+            }
+          }
+        }
+        if (itemsChanged) {
+          try {
+            await ghPutFile(env, ghPath, canonicalizeEntries(ghData.items), ghData.sha, "hubspot webhook upsert", branch);
+            console.log(`Änderungen für ${events.length} Events erfolgreich auf GitHub gespeichert.`);
+          } catch (e) {
+            console.error("GitHub PUT (ghPutFile) FEHLER:", e);
+          }
         }
         return jsonResponse({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
       }
