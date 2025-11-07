@@ -147,6 +147,24 @@ function ensureKvStructure(entry){
   return applyKvList(entry, kvListFrom(entry));
 }
 
+function indexTransactionKvs(entry, entryId, kvsAddedInThisBatch, itemsByKV) {
+  if (!entry || typeof entry !== 'object') return;
+  if (entry.projectType !== 'rahmen' || !Array.isArray(entry.transactions)) return;
+  const ownerId = entryId || entry.id;
+  entry.transactions.forEach(transaction => {
+    const txKvs = kvListFrom(transaction);
+    txKvs.forEach(txKv => {
+      if (!txKv) return;
+      if (kvsAddedInThisBatch) {
+        kvsAddedInThisBatch.add(txKv);
+      }
+      if (itemsByKV && ownerId) {
+        itemsByKV.set(txKv, ownerId);
+      }
+    });
+  });
+}
+
 function toEpochMillis(value){
   if (value == null) return null;
   if (value instanceof Date){
@@ -206,7 +224,9 @@ function findTransactionsNeedingCalloffDeal(beforeEntry, afterEntry) {
     if (!kv) continue;
     const hubspotId = firstNonEmpty(transaction.hubspotId, transaction.hs_object_id);
     if (!beforeByKv.has(kv)) {
-      results.push({ transaction, kv, reason: 'new_kv' });
+      if (!hubspotId) {
+        results.push({ transaction, kv, reason: 'new_kv' });
+      }
       continue;
     }
     if (!hubspotId) {
@@ -218,11 +238,11 @@ function findTransactionsNeedingCalloffDeal(beforeEntry, afterEntry) {
 }
 
 async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
-  if (!updatedEntry || typeof updatedEntry !== 'object') return false;
-  if (normalizeString(updatedEntry.projectType || '') !== 'rahmen') return false;
+  if (!updatedEntry || typeof updatedEntry !== 'object') return;
+  if (normalizeString(updatedEntry.projectType || '') !== 'rahmen') return;
 
   const candidates = findTransactionsNeedingCalloffDeal(beforeEntry, updatedEntry);
-  if (!candidates.length) return false;
+  if (!candidates.length) return;
 
   const accessToken = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
   if (!accessToken) {
@@ -240,10 +260,9 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
         source: updatedEntry.source || 'erp',
       });
     }
-    return false;
+    return;
   }
 
-  let anyChanges = false;
   for (const { transaction, kv, reason } of candidates) {
     try {
       const result = await hsCreateCalloffDeal(transaction, updatedEntry, env);
@@ -251,7 +270,6 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
       if (hubspotId) {
         transaction.hubspotId = hubspotId;
         transaction.hs_object_id = hubspotId;
-        anyChanges = true;
       }
       logs.push({
         event: 'hubspot_calloff_deal',
@@ -280,8 +298,6 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
       });
     }
   }
-
-  return anyChanges;
 }
 
 function resolveFreigabedatum(logEntry, fallbackTs){
@@ -863,12 +879,9 @@ async function hsCreateCalloffDeal(transaction, parentEntry, env) {
   }
 
   const delayCandidates = [env.HUBSPOT_CALL_DELAY_MS, env.HUBSPOT_THROTTLE_MS, env.THROTTLE_MS];
-  let delayMs = delayCandidates
+  const delayMs = delayCandidates
     .map(value => Number(value))
-    .find(value => Number.isFinite(value) && value >= 0);
-  if (!Number.isFinite(delayMs)) {
-    delayMs = 200;
-  }
+    .find(value => Number.isFinite(value) && value >= 0) ?? 200;
   await throttle(delayMs);
 
   const response = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
@@ -1751,17 +1764,7 @@ export default {
                         const entry = ensureKvStructure({ ...row, id: newId, ts: row.ts || Date.now(), modified: undefined });
                         if(Array.isArray(entry.transactions)){ entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
                         items.push(entry); itemsById.set(newId, entry); kvList.forEach(kv => { if (kv) { kvsAddedInThisBatch.add(kv); itemsByKV.set(kv, newId); } });
-                        if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                            entry.transactions.forEach(t => {
-                                const txKvs = kvListFrom(t);
-                                txKvs.forEach(txKv => {
-                                    if (txKv) {
-                                        kvsAddedInThisBatch.add(txKv);
-                                        itemsByKV.set(txKv, newId);
-                                    }
-                                });
-                            });
-                        }
+                        indexTransactionKvs(entry, newId, kvsAddedInThisBatch, itemsByKV);
                         await syncCalloffDealsForEntry(null, entry, env, logs);
                         created++; changed = true; const f = fieldsOf(entry); logs.push({ event:'create', source: entry.source || 'erp', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason:'bulk_import_new' });
                     } else {
@@ -1779,17 +1782,7 @@ export default {
                             const beforeKvs = kvListFrom(before);
                             beforeKvs.forEach(kv => { if (!updatedKvs.includes(kv)) itemsByKV.delete(kv); });
                             updatedKvs.forEach(kv => { itemsByKV.set(kv, row.id); kvsAddedInThisBatch.add(kv); });
-                            if (updatedEntry.projectType === 'rahmen' && Array.isArray(updatedEntry.transactions)) {
-                                updatedEntry.transactions.forEach(t => {
-                                    const txKvs = kvListFrom(t);
-                                    txKvs.forEach(txKv => {
-                                        if (txKv) {
-                                            itemsByKV.set(txKv, row.id);
-                                            kvsAddedInThisBatch.add(txKv);
-                                        }
-                                    });
-                                });
-                            }
+                            indexTransactionKvs(updatedEntry, row.id, kvsAddedInThisBatch, itemsByKV);
                             await syncCalloffDealsForEntry(before, updatedEntry, env, logs);
                             const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
                             if (syncPayload) hubspotUpdates.push(syncPayload);
