@@ -454,20 +454,20 @@ var __LOG_ANALYTICS__ = ((existing) => {
     ? __LOG_ANALYTICS__
     : undefined);
 
-var {
-  computeLogMetrics,
-  extractPersonAmounts,
-  computeEntryTotal,
-  sumPersonAmountsForTeam,
-  round2,
+const {
+  computeLogMetrics: __computeLogMetrics,
+  extractPersonAmounts: __extractPersonAmounts,
+  computeEntryTotal: __computeEntryTotal,
+  sumPersonAmountsForTeam: __sumPersonAmountsForTeam,
+  round2: __round2,
 } = __LOG_ANALYTICS__;
 
 export {
-  computeLogMetrics,
-  extractPersonAmounts,
-  computeEntryTotal,
-  sumPersonAmountsForTeam as __sumPersonAmountsForTeam,
-  round2 as __round2,
+  __computeLogMetrics as computeLogMetrics,
+  __extractPersonAmounts as extractPersonAmounts,
+  __computeEntryTotal as computeEntryTotal,
+  __sumPersonAmountsForTeam,
+  __round2,
 };
 
 // Hilfsfunktionen
