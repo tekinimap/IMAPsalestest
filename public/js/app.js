@@ -181,6 +181,12 @@ const kvNummer = document.getElementById('kvNummer');
 const freigabedatum = document.getElementById('freigabedatum');
 const metaEditSection = document.getElementById('metaEditSection');
 const btnMetaEditToggle = document.getElementById('btnMetaEditToggle');
+const metaSummary = document.getElementById('metaSummary');
+const metaSummaryFields = metaSummary ? {
+  projectNumber: metaSummary.querySelector('[data-meta-field="projectNumber"]'),
+  kvNummer: metaSummary.querySelector('[data-meta-field="kvNummer"]'),
+  freigabedatum: metaSummary.querySelector('[data-meta-field="freigabedatum"]'),
+} : null;
 let metaQuickEditEnabled = false;
 let metaBaseDisabledState = { projectNumber: false, kvNummer: false, freigabedatum: false };
 const w_cs = document.getElementById('w_cs');
@@ -332,6 +338,16 @@ function saveCurrentInputState() {
     saveState({ ...stPrev, input: currentInput });
 }
 
+function updateMetaSummary() {
+    if (!metaSummaryFields) return;
+    const pn = projectNumber?.value.trim();
+    const kv = kvNummer?.value.trim();
+    const dateValue = freigabedatum?.value;
+    metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
+    metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
+    metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDate(dateValue) : '–';
+}
+
 function applyMetaDisabledState(forceDisabled = false) {
     if (!projectNumber || !kvNummer || !freigabedatum) return;
     if (forceDisabled) {
@@ -356,6 +372,7 @@ function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: t
     btnMetaEditToggle.textContent = 'Bearbeiten';
     btnMetaEditToggle.disabled = false;
     metaEditSection.classList.remove('is-editing');
+    metaEditSection.classList.toggle('meta-edit-inline', !showQuickEdit);
     if (showQuickEdit) {
         metaEditSection.classList.add('meta-edit-available');
         applyMetaDisabledState(true);
@@ -363,6 +380,7 @@ function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: t
         metaEditSection.classList.remove('meta-edit-available');
         applyMetaDisabledState(false);
     }
+    updateMetaSummary();
 }
 
 function setMetaQuickEditActive(active) {
@@ -381,9 +399,22 @@ function setMetaQuickEditActive(active) {
         const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
         applyMetaDisabledState(quickEditAvailable);
     }
+    updateMetaSummary();
 }
 
 [auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }); });
+if (projectNumber) {
+    projectNumber.addEventListener('input', updateMetaSummary);
+    projectNumber.addEventListener('change', updateMetaSummary);
+}
+if (kvNummer) {
+    kvNummer.addEventListener('input', updateMetaSummary);
+    kvNummer.addEventListener('change', updateMetaSummary);
+}
+if (freigabedatum) {
+    freigabedatum.addEventListener('input', updateMetaSummary);
+    freigabedatum.addEventListener('change', updateMetaSummary);
+}
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
 auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -612,6 +643,7 @@ function loadInputForm(inputData, isEditing = false) {
     } else { addRow(true); addRow(false); }
     setHasUnsavedChanges(false);
     recalc();
+    updateMetaSummary();
 }
 
 function clearInputFields() {
