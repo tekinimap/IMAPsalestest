@@ -124,6 +124,60 @@ function ensureKvStructure(entry){
   if (!entry || typeof entry !== 'object') return entry;
   return applyKvList(entry, kvListFrom(entry));
 }
+
+function toEpochMillis(value){
+  if (value == null) return null;
+  if (value instanceof Date){
+    const time = value.getTime();
+    return Number.isFinite(time) ? time : null;
+  }
+  if (typeof value === 'number'){
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === 'string'){
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const numeric = Number(trimmed);
+    if (Number.isFinite(numeric)) return numeric;
+    const parsed = Date.parse(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function extractFreigabedatumFromEntry(entry){
+  if (!entry || typeof entry !== 'object') return null;
+  const direct = toEpochMillis(entry.freigabedatum ?? entry.freigabeDatum ?? entry.releaseDate ?? entry.freigabe_datum);
+  return direct != null ? direct : null;
+}
+
+function resolveFreigabedatum(logEntry, fallbackTs){
+  const fallback = Number.isFinite(Number(fallbackTs)) ? Number(fallbackTs) : Date.now();
+  if (!logEntry || typeof logEntry !== 'object'){
+    return fallback;
+  }
+
+  const rootFreigabe = extractFreigabedatumFromEntry(logEntry);
+  if (rootFreigabe != null) return rootFreigabe;
+
+  const transaction = logEntry.transaction;
+  if (transaction && typeof transaction === 'object'){
+    const txDirect = extractFreigabedatumFromEntry(transaction);
+    if (txDirect != null) return txDirect;
+    const txAfter = extractFreigabedatumFromEntry(transaction.after);
+    if (txAfter != null) return txAfter;
+    const txBefore = extractFreigabedatumFromEntry(transaction.before);
+    if (txBefore != null) return txBefore;
+  }
+
+  const afterFreigabe = extractFreigabedatumFromEntry(logEntry.after);
+  if (afterFreigabe != null) return afterFreigabe;
+
+  const beforeFreigabe = extractFreigabedatumFromEntry(logEntry.before);
+  if (beforeFreigabe != null) return beforeFreigabe;
+
+  return fallback;
+}
 function canonicalizeEntries(items){
   return (items || []).map(entry => {
     const clone = { ...entry };
@@ -383,7 +437,10 @@ var __LOG_ANALYTICS__ = ((existing) => {
       const ts = Number(log.ts);
       if (!Number.isFinite(ts)) continue;
 
-      const dateIso = new Date(ts).toISOString();
+      const freigabeTs = resolveFreigabedatum(log, ts);
+      if (!Number.isFinite(freigabeTs)) continue;
+
+      const dateIso = new Date(freigabeTs).toISOString();
       const day = dateIso.slice(0, 10);
       const month = dateIso.slice(0, 7);
 
@@ -474,6 +531,7 @@ function toNumberMaybe(v){ if (v==null || v==='') return null; if (typeof v === 
 const pick = (o, keys)=> (o && typeof o==='object' ? (keys.find(k => o[k]!=null && o[k]!=='' ) ? o[keys.find(k => o[k]!=null && o[k]!=='' )] : '') : '');
 function fieldsOf(obj){
   const kvList = kvListFrom(obj);
+  const freigabeTs = extractFreigabedatumFromEntry(obj);
   return {
     kv: kvList[0] || '',
     kvList,
@@ -481,7 +539,8 @@ function fieldsOf(obj){
     title: pick(obj, ['title','titel','projectTitle','dealname','name','Titel']),
     client: pick(obj, ['client','kunde','customer','account','Kunde']),
     amount: toNumberMaybe(pick(obj, ['amount','wert','value','sum','betrag','Betrag'])),
-    source: pick(obj, ['source'])
+    source: pick(obj, ['source']),
+    ...(freigabeTs != null ? { freigabedatum: freigabeTs } : {}),
   };
 }
 function validateRow(row){
@@ -500,7 +559,28 @@ async function ghPutContent(env, path, content, sha, message) { const url = `${G
 async function appendFile(env, path, text, message) { let tries = 0; const maxTries = 3; while (true) { tries++; const cur = await ghGetContent(env, path); const next = (cur.content || "") + text; try { const r = await ghPutContent(env, path, next, cur.sha, message); return { sha: r.content?.sha, path: r.content?.path }; } catch (e) { const s = String(e || ""); if (s.includes("sha") && tries < maxTries) { await new Promise(r=>setTimeout(r, 300*tries)); continue; } throw e; } } }
 
 /* ------------------------ Logging (JSONL pro Tag) ------------------------ */
-async function logJSONL(env, events){ if (!events || !events.length) return; const dateStr = todayStr(); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env); const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = events.map(e => JSON.stringify({ ts: Date.now(), ...e })).join("\n") + "\n"; try { await appendFile(env, path, text, `log ${events.length} events`); } catch (logErr) { console.error(`Failed to write to log file ${path}:`, logErr); } }
+async function logJSONL(env, events){
+  if (!events || !events.length) return;
+  const dateStr = todayStr();
+  const y = dateStr.slice(0,4), m = dateStr.slice(5,7);
+  const root = LOG_DIR(env);
+  const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`;
+  const text = events.map(event => {
+    const logTs = Date.now();
+    const payload = { ...event };
+    const freigabeTs = resolveFreigabedatum(payload, logTs);
+    if (freigabeTs != null) payload.freigabedatum = freigabeTs;
+    // Falls kein Freigabedatum gefunden wird, fällt resolveFreigabedatum auf den Log-Zeitstempel zurück.
+    const serialized = { ts: logTs, ...payload };
+    if (freigabeTs != null) serialized.freigabedatum = freigabeTs;
+    return JSON.stringify(serialized);
+  }).join("\n") + "\n";
+  try {
+    await appendFile(env, path, text, `log ${events.length} events`);
+  } catch (logErr) {
+    console.error(`Failed to write to log file ${path}:`, logErr);
+  }
+}
 
 async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
@@ -812,7 +892,16 @@ export default {
                 updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() }); cur.items[idx] = updatedEntry;
                 await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);
                 const f = fieldsOf(updatedEntry); const changes = {}; for(const k in body){ if(before[k] !== body[k]) changes[k] = body[k]; } if (before.amount !== v.amount) changes.amount = v.amount;
-                await logJSONL(env, [{ event:'update', ...fieldsOf(updatedEntry), before: { amount: before.amount, ...Object.fromEntries(Object.keys(changes).map(k=>[k,before[k]])) }, after: changes }]);
+                if (changes.freigabedatum == null && updatedEntry.freigabedatum != null) { changes.freigabedatum = updatedEntry.freigabedatum; }
+                const beforeSnapshot = { amount: before.amount };
+                if (before.freigabedatum != null) beforeSnapshot.freigabedatum = before.freigabedatum;
+                for (const key of Object.keys(changes)) {
+                  if (key === 'amount') continue;
+                  if (before[key] != null) {
+                    beforeSnapshot[key] = before[key];
+                  }
+                }
+                await logJSONL(env, [{ event:'update', ...f, before: beforeSnapshot, after: changes }]);
             }
             return jsonResponse(updatedEntry, 200, env);
         }

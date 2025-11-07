@@ -53,6 +53,7 @@ test('computeLogMetrics aggregates totals, months, and events', () => {
       event: 'create',
       after: {
         amount: 100,
+        freigabedatum: Date.parse('2025-08-20T00:00:00Z'),
         list: [
           { name: 'Alice Example', money: 60 },
           { name: 'Bob Example', money: 40 },
@@ -64,6 +65,7 @@ test('computeLogMetrics aggregates totals, months, and events', () => {
       event: 'update',
       before: {
         amount: 100,
+        freigabedatum: Date.parse('2025-09-10T00:00:00Z'),
         list: [
           { name: 'Alice Example', money: 60 },
           { name: 'Bob Example', money: 40 },
@@ -71,6 +73,7 @@ test('computeLogMetrics aggregates totals, months, and events', () => {
       },
       after: {
         amount: 160,
+        freigabedatum: Date.parse('2025-09-10T00:00:00Z'),
         list: [
           { name: 'Alice Example', money: 90 },
           { name: 'Bob Example', money: 70 },
@@ -82,6 +85,7 @@ test('computeLogMetrics aggregates totals, months, and events', () => {
       event: 'delete',
       before: {
         amount: 50,
+        freigabedatum: Date.parse('2025-07-05T00:00:00Z'),
         list: [
           { name: 'Alice Example', money: 20 },
           { name: 'Bob Example', money: 30 },
@@ -99,8 +103,9 @@ test('computeLogMetrics aggregates totals, months, and events', () => {
   assert.deepEqual(
     overall.months.map((m) => ({ month: m.month, amount: m.amount })),
     [
-      { month: '2025-10', amount: 160 },
-      { month: '2025-11', amount: -50 },
+      { month: '2025-07', amount: -50 },
+      { month: '2025-08', amount: 100 },
+      { month: '2025-09', amount: 60 },
     ],
   );
   assert.deepEqual(
