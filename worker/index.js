@@ -181,213 +181,286 @@ function mergeContributionLists(entries, totalAmount){
 
 /* ------------------------ Log Analytics ------------------------ */
 
-const LOG_ANALYTICS_EPSILON = 1e-6;
-
-function normalizeNumber(value) {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
-}
-
-function extractPersonAmounts(entry) {
-  const map = new Map();
-  if (!entry || typeof entry !== 'object') {
-    return map;
+var __LOG_ANALYTICS__ = ((existing) => {
+  if (existing) {
+    return existing;
   }
 
-  const list = Array.isArray(entry.list) ? entry.list : [];
-  const baseAmount = normalizeNumber(entry.amount);
+  const LOG_ANALYTICS_EPSILON = 1e-6;
 
-  for (const item of list) {
-    if (!item || typeof item !== 'object') continue;
-    const name = (item.name || item.key || '').trim();
-    if (!name) continue;
+  function normalizeNumber(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  }
 
-    let amount = normalizeNumber(item.money);
-    if (!Number.isFinite(amount) || Math.abs(amount) < LOG_ANALYTICS_EPSILON) {
+  function extractPersonAmounts(entry) {
+    const map = new Map();
+    if (!entry || typeof entry !== 'object') {
+      return map;
+    }
+
+    const list = Array.isArray(entry.list) ? entry.list : [];
+    const baseAmount = normalizeNumber(entry.amount);
+
+    for (const item of list) {
+      if (!item || typeof item !== 'object') continue;
+      const name = (item.name || item.key || '').trim();
+      if (!name) continue;
+
+      const amount = normalizeNumber(item.money ?? item.amount ?? item.value);
       const pct = normalizeNumber(item.pct);
-      if (Number.isFinite(pct) && Math.abs(pct) > LOG_ANALYTICS_EPSILON && baseAmount) {
-        amount = (baseAmount * pct) / 100;
+
+      if (!Number.isFinite(amount) || Math.abs(amount) < LOG_ANALYTICS_EPSILON) {
+        if (Number.isFinite(pct) && Math.abs(pct) > LOG_ANALYTICS_EPSILON && baseAmount) {
+          map.set(name, (map.get(name) || 0) + (pct / 100) * baseAmount);
+        }
+        continue;
+      }
+
+      map.set(name, (map.get(name) || 0) + amount);
+    }
+
+    if (map.size === 0 && baseAmount) {
+      const submittedBy = (entry.submittedBy || '').trim();
+      if (submittedBy) {
+        map.set(submittedBy, baseAmount);
       }
     }
 
-    if (!Number.isFinite(amount) || Math.abs(amount) < LOG_ANALYTICS_EPSILON) continue;
-    map.set(name, (map.get(name) || 0) + amount);
+    return map;
   }
 
-  return map;
-}
+  function computeEntryTotal(entry) {
+    if (!entry || typeof entry !== 'object') {
+      return 0;
+    }
 
-function computeEntryTotal(entry) {
-  if (!entry || typeof entry !== 'object') {
+    const byPerson = extractPersonAmounts(entry);
+    if (byPerson.size > 0) {
+      let sum = 0;
+      for (const value of byPerson.values()) {
+        const normalized = normalizeNumber(value);
+        if (Math.abs(normalized) > LOG_ANALYTICS_EPSILON) {
+          sum += normalized;
+        }
+      }
+      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
+        return sum;
+      }
+    }
+
+    if (Array.isArray(entry.transactions) && entry.transactions.length) {
+      let sum = 0;
+      for (const tx of entry.transactions) {
+        const txAmount = normalizeNumber(tx?.amount);
+        if (Math.abs(txAmount) > LOG_ANALYTICS_EPSILON) {
+          sum += txAmount;
+        }
+      }
+      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
+        return sum;
+      }
+    }
+
+    const amount = normalizeNumber(entry.amount);
+    if (Math.abs(amount) > LOG_ANALYTICS_EPSILON) {
+      return amount;
+    }
+
     return 0;
   }
 
-  const byPerson = extractPersonAmounts(entry);
-  if (byPerson.size > 0) {
-    let sum = 0;
-    byPerson.forEach((value) => {
-      sum += normalizeNumber(value);
-    });
-    if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
+  function sumPersonAmountsForTeam(entry, teamName, personTeamMap) {
+    if (!entry || typeof entry !== 'object') {
+      return 0;
+    }
+
+    const team = (teamName || '').trim();
+    const teamsEnabled = team.length > 0;
+    const amounts = extractPersonAmounts(entry);
+
+    if (!teamsEnabled) {
+      let sum = 0;
+      for (const value of amounts.values()) {
+        sum += value;
+      }
       return sum;
     }
-  }
 
-  if (Array.isArray(entry.transactions)) {
+    if (!(personTeamMap instanceof Map) || personTeamMap.size === 0) {
+      return 0;
+    }
+
     let total = 0;
-    for (const tx of entry.transactions) {
-      total += normalizeNumber(tx?.amount);
+    for (const [person, amount] of amounts.entries()) {
+      const teamForPerson = (personTeamMap.get(person) || '').trim();
+      if (!teamForPerson) continue;
+      if (teamForPerson.toLowerCase() === team.toLowerCase()) {
+        total += amount;
+      }
     }
-    if (Math.abs(total) > LOG_ANALYTICS_EPSILON) {
-      return total;
+
+    return total;
+  }
+
+  function round2(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      return 0;
+    }
+
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  function createEmptyBucket() {
+    return {
+      amount: 0,
+      count: 0,
+      positiveCount: 0,
+      positiveAmount: 0,
+      negativeCount: 0,
+      negativeAmount: 0,
+      neutralCount: 0,
+    };
+  }
+
+  function applyDelta(bucket, delta) {
+    if (!bucket) return;
+
+    bucket.amount += delta;
+    bucket.count += 1;
+
+    if (delta > LOG_ANALYTICS_EPSILON) {
+      bucket.positiveCount += 1;
+      bucket.positiveAmount += delta;
+    } else if (delta < -LOG_ANALYTICS_EPSILON) {
+      bucket.negativeCount += 1;
+      bucket.negativeAmount += delta;
+    } else {
+      bucket.neutralCount += 1;
     }
   }
 
-  return normalizeNumber(entry.amount || entry.totalAmount);
-}
-
-function sumPersonAmountsForTeam(entry, teamName, personTeamMap) {
-  if (!teamName) {
-    return computeEntryTotal(entry);
-  }
-  const persons = extractPersonAmounts(entry);
-  if (persons.size === 0) {
-    return 0;
-  }
-  let sum = 0;
-  persons.forEach((value, person) => {
-    const team = personTeamMap.get(person) || 'Ohne Team';
-    if (team === teamName) {
-      sum += normalizeNumber(value);
-    }
-  });
-  return sum;
-}
-
-function round2(value) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
-
-function createEmptyBucket() {
-  return {
-    amount: 0,
-    count: 0,
-    positiveCount: 0,
-    positiveAmount: 0,
-    negativeCount: 0,
-    negativeAmount: 0,
-    neutralCount: 0,
-  };
-}
-
-function applyDelta(bucket, delta) {
-  bucket.amount += delta;
-  bucket.count += 1;
-  if (delta > LOG_ANALYTICS_EPSILON) {
-    bucket.positiveCount += 1;
-    bucket.positiveAmount += delta;
-  } else if (delta < -LOG_ANALYTICS_EPSILON) {
-    bucket.negativeCount += 1;
-    bucket.negativeAmount += delta;
-  } else {
-    bucket.neutralCount += 1;
-  }
-}
-
-function updateBucket(map, key, delta) {
-  if (!map.has(key)) {
-    map.set(key, createEmptyBucket());
-  }
-  const bucket = map.get(key);
-  applyDelta(bucket, delta);
-}
-
-function bucketToObject(key, bucket, keyName) {
-  const successDenominator = bucket.count || 0;
-  const successRate = successDenominator > 0 ? bucket.positiveCount / successDenominator : null;
-  return {
-    [keyName]: key,
-    amount: round2(bucket.amount),
-    count: bucket.count,
-    positiveCount: bucket.positiveCount,
-    positiveAmount: round2(bucket.positiveAmount),
-    negativeCount: bucket.negativeCount,
-    negativeAmount: round2(bucket.negativeAmount),
-    neutralCount: bucket.neutralCount,
-    successRate,
-  };
-}
-
-function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
-  const teamFilter = (options.team || '').trim();
-  const filteredLogs = Array.isArray(logEntries)
-    ? logEntries.filter((entry) => entry && typeof entry === 'object' && Number.isFinite(Number(entry.ts)))
-    : [];
-
-  filteredLogs.sort((a, b) => Number(a.ts) - Number(b.ts));
-
-  const totals = createEmptyBucket();
-  let minDate = null;
-  let maxDate = null;
-
-  const monthlyBuckets = new Map();
-  const dailyBuckets = new Map();
-  const eventBuckets = new Map();
-
-  for (const log of filteredLogs) {
-    const ts = Number(log.ts);
-    if (!Number.isFinite(ts)) continue;
-
-    const dateIso = new Date(ts).toISOString();
-    const day = dateIso.slice(0, 10);
-    const month = dateIso.slice(0, 7);
-
-    if (!minDate || day < minDate) minDate = day;
-    if (!maxDate || day > maxDate) maxDate = day;
-
-    const beforeVal = sumPersonAmountsForTeam(log.before, teamFilter, personTeamMap);
-    const afterVal = sumPersonAmountsForTeam(log.after, teamFilter, personTeamMap);
-    const delta = afterVal - beforeVal;
-
-    updateBucket(monthlyBuckets, month, delta);
-    updateBucket(dailyBuckets, day, delta);
-    updateBucket(eventBuckets, log.event || 'unbekannt', delta);
-    applyDelta(totals, delta);
-  }
-
-  const successDenominator = totals.count || 0;
-  const successRate = successDenominator > 0 ? totals.positiveCount / successDenominator : null;
-
-  const months = Array.from(monthlyBuckets.entries())
-    .map(([key, bucket]) => bucketToObject(key, bucket, 'month'))
-    .sort((a, b) => a.month.localeCompare(b.month));
-
-  const daily = Array.from(dailyBuckets.entries())
-    .map(([key, bucket]) => bucketToObject(key, bucket, 'date'))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  const events = Array.from(eventBuckets.entries())
-    .map(([key, bucket]) => bucketToObject(key, bucket, 'event'))
-    .sort((a, b) => b.count - a.count || a.event.localeCompare(b.event));
-
-  return {
-    period: { from: options.from || minDate, to: options.to || maxDate },
-    filters: { team: teamFilter || null },
-    totals: {
-      count: totals.count,
-      amount: round2(totals.amount),
-      positiveCount: totals.positiveCount,
-      positiveAmount: round2(totals.positiveAmount),
-      negativeCount: totals.negativeCount,
-      negativeAmount: round2(totals.negativeAmount),
-      neutralCount: totals.neutralCount,
+  function bucketToObject(key, bucket, keyName) {
+    const successDenominator = bucket.count || 0;
+    const successRate = successDenominator > 0 ? bucket.positiveCount / successDenominator : null;
+    return {
+      [keyName]: key,
+      amount: round2(bucket.amount),
+      count: bucket.count,
+      positiveCount: bucket.positiveCount,
+      positiveAmount: round2(bucket.positiveAmount),
+      negativeCount: bucket.negativeCount,
+      negativeAmount: round2(bucket.negativeAmount),
+      neutralCount: bucket.neutralCount,
       successRate,
-    },
-    months,
-    daily,
-    events,
+    };
+  }
+
+  function updateBucket(collection, key, delta) {
+    if (!collection || !key) return;
+    const bucket = collection.get(key) || createEmptyBucket();
+    applyDelta(bucket, delta);
+    collection.set(key, bucket);
+  }
+
+  function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
+    const teamFilter = (options.team || '').trim();
+    const filteredLogs = Array.isArray(logEntries)
+      ? logEntries.filter((entry) => entry && typeof entry === 'object' && Number.isFinite(Number(entry.ts)))
+      : [];
+
+    filteredLogs.sort((a, b) => Number(a.ts) - Number(b.ts));
+
+    const totals = createEmptyBucket();
+    let minDate = null;
+    let maxDate = null;
+
+    const monthlyBuckets = new Map();
+    const dailyBuckets = new Map();
+    const eventBuckets = new Map();
+
+    for (const log of filteredLogs) {
+      const ts = Number(log.ts);
+      if (!Number.isFinite(ts)) continue;
+
+      const dateIso = new Date(ts).toISOString();
+      const day = dateIso.slice(0, 10);
+      const month = dateIso.slice(0, 7);
+
+      if (!minDate || day < minDate) minDate = day;
+      if (!maxDate || day > maxDate) maxDate = day;
+
+      const beforeVal = sumPersonAmountsForTeam(log.before, teamFilter, personTeamMap);
+      const afterVal = sumPersonAmountsForTeam(log.after, teamFilter, personTeamMap);
+      const delta = afterVal - beforeVal;
+
+      updateBucket(monthlyBuckets, month, delta);
+      updateBucket(dailyBuckets, day, delta);
+      updateBucket(eventBuckets, log.event || 'unbekannt', delta);
+      applyDelta(totals, delta);
+    }
+
+    const successDenominator = totals.count || 0;
+    const successRate = successDenominator > 0 ? totals.positiveCount / successDenominator : null;
+
+    const months = Array.from(monthlyBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'month'))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    const daily = Array.from(dailyBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'date'))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const events = Array.from(eventBuckets.entries())
+      .map(([key, bucket]) => bucketToObject(key, bucket, 'event'))
+      .sort((a, b) => b.count - a.count || a.event.localeCompare(b.event));
+
+    return {
+      period: { from: options.from || minDate, to: options.to || maxDate },
+      filters: { team: teamFilter || null },
+      totals: {
+        count: totals.count,
+        amount: round2(totals.amount),
+        positiveCount: totals.positiveCount,
+        positiveAmount: round2(totals.positiveAmount),
+        negativeCount: totals.negativeCount,
+        negativeAmount: round2(totals.negativeAmount),
+        neutralCount: totals.neutralCount,
+        successRate,
+      },
+      months,
+      daily,
+      events,
+    };
+  }
+
+  const api = {
+    computeLogMetrics,
+    extractPersonAmounts,
+    computeEntryTotal,
+    sumPersonAmountsForTeam,
+    round2,
   };
-}
+
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__LOG_ANALYTICS__ = api;
+  }
+
+  return api;
+})(typeof globalThis !== 'undefined' && globalThis.__LOG_ANALYTICS__
+  ? globalThis.__LOG_ANALYTICS__
+  : typeof __LOG_ANALYTICS__ !== 'undefined'
+    ? __LOG_ANALYTICS__
+    : undefined);
+
+var {
+  computeLogMetrics,
+  extractPersonAmounts,
+  computeEntryTotal,
+  sumPersonAmountsForTeam,
+  round2,
+} = __LOG_ANALYTICS__;
 
 export {
   computeLogMetrics,
