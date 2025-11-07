@@ -10629,7 +10629,7 @@
     "id": "hubspot_471382308e2de0736a4a53e4cf98d6bb",
     "hubspotId": "45326972175",
     "title": "Change-Begleitung",
-    "amount": 250000,
+    "amount": 300000,
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "IMAP-001-001",
@@ -10640,13 +10640,13 @@
         "key": "Merlin Klein",
         "name": "Merlin Klein",
         "pct": 50,
-        "money": 125000
+        "money": 150000
       },
       {
         "key": "Christopher van den Hövel",
         "name": "Christopher van den Hövel",
         "pct": 50,
-        "money": 125000
+        "money": 150000
       },
       {
         "key": "Jens Maaßen",
@@ -10705,7 +10705,7 @@
       }
     ],
     "freigabedatum": 1762473600000,
-    "ts": 1762524210204,
-    "modified": 1762524210282
+    "ts": 1762524544629,
+    "modified": 1762524544853
   }
 ]
