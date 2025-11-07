@@ -2974,7 +2974,7 @@ async function loadLogMetrics() {
   if (from) params.set('from', from);
   if (to) params.set('to', to);
   if (logMetricsTeam && logMetricsTeam.value) params.set('team', logMetricsTeam.value);
-  const url = `${WORKER_BASE}/log/metrics${params.toString() ? `?${params.toString()}` : ''}`;
+  const url = `${WORKER_BASE}/analytics/metrics${params.toString() ? `?${params.toString()}` : ''}`;
 
   if (logMetricsSummary) {
     logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Lade Logdaten…</div>';
