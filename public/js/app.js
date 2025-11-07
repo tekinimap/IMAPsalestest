@@ -1677,12 +1677,19 @@ async function saveHunterAbruf(st) {
     const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
-    const date = new Date(st.input.freigabedatum).getTime();
+    let date = null;
+    const rawDate = st.input.freigabedatum;
+    if (rawDate) {
+        const parsed = Date.parse(rawDate);
+        if (Number.isFinite(parsed)) {
+            date = parsed;
+        }
+    }
 
     const newTransaction = {
-        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`, 
+        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`,
         kv_nummer: st.input.kvNummer,
-        type: 'hunter', 
+        type: 'hunter',
         title: st.input.title, 
         amount: abrufAmount, 
         ts: Date.now(),
