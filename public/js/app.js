@@ -477,14 +477,8 @@ if (btnMetaEditToggle) {
                 projectNumber: projectNumber.value.trim(),
                 kv_nummer: kvNummer.value.trim(),
             };
-            let dateMs = null;
-            if (freigabedatum.value) {
-                const parsed = Date.parse(freigabedatum.value);
-                if (!Number.isNaN(parsed)) {
-                    dateMs = parsed;
-                }
-            }
-            payload.freigabedatum = dateMs != null ? dateMs : null;
+            const parsedDate = Date.parse(freigabedatum.value);
+            payload.freigabedatum = Number.isFinite(parsedDate) ? parsedDate : null;
 
             const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, {
                 method: 'PUT',
@@ -1677,14 +1671,8 @@ async function saveHunterAbruf(st) {
     const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
 
     if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
-    let date = null;
-    const rawDate = st.input.freigabedatum;
-    if (rawDate) {
-        const parsed = Date.parse(rawDate);
-        if (Number.isFinite(parsed)) {
-            date = parsed;
-        }
-    }
+    const parsedDate = Date.parse(st.input.freigabedatum);
+    const date = Number.isFinite(parsedDate) ? parsedDate : null;
 
     const newTransaction = {
         id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`,

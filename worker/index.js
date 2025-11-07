@@ -902,8 +902,8 @@ function collectHubspotSyncPayload(before, after) {
   const nextKvNummer = normalizeString(afterFields.kv);
   const previousFreigabeTs = extractFreigabedatumFromEntry(before);
   const nextFreigabeTs = extractFreigabedatumFromEntry(after);
-  const previousClosedate = previousFreigabeTs != null ? Math.trunc(Number(previousFreigabeTs)) : null;
-  const nextClosedate = nextFreigabeTs != null ? Math.trunc(Number(nextFreigabeTs)) : null;
+  const previousClosedate = previousFreigabeTs !== null ? Math.trunc(previousFreigabeTs) : null;
+  const nextClosedate = nextFreigabeTs !== null ? Math.trunc(nextFreigabeTs) : null;
 
   const previousAmount = toNumberMaybe(before?.amount ?? beforeFields.amount);
   const nextAmount = toNumberMaybe(after?.amount ?? afterFields.amount);
