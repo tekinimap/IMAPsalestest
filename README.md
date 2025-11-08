@@ -1,6 +1,6 @@
-# IMAPsalestest
+# synq
 
-Salesbeiträge Test
+Interne Anwendung zur Verwaltung von Sales-Beteiligungen.
 
 ## Konfiguration
 
