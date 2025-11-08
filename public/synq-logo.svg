@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">synq Logo</title>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke="#f1f5f9" stroke-width="3.2" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M32 6L58 32 32 58 6 32z"/>
+  </g>
+  <g fill="#f8fafc">
+    <rect x="24.5" y="18.5" width="7" height="7" rx="1.2"/>
+    <rect x="32.5" y="18.5" width="7" height="7" rx="1.2"/>
+    <rect x="24.5" y="26.5" width="7" height="7" rx="1.2"/>
+    <rect x="32.5" y="26.5" width="7" height="7" rx="1.2"/>
+  </g>
+</svg>
