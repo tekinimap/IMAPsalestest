@@ -333,7 +333,7 @@ function matchesDockFilters(item) {
 function updateDockSelectionUi() {
   if (btnDockBatchDelete) {
     const count = dockSelection.size;
-    const baseLabel = btnDockBatchDelete.dataset.baseLabel || 'Auswahl löschen';
+    const baseLabel = btnDockBatchDelete.dataset.baseLabel || 'Markierte Löschen';
     btnDockBatchDelete.disabled = count === 0;
     btnDockBatchDelete.textContent = count > 0 ? `${baseLabel} (${count})` : baseLabel;
   }
@@ -733,23 +733,33 @@ function buildDockCard(item) {
   header.appendChild(headline);
 
   const actions = createDockElement('div', { className: 'dock-card-actions' });
-  const deleteBtn = createDockElement('button', {
-    className: 'dock-card-delete',
-    attrs: { type: 'button', 'aria-label': 'Deal löschen', title: 'Deal löschen' },
-    dataset: { dockAct: 'delete', id: entry.id },
+  const editBtn = createDockElement('button', {
+    className: 'dock-card-edit',
+    attrs: { type: 'button', 'aria-label': 'Deal bearbeiten', title: 'Deal bearbeiten' },
+    dataset: { dockAct: 'edit', id: entry.id },
   });
   const svgNs = 'http://www.w3.org/2000/svg';
   const icon = document.createElementNS(svgNs, 'svg');
   icon.setAttribute('viewBox', '0 0 24 24');
   icon.setAttribute('focusable', 'false');
-  const path = document.createElementNS(svgNs, 'path');
-  path.setAttribute('d', 'M6 7h12m-9-3h6m-.5 3-.5 12m-5-12.05L8 19');
-  path.setAttribute('stroke-width', '1.6');
-  path.setAttribute('stroke', 'rgba(239,68,68,.85)');
-  path.setAttribute('fill', 'none');
-  icon.appendChild(path);
-  deleteBtn.appendChild(icon);
-  actions.appendChild(deleteBtn);
+  icon.setAttribute('aria-hidden', 'true');
+  const framePath = document.createElementNS(svgNs, 'path');
+  framePath.setAttribute('d', 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7');
+  framePath.setAttribute('fill', 'none');
+  framePath.setAttribute('stroke', 'currentColor');
+  framePath.setAttribute('stroke-width', '1.5');
+  framePath.setAttribute('stroke-linecap', 'round');
+  framePath.setAttribute('stroke-linejoin', 'round');
+  const pencilPath = document.createElementNS(svgNs, 'path');
+  pencilPath.setAttribute('d', 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z');
+  pencilPath.setAttribute('fill', 'none');
+  pencilPath.setAttribute('stroke', 'currentColor');
+  pencilPath.setAttribute('stroke-width', '1.5');
+  pencilPath.setAttribute('stroke-linecap', 'round');
+  pencilPath.setAttribute('stroke-linejoin', 'round');
+  icon.append(framePath, pencilPath);
+  editBtn.appendChild(icon);
+  actions.appendChild(editBtn);
   header.appendChild(actions);
   card.appendChild(header);
 
@@ -793,14 +803,6 @@ function buildDockCard(item) {
   }
 
   const footer = createDockElement('div', { className: 'dock-card-footer' });
-  footer.appendChild(
-    createDockElement('button', {
-      className: 'btn tight',
-      text: 'Bearbeiten',
-      attrs: { type: 'button' },
-      dataset: { dockAct: 'edit', id: entry.id },
-    })
-  );
 
   if (phase === 2) {
     if (entry.dockBuApproved) {
@@ -842,7 +844,9 @@ function buildDockCard(item) {
     );
   }
 
-  card.appendChild(footer);
+  if (footer.childElementCount > 0) {
+    card.appendChild(footer);
+  }
 
   if (dockSelection.has(entry.id)) {
     card.classList.add('is-selected');
@@ -928,13 +932,6 @@ function handleDockBoardClick(event) {
 
   if (action === 'edit') {
     editEntry(id);
-    return;
-  }
-
-  if (action === 'delete') {
-    dockSelection.delete(id);
-    updateDockSelectionUi();
-    handleDeleteClick(id, 'entry');
     return;
   }
 
