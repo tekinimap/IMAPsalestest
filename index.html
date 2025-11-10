@@ -110,11 +110,35 @@
   .dock-card-hint-actions .btn.tight{padding:6px 10px;font-size:12px;}
   .dock-empty{background:var(--panel2);border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--muted);margin-bottom:24px}
   .dock-empty-note{margin-top:6px;}
-  .dock-manual{border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);background:rgba(11,17,26,.65);backdrop-filter:blur(6px);padding:24px;margin-top:12px;box-shadow:0 12px 24px rgba(8,15,28,.35)}
+  .dock-manual{border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);background:rgba(11,17,26,.65);backdrop-filter:blur(6px);padding:20px;margin-top:12px;box-shadow:0 12px 24px rgba(8,15,28,.35)}
   .dock-manual-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
   .dock-manual-header h2{margin:0;font-size:18px}
   .dock-manual-header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
   .dock-manual-actions{display:flex;gap:10px;align-items:center}
+  .dock-manual label{margin:6px 0 4px}
+  .dock-manual .grid-3{gap:12px}
+  .dock-manual .dock-compact-row{margin-top:8px}
+  .dock-manual input[type="text"],
+  .dock-manual input[type="number"],
+  .dock-manual input[type="date"],
+  .dock-manual select{padding:8px 10px;font-size:13px}
+  .dock-manual .checkbox-wrapper{margin-top:4px}
+  .dock-manual .checkbox-wrapper label{margin:0;font-weight:500;font-size:12px;color:var(--muted)}
+  .dock-manual .hr{margin:18px 0}
+  .dock-manual .actions{margin-top:10px}
+  .dock-manual .table-wrapper{margin-top:10px}
+  .dock-manual table{min-width:0}
+  .dock-manual thead th{padding:8px 10px;font-size:12px}
+  .dock-manual tbody td{padding:6px 10px;font-size:12px}
+  .dock-manual tbody td .delrow{padding:6px 10px;font-size:12px}
+  .dock-manual .live-result{display:flex;align-items:center;gap:6px}
+  .dock-manual .live-result .pct{display:inline;font-size:13px}
+  .dock-manual .live-result .money{display:inline;font-size:11px}
+  .dock-manual .note{margin-top:4px}
+  .dock-manual .form-bottom-actions{margin-top:16px}
+  .dock-manual .meta-edit-section{padding:12px 14px}
+  .dock-manual .meta-edit-section .meta-edit-summary{gap:6px 12px}
+  .dock-manual .meta-summary-value{font-size:12px}
 
   #btnDockBatchDelete{background:#ef4444;border-color:transparent;}
   #btnDockBatchDelete:disabled{opacity:.45;cursor:not-allowed;}
@@ -528,12 +552,12 @@
           <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
           <div class="checkbox-wrapper">
             <input type="checkbox" id="auftragswertBekannt" checked>
-            <label for="auftragswertBekannt" style="margin:0; font-weight:normal; font-size:13px;">Auftragswert bekannt?</label>
+            <label for="auftragswertBekannt">Auftragswert bekannt?</label>
           </div>
           <div class="field-error" data-validation-for="auftragswert"></div>
         </div>
       </div>
-      <div class="grid-3" style="margin-top:10px">
+      <div class="grid-3 dock-compact-row">
         <div>
           <label for="submittedBy">Einschätzung abgegeben von *</label>
           <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
@@ -569,12 +593,12 @@
 
       <div class="hr"></div>
 
-      <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow" style="width:auto;">+ Zeile</button></div>
+      <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
       <div class="field-error" data-validation-for="rows"></div>
 
       <datalist id="peopleList"></datalist>
 
-      <div class="table-wrapper" style="margin-top:14px">
+      <div class="table-wrapper">
         <table>
           <thead><tr>
             <th style="width:25%">Person</th>

@@ -124,6 +124,8 @@ const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 const dockEntryDialog = document.getElementById('dockEntryDialog');
 const dockManualPanel = document.getElementById('dockManualPanel');
+const dockIntroEl = document.getElementById('erfassungSub');
+const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
 const dockFilterBu = document.getElementById('dockFilterBu');
 const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
 const dockFilterAssessment = document.getElementById('dockFilterAssessment');
@@ -1600,7 +1602,6 @@ async function saveNewEntry(st) {
 function loadInputForm(inputData, isEditing = false) {
     const st = loadState() || {};
     const abrufInfo = document.getElementById('abrufInfo');
-    const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
     
     // Reset all fields first
@@ -1619,7 +1620,9 @@ function loadInputForm(inputData, isEditing = false) {
 
     if (st.isAbrufMode && st.parentEntry) {
         // Hunter Abruf
-        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
+        if (dockIntroEl) {
+            dockIntroEl.textContent = 'Neuen aktiven Abruf erfassen.';
+        }
         projectTypeWrapper.classList.add('hide');
         auftraggeber.value = st.parentEntry.client;
         auftraggeber.disabled = true;
@@ -1635,7 +1638,9 @@ function loadInputForm(inputData, isEditing = false) {
 
     } else {
         // Neue Erfassung oder Bearbeitung
-        erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
+        if (dockIntroEl) {
+            dockIntroEl.textContent = dockIntroDefaultText;
+        }
         projectTypeWrapper.classList.remove('hide');
         auftraggeber.value = inputData.client || '';
         projekttitel.value = inputData.title || '';
