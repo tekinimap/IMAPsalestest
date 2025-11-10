@@ -11651,10 +11651,11 @@
     ],
     "freigabedatum": 1762732800000,
     "ts": 1762781665126,
-    "modified": 1762781692255,
-    "dockPhase": 1,
+    "modified": 1762781703293,
+    "dockPhase": 2,
     "dockPhaseHistory": {
-      "1": 1762781665861
+      "1": 1762781665861,
+      "2": 1762781702276
     },
     "dockBuApproved": false,
     "dockBuApprovedAt": null,
