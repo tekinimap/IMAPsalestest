@@ -10801,5 +10801,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_d5e30429308b9f69b2456a5abf4a52d3",
+    "hubspotId": "48769163930",
+    "title": "Begleitung von Teamentwicklungsmaßnahmen – KV-2025-0252",
+    "amount": 1555.73,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772635740,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
