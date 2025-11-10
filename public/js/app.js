@@ -1589,7 +1589,7 @@ async function saveNewEntry(st) {
       console.warn('Antwort konnte nicht gelesen werden:', err);
     }
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
-    clearInputFields();
+    hideManualPanel();
     if (savedEntry && savedEntry.id) {
       queueDockAutoCheck(savedEntry.id, {
         entry: savedEntry,
@@ -1597,10 +1597,9 @@ async function saveNewEntry(st) {
         kvNummer: savedEntry.kv_nummer || '',
       });
     }
-    if(payload.projectType === 'rahmen') {
-        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
-    } else {
-        loadHistory().then(()=>showView('fixauftraege'));
+    await loadHistory(true);
+    if (payload.projectType === 'rahmen') {
+        renderFrameworkContracts();
     }
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
