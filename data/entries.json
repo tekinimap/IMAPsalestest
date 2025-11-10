@@ -11073,5 +11073,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_bf4bcd1274fdaf94bc875251762545fb",
+    "hubspotId": "48769521033",
+    "title": "Teamentwicklung – KV-2025-0122",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772649412,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
