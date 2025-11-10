@@ -11651,17 +11651,18 @@
     ],
     "freigabedatum": 1762732800000,
     "ts": 1762781665126,
-    "modified": 1762781726675,
-    "dockPhase": 3,
+    "modified": 1762781738200,
+    "dockPhase": 4,
     "dockPhaseHistory": {
       "1": 1762781665861,
       "2": 1762781702276,
-      "3": 1762781725803
+      "3": 1762781725803,
+      "4": 1762781737468
     },
     "dockBuApproved": true,
     "dockBuApprovedAt": 1762781725803,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1762781737467
   },
   {
     "id": "entry_1762772744441_KV20250288",
