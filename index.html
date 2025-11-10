@@ -17,8 +17,13 @@
   
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
   .topbar-brand{display:flex;align-items:center;gap:12px;}
-  .app-logo{display:block;width:42px;height:42px;}
-  .app-title{font-size:18px;font-weight:700;letter-spacing:.04em;text-transform:lowercase;}
+  .app-logo{
+    display:block;
+    width:auto;
+    height:auto;
+    max-height:42px;
+    background-color:transparent;
+  }
   .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
   .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
   .nav-link:hover{background-color: var(--panel2);}
@@ -358,8 +363,7 @@
 
   <div class="topbar">
     <div class="topbar-brand">
-      <img src="public/dock_png_original.png" alt="dock Logo" loading="lazy" width="42" height="42" class="app-logo">
-      <div class="app-title">dock</div>
+      <img src="public/dock_png_original.png" alt="dock Logo" loading="lazy" class="app-logo">
     </div>
     <div class="main-nav">
       <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
