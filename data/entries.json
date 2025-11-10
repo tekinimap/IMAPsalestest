@@ -11075,8 +11075,14 @@
         "author": "Merlin Klein",
         "text": "Dies ist ein Test: www.imap-institut.de",
         "createdAt": 1762791010629
+      },
+      {
+        "id": "comment_1762791024115_66ecef2aad0be8",
+        "author": "Anne-Christin Herhold",
+        "text": "Test",
+        "createdAt": 1762791024115
       }
     ],
-    "modified": 1762791011311
+    "modified": 1762791024727
   }
 ]
