@@ -10881,5 +10881,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_8a01b58c7d1a2cf90674e98f51dad791",
+    "hubspotId": "48770996266",
+    "title": "Führungskräfteentwicklungsprogramm Los 1 – KV-2025-0092",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772639533,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
