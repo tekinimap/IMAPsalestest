@@ -71,6 +71,71 @@ async function throttle(delayMs) {
 
 function normKV(v){ return String(v ?? '').trim(); }
 function normalizeString(value){ return String(value ?? '').trim(); }
+const MARKET_TEAM_TO_BU = new Map([
+  ['vielfalt+', 'Public Impact'],
+  ['evaluation und beteiligung', 'Public Impact'],
+  ['nachhaltigkeit', 'Public Impact'],
+  ['bundes- und landesbehörden', 'Organisational Excellence'],
+  ['sozial- und krankenversicherungen', 'Organisational Excellence'],
+  ['kommunalverwaltungen', 'Organisational Excellence'],
+  ['internationale zusammenarbeit', 'Organisational Excellence'],
+  ['changepartner', 'Organisational Excellence'],
+]);
+
+function deriveBusinessUnitFromTeamName(team) {
+  const normalized = normalizeString(team).toLowerCase();
+  if (!normalized) return '';
+  if (MARKET_TEAM_TO_BU.has(normalized)) {
+    return MARKET_TEAM_TO_BU.get(normalized);
+  }
+  return '';
+}
+
+function ensureDockMetadata(entry, options = {}) {
+  if (!entry || typeof entry !== 'object') return entry;
+  const source = normalizeString(entry.source).toLowerCase();
+  const hasPhase = entry.dockPhase != null;
+  const defaultPhase = options.defaultPhase;
+  if (!hasPhase && defaultPhase == null && source !== 'hubspot') {
+    return entry;
+  }
+
+  let phase = Number(entry.dockPhase);
+  if (!Number.isFinite(phase) || phase < 1) {
+    if (defaultPhase != null) {
+      phase = defaultPhase;
+    } else if (source === 'hubspot') {
+      phase = 1;
+    } else {
+      return entry;
+    }
+  }
+  phase = Math.max(1, Math.min(4, phase));
+  entry.dockPhase = phase;
+
+  const history = entry.dockPhaseHistory && typeof entry.dockPhaseHistory === 'object'
+    ? { ...entry.dockPhaseHistory }
+    : {};
+  const phaseKey = String(phase);
+  if (!history[phaseKey]) {
+    history[phaseKey] = Date.now();
+  }
+  entry.dockPhaseHistory = history;
+
+  if (entry.dockBuApproved == null) {
+    entry.dockBuApproved = false;
+  }
+  if (entry.dockBuApprovedAt == null && entry.dockBuApproved === false) {
+    entry.dockBuApprovedAt = null;
+  }
+  if (entry.dockFinalAssignment == null) {
+    entry.dockFinalAssignment = '';
+  }
+  if (entry.dockFinalAssignmentAt == null && !entry.dockFinalAssignment) {
+    entry.dockFinalAssignmentAt = null;
+  }
+  return entry;
+}
 function splitKvString(value){
   const trimmed = String(value ?? '').trim();
   if (!trimmed) return [];
@@ -322,6 +387,10 @@ function canonicalizeEntries(items){
     if (Array.isArray(entry.rows)) clone.rows = entry.rows.map(row => ({ ...row }));
     if (Array.isArray(entry.weights)) clone.weights = entry.weights.map(w => ({ ...w }));
     if (Array.isArray(entry.transactions)) clone.transactions = entry.transactions.map(t => ({ ...t }));
+    if (entry.dockPhaseHistory && typeof entry.dockPhaseHistory === 'object') {
+      clone.dockPhaseHistory = { ...entry.dockPhaseHistory };
+    }
+    ensureDockMetadata(clone);
     return ensureKvStructure(clone);
   });
 }
@@ -1541,22 +1610,55 @@ export function upsertByHubSpotId(entries, deal) {
 
   const previousKv = idx >= 0 ? kvListFrom(entries[idx]) : [];
 
+  const previousEntry = idx >= 0 ? entries[idx] : null;
+  const marketTeamRaw = firstNonEmpty(
+    deal?.properties?.market_team,
+    deal?.properties?.marketTeam,
+    deal?.properties?.market_team__c,
+    deal?.properties?.marketteam
+  );
+  const previousMarketTeam = normalizeString(previousEntry?.marketTeam || previousEntry?.market_team);
+  const marketTeam = normalizeString(marketTeamRaw) || previousMarketTeam;
+  const businessUnit = normalizeString(previousEntry?.businessUnit) || deriveBusinessUnitFromTeamName(marketTeam);
+  const assessmentOwner = normalizeString(firstNonEmpty(
+    deal?.properties?.einschaetzung_abzugeben_von,
+    deal?.properties?.einschätzung_abzugeben_von,
+    deal?.properties?.einschaetzungAbzugebenVon,
+    deal?.properties?.einschaetzung_abzugeben_von,
+    previousEntry?.assessmentOwner,
+    previousEntry?.assessment_owner,
+    ownerName
+  ));
+
   const base = {
-    id: entries[idx]?.id || rndId('hubspot_'),
+    id: previousEntry?.id || rndId('hubspot_'),
     hubspotId: id,
     title: name,
     amount,
     source: "hubspot",
     projectType: "fix",
-    projectNumber: entries[idx]?.projectNumber || "",
+    projectNumber: previousEntry?.projectNumber || "",
     client: companyName,
     submittedBy: ownerName,
     list: salesList,
     updatedAt: Date.now(),
+    marketTeam,
+    market_team: marketTeam,
+    businessUnit,
+    assessmentOwner,
+    dockBuApproved: previousEntry?.dockBuApproved === true,
+    dockBuApprovedAt: previousEntry?.dockBuApprovedAt || null,
+    dockFinalAssignment: previousEntry?.dockFinalAssignment || '',
+    dockFinalAssignmentAt: previousEntry?.dockFinalAssignmentAt || null,
+    dockPhase: previousEntry?.dockPhase,
   };
 
   if (projectNumber) {
     base.projectNumber = projectNumber;
+  }
+
+  if (previousEntry?.dockPhaseHistory && typeof previousEntry.dockPhaseHistory === 'object') {
+    base.dockPhaseHistory = { ...previousEntry.dockPhaseHistory };
   }
 
   const nextKvList = previousKv.length ? previousKv : kvList;
@@ -1564,14 +1666,15 @@ export function upsertByHubSpotId(entries, deal) {
     applyKvList(base, nextKvList);
   }
 
-  const normalized = ensureKvStructure(base);
+  const normalized = ensureDockMetadata(ensureKvStructure(base), { defaultPhase: previousEntry?.dockPhase ?? 1 });
   if (idx >= 0) {
-    entries[idx] = { ...entries[idx], ...normalized };
+    entries[idx] = ensureDockMetadata({ ...entries[idx], ...normalized });
     return { action: 'update', hubspotId: id, entry: entries[idx] };
   }
 
-  entries.push(normalized);
-  return { action: 'create', hubspotId: id, entry: normalized };
+  const createdEntry = ensureDockMetadata({ ...normalized }, { defaultPhase: 1 });
+  entries.push(createdEntry);
+  return { action: 'create', hubspotId: id, entry: createdEntry };
 }
 
 /* ------------------------ Router ------------------------ */
@@ -1619,6 +1722,7 @@ export default {
                 entry = { id: body.id || rndId('entry_'), ...body, ts: body.ts || Date.now(), modified: undefined };
                 if(Array.isArray(entry.transactions)){ entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
                 ensureKvStructure(entry);
+                ensureDockMetadata(entry);
                 items.push(entry);
                 const f = fieldsOf(entry); await logJSONL(env, [{ event:'create', source: entry.source||'manuell', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason:'manual_or_import' }]);
             } else { /* Upsert-by-KV Logic */
@@ -1643,8 +1747,9 @@ export default {
                      if (v.client && v.client !== existing.client) { existing.client = v.client; updated = true; }
                      const freigabeTsBody = body.freigabedatum ? new Date(body.freigabedatum).getTime() : null;
                      if (freigabeTsBody && Number.isFinite(freigabeTsBody) && freigabeTsBody !== existing.freigabedatum) { existing.freigabedatum = freigabeTsBody; updated = true; }
-                     if (updated) {
+                    if (updated) {
                         ensureKvStructure(existing);
+                        ensureDockMetadata(existing);
                         existing.modified = Date.now();
                         const syncPayload = collectHubspotSyncPayload(before, existing);
                         if (syncPayload) hubspotUpdates.push(syncPayload);
@@ -1688,7 +1793,9 @@ export default {
 
             if (isFullEntry(body)) {
                  if(Array.isArray(body.transactions)){ body.transactions = body.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-                 updatedEntry = ensureKvStructure({ ...before, ...body, id, modified: Date.now() }); cur.items[idx] = updatedEntry;
+                 updatedEntry = ensureKvStructure({ ...before, ...body, id, modified: Date.now() });
+                 ensureDockMetadata(updatedEntry);
+                 cur.items[idx] = updatedEntry;
                  const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
                  if (syncPayload) hubspotUpdates.push(syncPayload);
                  await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
@@ -1696,7 +1803,9 @@ export default {
             } else {
                 const v = validateRow({ ...before, ...body });
                 if (!v.ok) { await logJSONL(env, [{ event:'skip', ...v }]); return jsonResponse({ error:'validation_failed', ...v }, 422, env); }
-                updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() }); cur.items[idx] = updatedEntry;
+                updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() });
+                ensureDockMetadata(updatedEntry);
+                cur.items[idx] = updatedEntry;
                 const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
                 if (syncPayload) hubspotUpdates.push(syncPayload);
                 await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);

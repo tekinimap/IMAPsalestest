@@ -80,6 +80,550 @@ import {
 const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
+const DOCK_PHASES = [
+  {
+    id: 1,
+    title: 'Phase 1 · Eingetroffen von HubSpot',
+    description: 'Neu importierte Deals warten auf die erste Prüfung und das Ergänzen fehlender Angaben.',
+  },
+  {
+    id: 2,
+    title: 'Phase 2 · Vollständig ausgefüllt',
+    description: 'Alle Pflichtfelder sind gepflegt – jetzt muss der BU Lead die Sales-Verteilung prüfen.',
+  },
+  {
+    id: 3,
+    title: 'Phase 3 · Freigabe BU Lead',
+    description: 'Der BU Lead hat freigegeben. Sales weist den Deal nun final zu.',
+  },
+  {
+    id: 4,
+    title: 'Phase 4 · Zuweisung durch Sales',
+    description: 'Nach der Zuweisung verschwindet der Deal aus dem Dock und erscheint in der passenden Übersicht.',
+  },
+];
+
+const MARKET_TEAM_TO_BU = {
+  'Vielfalt+': 'Public Impact',
+  'Evaluation und Beteiligung': 'Public Impact',
+  'Nachhaltigkeit': 'Public Impact',
+  'Bundes- und Landesbehörden': 'Organisational Excellence',
+  'Sozial- und Krankenversicherungen': 'Organisational Excellence',
+  'Kommunalverwaltungen': 'Organisational Excellence',
+  'Internationale Zusammenarbeit': 'Organisational Excellence',
+  ChangePartner: 'Organisational Excellence',
+};
+
+const DOCK_ASSIGNMENT_LABELS = {
+  fix: 'Fixauftrag',
+  rahmen: 'Neuer Rahmenvertrag',
+  abruf: 'Abruf aus Rahmenvertrag',
+};
+
+const dockBoardEl = document.getElementById('dockBoard');
+const dockEmptyState = document.getElementById('dockEmptyState');
+const dockManualPanel = document.getElementById('dockManualPanel');
+const dockFilterBu = document.getElementById('dockFilterBu');
+const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
+const dockFilterAssessment = document.getElementById('dockFilterAssessment');
+const dockSearchInput = document.getElementById('dockSearch');
+const btnManualDeal = document.getElementById('btnManualDeal');
+const btnCloseManualDeal = document.getElementById('btnCloseManualDeal');
+
+const dockColumnBodies = new Map();
+const dockColumnCounts = new Map();
+const dockFilterState = { bu: '', marketTeam: '', assessment: '', search: '' };
+let dockBoardInitialized = false;
+
+function normalizeDockString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function firstNonEmptyString(values = []) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+function deriveBusinessUnitFromTeam(team) {
+  const normalized = normalizeDockString(team);
+  if (!normalized) return '';
+  const direct = MARKET_TEAM_TO_BU[normalized];
+  if (direct) return direct;
+  const lower = normalized.toLowerCase();
+  for (const [key, value] of Object.entries(MARKET_TEAM_TO_BU)) {
+    if (key.toLowerCase() === lower) return value;
+  }
+  return '';
+}
+
+function ensureDockBoard() {
+  if (!dockBoardEl || dockBoardInitialized) return;
+  dockBoardInitialized = true;
+  dockBoardEl.innerHTML = '';
+  DOCK_PHASES.forEach((phase) => {
+    const column = document.createElement('section');
+    column.className = 'dock-column';
+    column.dataset.phase = String(phase.id);
+    column.innerHTML = `
+      <header class="dock-column-header">
+        <div>
+          <h2>${escapeHtml(phase.title)}</h2>
+          <p>${escapeHtml(phase.description)}</p>
+        </div>
+        <span class="dock-column-count" data-phase-count="${phase.id}">0</span>
+      </header>
+      <div class="dock-column-body" data-phase-body="${phase.id}"></div>
+    `;
+    dockBoardEl.appendChild(column);
+    dockColumnBodies.set(phase.id, column.querySelector(`[data-phase-body="${phase.id}"]`));
+    dockColumnCounts.set(phase.id, column.querySelector(`[data-phase-count="${phase.id}"]`));
+  });
+}
+
+function showManualPanel(scrollIntoView = false) {
+  if (!dockManualPanel) return;
+  dockManualPanel.classList.remove('hide');
+  if (scrollIntoView) {
+    setTimeout(() => {
+      dockManualPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  }
+}
+
+function hideManualPanel() {
+  if (!dockManualPanel) return;
+  dockManualPanel.classList.add('hide');
+}
+
+function getEntryKvList(entry) {
+  if (!entry || typeof entry !== 'object') return [];
+  if (Array.isArray(entry.kvNummern) && entry.kvNummern.length) return entry.kvNummern;
+  if (Array.isArray(entry.kv_list) && entry.kv_list.length) return entry.kv_list;
+  const single = entry.kv_nummer || entry.kv;
+  return normalizeDockString(single) ? [normalizeDockString(single)] : [];
+}
+
+function getDockPhase(entry) {
+  if (!entry || typeof entry !== 'object') return 1;
+  const raw = Number(entry.dockPhase);
+  if (Number.isFinite(raw) && raw >= 1) {
+    return Math.min(4, Math.max(1, raw));
+  }
+  if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
+    return 1;
+  }
+  return 4;
+}
+
+function computeDockChecklist(entry) {
+  const amount = Number(entry?.amount) > 0;
+  const hasClient = !!normalizeDockString(entry?.client);
+  const hasProjectNumber = !!normalizeDockString(entry?.projectNumber);
+  const kvList = getEntryKvList(entry);
+  const hasKv = kvList.length > 0;
+  const list = Array.isArray(entry?.list) ? entry.list : [];
+  const hasSalesContributions = list.some((item) => {
+    if (!item) return false;
+    const pct = Number(item.pct);
+    const money = Number(item.money);
+    return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
+  });
+  const hasSubmittedBy = !!normalizeDockString(entry?.submittedBy);
+  const isComplete = Boolean(entry?.complete) || (amount && hasProjectNumber && hasKv && hasSalesContributions);
+  return { amount, hasClient, hasProjectNumber, hasKv, hasSalesContributions, hasSubmittedBy, isComplete };
+}
+
+function isPhaseTwoReady(checklist) {
+  return checklist.amount && checklist.hasClient && checklist.hasProjectNumber && checklist.hasKv && checklist.hasSalesContributions;
+}
+
+function shouldDisplayInDock(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  const source = normalizeDockString(entry.source).toLowerCase();
+  if (source !== 'hubspot' && entry.dockPhase == null) return false;
+  if (entry.dockFinalAssignment) return false;
+  return true;
+}
+
+function resolveAssessmentOwner(entry) {
+  return firstNonEmptyString([
+    entry?.assessmentOwner,
+    entry?.assessment_owner,
+    entry?.dockAssessmentOwner,
+    entry?.einschaetzung_abzugeben_von,
+    entry?.einschätzung_abzugeben_von,
+    entry?.submittedBy,
+  ]);
+}
+
+function augmentDockEntry(entry) {
+  const phase = getDockPhase(entry);
+  const checklist = computeDockChecklist(entry);
+  const marketTeam = normalizeDockString(entry?.marketTeam || entry?.market_team || '');
+  const businessUnit = normalizeDockString(entry?.businessUnit || deriveBusinessUnitFromTeam(marketTeam));
+  const assessmentOwner = resolveAssessmentOwner(entry);
+  const kvList = getEntryKvList(entry);
+  const updatedAt = Number(entry?.modified || entry?.updatedAt || entry?.ts || 0);
+  return {
+    entry,
+    phase,
+    checklist,
+    marketTeam,
+    businessUnit,
+    assessmentOwner,
+    kvList,
+    updatedAt,
+    show: shouldDisplayInDock(entry),
+  };
+}
+
+function matchesDockFilters(item) {
+  if (!item.show) return false;
+  if (dockFilterState.bu && item.businessUnit !== dockFilterState.bu) return false;
+  if (dockFilterState.marketTeam && item.marketTeam !== dockFilterState.marketTeam) return false;
+  if (dockFilterState.assessment && item.assessmentOwner !== dockFilterState.assessment) return false;
+  if (dockFilterState.search) {
+    const query = dockFilterState.search;
+    const haystack = [
+      item.entry?.title,
+      item.entry?.client,
+      item.entry?.projectNumber,
+      ...(item.kvList || []),
+    ]
+      .map((value) => normalizeDockString(value).toLowerCase())
+      .filter(Boolean);
+    const matches = haystack.some((value) => value.includes(query));
+    if (!matches) return false;
+  }
+  return true;
+}
+
+function updateDockFilterOptions(items) {
+  if (!dockFilterMarketTeam && !dockFilterAssessment) return;
+  const teams = new Set();
+  const assessments = new Set();
+  items.forEach((item) => {
+    if (!item.show) return;
+    if (!dockFilterState.bu || item.businessUnit === dockFilterState.bu) {
+      if (item.marketTeam) teams.add(item.marketTeam);
+    }
+    if (item.assessmentOwner) assessments.add(item.assessmentOwner);
+  });
+
+  if (dockFilterMarketTeam) {
+    const selected = dockFilterState.marketTeam;
+    const options = ['']
+      .concat(Array.from(teams).sort((a, b) => a.localeCompare(b, 'de')))
+      .map((team) => ({ value: team, label: team || 'Alle Market Teams' }));
+    dockFilterMarketTeam.innerHTML = '';
+    options.forEach(({ value, label }) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label || 'Alle Market Teams';
+      if (value === selected) option.selected = true;
+      dockFilterMarketTeam.appendChild(option);
+    });
+  }
+
+  if (dockFilterAssessment) {
+    const selected = dockFilterState.assessment;
+    const options = ['']
+      .concat(Array.from(assessments).sort((a, b) => a.localeCompare(b, 'de')))
+      .map((person) => ({ value: person, label: person || 'Alle Personen' }));
+    dockFilterAssessment.innerHTML = '';
+    options.forEach(({ value, label }) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label || 'Alle Personen';
+      if (value === selected) option.selected = true;
+      dockFilterAssessment.appendChild(option);
+    });
+  }
+}
+
+function renderDockBoard() {
+  if (!dockBoardEl) return;
+  ensureDockBoard();
+
+  const currentEntries = Array.isArray(window.entries) ? window.entries : [];
+  const augmented = currentEntries.map(augmentDockEntry);
+  updateDockFilterOptions(augmented);
+  const filtered = augmented.filter(matchesDockFilters);
+
+  const grouped = new Map(DOCK_PHASES.map((phase) => [phase.id, []]));
+  filtered.forEach((item) => {
+    const list = grouped.get(item.phase);
+    if (list) list.push(item);
+  });
+
+  let totalVisible = 0;
+  DOCK_PHASES.forEach((phase) => {
+    const body = dockColumnBodies.get(phase.id);
+    const countEl = dockColumnCounts.get(phase.id);
+    if (body) {
+      body.innerHTML = '';
+      const items = grouped.get(phase.id) || [];
+      items
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+        .forEach((item) => {
+          body.appendChild(buildDockCard(item));
+        });
+      totalVisible += items.length;
+    }
+    if (countEl) {
+      const amount = grouped.get(phase.id)?.length || 0;
+      countEl.textContent = String(amount);
+    }
+  });
+
+  if (dockEmptyState) {
+    dockEmptyState.classList.toggle('hide', totalVisible > 0);
+  }
+}
+
+function buildDockCard(item) {
+  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase } = item;
+  const card = document.createElement('article');
+  card.className = 'dock-card';
+  card.dataset.entryId = entry.id;
+
+  const amountText = Number(entry.amount) > 0 ? fmtCurr0.format(entry.amount) : '–';
+  const missing = [];
+  if (!checklist.amount) missing.push('Auftragswert');
+  if (!checklist.hasClient) missing.push('Auftraggeber');
+  if (!checklist.hasProjectNumber) missing.push('Projektnummer');
+  if (!checklist.hasKv) missing.push('KV-Nummer');
+  if (!checklist.hasSalesContributions) missing.push('Salesbeiträge');
+
+  const buttons = [];
+  if (phase === 1) {
+    const ready = isPhaseTwoReady(checklist);
+    buttons.push(`
+      <button class="btn ok tight${ready ? '' : ' disabled'}" data-dock-act="move-phase" data-target-phase="2" data-id="${entry.id}" type="button" ${ready ? '' : 'disabled'}>
+        Daten vollständig
+      </button>
+    `);
+  } else if (phase === 2) {
+    if (entry.dockBuApproved) {
+      buttons.push(`<span class="dock-pill ok">BU freigegeben</span>`);
+    } else {
+      buttons.push(`
+        <button class="btn ok tight" data-dock-act="bu-approve" data-id="${entry.id}" type="button">
+          BU-Freigabe bestätigen
+        </button>
+      `);
+    }
+  } else if (phase === 3) {
+    buttons.push(`
+      <button class="btn tight" data-dock-act="assign" data-target-assignment="fix" data-id="${entry.id}" type="button">Fixauftrag</button>
+    `);
+    buttons.push(`
+      <button class="btn tight" data-dock-act="assign" data-target-assignment="rahmen" data-id="${entry.id}" type="button">Neuer Rahmenvertrag</button>
+    `);
+    buttons.push(`
+      <button class="btn tight" data-dock-act="assign" data-target-assignment="abruf" data-id="${entry.id}" type="button">Abruf aus Rahmenvertrag</button>
+    `);
+  }
+
+  const missingMarkup = missing.length && phase === 1
+    ? `<div class="dock-card-missing">Fehlt: ${escapeHtml(missing.join(', '))}</div>`
+    : '';
+
+  const kvText = kvList.length ? kvList.join(', ') : '–';
+  const badges = [];
+  if (businessUnit) badges.push(`<span class="dock-pill accent">${escapeHtml(businessUnit)}</span>`);
+  if (marketTeam) badges.push(`<span class="dock-pill">${escapeHtml(marketTeam)}</span>`);
+  if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
+    badges.push(`<span class="dock-pill warn">Manuell</span>`);
+  }
+
+  card.innerHTML = `
+    <div class="dock-card-header">
+      <div>
+        <span class="dock-phase-tag">${escapeHtml(DOCK_PHASES.find((p) => p.id === phase)?.title || `Phase ${phase}`)}</span>
+        <h3 class="dock-card-title">${escapeHtml(entry.title || 'Ohne Titel')}</h3>
+      </div>
+      <span class="dock-amount">${escapeHtml(amountText)}</span>
+    </div>
+    <p class="dock-card-meta">
+      <span><strong>Auftraggeber:</strong> ${escapeHtml(entry.client || '–')}</span>
+      <span><strong>Projektnummer:</strong> ${escapeHtml(entry.projectNumber || '–')}</span>
+      <span><strong>KV-Nummern:</strong> ${escapeHtml(kvText)}</span>
+      <span><strong>Einschätzung:</strong> ${escapeHtml(assessmentOwner || '–')}</span>
+    </p>
+    <div class="dock-badge-row">${badges.join('')}</div>
+    ${missingMarkup}
+    <ul class="dock-card-checklist">
+      <li class="${checklist.amount ? 'ok' : 'missing'}">Auftragswert</li>
+      <li class="${checklist.hasClient ? 'ok' : 'missing'}">Auftraggeber</li>
+      <li class="${checklist.hasProjectNumber ? 'ok' : 'missing'}">Projektnummer</li>
+      <li class="${checklist.hasKv ? 'ok' : 'missing'}">KV-Nummer</li>
+      <li class="${checklist.hasSalesContributions ? 'ok' : 'missing'}">Salesbeiträge</li>
+    </ul>
+    <div class="dock-card-footer">
+      <button class="btn tight" data-dock-act="edit" data-id="${entry.id}" type="button">Bearbeiten</button>
+      ${buttons.join('')}
+    </div>
+  `;
+
+  return card;
+}
+
+async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.') {
+  const updates = { ...extra };
+  const history = { ...(entry.dockPhaseHistory || {}) };
+  const key = String(targetPhase);
+  if (!history[key]) {
+    history[key] = Date.now();
+  }
+  updates.dockPhase = targetPhase;
+  updates.dockPhaseHistory = history;
+
+  const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Unbekannter Fehler');
+  }
+
+  showToast(successMessage, 'ok');
+  await loadHistory();
+}
+
+function handleDockBoardClick(event) {
+  const button = event.target.closest('button[data-dock-act]');
+  if (!button) return;
+  const id = button.dataset.id;
+  const action = button.dataset.dockAct;
+  if (!id || !action) return;
+  if (button.classList.contains('disabled') || button.disabled) {
+    event.preventDefault();
+    return;
+  }
+
+  const entry = (Array.isArray(window.entries) ? window.entries : []).find((item) => item.id === id);
+  if (!entry) return;
+
+  if (action === 'edit') {
+    showManualPanel(true);
+    editEntry(id);
+    return;
+  }
+
+  const runUpdate = async (targetPhase, extra, message) => {
+    try {
+      button.disabled = true;
+      button.classList.add('disabled');
+      showLoader();
+      await updateDockPhase(entry, targetPhase, extra, message);
+    } catch (err) {
+      console.error('Dock-Update fehlgeschlagen', err);
+      showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
+    } finally {
+      hideLoader();
+    }
+  };
+
+  if (action === 'move-phase') {
+    const targetPhase = Number(button.dataset.targetPhase);
+    const checklist = computeDockChecklist(entry);
+    if (targetPhase === 2 && !isPhaseTwoReady(checklist)) {
+      showToast('Bitte alle Pflichtfelder ergänzen, bevor der Deal als vollständig markiert wird.', 'bad');
+      return;
+    }
+    let message = 'Dock-Status aktualisiert.';
+    if (targetPhase === 2) {
+      message = 'Deal als vollständig markiert.';
+    } else if (targetPhase === 3) {
+      message = 'Deal zur BU-Freigabe verschoben.';
+    }
+    runUpdate(targetPhase, {}, message);
+  } else if (action === 'bu-approve') {
+    if (!confirm('BU-Freigabe bestätigen?')) return;
+    runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
+  } else if (action === 'assign') {
+    const target = button.dataset.targetAssignment;
+    if (!target) return;
+    const label = DOCK_ASSIGNMENT_LABELS[target] || target;
+    if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
+    const message = target === 'rahmen'
+      ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
+      : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
+    runUpdate(4, { dockFinalAssignment: target, dockFinalAssignmentAt: Date.now() }, message);
+  }
+}
+
+ensureDockBoard();
+if (dockBoardEl) {
+  dockBoardEl.addEventListener('click', handleDockBoardClick);
+}
+
+if (dockFilterBu) {
+  dockFilterBu.addEventListener('change', () => {
+    dockFilterState.bu = dockFilterBu.value;
+    if (dockFilterState.bu && dockFilterState.marketTeam) {
+      const buForTeam = deriveBusinessUnitFromTeam(dockFilterState.marketTeam);
+      if (buForTeam && buForTeam !== dockFilterState.bu) {
+        dockFilterState.marketTeam = '';
+      }
+    }
+    renderDockBoard();
+  });
+}
+
+if (dockFilterMarketTeam) {
+  dockFilterMarketTeam.addEventListener('change', () => {
+    dockFilterState.marketTeam = dockFilterMarketTeam.value;
+    renderDockBoard();
+  });
+}
+
+if (dockFilterAssessment) {
+  dockFilterAssessment.addEventListener('change', () => {
+    dockFilterState.assessment = dockFilterAssessment.value;
+    renderDockBoard();
+  });
+}
+
+if (dockSearchInput) {
+  dockSearchInput.addEventListener('input', () => {
+    dockFilterState.search = dockSearchInput.value.trim().toLowerCase();
+    renderDockBoard();
+  });
+}
+
+if (btnManualDeal) {
+  btnManualDeal.addEventListener('click', () => {
+    if (!confirm('Standardprozess: Deals kommen automatisch aus HubSpot. Nur in Ausnahmefällen manuell anlegen. Fortfahren?')) {
+      return;
+    }
+    hideManualPanel();
+    clearInputFields();
+    initFromState();
+    showManualPanel(true);
+  });
+}
+
+if (btnCloseManualDeal) {
+  btnCloseManualDeal.addEventListener('click', () => {
+    if (getHasUnsavedChanges()) {
+      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!confirmed) return;
+    }
+    hideManualPanel();
+    clearInputFields();
+    setHasUnsavedChanges(false);
+  });
+}
+
 function showView(viewName) {
   if (getIsBatchRunning()) {
       showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
@@ -115,17 +659,30 @@ navLinks.forEach(link => {
     } else if (viewName === 'admin') {
       handleAdminClick();
     } else if (viewName === 'erfassung') {
-      if (getHasUnsavedChanges() && !document.querySelector('#viewErfassung').classList.contains('hide')) {
-        if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
-          clearInputFields();
-          initFromState();
-          showView('erfassung');
-        }
-      } else {
+      const dockView = views.erfassung;
+      const dockVisible = dockView && !dockView.classList.contains('hide');
+      const manualVisible = dockManualPanel && !dockManualPanel.classList.contains('hide');
+      if (getHasUnsavedChanges() && dockVisible && manualVisible) {
+        const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
+        if (!confirmed) return;
+      }
+
+      const state = loadState();
+      const isEditing = !!state?.editingId;
+
+      if (!isEditing) {
+        hideManualPanel();
         clearInputFields();
         initFromState();
-        showView('erfassung');
+      } else {
+        showManualPanel(false);
+        initFromState(true);
       }
+
+      loadHistory().then(() => {
+        renderDockBoard();
+        showView('erfassung');
+      });
     }
   });
 });
@@ -752,6 +1309,7 @@ async function loadHistory(){
   // Stelle sicher, dass renderHistory auch aufgerufen wird, nachdem window.entries gesetzt ist.
   // Wenn renderHistory() nur die globale `entries` nutzt, ist die Reihenfolge hier okay.
   renderHistory();
+  renderDockBoard();
 }
   
 function hasPositiveDistribution(list = [], amount = 0){
@@ -794,6 +1352,10 @@ function filtered(type = 'fix'){
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
   const query = omniSearch.value.trim().toLowerCase();
   const selectedPerson = personFilter ? personFilter.value : '';
+
+  if (type === 'fix') {
+    arr = arr.filter(shouldIncludeInFixList);
+  }
 
   if (selectedPerson) {
     const selectedLower = selectedPerson.toLowerCase();
@@ -865,6 +1427,19 @@ function filtered(type = 'fix'){
   });
 
   return arr;
+}
+
+function shouldIncludeInFixList(entry) {
+  if (!entry) return false;
+  const source = normalizeDockString(entry.source).toLowerCase();
+  if (source === 'hubspot') {
+    const phase = getDockPhase(entry);
+    if (phase < 4) return false;
+    if (entry.dockFinalAssignment && entry.dockFinalAssignment !== 'fix' && entry.dockFinalAssignment !== 'abruf') {
+      return false;
+    }
+  }
+  return true;
 }
 
 function updatePersonFilterOptions() {
@@ -1492,6 +2067,7 @@ function editEntry(id) {
             rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
   saveState(st); initFromState(true);
+  showManualPanel(true);
   showView('erfassung');
 }
 
@@ -3515,9 +4091,11 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // Initialisierung nach Laden der Personenliste
-loadPeople().then(()=>{
+loadPeople().then(async ()=>{
     populateAdminTeamOptions();
     initFromState();
+    await loadHistory();
+    renderDockBoard();
     showView('erfassung');
 
     // *** KORREKTUR: Event Listener HIER hinzufügen ***
