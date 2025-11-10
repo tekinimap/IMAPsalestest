@@ -10753,5 +10753,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_8c391fc1544e1d673a7225cdbfcc202e",
+    "hubspotId": "48770982989",
+    "title": "Grundlagen der Führung A19102 – KV-2025-0134",
+    "amount": 4312.5,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772633476,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
