@@ -1,4 +1,4 @@
-# synq
+# dock
 
 Interne Anwendung zur Verwaltung von Sales-Beteiligungen.
 
