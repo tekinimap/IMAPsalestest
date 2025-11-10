@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>synq</title>
+  <title>dock</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -17,8 +17,7 @@
   
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
   .topbar-brand{display:flex;align-items:center;gap:12px;}
-  .app-logo{display:block;width:42px;height:42px;}
-  .app-title{font-size:18px;font-weight:700;letter-spacing:.04em;text-transform:lowercase;}
+  .app-logo{display:block;height:42px;width:auto;}
   .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
   .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
   .nav-link:hover{background-color: var(--panel2);}
@@ -358,8 +357,12 @@
 
   <div class="topbar">
     <div class="topbar-brand">
-      <img src="public/synq-logo.svg" alt="synq Logo" loading="lazy" width="42" height="42" class="app-logo">
-      <div class="app-title">synq</div>
+      <img
+        src="data:image/png;base64,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"
+        alt="dock Logo"
+        loading="lazy"
+        class="app-logo"
+      >
     </div>
     <div class="main-nav">
       <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
@@ -646,7 +649,7 @@
       <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
 
       <div class="hr"></div>
-      <h3>Import: synq (Altdaten)</h3>
+      <h3>Import: dock (Altdaten)</h3>
       <p class="note" style="font-size: 14px; margin-bottom: 12px;">
         Nur für Altdaten: Lädt eine Excel-Datei, die KV-Nummern und Team-Prozentsätze (als Zahlen von 0-1) enthält. 
         Die Funktion <strong>überspringt KV-Nummern, die nicht gefunden werden</strong>, und erstellt <strong>keine</strong> neuen Aufträge.
