@@ -93,13 +93,9 @@ const DOCK_PHASES = [
   },
   {
     id: 3,
-    title: 'Phase 3 · Freigabe BU Lead',
-    description: 'Der BU Lead hat freigegeben. Sales weist den Deal nun final zu.',
-  },
-  {
-    id: 4,
-    title: 'Phase 4 · Zuweisung durch Sales',
-    description: 'Nach der Zuweisung verschwindet der Deal aus dem Dock und erscheint in der passenden Übersicht.',
+    title: 'Phase 3 · BU-Freigabe & Abschluss',
+    description:
+      'Der BU Lead hat freigegeben. Sales finalisiert die Zuordnung oder markiert den Deal als Rahmenvertrag bzw. Abruf.',
   },
 ];
 
@@ -242,12 +238,12 @@ function getDockPhase(entry) {
   if (!entry || typeof entry !== 'object') return 1;
   const raw = Number(entry.dockPhase);
   if (Number.isFinite(raw) && raw >= 1) {
-    return Math.min(4, Math.max(1, raw));
+    return Math.min(3, Math.max(1, raw));
   }
   if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
     return 1;
   }
-  return 4;
+  return 3;
 }
 
 function computeDockChecklist(entry) {
@@ -407,7 +403,7 @@ function renderDockBoard() {
   augmented.forEach((item) => {
     const entryId = item.entry?.id;
     if (!entryId) return;
-    if (item.phase === 4) {
+    if (item.phase === 3) {
       queueDockAutoCheck(entryId, { entry: item.entry });
     } else {
       dockAutoCheckHistory.delete(entryId);
@@ -526,7 +522,7 @@ function processDockAutoChecks() {
 
 function handleDockAutoCheck(entry, context = {}) {
   const phase = getDockPhase(entry);
-  if (phase !== 4) {
+  if (phase !== 3) {
     dockAutoCheckHistory.delete(entry.id);
     if (dockConflictHints.delete(entry.id)) {
       requestDockBoardRerender();
@@ -775,15 +771,17 @@ function buildDockCard(item) {
   const kvText = kvList.length ? kvList.join(', ') : '–';
   const meta = createDockElement('p', { className: 'dock-card-meta' });
   const metaRows = [
-    ['Auftragswert:', amountText],
-    ['Auftraggeber:', entry.client || '–'],
-    ['Projektnummer:', entry.projectNumber || '–'],
-    ['KV-Nummern:', kvText],
-    ['Einschätzung:', assessmentOwner || '–'],
+    { label: 'Auftragswert', value: amountText, ok: checklist.amount },
+    { label: 'Auftraggeber', value: entry.client || '–', ok: checklist.hasClient },
+    { label: 'Projektnummer', value: entry.projectNumber || '–', ok: checklist.hasProjectNumber },
+    { label: 'KV-Nummern', value: kvText, ok: checklist.hasKv },
+    { label: 'Salesbeiträge', value: checklist.hasSalesContributions ? '✓' : '✕', ok: checklist.hasSalesContributions },
+    { label: 'Einschätzung', value: assessmentOwner || '–', ok: !!assessmentOwner },
   ];
-  metaRows.forEach(([label, value]) => {
-    const row = createDockElement('span');
-    row.appendChild(createDockElement('strong', { text: label }));
+  metaRows.forEach(({ label, value, ok }) => {
+    const row = createDockElement('span', { className: `dock-card-meta-row ${ok ? 'ok' : 'missing'}` });
+    row.appendChild(createDockElement('span', { className: 'status-icon', text: ok ? '✓' : '!' }));
+    row.appendChild(createDockElement('strong', { text: `${label}:` }));
     row.appendChild(document.createTextNode(` ${value || '–'}`));
     meta.appendChild(row);
   });
@@ -793,18 +791,6 @@ function buildDockCard(item) {
   if (hintEl) {
     card.appendChild(hintEl);
   }
-
-  const checklistList = createDockElement('ul', { className: 'dock-card-checklist' });
-  [
-    ['Auftragswert', checklist.amount],
-    ['Auftraggeber', checklist.hasClient],
-    ['Projektnummer', checklist.hasProjectNumber],
-    ['KV-Nummer', checklist.hasKv],
-    ['Salesbeiträge', checklist.hasSalesContributions],
-  ].forEach(([label, ok]) => {
-    checklistList.appendChild(createDockElement('li', { className: ok ? 'ok' : 'missing', text: label }));
-  });
-  card.appendChild(checklistList);
 
   const footer = createDockElement('div', { className: 'dock-card-footer' });
   footer.appendChild(
@@ -985,7 +971,7 @@ function handleDockBoardClick(event) {
       payload.projectType = 'rahmen';
     }
     queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-    runUpdate(4, payload, message);
+    runUpdate(3, payload, message);
   }
 }
 
