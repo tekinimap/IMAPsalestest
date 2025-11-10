@@ -10931,5 +10931,52 @@
       "KV-2025-0100"
     ],
     "kv": "KV-2025-0100"
+  },
+  {
+    "id": "hubspot_cc79100c8673968d12be0e0425f2e7cd",
+    "hubspotId": "45326972175",
+    "title": "Change-Begleitung",
+    "amount": 300000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Merlin Klein",
+    "list": [
+      {
+        "key": "hubspot_user_Merlin Klein",
+        "name": "Merlin Klein",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Christopher van den Hövel",
+        "name": "Christopher van den Hövel",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Jens Maaßen",
+        "name": "Jens Maaßen",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1762788791570,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Merlin Klein",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockPhaseHistory": {
+      "1": 1762788791570
+    }
   }
 ]
