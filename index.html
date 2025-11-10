@@ -75,6 +75,14 @@
   .dock-card-headline{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;}
   .dock-card-title{margin:0;font-size:15px;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word;}
   .dock-card-actions{display:flex;align-items:center;gap:6px;}
+  .dock-card-select{display:inline-flex;align-items:center;gap:6px;}
+  .dock-card-select input{appearance:none;width:18px;height:18px;border:1px solid rgba(148,163,184,.5);border-radius:6px;background:#0b1326;display:inline-grid;place-items:center;cursor:pointer;}
+  .dock-card-select input:checked{background:var(--accent);border-color:var(--accent);}
+  .dock-card-select input:checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
+  .dock-card-select input:focus-visible{outline:2px solid rgba(59,130,246,.6);outline-offset:2px;}
+  .dock-card-delete{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:32px;height:32px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer;transition:background .15s;}
+  .dock-card-delete:hover{background:var(--panel2);}
+  .dock-card-delete svg{width:18px;height:18px;stroke-width:1.6;stroke:rgba(239,68,68,.85);fill:none;}
   .dock-card-meta{margin:0;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;line-height:1.25;}
   .dock-card-meta span{display:flex;gap:6px;}
   .dock-card-meta strong{color:var(--text);font-weight:600;min-width:120px;}
@@ -93,6 +101,13 @@
   .dock-card-footer{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center}
   .dock-card-footer .btn.tight{padding:6px 12px;font-size:12px;border-radius:10px}
   .dock-card-footer .btn.compact{padding:6px 10px;font-size:12px;border-radius:10px}
+  .dock-card-hint{border:1px solid rgba(148,163,184,.25);border-radius:10px;padding:10px 12px;background:rgba(11,17,26,.75);display:flex;flex-direction:column;gap:8px;font-size:12px;}
+  .dock-card-hint-text{margin:0;color:var(--text);line-height:1.35;}
+  .dock-card-hint.hint-warn{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.12);}
+  .dock-card-hint.hint-bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.12);}
+  .dock-card-hint strong{color:var(--text);}
+  .dock-card-hint-actions{display:flex;flex-wrap:wrap;gap:6px;}
+  .dock-card-hint-actions .btn.tight{padding:6px 10px;font-size:12px;}
   .dock-empty{background:var(--panel2);border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--muted);margin-bottom:24px}
   .dock-empty-note{margin-top:6px;}
   .dock-manual{border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);background:rgba(11,17,26,.65);backdrop-filter:blur(6px);padding:24px;margin-top:12px;box-shadow:0 12px 24px rgba(8,15,28,.35)}
@@ -100,6 +115,13 @@
   .dock-manual-header h2{margin:0;font-size:18px}
   .dock-manual-header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
   .dock-manual-actions{display:flex;gap:10px;align-items:center}
+
+  #btnDockBatchDelete{background:#ef4444;border-color:transparent;}
+  #btnDockBatchDelete:disabled{opacity:.45;cursor:not-allowed;}
+  #btnDockBatchDelete:not(:disabled):hover{filter:brightness(1.05);}
+  #dockEntryDialog{border:1px solid rgba(59,130,246,.35);background:rgba(11,18,30,.98);color:var(--text);border-radius:14px;padding:0;max-width:900px;width:92vw;}
+  #dockEntryDialog::backdrop{background:rgba(8,15,25,.65);backdrop-filter:blur(4px);}
+  #dockManualPanel{max-height:80vh;overflow-y:auto;}
 
   @media (max-width:768px){
     .dock-board{grid-template-columns:1fr}
@@ -1074,17 +1096,3 @@
 <script src="public/js/erp-preview-override.js"></script>
 </body>
 </html>
-  .dock-card-select{display:inline-flex;align-items:center;gap:6px;}
-  .dock-card-select input{appearance:none;width:18px;height:18px;border:1px solid rgba(148,163,184,.5);border-radius:6px;background:#0b1326;display:inline-grid;place-items:center;cursor:pointer;}
-  .dock-card-select input:checked{background:var(--accent);border-color:var(--accent);}
-  .dock-card-select input:checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
-  .dock-card-select input:focus-visible{outline:2px solid rgba(59,130,246,.6);outline-offset:2px;}
-  .dock-card-delete{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:32px;height:32px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer;transition:background .15s;}
-  .dock-card-delete:hover{background:var(--panel2);}
-  .dock-card-delete svg{width:18px;height:18px;stroke-width:1.6;stroke:rgba(239,68,68,.85);fill:none;}
-  #btnDockBatchDelete{background:#ef4444;border-color:transparent;}
-  #btnDockBatchDelete:disabled{opacity:.45;cursor:not-allowed;}
-  #btnDockBatchDelete:not(:disabled):hover{filter:brightness(1.05);}
-  #dockEntryDialog{border:1px solid rgba(59,130,246,.35);background:rgba(11,18,30,.98);color:var(--text);border-radius:14px;padding:0;max-width:900px;width:92vw;}
-  #dockEntryDialog::backdrop{background:rgba(8,15,25,.65);backdrop-filter:blur(4px);}
-  #dockManualPanel{max-height:80vh;overflow-y:auto;}
