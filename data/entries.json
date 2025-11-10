@@ -11603,7 +11603,7 @@
     "amount": 50000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "000",
     "client": "Test",
     "submittedBy": "Benedict Bueb",
     "list": [
@@ -11615,9 +11615,11 @@
       }
     ],
     "updatedAt": 1762772655742,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "kvNummern": [
+      "0000"
+    ],
+    "kv_nummer": "0000",
+    "kv": "0000",
     "complete": true,
     "rows": [
       {
@@ -11647,9 +11649,9 @@
         "weight": 0
       }
     ],
-    "freigabedatum": null,
+    "freigabedatum": 1762732800000,
     "ts": 1762781665126,
-    "modified": 1762781665861,
+    "modified": 1762781692255,
     "dockPhase": 1,
     "dockPhaseHistory": {
       "1": 1762781665861
