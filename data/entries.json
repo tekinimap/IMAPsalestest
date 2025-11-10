@@ -11185,5 +11185,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_c3614314fdd0fca91f49180f455bf298",
+    "hubspotId": "48773277278",
+    "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung – KV-2025-0225",
+    "amount": 1400,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772655044,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
