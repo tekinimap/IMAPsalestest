@@ -11089,5 +11089,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_34589c0cde3105b5a188d8b59b8d5ae9",
+    "hubspotId": "48775171439",
+    "title": "Changeprozesse – KV-2025-0115",
+    "amount": 9000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772650099,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
