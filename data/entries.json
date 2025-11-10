@@ -10977,5 +10977,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_b662a0da610b7186d103235b4d91e495",
+    "hubspotId": "48769046177",
+    "title": "FKE 2024 – KV-2025-0126",
+    "amount": 3850,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772645125,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
