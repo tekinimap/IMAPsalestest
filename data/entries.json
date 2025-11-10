@@ -10944,25 +10944,25 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Christopher van den Hövel",
-        "name": "Christopher van den Hövel",
-        "pct": 48.00000000000001,
-        "money": 144000
-      },
-      {
-        "key": "Merlin Klein",
+        "key": "hubspot_user_Merlin Klein",
         "name": "Merlin Klein",
-        "pct": 35,
-        "money": 105000
+        "money": 0,
+        "pct": 0
       },
       {
-        "key": "Jens Maaßen",
+        "key": "hubspot_user_Christopher van den Hövel",
+        "name": "Christopher van den Hövel",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Jens Maaßen",
         "name": "Jens Maaßen",
-        "pct": 17,
-        "money": 51000
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1762788791570,
+    "updatedAt": 1762790109724,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
