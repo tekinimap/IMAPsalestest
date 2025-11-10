@@ -10969,8 +10969,8 @@
     "assessmentOwner": "Merlin Klein",
     "dockBuApproved": true,
     "dockBuApprovedAt": 1762789937479,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null,
+    "dockFinalAssignment": "abruf",
+    "dockFinalAssignmentAt": 1762789944841,
     "dockPhase": 3,
     "kvNummern": [
       "55555"
@@ -11027,6 +11027,6 @@
     ],
     "freigabedatum": 1762732800000,
     "ts": 1762789931608,
-    "modified": 1762789938091
+    "modified": 1762789945536
   }
 ]
