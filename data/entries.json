@@ -11028,5 +11028,46 @@
     "freigabedatum": 1762732800000,
     "ts": 1762789931608,
     "modified": 1762789945536
+  },
+  {
+    "id": "hubspot_c2e61247bf3194f324f55d3af20adb07",
+    "hubspotId": "48798674002",
+    "title": "Führungskräfteentwicklung",
+    "amount": 5000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Merlin Klein",
+    "list": [
+      {
+        "key": "hubspot_user_Merlin Klein",
+        "name": "Merlin Klein",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Christopher van den Hövel",
+        "name": "Christopher van den Hövel",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1762790976627,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Merlin Klein",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockPhaseHistory": {
+      "1": 1762790976627
+    }
   }
 ]
