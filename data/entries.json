@@ -10849,5 +10849,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_c8d188496cb825b57f2b1f11fc6b7fe2",
+    "hubspotId": "48775228760",
+    "title": "Changemanagement und Führungs-Beratungsleistungen – KV-2025-0116",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772637930,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
