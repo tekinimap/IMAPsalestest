@@ -534,6 +534,14 @@ function handleDockAutoCheck(entry, context = {}) {
     return;
   }
 
+  if (!shouldDisplayInDock(entry)) {
+    dockAutoCheckHistory.delete(entry.id);
+    if (dockConflictHints.delete(entry.id)) {
+      requestDockBoardRerender();
+    }
+    return;
+  }
+
   const kvList = getEntryKvList(entry);
   const projectNumber = normalizeDockString(entry.projectNumber);
   const normalizedPn = projectNumber.toLowerCase();
@@ -549,7 +557,7 @@ function handleDockAutoCheck(entry, context = {}) {
   dockAutoCheckHistory.set(entry.id, snapshot);
 
   const allEntries = Array.isArray(window.entries) ? window.entries : [];
-  const others = allEntries.filter((item) => item && item.id !== entry.id);
+  const others = allEntries.filter((item) => item && item.id !== entry.id && shouldDisplayInDock(item));
 
   if (projectNumber) {
     const sameProject = others.filter((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedPn);
