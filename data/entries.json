@@ -10641,5 +10641,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_48e040d091e6d5173b707822eecf5166",
+    "hubspotId": "48768979522",
+    "title": "Moderation von Führungskräfteveranstaltungen – KV-2025-0050",
+    "amount": 18000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772627178,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
