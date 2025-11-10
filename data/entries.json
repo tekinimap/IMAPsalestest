@@ -10944,8 +10944,8 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Carla Detthlefsen",
-        "name": "Carla Detthlefsen",
+        "key": "Robin Dewald",
+        "name": "Robin Dewald",
         "pct": 100,
         "money": 300000
       }
@@ -10969,8 +10969,8 @@
     "complete": true,
     "rows": [
       {
-        "personId": "p_oe_skv_07",
-        "name": "Carla Detthlefsen",
+        "personId": "p_oe_bul_04",
+        "name": "Robin Dewald",
         "cs": 100,
         "konzept": 0,
         "pitch": 0
@@ -10996,7 +10996,7 @@
       }
     ],
     "freigabedatum": 1762732800000,
-    "ts": 1762787184010,
-    "modified": 1762787184714
+    "ts": 1762787210261,
+    "modified": 1762787210842
   }
 ]
