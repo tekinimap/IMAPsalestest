@@ -11651,14 +11651,15 @@
     ],
     "freigabedatum": 1762732800000,
     "ts": 1762781665126,
-    "modified": 1762781703293,
-    "dockPhase": 2,
+    "modified": 1762781726675,
+    "dockPhase": 3,
     "dockPhaseHistory": {
       "1": 1762781665861,
-      "2": 1762781702276
+      "2": 1762781702276,
+      "3": 1762781725803
     },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null,
+    "dockBuApproved": true,
+    "dockBuApprovedAt": 1762781725803,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null
   },
