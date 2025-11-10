@@ -10933,7 +10933,7 @@
     "kv": "KV-2025-0100"
   },
   {
-    "id": "hubspot_22074dcf03fe490e06b618bbafe34dd5",
+    "id": "hubspot_1c1ed7a61890fabcb1e460374c876519",
     "hubspotId": "45326972175",
     "title": "Change-Begleitung",
     "amount": 300000,
@@ -10944,25 +10944,25 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Merlin Klein",
+        "key": "hubspot_user_Merlin Klein",
         "name": "Merlin Klein",
-        "pct": 100,
-        "money": 300000
+        "money": 0,
+        "pct": 0
       },
       {
-        "key": "Christopher van den Hövel",
+        "key": "hubspot_user_Christopher van den Hövel",
         "name": "Christopher van den Hövel",
-        "pct": 0,
-        "money": 0
+        "money": 0,
+        "pct": 0
       },
       {
-        "key": "Jens Maaßen",
+        "key": "hubspot_user_Jens Maaßen",
         "name": "Jens Maaßen",
-        "pct": 0,
-        "money": 0
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1762786741394,
+    "updatedAt": 1762787634117,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -10976,53 +10976,7 @@
     "kv_nummer": "",
     "kv": "",
     "dockPhaseHistory": {
-      "1": 1762786741394
-    },
-    "complete": true,
-    "rows": [
-      {
-        "personId": "p_oe_head_02",
-        "name": "Merlin Klein",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_komm_03",
-        "name": "Christopher van den Hövel",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_pi_head_01",
-        "name": "Jens Maaßen",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "freigabedatum": 1762732800000,
-    "ts": 1762786776435,
-    "modified": 1762786796502
+      "1": 1762787634117
+    }
   }
 ]
