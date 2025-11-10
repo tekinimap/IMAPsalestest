@@ -80,6 +80,1007 @@ import {
 const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
 
+const DOCK_PHASES = [
+  {
+    id: 1,
+    title: 'Phase 1 · Eingetroffen von HubSpot',
+    description: 'Neu importierte Deals warten auf die erste Prüfung und das Ergänzen fehlender Angaben.',
+  },
+  {
+    id: 2,
+    title: 'Phase 2 · Vollständig ausgefüllt',
+    description: 'Alle Pflichtfelder sind gepflegt – jetzt muss der BU Lead die Sales-Verteilung prüfen.',
+  },
+  {
+    id: 3,
+    title: 'Phase 3 · Freigabe BU Lead',
+    description: 'Der BU Lead hat freigegeben. Sales weist den Deal nun final zu.',
+  },
+  {
+    id: 4,
+    title: 'Phase 4 · Zuweisung durch Sales',
+    description: 'Nach der Zuweisung verschwindet der Deal aus dem Dock und erscheint in der passenden Übersicht.',
+  },
+];
+
+const MARKET_TEAM_TO_BU = {
+  'Vielfalt+': 'Public Impact',
+  'Evaluation und Beteiligung': 'Public Impact',
+  'Nachhaltigkeit': 'Public Impact',
+  'Bundes- und Landesbehörden': 'Organisational Excellence',
+  'Sozial- und Krankenversicherungen': 'Organisational Excellence',
+  'Kommunalverwaltungen': 'Organisational Excellence',
+  'Internationale Zusammenarbeit': 'Organisational Excellence',
+  ChangePartner: 'Organisational Excellence',
+};
+
+const DOCK_ASSIGNMENT_LABELS = {
+  fix: 'Fixauftrag',
+  rahmen: 'Neuer Rahmenvertrag',
+  abruf: 'Abruf aus Rahmenvertrag',
+};
+
+const dockBoardEl = document.getElementById('dockBoard');
+const dockEmptyState = document.getElementById('dockEmptyState');
+const dockEntryDialog = document.getElementById('dockEntryDialog');
+const dockManualPanel = document.getElementById('dockManualPanel');
+const dockIntroEl = document.getElementById('erfassungSub');
+const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
+const dockFilterBu = document.getElementById('dockFilterBu');
+const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
+const dockFilterAssessment = document.getElementById('dockFilterAssessment');
+const dockSearchInput = document.getElementById('dockSearch');
+const btnManualDeal = document.getElementById('btnManualDeal');
+const btnCloseManualDeal = document.getElementById('btnCloseManualDeal');
+const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
+if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
+  btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
+}
+
+const dockColumnBodies = new Map();
+const dockColumnCounts = new Map();
+const dockFilterState = { bu: '', marketTeam: '', assessment: '', search: '' };
+const dockSelection = new Set();
+let dockBoardInitialized = false;
+const dockAutoAdvanceQueue = [];
+const dockAutoAdvanceProcessed = new Set();
+let dockAutoAdvanceRunning = false;
+const dockAutoCheckQueue = new Map();
+const dockAutoCheckHistory = new Map();
+const dockConflictHints = new Map();
+let dockBoardRerenderScheduled = false;
+
+function normalizeDockString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function requestDockBoardRerender() {
+  if (dockBoardRerenderScheduled) return;
+  const scheduler = typeof window !== 'undefined' && window.requestAnimationFrame
+    ? window.requestAnimationFrame.bind(window)
+    : (cb) => setTimeout(cb, 0);
+  dockBoardRerenderScheduled = true;
+  scheduler(() => {
+    dockBoardRerenderScheduled = false;
+    renderDockBoard();
+  });
+}
+
+function firstNonEmptyString(values = []) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+function deriveBusinessUnitFromTeam(team) {
+  const normalized = normalizeDockString(team);
+  if (!normalized) return '';
+  const direct = MARKET_TEAM_TO_BU[normalized];
+  if (direct) return direct;
+  const lower = normalized.toLowerCase();
+  for (const [key, value] of Object.entries(MARKET_TEAM_TO_BU)) {
+    if (key.toLowerCase() === lower) return value;
+  }
+  return '';
+}
+
+function ensureDockBoard() {
+  if (!dockBoardEl || dockBoardInitialized) return;
+  dockBoardInitialized = true;
+  dockBoardEl.innerHTML = '';
+  DOCK_PHASES.forEach((phase) => {
+    const column = document.createElement('section');
+    column.className = 'dock-column';
+    column.dataset.phase = String(phase.id);
+    column.innerHTML = `
+      <header class="dock-column-header">
+        <div>
+          <h2>${escapeHtml(phase.title)}</h2>
+          <p>${escapeHtml(phase.description)}</p>
+        </div>
+        <span class="dock-column-count" data-phase-count="${phase.id}">0</span>
+      </header>
+      <div class="dock-column-body" data-phase-body="${phase.id}"></div>
+    `;
+    dockBoardEl.appendChild(column);
+    dockColumnBodies.set(phase.id, column.querySelector(`[data-phase-body="${phase.id}"]`));
+    dockColumnCounts.set(phase.id, column.querySelector(`[data-phase-count="${phase.id}"]`));
+  });
+}
+
+function showManualPanel() {
+  if (dockEntryDialog && !dockEntryDialog.open) {
+    try {
+      dockEntryDialog.showModal();
+    } catch (err) {
+      console.error('Dialog konnte nicht geöffnet werden', err);
+    }
+  }
+  if (dockManualPanel) {
+    dockManualPanel.scrollTop = 0;
+  }
+}
+
+function hideManualPanel() {
+  if (dockEntryDialog && dockEntryDialog.open) {
+    dockEntryDialog.close();
+  }
+}
+
+function getEntryKvList(entry) {
+  if (!entry || typeof entry !== 'object') return [];
+  if (Array.isArray(entry.kvNummern) && entry.kvNummern.length) return entry.kvNummern;
+  if (Array.isArray(entry.kv_list) && entry.kv_list.length) return entry.kv_list;
+  const single = entry.kv_nummer || entry.kv;
+  return normalizeDockString(single) ? [normalizeDockString(single)] : [];
+}
+
+function getDockPhase(entry) {
+  if (!entry || typeof entry !== 'object') return 1;
+  const raw = Number(entry.dockPhase);
+  if (Number.isFinite(raw) && raw >= 1) {
+    return Math.min(4, Math.max(1, raw));
+  }
+  if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
+    return 1;
+  }
+  return 4;
+}
+
+function computeDockChecklist(entry) {
+  const amount = Number(entry?.amount) > 0;
+  const hasClient = !!normalizeDockString(entry?.client);
+  const hasProjectNumber = !!normalizeDockString(entry?.projectNumber);
+  const kvList = getEntryKvList(entry);
+  const hasKv = kvList.length > 0;
+  const list = Array.isArray(entry?.list) ? entry.list : [];
+  const hasSalesContributions = list.some((item) => {
+    if (!item) return false;
+    const pct = Number(item.pct);
+    const money = Number(item.money);
+    return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
+  });
+  const hasSubmittedBy = !!normalizeDockString(entry?.submittedBy);
+  const isComplete = Boolean(entry?.complete) || (amount && hasProjectNumber && hasKv && hasSalesContributions);
+  return { amount, hasClient, hasProjectNumber, hasKv, hasSalesContributions, hasSubmittedBy, isComplete };
+}
+
+function isPhaseTwoReady(checklist) {
+  return checklist.amount && checklist.hasClient && checklist.hasProjectNumber && checklist.hasKv && checklist.hasSalesContributions;
+}
+
+function shouldDisplayInDock(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  const source = normalizeDockString(entry.source).toLowerCase();
+  if (source !== 'hubspot' && entry.dockPhase == null) return false;
+  if (entry.dockFinalAssignment) return false;
+  return true;
+}
+
+function resolveAssessmentOwner(entry) {
+  return firstNonEmptyString([
+    entry?.assessmentOwner,
+    entry?.assessment_owner,
+    entry?.dockAssessmentOwner,
+    entry?.einschaetzung_abzugeben_von,
+    entry?.einschätzung_abzugeben_von,
+    entry?.submittedBy,
+  ]);
+}
+
+function augmentDockEntry(entry) {
+  const phase = getDockPhase(entry);
+  const checklist = computeDockChecklist(entry);
+  const marketTeam = normalizeDockString(entry?.marketTeam || entry?.market_team || '');
+  const businessUnit = normalizeDockString(entry?.businessUnit || deriveBusinessUnitFromTeam(marketTeam));
+  const assessmentOwner = resolveAssessmentOwner(entry);
+  const kvList = getEntryKvList(entry);
+  const updatedAt = Number(entry?.modified || entry?.updatedAt || entry?.ts || 0);
+  return {
+    entry,
+    phase,
+    checklist,
+    marketTeam,
+    businessUnit,
+    assessmentOwner,
+    kvList,
+    updatedAt,
+    show: shouldDisplayInDock(entry),
+    conflictHint: dockConflictHints.get(entry.id) || null,
+  };
+}
+
+function matchesDockFilters(item) {
+  if (!item.show) return false;
+  if (dockFilterState.bu && item.businessUnit !== dockFilterState.bu) return false;
+  if (dockFilterState.marketTeam && item.marketTeam !== dockFilterState.marketTeam) return false;
+  if (dockFilterState.assessment && item.assessmentOwner !== dockFilterState.assessment) return false;
+  if (dockFilterState.search) {
+    const query = dockFilterState.search;
+    const haystack = [
+      item.entry?.title,
+      item.entry?.client,
+      item.entry?.projectNumber,
+      ...(item.kvList || []),
+    ]
+      .map((value) => normalizeDockString(value).toLowerCase())
+      .filter(Boolean);
+    const matches = haystack.some((value) => value.includes(query));
+    if (!matches) return false;
+  }
+  return true;
+}
+
+function updateDockSelectionUi() {
+  if (btnDockBatchDelete) {
+    const count = dockSelection.size;
+    const baseLabel = btnDockBatchDelete.dataset.baseLabel || 'Auswahl löschen';
+    btnDockBatchDelete.disabled = count === 0;
+    btnDockBatchDelete.textContent = count > 0 ? `${baseLabel} (${count})` : baseLabel;
+  }
+  if (!dockBoardEl) return;
+  dockBoardEl.querySelectorAll('.dock-card').forEach((card) => {
+    const id = card.dataset.entryId;
+    if (!id) return;
+    const selected = dockSelection.has(id);
+    card.classList.toggle('is-selected', selected);
+    const checkbox = card.querySelector('input[data-dock-select][data-id]');
+    if (checkbox) {
+      checkbox.checked = selected;
+    }
+  });
+}
+
+function updateDockFilterOptions(items) {
+  if (!dockFilterMarketTeam && !dockFilterAssessment) return;
+  const teams = new Set();
+  const assessments = new Set();
+  items.forEach((item) => {
+    if (!item.show) return;
+    if (!dockFilterState.bu || item.businessUnit === dockFilterState.bu) {
+      if (item.marketTeam) teams.add(item.marketTeam);
+    }
+    if (item.assessmentOwner) assessments.add(item.assessmentOwner);
+  });
+
+  if (dockFilterMarketTeam) {
+    const selected = dockFilterState.marketTeam;
+    const options = ['']
+      .concat(Array.from(teams).sort((a, b) => a.localeCompare(b, 'de')))
+      .map((team) => ({ value: team, label: team || 'Alle Market Teams' }));
+    dockFilterMarketTeam.innerHTML = '';
+    options.forEach(({ value, label }) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label || 'Alle Market Teams';
+      if (value === selected) option.selected = true;
+      dockFilterMarketTeam.appendChild(option);
+    });
+  }
+
+  if (dockFilterAssessment) {
+    const selected = dockFilterState.assessment;
+    const options = ['']
+      .concat(Array.from(assessments).sort((a, b) => a.localeCompare(b, 'de')))
+      .map((person) => ({ value: person, label: person || 'Alle Personen' }));
+    dockFilterAssessment.innerHTML = '';
+    options.forEach(({ value, label }) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label || 'Alle Personen';
+      if (value === selected) option.selected = true;
+      dockFilterAssessment.appendChild(option);
+    });
+  }
+}
+
+function renderDockBoard() {
+  if (!dockBoardEl) return;
+  ensureDockBoard();
+
+  const currentEntries = Array.isArray(window.entries) ? window.entries : [];
+  const augmented = currentEntries.map(augmentDockEntry);
+  updateDockFilterOptions(augmented);
+  augmented.forEach((item) => {
+    const entryId = item.entry?.id;
+    if (!entryId) return;
+    if (item.phase === 4) {
+      queueDockAutoCheck(entryId, { entry: item.entry });
+    } else {
+      dockAutoCheckHistory.delete(entryId);
+      if (dockConflictHints.has(entryId)) {
+        dockConflictHints.delete(entryId);
+      }
+    }
+  });
+  const filtered = augmented.filter(matchesDockFilters);
+  const visibleIds = new Set(filtered.map((item) => item.entry?.id).filter(Boolean));
+  Array.from(dockSelection).forEach((id) => {
+    if (!visibleIds.has(id)) {
+      dockSelection.delete(id);
+    }
+  });
+
+  const grouped = new Map(DOCK_PHASES.map((phase) => [phase.id, []]));
+  filtered.forEach((item) => {
+    const list = grouped.get(item.phase);
+    if (list) list.push(item);
+  });
+
+  let totalVisible = 0;
+  DOCK_PHASES.forEach((phase) => {
+    const body = dockColumnBodies.get(phase.id);
+    const countEl = dockColumnCounts.get(phase.id);
+    if (body) {
+      body.innerHTML = '';
+      const items = grouped.get(phase.id) || [];
+      items
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+        .forEach((item) => {
+          body.appendChild(buildDockCard(item));
+        });
+      totalVisible += items.length;
+    }
+    if (countEl) {
+      const amount = grouped.get(phase.id)?.length || 0;
+      countEl.textContent = String(amount);
+    }
+  });
+
+  if (dockEmptyState) {
+    dockEmptyState.classList.toggle('hide', totalVisible > 0);
+  }
+  updateDockSelectionUi();
+  scheduleDockAutoAdvance(filtered);
+  processDockAutoChecks();
+}
+
+function scheduleDockAutoAdvance(items = []) {
+  let hasNewItems = false;
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const entryId = item?.entry?.id;
+    if (!entryId) return;
+    const ready = item.phase === 1 && isPhaseTwoReady(item.checklist);
+    if (!ready) {
+      dockAutoAdvanceProcessed.delete(entryId);
+      return;
+    }
+    if (dockAutoAdvanceProcessed.has(entryId)) {
+      return;
+    }
+    dockAutoAdvanceQueue.push(item.entry);
+    dockAutoAdvanceProcessed.add(entryId);
+    hasNewItems = true;
+  });
+  if (hasNewItems) {
+    processDockAutoAdvanceQueue();
+  }
+}
+
+async function processDockAutoAdvanceQueue() {
+  if (dockAutoAdvanceRunning) return;
+  dockAutoAdvanceRunning = true;
+  while (dockAutoAdvanceQueue.length) {
+    const entry = dockAutoAdvanceQueue.shift();
+    if (!entry || !entry.id) continue;
+    try {
+      await updateDockPhase(entry, 2, {}, 'Deal automatisch in Phase 2 verschoben.', { silent: true });
+    } catch (err) {
+      console.error('Automatischer Phasenwechsel fehlgeschlagen', err);
+      dockAutoAdvanceProcessed.delete(entry.id);
+    }
+  }
+  dockAutoAdvanceRunning = false;
+}
+
+function queueDockAutoCheck(id, context = {}) {
+  if (!id) return;
+  const previous = dockAutoCheckQueue.get(id) || {};
+  const merged = { ...previous, ...context };
+  if (!merged.entry) {
+    const allEntries = Array.isArray(window.entries) ? window.entries : [];
+    const existing = allEntries.find((item) => item?.id === id);
+    if (existing) {
+      merged.entry = existing;
+    }
+  }
+  merged.queuedAt = Date.now();
+  dockAutoCheckQueue.set(id, merged);
+}
+
+function processDockAutoChecks() {
+  if (dockAutoCheckQueue.size === 0) return;
+  const list = Array.from(dockAutoCheckQueue.entries());
+  dockAutoCheckQueue.clear();
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  list.forEach(([id, context]) => {
+    const entry = context.entry || allEntries.find((item) => item.id === id);
+    if (entry) {
+      handleDockAutoCheck(entry, context);
+    }
+  });
+}
+
+function handleDockAutoCheck(entry, context = {}) {
+  const phase = getDockPhase(entry);
+  if (phase !== 4) {
+    dockAutoCheckHistory.delete(entry.id);
+    if (dockConflictHints.delete(entry.id)) {
+      requestDockBoardRerender();
+    }
+    return;
+  }
+
+  const kvList = getEntryKvList(entry);
+  const projectNumber = normalizeDockString(entry.projectNumber);
+  const normalizedPn = projectNumber.toLowerCase();
+  const snapshot = JSON.stringify({
+    projectNumber: normalizedPn,
+    kv: kvList.map((kv) => normalizeDockString(kv).toLowerCase()).sort(),
+    phase,
+    finalAssignment: entry.dockFinalAssignment || '',
+  });
+  if (dockAutoCheckHistory.get(entry.id) === snapshot) {
+    return;
+  }
+  dockAutoCheckHistory.set(entry.id, snapshot);
+
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  const others = allEntries.filter((item) => item && item.id !== entry.id);
+
+  if (projectNumber) {
+    const sameProject = others.filter((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedPn);
+    const fixMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'fix');
+    if (fixMatches.length > 0) {
+      dockConflictHints.set(entry.id, {
+        type: 'merge',
+        severity: 'warn',
+        title: 'Projektnummer doppelt vergeben',
+        message: 'Es gibt bereits einen Fixauftrag mit derselben Projektnummer. Prüfe, ob beide Deals zusammengehören.',
+        mergeIds: [entry.id, ...fixMatches.map((item) => item.id)],
+        primaryAction: { act: 'hint-merge', label: 'Deals zusammenführen' },
+        dismissLabel: 'Später prüfen',
+      });
+      showToast('Doppelte Projektnummer entdeckt. Du kannst die Deals zusammenführen.', 'warn', 6000);
+      requestDockBoardRerender();
+      return;
+    }
+
+    const frameworkMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'rahmen');
+    if (frameworkMatches.length > 0) {
+      const framework = frameworkMatches[0];
+      dockConflictHints.set(entry.id, {
+        type: 'framework',
+        severity: 'warn',
+        title: 'Rahmenvertrag gefunden',
+        message: 'Für diese Projektnummer existiert bereits ein Rahmenvertrag. Ordne den Deal als Abruf zu, falls es derselbe Vertrag ist.',
+        frameworkId: framework.id,
+        primaryAction: { act: 'hint-assign-framework', label: 'Als Abruf zuordnen' },
+        dismissLabel: 'Später prüfen',
+      });
+      showToast('Passender Rahmenvertrag entdeckt. Prüfe die Zuordnung als Abruf.', 'warn', 6000);
+      requestDockBoardRerender();
+      return;
+    }
+  }
+
+  if (kvList.length > 0) {
+    const conflict = kvList
+      .map((kv) => normalizeDockString(kv).toLowerCase())
+      .filter(Boolean);
+    if (conflict.length) {
+      const conflictingEntry = others.find((item) => {
+        if (!shouldDisplayInDock(item)) return false;
+        const otherKvList = getEntryKvList(item).map((kv) => normalizeDockString(kv).toLowerCase());
+        return otherKvList.some((kv) => conflict.includes(kv));
+      });
+      if (conflictingEntry) {
+        dockConflictHints.set(entry.id, {
+          type: 'kv-conflict',
+          severity: 'bad',
+          title: 'KV-Nummer bereits vergeben',
+          message: 'Zu dieser KV-Nummer gibt es im Dock schon einen Deal. Bitte prüfe die Angaben, bevor du fortfährst.',
+          dismissLabel: 'Verstanden',
+        });
+        showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad', 6000);
+        requestDockBoardRerender();
+        return;
+      }
+    }
+  }
+
+  if (dockConflictHints.has(entry.id)) {
+    dockConflictHints.delete(entry.id);
+    requestDockBoardRerender();
+  }
+}
+
+function findDockKvConflict(kvValue, excludeId) {
+  const normalized = normalizeDockString(kvValue).toLowerCase();
+  if (!normalized) return null;
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  return allEntries.find((item) => {
+    if (!item || item.id === excludeId) return false;
+    if (!shouldDisplayInDock(item)) return false;
+    return getEntryKvList(item)
+      .map((kv) => normalizeDockString(kv).toLowerCase())
+      .some((kv) => kv === normalized);
+  });
+}
+
+function openFrameworkAssignmentPrompt(entry, framework) {
+  if (!framework) return;
+  renderFrameworkContracts();
+  renderRahmenDetails(framework.id);
+  showView('rahmenDetails');
+  showToast('Rahmenvertrag geöffnet. Lege den Abruf im Detailbereich an.', 'warn');
+}
+
+function createDockElement(tag, options = {}) {
+  const element = document.createElement(tag);
+  const { className, text, attrs = {}, dataset = {} } = options;
+  if (className) {
+    element.className = className;
+  }
+  if (Object.prototype.hasOwnProperty.call(options, 'text')) {
+    element.textContent = text;
+  }
+  Object.entries(attrs).forEach(([key, value]) => {
+    if (value != null) {
+      element.setAttribute(key, String(value));
+    }
+  });
+  Object.entries(dataset).forEach(([key, value]) => {
+    if (value != null) {
+      element.dataset[key] = String(value);
+    }
+  });
+  return element;
+}
+
+function buildDockHint(entryId, hint) {
+  if (!hint) return null;
+  const classes = ['dock-card-hint'];
+  if (hint.severity) {
+    classes.push(`hint-${hint.severity}`);
+  }
+  const wrapper = createDockElement('div', { className: classes.join(' ') });
+  const textBlock = createDockElement('p', { className: 'dock-card-hint-text' });
+  if (hint.title) {
+    const titleEl = createDockElement('strong', { text: hint.title });
+    textBlock.appendChild(titleEl);
+    if (hint.message) {
+      textBlock.appendChild(document.createTextNode(` ${hint.message}`));
+    }
+  } else if (hint.message) {
+    textBlock.textContent = hint.message;
+  }
+  wrapper.appendChild(textBlock);
+
+  const actions = createDockElement('div', { className: 'dock-card-hint-actions' });
+  let hasAction = false;
+  if (hint.primaryAction && hint.primaryAction.act && hint.primaryAction.label) {
+    const primaryBtn = createDockElement('button', {
+      className: 'btn tight',
+      text: hint.primaryAction.label,
+      attrs: { type: 'button' },
+      dataset: { dockAct: hint.primaryAction.act, id: entryId },
+    });
+    actions.appendChild(primaryBtn);
+    hasAction = true;
+  }
+
+  if (hint.dismissLabel !== null) {
+    const dismissBtn = createDockElement('button', {
+      className: 'btn tight',
+      text: hint.dismissLabel || 'Hinweis ausblenden',
+      attrs: { type: 'button' },
+      dataset: { dockAct: 'dismiss-hint', id: entryId },
+    });
+    actions.appendChild(dismissBtn);
+    hasAction = true;
+  }
+
+  if (hasAction) {
+    wrapper.appendChild(actions);
+  }
+  return wrapper;
+}
+
+function buildDockCard(item) {
+  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint } = item;
+  const card = createDockElement('article', { className: 'dock-card' });
+  card.dataset.entryId = entry.id;
+
+  const header = createDockElement('div', { className: 'dock-card-header' });
+  const headline = createDockElement('div', { className: 'dock-card-headline' });
+  const selectLabel = createDockElement('label', { className: 'dock-card-select' });
+  const checkbox = createDockElement('input', {
+    attrs: { type: 'checkbox', 'aria-label': 'Deal auswählen' },
+    dataset: { dockSelect: 'card', id: entry.id },
+  });
+  checkbox.checked = dockSelection.has(entry.id);
+  selectLabel.appendChild(checkbox);
+  const title = createDockElement('h3', { className: 'dock-card-title', text: entry.title || 'Ohne Titel' });
+  headline.append(selectLabel, title);
+  header.appendChild(headline);
+
+  const actions = createDockElement('div', { className: 'dock-card-actions' });
+  const deleteBtn = createDockElement('button', {
+    className: 'dock-card-delete',
+    attrs: { type: 'button', 'aria-label': 'Deal löschen', title: 'Deal löschen' },
+    dataset: { dockAct: 'delete', id: entry.id },
+  });
+  const svgNs = 'http://www.w3.org/2000/svg';
+  const icon = document.createElementNS(svgNs, 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24');
+  icon.setAttribute('focusable', 'false');
+  const path = document.createElementNS(svgNs, 'path');
+  path.setAttribute('d', 'M6 7h12m-9-3h6m-.5 3-.5 12m-5-12.05L8 19');
+  path.setAttribute('stroke-width', '1.6');
+  path.setAttribute('stroke', 'rgba(239,68,68,.85)');
+  path.setAttribute('fill', 'none');
+  icon.appendChild(path);
+  deleteBtn.appendChild(icon);
+  actions.appendChild(deleteBtn);
+  header.appendChild(actions);
+  card.appendChild(header);
+
+  const badgeItems = [];
+  if (businessUnit) badgeItems.push({ className: 'dock-pill accent', text: businessUnit });
+  if (marketTeam) badgeItems.push({ className: 'dock-pill', text: marketTeam });
+  if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
+    badgeItems.push({ className: 'dock-pill warn', text: 'Manuell' });
+  }
+  if (badgeItems.length) {
+    const badgeRow = createDockElement('div', { className: 'dock-badge-row' });
+    badgeItems.forEach((badge) => {
+      badgeRow.appendChild(createDockElement('span', { className: badge.className, text: badge.text }));
+    });
+    card.appendChild(badgeRow);
+  }
+
+  const amountText = Number(entry.amount) > 0 ? fmtCurr0.format(entry.amount) : '–';
+  const kvText = kvList.length ? kvList.join(', ') : '–';
+  const meta = createDockElement('p', { className: 'dock-card-meta' });
+  const metaRows = [
+    ['Auftragswert:', amountText],
+    ['Auftraggeber:', entry.client || '–'],
+    ['Projektnummer:', entry.projectNumber || '–'],
+    ['KV-Nummern:', kvText],
+    ['Einschätzung:', assessmentOwner || '–'],
+  ];
+  metaRows.forEach(([label, value]) => {
+    const row = createDockElement('span');
+    row.appendChild(createDockElement('strong', { text: label }));
+    row.appendChild(document.createTextNode(` ${value || '–'}`));
+    meta.appendChild(row);
+  });
+  card.appendChild(meta);
+
+  const hintEl = buildDockHint(entry.id, conflictHint);
+  if (hintEl) {
+    card.appendChild(hintEl);
+  }
+
+  const checklistList = createDockElement('ul', { className: 'dock-card-checklist' });
+  [
+    ['Auftragswert', checklist.amount],
+    ['Auftraggeber', checklist.hasClient],
+    ['Projektnummer', checklist.hasProjectNumber],
+    ['KV-Nummer', checklist.hasKv],
+    ['Salesbeiträge', checklist.hasSalesContributions],
+  ].forEach(([label, ok]) => {
+    checklistList.appendChild(createDockElement('li', { className: ok ? 'ok' : 'missing', text: label }));
+  });
+  card.appendChild(checklistList);
+
+  const footer = createDockElement('div', { className: 'dock-card-footer' });
+  footer.appendChild(
+    createDockElement('button', {
+      className: 'btn tight',
+      text: 'Bearbeiten',
+      attrs: { type: 'button' },
+      dataset: { dockAct: 'edit', id: entry.id },
+    })
+  );
+
+  if (phase === 2) {
+    if (entry.dockBuApproved) {
+      footer.appendChild(createDockElement('span', { className: 'dock-pill ok', text: 'BU freigegeben' }));
+    } else {
+      footer.appendChild(
+        createDockElement('button', {
+          className: 'btn ok tight',
+          text: 'BU-Freigabe bestätigen',
+          attrs: { type: 'button' },
+          dataset: { dockAct: 'bu-approve', id: entry.id },
+        })
+      );
+    }
+  } else if (phase === 3) {
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Fixauftrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'fix', id: entry.id },
+      })
+    );
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Neuer Rahmenvertrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'rahmen', id: entry.id },
+      })
+    );
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Abruf aus Rahmenvertrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'abruf', id: entry.id },
+      })
+    );
+  }
+
+  card.appendChild(footer);
+
+  if (dockSelection.has(entry.id)) {
+    card.classList.add('is-selected');
+  }
+
+  return card;
+}
+
+async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.', options = {}) {
+  const { silent = false } = options;
+  const updates = { ...extra };
+  const history = { ...(entry.dockPhaseHistory || {}) };
+  const key = String(targetPhase);
+  if (!history[key]) {
+    history[key] = Date.now();
+  }
+  updates.dockPhase = targetPhase;
+  updates.dockPhaseHistory = history;
+
+  const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Unbekannter Fehler');
+  }
+
+  if (!silent) {
+    showToast(successMessage, 'ok');
+  }
+  await loadHistory(silent);
+}
+
+function handleDockBoardClick(event) {
+  const button = event.target.closest('button[data-dock-act]');
+  if (!button) return;
+  const id = button.dataset.id;
+  const action = button.dataset.dockAct;
+  if (!id || !action) return;
+  if (button.classList.contains('disabled') || button.disabled) {
+    event.preventDefault();
+    return;
+  }
+
+  const entry = (Array.isArray(window.entries) ? window.entries : []).find((item) => item.id === id);
+  if (!entry) return;
+
+  if (action === 'hint-merge') {
+    const hint = dockConflictHints.get(id);
+    if (hint?.mergeIds?.length >= 2) {
+      showView('fixauftraege');
+      selectFixEntries(hint.mergeIds, true);
+      showToast('Deals mit identischer Projektnummer wurden markiert.', 'warn', 5000);
+    }
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
+  if (action === 'hint-assign-framework') {
+    const hint = dockConflictHints.get(id);
+    if (hint?.frameworkId) {
+      const framework = (Array.isArray(window.entries) ? window.entries : []).find((item) => item.id === hint.frameworkId);
+      if (framework) {
+        openFrameworkAssignmentPrompt(entry, framework);
+      } else {
+        showToast('Rahmenvertrag konnte nicht geladen werden. Bitte Ansicht aktualisieren.', 'warn');
+      }
+    }
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
+  if (action === 'dismiss-hint') {
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
+  if (action === 'edit') {
+    editEntry(id);
+    return;
+  }
+
+  if (action === 'delete') {
+    dockSelection.delete(id);
+    updateDockSelectionUi();
+    handleDeleteClick(id, 'entry');
+    return;
+  }
+
+  const runUpdate = async (targetPhase, extra, message) => {
+    try {
+      button.disabled = true;
+      button.classList.add('disabled');
+      showLoader();
+      await updateDockPhase(entry, targetPhase, extra, message);
+    } catch (err) {
+      console.error('Dock-Update fehlgeschlagen', err);
+      showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
+    } finally {
+      hideLoader();
+    }
+  };
+
+  if (action === 'bu-approve') {
+    if (!confirm('BU-Freigabe bestätigen?')) return;
+    runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
+  } else if (action === 'assign') {
+    const target = button.dataset.targetAssignment;
+    if (!target) return;
+    const label = DOCK_ASSIGNMENT_LABELS[target] || target;
+    if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
+    const message = target === 'rahmen'
+      ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
+      : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
+    const payload = {
+      dockFinalAssignment: target,
+      dockFinalAssignmentAt: Date.now(),
+    };
+    if (target === 'rahmen') {
+      payload.projectType = 'rahmen';
+    }
+    queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
+    runUpdate(4, payload, message);
+  }
+}
+
+ensureDockBoard();
+if (dockBoardEl) {
+  dockBoardEl.addEventListener('click', handleDockBoardClick);
+  dockBoardEl.addEventListener('change', (event) => {
+    const checkbox = event.target.closest('input[data-dock-select]');
+    if (!checkbox) return;
+    const { id } = checkbox.dataset;
+    if (!id) return;
+    if (checkbox.checked) {
+      dockSelection.add(id);
+    } else {
+      dockSelection.delete(id);
+    }
+    updateDockSelectionUi();
+  });
+}
+
+if (dockFilterBu) {
+  dockFilterBu.addEventListener('change', () => {
+    dockFilterState.bu = dockFilterBu.value;
+    if (dockFilterState.bu && dockFilterState.marketTeam) {
+      const buForTeam = deriveBusinessUnitFromTeam(dockFilterState.marketTeam);
+      if (buForTeam && buForTeam !== dockFilterState.bu) {
+        dockFilterState.marketTeam = '';
+      }
+    }
+    renderDockBoard();
+  });
+}
+
+if (dockFilterMarketTeam) {
+  dockFilterMarketTeam.addEventListener('change', () => {
+    dockFilterState.marketTeam = dockFilterMarketTeam.value;
+    renderDockBoard();
+  });
+}
+
+if (dockFilterAssessment) {
+  dockFilterAssessment.addEventListener('change', () => {
+    dockFilterState.assessment = dockFilterAssessment.value;
+    renderDockBoard();
+  });
+}
+
+if (dockSearchInput) {
+  dockSearchInput.addEventListener('input', () => {
+    dockFilterState.search = dockSearchInput.value.trim().toLowerCase();
+    renderDockBoard();
+  });
+}
+
+if (btnManualDeal) {
+  btnManualDeal.addEventListener('click', () => {
+    if (!confirm('Standardprozess: Deals kommen automatisch aus HubSpot. Nur in Ausnahmefällen manuell anlegen. Fortfahren?')) {
+      return;
+    }
+    clearInputFields();
+    initFromState();
+    showManualPanel();
+  });
+}
+
+if (btnCloseManualDeal) {
+  btnCloseManualDeal.addEventListener('click', () => {
+    if (getHasUnsavedChanges()) {
+      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!confirmed) return;
+    }
+    hideManualPanel();
+    clearInputFields();
+    setHasUnsavedChanges(false);
+  });
+}
+
+if (btnDockBatchDelete) {
+  btnDockBatchDelete.addEventListener('click', () => {
+    const ids = Array.from(dockSelection);
+    if (!ids.length) return;
+    pendingDelete = { ids, type: 'batch-entry', fromDock: true };
+    document.getElementById('confirmDlgTitle').textContent = 'Deals löschen';
+    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${ids.length} ausgewählten Deals wirklich löschen?`;
+    document.getElementById('confirmDlg').showModal();
+  });
+}
+
+if (dockEntryDialog) {
+  dockEntryDialog.addEventListener('cancel', (event) => {
+    if (getHasUnsavedChanges()) {
+      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!confirmed) {
+        event.preventDefault();
+      }
+    }
+  });
+  dockEntryDialog.addEventListener('close', () => {
+    clearInputFields();
+    setHasUnsavedChanges(false);
+  });
+}
+
 function showView(viewName) {
   if (getIsBatchRunning()) {
       showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
@@ -115,17 +1116,30 @@ navLinks.forEach(link => {
     } else if (viewName === 'admin') {
       handleAdminClick();
     } else if (viewName === 'erfassung') {
-      if (getHasUnsavedChanges() && !document.querySelector('#viewErfassung').classList.contains('hide')) {
-        if(confirm('Möchten Sie eine neue Erfassung starten? Ungespeicherte Änderungen gehen verloren.')) {
-          clearInputFields();
-          initFromState();
-          showView('erfassung');
-        }
-      } else {
+      const dockView = views.erfassung;
+      const dockVisible = dockView && !dockView.classList.contains('hide');
+      const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
+      if (getHasUnsavedChanges() && dockVisible && manualVisible) {
+        const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
+        if (!confirmed) return;
+      }
+
+      const state = loadState();
+      const isEditing = !!state?.editingId;
+
+      if (!isEditing) {
+        hideManualPanel();
         clearInputFields();
         initFromState();
-        showView('erfassung');
+      } else {
+        showManualPanel();
+        initFromState(true);
       }
+
+      loadHistory().then(() => {
+        renderDockBoard();
+        showView('erfassung');
+      });
     }
   });
 });
@@ -469,6 +1483,12 @@ if (btnMetaEditToggle) {
             return;
         }
 
+        const conflict = findDockKvConflict(kvNummer.value, entryId);
+        if (conflict) {
+            showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
+            return;
+        }
+
         btnMetaEditToggle.disabled = true;
         showLoader();
         let metaSaveSuccess = false;
@@ -503,6 +1523,7 @@ if (btnMetaEditToggle) {
                 st.input.freigabedatum = freigabedatum.value || '';
                 saveState(st);
             }
+            queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
             await loadHistory();
             renderHistory();
             renderFrameworkContracts();
@@ -540,14 +1561,34 @@ async function saveNewEntry(st) {
     id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
+  if (!st.editingId && payload.kv_nummer) {
+    const conflict = findDockKvConflict(payload.kv_nummer, null);
+    if (conflict) {
+      showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
+      return;
+    }
+  }
   showLoader();
   try{
     const method = st.editingId ? 'PUT' : 'POST';
     const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
     const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(await r.text());
+    let savedEntry = null;
+    try {
+      savedEntry = await r.json();
+    } catch (err) {
+      console.warn('Antwort konnte nicht gelesen werden:', err);
+    }
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     clearInputFields();
+    if (savedEntry && savedEntry.id) {
+      queueDockAutoCheck(savedEntry.id, {
+        entry: savedEntry,
+        projectNumber: savedEntry.projectNumber || '',
+        kvNummer: savedEntry.kv_nummer || '',
+      });
+    }
     if(payload.projectType === 'rahmen') {
         loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else {
@@ -561,7 +1602,6 @@ async function saveNewEntry(st) {
 function loadInputForm(inputData, isEditing = false) {
     const st = loadState() || {};
     const abrufInfo = document.getElementById('abrufInfo');
-    const erfsfassungSub = document.getElementById('erfassungSub');
     const projectTypeWrapper = document.getElementById('projectTypeWrapper');
     
     // Reset all fields first
@@ -580,7 +1620,9 @@ function loadInputForm(inputData, isEditing = false) {
 
     if (st.isAbrufMode && st.parentEntry) {
         // Hunter Abruf
-        erfsfassungSub.textContent = "Neuen aktiven Abruf erfassen.";
+        if (dockIntroEl) {
+            dockIntroEl.textContent = 'Neuen aktiven Abruf erfassen.';
+        }
         projectTypeWrapper.classList.add('hide');
         auftraggeber.value = st.parentEntry.client;
         auftraggeber.disabled = true;
@@ -596,7 +1638,9 @@ function loadInputForm(inputData, isEditing = false) {
 
     } else {
         // Neue Erfassung oder Bearbeitung
-        erfsfassungSub.textContent = isEditing ? 'Eintrag bearbeiten' : "Neuen Auftrag oder Rahmenvertrag anlegen.";
+        if (dockIntroEl) {
+            dockIntroEl.textContent = dockIntroDefaultText;
+        }
         projectTypeWrapper.classList.remove('hide');
         auftraggeber.value = inputData.client || '';
         projekttitel.value = inputData.title || '';
@@ -731,8 +1775,10 @@ let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'t
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
 let currentMergeContext = null;
 
-async function loadHistory(){
-  showLoader();
+async function loadHistory(silent = false){
+  if (!silent) {
+    showLoader();
+  }
   try{
     const r = await fetch(`${WORKER_BASE}/entries`);
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
@@ -747,11 +1793,14 @@ async function loadHistory(){
     window.entries = []; // Auch im Fehlerfall zurücksetzen
     showToast('Daten konnten nicht geladen werden.', 'bad');
   } finally{
-    hideLoader();
+    if (!silent) {
+      hideLoader();
+    }
   }
   // Stelle sicher, dass renderHistory auch aufgerufen wird, nachdem window.entries gesetzt ist.
   // Wenn renderHistory() nur die globale `entries` nutzt, ist die Reihenfolge hier okay.
   renderHistory();
+  renderDockBoard();
 }
   
 function hasPositiveDistribution(list = [], amount = 0){
@@ -794,6 +1843,10 @@ function filtered(type = 'fix'){
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift jetzt auf window.entries zu
   const query = omniSearch.value.trim().toLowerCase();
   const selectedPerson = personFilter ? personFilter.value : '';
+
+  if (type === 'fix') {
+    arr = arr.filter(shouldIncludeInFixList);
+  }
 
   if (selectedPerson) {
     const selectedLower = selectedPerson.toLowerCase();
@@ -865,6 +1918,19 @@ function filtered(type = 'fix'){
   });
 
   return arr;
+}
+
+function shouldIncludeInFixList(entry) {
+  if (!entry) return false;
+  const source = normalizeDockString(entry.source).toLowerCase();
+  if (source === 'hubspot') {
+    const phase = getDockPhase(entry);
+    if (phase < 4) return false;
+    if (entry.dockFinalAssignment && entry.dockFinalAssignment !== 'fix' && entry.dockFinalAssignment !== 'abruf') {
+      return false;
+    }
+  }
+  return true;
 }
 
 function updatePersonFilterOptions() {
@@ -1493,12 +2559,13 @@ function editEntry(id) {
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
   saveState(st); initFromState(true);
   showView('erfassung');
+  showManualPanel();
 }
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 // *** NEU: btnYes click handler (mit bulk-delete) ***
 document.getElementById('btnYes').addEventListener('click',async()=>{
-    const { id, ids, type, parentId } = pendingDelete;
+    const { id, ids, type, parentId, fromDock } = pendingDelete;
     document.getElementById('confirmDlg').close();
     
     showLoader();
@@ -1519,7 +2586,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             if (!ids || ids.length === 0) return;
             hideLoader(); // Hide small loader, show batch progress
             showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
-            
+
             const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1536,6 +2603,10 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
             await loadHistory(); // Lade alle Daten neu
             renderHistory();
+            if (fromDock) {
+              dockSelection.clear();
+              updateDockSelectionUi();
+            }
             // *** ENDE NEUE LOGIK ***
 
         } else if (type === 'transaction') {
@@ -3515,9 +4586,11 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // Initialisierung nach Laden der Personenliste
-loadPeople().then(()=>{
+loadPeople().then(async ()=>{
     populateAdminTeamOptions();
     initFromState();
+    await loadHistory();
+    renderDockBoard();
     showView('erfassung');
 
     // *** KORREKTUR: Event Listener HIER hinzufügen ***
