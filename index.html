@@ -83,21 +83,19 @@
   .dock-card-delete{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:32px;height:32px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer;transition:background .15s;}
   .dock-card-delete:hover{background:var(--panel2);}
   .dock-card-delete svg{width:18px;height:18px;stroke-width:1.6;stroke:rgba(239,68,68,.85);fill:none;}
-  .dock-card-meta{margin:0;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;line-height:1.25;}
-  .dock-card-meta span{display:flex;gap:6px;}
-  .dock-card-meta strong{color:var(--text);font-weight:600;min-width:120px;}
+  .dock-card-meta{margin:0;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px;line-height:1.25;}
+  .dock-card-meta-row{display:flex;align-items:center;gap:8px;}
+  .dock-card-meta-row strong{color:var(--text);font-weight:600;min-width:120px;}
+  .dock-card-meta-row .status-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:6px;font-size:12px;font-weight:700;}
+  .dock-card-meta-row.ok .status-icon{background:rgba(34,197,94,.18);color:#bbf7d0;}
+  .dock-card-meta-row.missing .status-icon{background:rgba(245,158,11,.18);color:#fcd34d;}
+  .dock-card-meta-row.missing strong{color:#fcd34d;}
+  .dock-card-meta-row.missing{color:#facc15;}
   .dock-badge-row{display:flex;flex-wrap:wrap;gap:6px}
   .dock-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#0b1326;border:1px solid var(--border);color:var(--muted)}
   .dock-pill.accent{background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.35);color:#bfdbfe}
   .dock-pill.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.35);color:#bbf7d0}
   .dock-pill.warn{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.4);color:#fde68a}
-  .dock-card-checklist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;font-size:12px}
-  .dock-card-checklist li{display:flex;align-items:center;gap:6px;color:var(--muted);line-height:1.2}
-  .dock-card-checklist li::before{content:'•';color:rgba(148,163,184,.8)}
-  .dock-card-checklist li.ok{color:#cbd5e1}
-  .dock-card-checklist li.ok::before{content:'✓';color:var(--ok)}
-  .dock-card-checklist li.missing{color:#fcd34d}
-  .dock-card-checklist li.missing::before{content:'!';color:var(--warn)}
   .dock-card-footer{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center}
   .dock-card-footer .btn.tight{padding:6px 12px;font-size:12px;border-radius:10px}
   .dock-card-footer .btn.compact{padding:6px 10px;font-size:12px;border-radius:10px}

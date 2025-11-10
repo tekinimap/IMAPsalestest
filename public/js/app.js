@@ -775,15 +775,17 @@ function buildDockCard(item) {
   const kvText = kvList.length ? kvList.join(', ') : '–';
   const meta = createDockElement('p', { className: 'dock-card-meta' });
   const metaRows = [
-    ['Auftragswert:', amountText],
-    ['Auftraggeber:', entry.client || '–'],
-    ['Projektnummer:', entry.projectNumber || '–'],
-    ['KV-Nummern:', kvText],
-    ['Einschätzung:', assessmentOwner || '–'],
+    { label: 'Auftragswert', value: amountText, ok: checklist.amount },
+    { label: 'Auftraggeber', value: entry.client || '–', ok: checklist.hasClient },
+    { label: 'Projektnummer', value: entry.projectNumber || '–', ok: checklist.hasProjectNumber },
+    { label: 'KV-Nummern', value: kvText, ok: checklist.hasKv },
+    { label: 'Salesbeiträge', value: checklist.hasSalesContributions ? '✓' : '✕', ok: checklist.hasSalesContributions },
+    { label: 'Einschätzung', value: assessmentOwner || '–', ok: !!assessmentOwner },
   ];
-  metaRows.forEach(([label, value]) => {
-    const row = createDockElement('span');
-    row.appendChild(createDockElement('strong', { text: label }));
+  metaRows.forEach(({ label, value, ok }) => {
+    const row = createDockElement('span', { className: `dock-card-meta-row ${ok ? 'ok' : 'missing'}` });
+    row.appendChild(createDockElement('span', { className: 'status-icon', text: ok ? '✓' : '!' }));
+    row.appendChild(createDockElement('strong', { text: `${label}:` }));
     row.appendChild(document.createTextNode(` ${value || '–'}`));
     meta.appendChild(row);
   });
@@ -793,18 +795,6 @@ function buildDockCard(item) {
   if (hintEl) {
     card.appendChild(hintEl);
   }
-
-  const checklistList = createDockElement('ul', { className: 'dock-card-checklist' });
-  [
-    ['Auftragswert', checklist.amount],
-    ['Auftraggeber', checklist.hasClient],
-    ['Projektnummer', checklist.hasProjectNumber],
-    ['KV-Nummer', checklist.hasKv],
-    ['Salesbeiträge', checklist.hasSalesContributions],
-  ].forEach(([label, ok]) => {
-    checklistList.appendChild(createDockElement('li', { className: ok ? 'ok' : 'missing', text: label }));
-  });
-  card.appendChild(checklistList);
 
   const footer = createDockElement('div', { className: 'dock-card-footer' });
   footer.appendChild(
