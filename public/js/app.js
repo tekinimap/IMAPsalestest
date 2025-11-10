@@ -93,13 +93,9 @@ const DOCK_PHASES = [
   },
   {
     id: 3,
-    title: 'Phase 3 · Freigabe BU Lead',
-    description: 'Der BU Lead hat freigegeben. Sales weist den Deal nun final zu.',
-  },
-  {
-    id: 4,
-    title: 'Phase 4 · Zuweisung durch Sales',
-    description: 'Nach der Zuweisung verschwindet der Deal aus dem Dock und erscheint in der passenden Übersicht.',
+    title: 'Phase 3 · BU-Freigabe & Abschluss',
+    description:
+      'Der BU Lead hat freigegeben. Sales finalisiert die Zuordnung oder markiert den Deal als Rahmenvertrag bzw. Abruf.',
   },
 ];
 
@@ -242,12 +238,12 @@ function getDockPhase(entry) {
   if (!entry || typeof entry !== 'object') return 1;
   const raw = Number(entry.dockPhase);
   if (Number.isFinite(raw) && raw >= 1) {
-    return Math.min(4, Math.max(1, raw));
+    return Math.min(3, Math.max(1, raw));
   }
   if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
     return 1;
   }
-  return 4;
+  return 3;
 }
 
 function computeDockChecklist(entry) {
@@ -407,7 +403,7 @@ function renderDockBoard() {
   augmented.forEach((item) => {
     const entryId = item.entry?.id;
     if (!entryId) return;
-    if (item.phase === 4) {
+    if (item.phase === 3) {
       queueDockAutoCheck(entryId, { entry: item.entry });
     } else {
       dockAutoCheckHistory.delete(entryId);
@@ -526,7 +522,7 @@ function processDockAutoChecks() {
 
 function handleDockAutoCheck(entry, context = {}) {
   const phase = getDockPhase(entry);
-  if (phase !== 4) {
+  if (phase !== 3) {
     dockAutoCheckHistory.delete(entry.id);
     if (dockConflictHints.delete(entry.id)) {
       requestDockBoardRerender();
@@ -975,7 +971,7 @@ function handleDockBoardClick(event) {
       payload.projectType = 'rahmen';
     }
     queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-    runUpdate(4, payload, message);
+    runUpdate(3, payload, message);
   }
 }
 
