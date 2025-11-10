@@ -10746,7 +10746,15 @@
     "updatedAt": 1762772626403,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_48e040d091e6d5173b707822eecf5166",
@@ -10762,7 +10770,15 @@
     "updatedAt": 1762772627178,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_4f9d6a93283fd12569d8670c9e4ccef5",
@@ -10778,7 +10794,15 @@
     "updatedAt": 1762772628201,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_bfe2bb2f55eea27f49515d9eb2237eac",
@@ -10794,7 +10818,15 @@
     "updatedAt": 1762772629323,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_bf0dd36069a569b9f056a2ce5e655eb3",
@@ -10810,7 +10842,15 @@
     "updatedAt": 1762772629945,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_9a4c31e7775b313870516e3ef4c57a1a",
@@ -10826,7 +10866,15 @@
     "updatedAt": 1762772631282,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_d30bf806014144eac800ba90753060c3",
@@ -10842,7 +10890,15 @@
     "updatedAt": 1762772632313,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_ed8084b364eb2cbeb1ae6b49de29b60c",
@@ -10858,7 +10914,15 @@
     "updatedAt": 1762772632854,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_8c391fc1544e1d673a7225cdbfcc202e",
@@ -10874,7 +10938,15 @@
     "updatedAt": 1762772633476,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_2be4328ab9719030462d8b78cc866bdb",
@@ -10890,7 +10962,15 @@
     "updatedAt": 1762772634123,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_9cd4ed1f2cc7f3e5ed9e2852379d3bb2",
@@ -10906,7 +10986,15 @@
     "updatedAt": 1762772634745,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_d5e30429308b9f69b2456a5abf4a52d3",
@@ -10922,7 +11010,15 @@
     "updatedAt": 1762772635740,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_494416db1a9b37b38b145d60f2f76bef",
@@ -10938,7 +11034,15 @@
     "updatedAt": 1762772636474,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_126e1934ec3a0351bca5dfd88cd47e3f",
@@ -10954,7 +11058,15 @@
     "updatedAt": 1762772637033,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_c8d188496cb825b57f2b1f11fc6b7fe2",
@@ -10970,7 +11082,15 @@
     "updatedAt": 1762772637930,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_2bebaaad2bac55aea88ffaaabfcf712e",
@@ -10986,7 +11106,15 @@
     "updatedAt": 1762772638526,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_8a01b58c7d1a2cf90674e98f51dad791",
@@ -11002,7 +11130,15 @@
     "updatedAt": 1762772639533,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_c93f628844357f29243dc5c16d52da16",
@@ -11018,7 +11154,15 @@
     "updatedAt": 1762772640076,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_293a9cc262c627af92109805f9b54e54",
@@ -11034,7 +11178,15 @@
     "updatedAt": 1762772640709,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_45eb829e497cc6f91f87a920e8758244",
@@ -11050,7 +11202,15 @@
     "updatedAt": 1762772642201,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_0675f344879ad6b46b99660bcc5ec198",
@@ -11066,7 +11226,15 @@
     "updatedAt": 1762772643298,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_b7bc272fff9d4863c54c3343c6cb80bc",
@@ -11082,7 +11250,15 @@
     "updatedAt": 1762772644453,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_b662a0da610b7186d103235b4d91e495",
@@ -11098,7 +11274,15 @@
     "updatedAt": 1762772645125,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_bd95f74746ff1fd86bc1a2ceb38a4e0b",
@@ -11114,7 +11298,15 @@
     "updatedAt": 1762772645777,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_99f4c4d10eacad6007f5a4b51fc9da98",
@@ -11130,7 +11322,15 @@
     "updatedAt": 1762772646902,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_1b59f4678bc00a730d218ec9eb0716c7",
@@ -11146,7 +11346,15 @@
     "updatedAt": 1762772647500,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_2945ef7a0abefcdec834d4810454e8e8",
@@ -11162,7 +11370,15 @@
     "updatedAt": 1762772648127,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_43c92fd2ec2264548422bf0751a60e84",
@@ -11178,7 +11394,15 @@
     "updatedAt": 1762772648810,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_bf4bcd1274fdaf94bc875251762545fb",
@@ -11194,7 +11418,15 @@
     "updatedAt": 1762772649412,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_34589c0cde3105b5a188d8b59b8d5ae9",
@@ -11210,7 +11442,15 @@
     "updatedAt": 1762772650099,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_181d403ea98fffc4cf49f08dd514fb39",
@@ -11226,7 +11466,15 @@
     "updatedAt": 1762772650681,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_3e1d763e392bf1b288d4476f27da4325",
@@ -11242,7 +11490,15 @@
     "updatedAt": 1762772651803,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_87e49654860d9d04406a248651d8faa4",
@@ -11258,7 +11514,15 @@
     "updatedAt": 1762772652546,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_d612444c34cbec542c868aed91b8b48e",
@@ -11274,7 +11538,15 @@
     "updatedAt": 1762772653153,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_e012503518ba18315252b8486eff4622",
@@ -11290,7 +11562,15 @@
     "updatedAt": 1762772654371,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_c3614314fdd0fca91f49180f455bf298",
@@ -11306,23 +11586,78 @@
     "updatedAt": 1762772655044,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "hubspot_b6bc16fcdf57905c0c02a84fbabb3380",
     "hubspotId": "48698039216",
     "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung – KV-2025-0090",
-    "amount": 0,
+    "amount": 50000,
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "",
-    "client": "",
-    "submittedBy": "",
-    "list": [],
+    "client": "Test",
+    "submittedBy": "Benedict Bueb",
+    "list": [
+      {
+        "key": "Dilâra Dayakli",
+        "name": "Dilâra Dayakli",
+        "pct": 100,
+        "money": 50000
+      }
+    ],
     "updatedAt": 1762772655742,
     "kvNummern": [],
     "kv_nummer": "",
-    "kv": ""
+    "kv": "",
+    "complete": true,
+    "rows": [
+      {
+        "personId": "p_pi_vp_10",
+        "name": "Dilâra Dayakli",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "freigabedatum": null,
+    "ts": 1762781665126,
+    "modified": 1762781665861,
+    "dockPhase": 1,
+    "dockPhaseHistory": {
+      "1": 1762781665861
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null
   },
   {
     "id": "entry_1762772744441_KV20250288",
