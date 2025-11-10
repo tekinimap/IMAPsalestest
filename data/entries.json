@@ -10721,5 +10721,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_d30bf806014144eac800ba90753060c3",
+    "hubspotId": "48771000929",
+    "title": "Qualifizierung kompakt – KV-2025-0172",
+    "amount": 35550,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772632313,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
