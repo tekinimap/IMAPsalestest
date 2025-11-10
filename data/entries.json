@@ -10935,7 +10935,7 @@
   {
     "id": "hubspot_cc79100c8673968d12be0e0425f2e7cd",
     "hubspotId": "45326972175",
-    "title": "Change-Begleitung",
+    "title": "Change-Begleitung Workshops",
     "amount": 300000,
     "source": "hubspot",
     "projectType": "fix",
@@ -10962,7 +10962,7 @@
         "pct": 0
       }
     ],
-    "updatedAt": 1762790109724,
+    "updatedAt": 1762790356787,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
