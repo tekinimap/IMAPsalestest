@@ -16,9 +16,9 @@
   .container{max-width:1200px;margin:28px auto;padding:0 16px}
   
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; flex-wrap: wrap; gap: 14px;}
-  .brand{display:flex;align-items:center;gap:12px;padding:8px 14px;border:1px solid rgba(148,163,184,.25);border-radius:999px;background:rgba(12,18,32,.8);box-shadow:0 18px 42px rgba(2,6,23,.55);}
-  .brand img{width:42px;height:42px;display:block;filter:drop-shadow(0 0 18px rgba(148,163,184,.45));}
-  .brand-title{font-size:20px;font-weight:700;letter-spacing:0.04em;text-transform:lowercase;}
+  .topbar-brand{display:flex;align-items:center;gap:12px;}
+  .app-logo{display:block;width:42px;height:42px;}
+  .app-title{font-size:18px;font-weight:700;letter-spacing:.04em;text-transform:lowercase;}
   .main-nav{display:flex;gap:10px; flex-wrap: wrap;}
   .nav-link{font-size:14px;font-weight:600;color:#cbd5e1;padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#0b1326;cursor:pointer; text-decoration: none;}
   .nav-link:hover{background-color: var(--panel2);}
@@ -357,9 +357,9 @@
 <div class="container">
 
   <div class="topbar">
-    <div class="brand">
-      <img src="public/synq-logo.svg" alt="synq Logo" loading="lazy" width="42" height="42">
-      <div class="brand-title">synq</div>
+    <div class="topbar-brand">
+      <img src="public/synq-logo.svg" alt="synq Logo" loading="lazy" width="42" height="42" class="app-logo">
+      <div class="app-title">synq</div>
     </div>
     <div class="main-nav">
       <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
