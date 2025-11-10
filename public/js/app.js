@@ -1590,7 +1590,6 @@ async function saveNewEntry(st) {
     }
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     hideManualPanel();
-    clearInputFields();
     if (savedEntry && savedEntry.id) {
       queueDockAutoCheck(savedEntry.id, {
         entry: savedEntry,
@@ -1598,10 +1597,9 @@ async function saveNewEntry(st) {
         kvNummer: savedEntry.kv_nummer || '',
       });
     }
-    if(payload.projectType === 'rahmen') {
-        loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
-    } else {
-        await loadHistory(true);
+    await loadHistory(true);
+    if (payload.projectType === 'rahmen') {
+        renderFrameworkContracts();
     }
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
