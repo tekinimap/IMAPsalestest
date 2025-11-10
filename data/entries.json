@@ -10897,5 +10897,21 @@
     "kvNummern": [],
     "kv_nummer": "",
     "kv": ""
+  },
+  {
+    "id": "hubspot_c93f628844357f29243dc5c16d52da16",
+    "hubspotId": "48758570863",
+    "title": "Abteilung 50 - Digitalstrategie – KV-2025-0188",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1762772640076,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": ""
   }
 ]
