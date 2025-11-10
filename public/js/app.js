@@ -1589,6 +1589,7 @@ async function saveNewEntry(st) {
       console.warn('Antwort konnte nicht gelesen werden:', err);
     }
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
+    hideManualPanel();
     clearInputFields();
     if (savedEntry && savedEntry.id) {
       queueDockAutoCheck(savedEntry.id, {
