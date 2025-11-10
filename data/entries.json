@@ -10959,14 +10959,15 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "kvNummern": [
       "111"
     ],
     "kv_nummer": "111",
     "kv": "111",
     "dockPhaseHistory": {
-      "1": 1762787634117
+      "1": 1762787634117,
+      "2": 1762788203624
     },
     "complete": true,
     "rows": [
@@ -10999,6 +11000,6 @@
     ],
     "freigabedatum": 1762732800000,
     "ts": 1762788120515,
-    "modified": 1762788199618
+    "modified": 1762788204304
   }
 ]
