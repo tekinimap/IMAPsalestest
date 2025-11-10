@@ -1600,7 +1600,7 @@ async function saveNewEntry(st) {
     if(payload.projectType === 'rahmen') {
         loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else {
-        loadHistory().then(()=>showView('fixauftraege'));
+        await loadHistory(true);
     }
   }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
   finally{ hideLoader(); }
