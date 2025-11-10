@@ -134,6 +134,9 @@ function ensureDockMetadata(entry, options = {}) {
   if (entry.dockFinalAssignmentAt == null && !entry.dockFinalAssignment) {
     entry.dockFinalAssignmentAt = null;
   }
+  if (entry.dockFinalAssignment === 'rahmen' && entry.projectType !== 'rahmen') {
+    entry.projectType = 'rahmen';
+  }
   return entry;
 }
 function splitKvString(value){
@@ -1672,7 +1675,7 @@ export function upsertByHubSpotId(entries, deal) {
     return { action: 'update', hubspotId: id, entry: entries[idx] };
   }
 
-  const createdEntry = ensureDockMetadata({ ...normalized }, { defaultPhase: 1 });
+  const createdEntry = normalized;
   entries.push(createdEntry);
   return { action: 'create', hubspotId: id, entry: createdEntry };
 }

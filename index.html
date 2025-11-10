@@ -61,6 +61,7 @@
   .dock-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px}
   .dock-filter{display:flex;flex-direction:column;gap:6px;min-width:160px}
   .dock-filter label{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(148,163,184,.8)}
+  .dock-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
   .dock-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:20px}
   .dock-column{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px;min-height:240px}
   .dock-column-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -68,34 +69,59 @@
   .dock-column-header p{margin:6px 0 0;font-size:12px;color:var(--muted)}
   .dock-column-count{font-size:12px;color:var(--muted);background:#0b1326;border:1px solid var(--border);padding:4px 10px;border-radius:999px;white-space:nowrap}
   .dock-column-body{display:flex;flex-direction:column;gap:12px}
-  .dock-card{background:var(--panel);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 24px rgba(8,15,28,.35)}
-  .dock-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-  .dock-card-title{margin:0;font-size:15px;font-weight:600;color:var(--text)}
-  .dock-phase-tag{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(148,163,184,.8)}
-  .dock-amount{font-size:14px;font-weight:600;color:var(--muted)}
-  .dock-card-meta{margin:0;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-  .dock-badge-row{display:flex;flex-wrap:wrap;gap:8px}
+  .dock-card{background:var(--panel);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 24px rgba(8,15,28,.35)}
+  .dock-card.is-selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.35);}
+  .dock-card-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .dock-card-headline{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;}
+  .dock-card-title{margin:0;font-size:15px;font-weight:600;color:var(--text);line-height:1.25;word-break:break-word;}
+  .dock-card-actions{display:flex;align-items:center;gap:6px;}
+  .dock-card-select{display:inline-flex;align-items:center;gap:6px;}
+  .dock-card-select input{appearance:none;width:18px;height:18px;border:1px solid rgba(148,163,184,.5);border-radius:6px;background:#0b1326;display:inline-grid;place-items:center;cursor:pointer;}
+  .dock-card-select input:checked{background:var(--accent);border-color:var(--accent);}
+  .dock-card-select input:checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
+  .dock-card-select input:focus-visible{outline:2px solid rgba(59,130,246,.6);outline-offset:2px;}
+  .dock-card-delete{appearance:none;border:1px solid var(--border);background:#0c1320;color:var(--text);width:32px;height:32px;border-radius:10px;display:inline-grid;place-items:center;cursor:pointer;transition:background .15s;}
+  .dock-card-delete:hover{background:var(--panel2);}
+  .dock-card-delete svg{width:18px;height:18px;stroke-width:1.6;stroke:rgba(239,68,68,.85);fill:none;}
+  .dock-card-meta{margin:0;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px;line-height:1.25;}
+  .dock-card-meta span{display:flex;gap:6px;}
+  .dock-card-meta strong{color:var(--text);font-weight:600;min-width:120px;}
+  .dock-badge-row{display:flex;flex-wrap:wrap;gap:6px}
   .dock-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#0b1326;border:1px solid var(--border);color:var(--muted)}
   .dock-pill.accent{background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.35);color:#bfdbfe}
   .dock-pill.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.35);color:#bbf7d0}
   .dock-pill.warn{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.4);color:#fde68a}
-  .dock-card-checklist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;font-size:12px}
-  .dock-card-checklist li{display:flex;align-items:center;gap:6px;color:var(--muted)}
+  .dock-card-checklist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;font-size:12px}
+  .dock-card-checklist li{display:flex;align-items:center;gap:6px;color:var(--muted);line-height:1.2}
   .dock-card-checklist li::before{content:'•';color:rgba(148,163,184,.8)}
   .dock-card-checklist li.ok{color:#cbd5e1}
   .dock-card-checklist li.ok::before{content:'✓';color:var(--ok)}
   .dock-card-checklist li.missing{color:#fcd34d}
   .dock-card-checklist li.missing::before{content:'!';color:var(--warn)}
-  .dock-card-footer{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .dock-card-footer{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center}
   .dock-card-footer .btn.tight{padding:6px 12px;font-size:12px;border-radius:10px}
   .dock-card-footer .btn.compact{padding:6px 10px;font-size:12px;border-radius:10px}
-  .dock-card-missing{font-size:12px;color:#facc15}
+  .dock-card-hint{border:1px solid rgba(148,163,184,.25);border-radius:10px;padding:10px 12px;background:rgba(11,17,26,.75);display:flex;flex-direction:column;gap:8px;font-size:12px;}
+  .dock-card-hint-text{margin:0;color:var(--text);line-height:1.35;}
+  .dock-card-hint.hint-warn{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.12);}
+  .dock-card-hint.hint-bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.12);}
+  .dock-card-hint strong{color:var(--text);}
+  .dock-card-hint-actions{display:flex;flex-wrap:wrap;gap:6px;}
+  .dock-card-hint-actions .btn.tight{padding:6px 10px;font-size:12px;}
   .dock-empty{background:var(--panel2);border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--muted);margin-bottom:24px}
+  .dock-empty-note{margin-top:6px;}
   .dock-manual{border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);background:rgba(11,17,26,.65);backdrop-filter:blur(6px);padding:24px;margin-top:12px;box-shadow:0 12px 24px rgba(8,15,28,.35)}
   .dock-manual-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
   .dock-manual-header h2{margin:0;font-size:18px}
   .dock-manual-header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
   .dock-manual-actions{display:flex;gap:10px;align-items:center}
+
+  #btnDockBatchDelete{background:#ef4444;border-color:transparent;}
+  #btnDockBatchDelete:disabled{opacity:.45;cursor:not-allowed;}
+  #btnDockBatchDelete:not(:disabled):hover{filter:brightness(1.05);}
+  #dockEntryDialog{border:1px solid rgba(59,130,246,.35);background:rgba(11,18,30,.98);color:var(--text);border-radius:14px;padding:0;max-width:900px;width:92vw;}
+  #dockEntryDialog::backdrop{background:rgba(8,15,25,.65);backdrop-filter:blur(4px);}
+  #dockManualPanel{max-height:80vh;overflow-y:auto;}
 
   @media (max-width:768px){
     .dock-board{grid-template-columns:1fr}
@@ -432,8 +458,7 @@
   <div class="card" id="viewErfassung">
     <div class="hd">
       <h1>Dock</h1>
-      <p id="erfassungSub">Willkommen im Dock: Hier siehst du alle eingetroffenen HubSpot-Deals in ihren Bearbeitungsphasen – von der Ankunft über die vollständige Datenerfassung und die BU-Freigabe bis zur finalen Zuordnung in Fixaufträge, neue Rahmenverträge oder Abrufe. Der Standardprozess läuft automatisiert; manuelle Deals legt ausschließlich das Sales-Team an.</p>
-      <p>Nutze die Filter nach Business Units, Market Teams sowie „Einschätzung abzugeben von“, um schnell deine relevanten Deals zu finden.</p>
+      <p id="erfassungSub">Im Dock landen alle neuen HubSpot-Deals zur Prüfung. Die Karten wandern automatisch durch die vier Phasen – von der Ankunft über die vollständige Datenerfassung und BU-Freigabe bis zur finalen Zuordnung in Fixaufträge, neue Rahmenverträge oder Abrufe. Nutze die Filter für Business Units, Market Teams und &bdquo;Einschätzung abzugeben von&ldquo;, um schnell deinen Verantwortungsbereich zu sehen. Manuelle Deals legen ausschließlich Sales-Mitarbeitende über den Button &bdquo;Deal manuell erstellen&ldquo; an.</p>
     </div>
     <div class="ct">
       <div class="dock-toolbar">
@@ -463,25 +488,29 @@
             <input type="text" id="dockSearch" placeholder="Titel, Kunde, KV...">
           </div>
         </div>
-        <button class="btn warn" id="btnManualDeal" type="button">Deal manuell erstellen</button>
+        <div class="dock-actions">
+          <button class="btn danger" id="btnDockBatchDelete" type="button" disabled>Auswahl löschen</button>
+          <button class="btn warn" id="btnManualDeal" type="button">Deal manuell erstellen</button>
+        </div>
       </div>
 
       <div class="dock-board" id="dockBoard"></div>
       <div class="dock-empty hide" id="dockEmptyState">
         <strong>Aktuell gibt es keine offenen Deals im Dock.</strong>
-        <div style="margin-top:6px;">Sobald neue HubSpot-Deals eintreffen oder Freigaben anstehen, erscheinen sie hier wieder.</div>
+        <div class="dock-empty-note">Sobald neue HubSpot-Deals eintreffen oder Freigaben anstehen, erscheinen sie hier wieder.</div>
       </div>
 
-      <div id="dockManualPanel" class="dock-manual hide">
-        <div class="dock-manual-header">
-          <div>
-            <h2>Manuelle Deal-Erfassung</h2>
-            <p>Nur Sales-Mitarbeitende legen Deals manuell an. Der Standardprozess läuft über HubSpot.</p>
+      <dialog id="dockEntryDialog">
+        <div id="dockManualPanel" class="dock-manual">
+          <div class="dock-manual-header">
+            <div>
+              <h2>Deal bearbeiten oder anlegen</h2>
+              <p>Nur Sales-Mitarbeitende legen Deals manuell an. Der Standardprozess läuft über HubSpot.</p>
+            </div>
+            <div class="dock-manual-actions">
+              <button class="btn" id="btnCloseManualDeal" type="button">Schließen</button>
+            </div>
           </div>
-          <div class="dock-manual-actions">
-            <button class="btn" id="btnCloseManualDeal" type="button">Abbrechen</button>
-          </div>
-        </div>
       <div id="abrufInfo" class="info-box hide"></div>
       <div class="grid-3">
         <div>
@@ -518,7 +547,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="hr"></div>
 
       <div class="grid-3">
@@ -609,7 +638,8 @@
           <button class="btn primary disabled" id="btnSave">Speichern</button>
         </div>
       </div>
-      </div>
+        </div>
+      </dialog>
     </div>
   </div>
 

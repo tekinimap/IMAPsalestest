@@ -122,6 +122,7 @@ const DOCK_ASSIGNMENT_LABELS = {
 
 const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
+const dockEntryDialog = document.getElementById('dockEntryDialog');
 const dockManualPanel = document.getElementById('dockManualPanel');
 const dockFilterBu = document.getElementById('dockFilterBu');
 const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
@@ -129,14 +130,38 @@ const dockFilterAssessment = document.getElementById('dockFilterAssessment');
 const dockSearchInput = document.getElementById('dockSearch');
 const btnManualDeal = document.getElementById('btnManualDeal');
 const btnCloseManualDeal = document.getElementById('btnCloseManualDeal');
+const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
+if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
+  btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
+}
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
 const dockFilterState = { bu: '', marketTeam: '', assessment: '', search: '' };
+const dockSelection = new Set();
 let dockBoardInitialized = false;
+const dockAutoAdvanceQueue = [];
+const dockAutoAdvanceProcessed = new Set();
+let dockAutoAdvanceRunning = false;
+const dockAutoCheckQueue = new Map();
+const dockAutoCheckHistory = new Map();
+const dockConflictHints = new Map();
+let dockBoardRerenderScheduled = false;
 
 function normalizeDockString(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function requestDockBoardRerender() {
+  if (dockBoardRerenderScheduled) return;
+  const scheduler = typeof window !== 'undefined' && window.requestAnimationFrame
+    ? window.requestAnimationFrame.bind(window)
+    : (cb) => setTimeout(cb, 0);
+  dockBoardRerenderScheduled = true;
+  scheduler(() => {
+    dockBoardRerenderScheduled = false;
+    renderDockBoard();
+  });
 }
 
 function firstNonEmptyString(values = []) {
@@ -184,19 +209,23 @@ function ensureDockBoard() {
   });
 }
 
-function showManualPanel(scrollIntoView = false) {
-  if (!dockManualPanel) return;
-  dockManualPanel.classList.remove('hide');
-  if (scrollIntoView) {
-    setTimeout(() => {
-      dockManualPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 60);
+function showManualPanel() {
+  if (dockEntryDialog && !dockEntryDialog.open) {
+    try {
+      dockEntryDialog.showModal();
+    } catch (err) {
+      console.error('Dialog konnte nicht geöffnet werden', err);
+    }
+  }
+  if (dockManualPanel) {
+    dockManualPanel.scrollTop = 0;
   }
 }
 
 function hideManualPanel() {
-  if (!dockManualPanel) return;
-  dockManualPanel.classList.add('hide');
+  if (dockEntryDialog && dockEntryDialog.open) {
+    dockEntryDialog.close();
+  }
 }
 
 function getEntryKvList(entry) {
@@ -278,6 +307,7 @@ function augmentDockEntry(entry) {
     kvList,
     updatedAt,
     show: shouldDisplayInDock(entry),
+    conflictHint: dockConflictHints.get(entry.id) || null,
   };
 }
 
@@ -300,6 +330,26 @@ function matchesDockFilters(item) {
     if (!matches) return false;
   }
   return true;
+}
+
+function updateDockSelectionUi() {
+  if (btnDockBatchDelete) {
+    const count = dockSelection.size;
+    const baseLabel = btnDockBatchDelete.dataset.baseLabel || 'Auswahl löschen';
+    btnDockBatchDelete.disabled = count === 0;
+    btnDockBatchDelete.textContent = count > 0 ? `${baseLabel} (${count})` : baseLabel;
+  }
+  if (!dockBoardEl) return;
+  dockBoardEl.querySelectorAll('.dock-card').forEach((card) => {
+    const id = card.dataset.entryId;
+    if (!id) return;
+    const selected = dockSelection.has(id);
+    card.classList.toggle('is-selected', selected);
+    const checkbox = card.querySelector('input[data-dock-select][data-id]');
+    if (checkbox) {
+      checkbox.checked = selected;
+    }
+  });
 }
 
 function updateDockFilterOptions(items) {
@@ -352,7 +402,25 @@ function renderDockBoard() {
   const currentEntries = Array.isArray(window.entries) ? window.entries : [];
   const augmented = currentEntries.map(augmentDockEntry);
   updateDockFilterOptions(augmented);
+  augmented.forEach((item) => {
+    const entryId = item.entry?.id;
+    if (!entryId) return;
+    if (item.phase === 4) {
+      queueDockAutoCheck(entryId, { entry: item.entry });
+    } else {
+      dockAutoCheckHistory.delete(entryId);
+      if (dockConflictHints.has(entryId)) {
+        dockConflictHints.delete(entryId);
+      }
+    }
+  });
   const filtered = augmented.filter(matchesDockFilters);
+  const visibleIds = new Set(filtered.map((item) => item.entry?.id).filter(Boolean));
+  Array.from(dockSelection).forEach((id) => {
+    if (!visibleIds.has(id)) {
+      dockSelection.delete(id);
+    }
+  });
 
   const grouped = new Map(DOCK_PHASES.map((phase) => [phase.id, []]));
   filtered.forEach((item) => {
@@ -383,97 +451,412 @@ function renderDockBoard() {
   if (dockEmptyState) {
     dockEmptyState.classList.toggle('hide', totalVisible > 0);
   }
+  updateDockSelectionUi();
+  scheduleDockAutoAdvance(filtered);
+  processDockAutoChecks();
+}
+
+function scheduleDockAutoAdvance(items = []) {
+  let hasNewItems = false;
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const entryId = item?.entry?.id;
+    if (!entryId) return;
+    const ready = item.phase === 1 && isPhaseTwoReady(item.checklist);
+    if (!ready) {
+      dockAutoAdvanceProcessed.delete(entryId);
+      return;
+    }
+    if (dockAutoAdvanceProcessed.has(entryId)) {
+      return;
+    }
+    dockAutoAdvanceQueue.push(item.entry);
+    dockAutoAdvanceProcessed.add(entryId);
+    hasNewItems = true;
+  });
+  if (hasNewItems) {
+    processDockAutoAdvanceQueue();
+  }
+}
+
+async function processDockAutoAdvanceQueue() {
+  if (dockAutoAdvanceRunning) return;
+  dockAutoAdvanceRunning = true;
+  while (dockAutoAdvanceQueue.length) {
+    const entry = dockAutoAdvanceQueue.shift();
+    if (!entry || !entry.id) continue;
+    try {
+      await updateDockPhase(entry, 2, {}, 'Deal automatisch in Phase 2 verschoben.', { silent: true });
+    } catch (err) {
+      console.error('Automatischer Phasenwechsel fehlgeschlagen', err);
+      dockAutoAdvanceProcessed.delete(entry.id);
+    }
+  }
+  dockAutoAdvanceRunning = false;
+}
+
+function queueDockAutoCheck(id, context = {}) {
+  if (!id) return;
+  const previous = dockAutoCheckQueue.get(id) || {};
+  const merged = { ...previous, ...context };
+  if (!merged.entry) {
+    const allEntries = Array.isArray(window.entries) ? window.entries : [];
+    const existing = allEntries.find((item) => item?.id === id);
+    if (existing) {
+      merged.entry = existing;
+    }
+  }
+  merged.queuedAt = Date.now();
+  dockAutoCheckQueue.set(id, merged);
+}
+
+function processDockAutoChecks() {
+  if (dockAutoCheckQueue.size === 0) return;
+  const list = Array.from(dockAutoCheckQueue.entries());
+  dockAutoCheckQueue.clear();
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  list.forEach(([id, context]) => {
+    const entry = context.entry || allEntries.find((item) => item.id === id);
+    if (entry) {
+      handleDockAutoCheck(entry, context);
+    }
+  });
+}
+
+function handleDockAutoCheck(entry, context = {}) {
+  const phase = getDockPhase(entry);
+  if (phase !== 4) {
+    dockAutoCheckHistory.delete(entry.id);
+    if (dockConflictHints.delete(entry.id)) {
+      requestDockBoardRerender();
+    }
+    return;
+  }
+
+  const kvList = getEntryKvList(entry);
+  const projectNumber = normalizeDockString(entry.projectNumber);
+  const normalizedPn = projectNumber.toLowerCase();
+  const snapshot = JSON.stringify({
+    projectNumber: normalizedPn,
+    kv: kvList.map((kv) => normalizeDockString(kv).toLowerCase()).sort(),
+    phase,
+    finalAssignment: entry.dockFinalAssignment || '',
+  });
+  if (dockAutoCheckHistory.get(entry.id) === snapshot) {
+    return;
+  }
+  dockAutoCheckHistory.set(entry.id, snapshot);
+
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  const others = allEntries.filter((item) => item && item.id !== entry.id);
+
+  if (projectNumber) {
+    const sameProject = others.filter((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedPn);
+    const fixMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'fix');
+    if (fixMatches.length > 0) {
+      dockConflictHints.set(entry.id, {
+        type: 'merge',
+        severity: 'warn',
+        title: 'Projektnummer doppelt vergeben',
+        message: 'Es gibt bereits einen Fixauftrag mit derselben Projektnummer. Prüfe, ob beide Deals zusammengehören.',
+        mergeIds: [entry.id, ...fixMatches.map((item) => item.id)],
+        primaryAction: { act: 'hint-merge', label: 'Deals zusammenführen' },
+        dismissLabel: 'Später prüfen',
+      });
+      showToast('Doppelte Projektnummer entdeckt. Du kannst die Deals zusammenführen.', 'warn', 6000);
+      requestDockBoardRerender();
+      return;
+    }
+
+    const frameworkMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'rahmen');
+    if (frameworkMatches.length > 0) {
+      const framework = frameworkMatches[0];
+      dockConflictHints.set(entry.id, {
+        type: 'framework',
+        severity: 'warn',
+        title: 'Rahmenvertrag gefunden',
+        message: 'Für diese Projektnummer existiert bereits ein Rahmenvertrag. Ordne den Deal als Abruf zu, falls es derselbe Vertrag ist.',
+        frameworkId: framework.id,
+        primaryAction: { act: 'hint-assign-framework', label: 'Als Abruf zuordnen' },
+        dismissLabel: 'Später prüfen',
+      });
+      showToast('Passender Rahmenvertrag entdeckt. Prüfe die Zuordnung als Abruf.', 'warn', 6000);
+      requestDockBoardRerender();
+      return;
+    }
+  }
+
+  if (kvList.length > 0) {
+    const conflict = kvList
+      .map((kv) => normalizeDockString(kv).toLowerCase())
+      .filter(Boolean);
+    if (conflict.length) {
+      const conflictingEntry = others.find((item) => {
+        if (!shouldDisplayInDock(item)) return false;
+        const otherKvList = getEntryKvList(item).map((kv) => normalizeDockString(kv).toLowerCase());
+        return otherKvList.some((kv) => conflict.includes(kv));
+      });
+      if (conflictingEntry) {
+        dockConflictHints.set(entry.id, {
+          type: 'kv-conflict',
+          severity: 'bad',
+          title: 'KV-Nummer bereits vergeben',
+          message: 'Zu dieser KV-Nummer gibt es im Dock schon einen Deal. Bitte prüfe die Angaben, bevor du fortfährst.',
+          dismissLabel: 'Verstanden',
+        });
+        showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad', 6000);
+        requestDockBoardRerender();
+        return;
+      }
+    }
+  }
+
+  if (dockConflictHints.has(entry.id)) {
+    dockConflictHints.delete(entry.id);
+    requestDockBoardRerender();
+  }
+}
+
+function findDockKvConflict(kvValue, excludeId) {
+  const normalized = normalizeDockString(kvValue).toLowerCase();
+  if (!normalized) return null;
+  const allEntries = Array.isArray(window.entries) ? window.entries : [];
+  return allEntries.find((item) => {
+    if (!item || item.id === excludeId) return false;
+    if (!shouldDisplayInDock(item)) return false;
+    return getEntryKvList(item)
+      .map((kv) => normalizeDockString(kv).toLowerCase())
+      .some((kv) => kv === normalized);
+  });
+}
+
+function openFrameworkAssignmentPrompt(entry, framework) {
+  if (!framework) return;
+  renderFrameworkContracts();
+  renderRahmenDetails(framework.id);
+  showView('rahmenDetails');
+  showToast('Rahmenvertrag geöffnet. Lege den Abruf im Detailbereich an.', 'warn');
+}
+
+function createDockElement(tag, options = {}) {
+  const element = document.createElement(tag);
+  const { className, text, attrs = {}, dataset = {} } = options;
+  if (className) {
+    element.className = className;
+  }
+  if (Object.prototype.hasOwnProperty.call(options, 'text')) {
+    element.textContent = text;
+  }
+  Object.entries(attrs).forEach(([key, value]) => {
+    if (value != null) {
+      element.setAttribute(key, String(value));
+    }
+  });
+  Object.entries(dataset).forEach(([key, value]) => {
+    if (value != null) {
+      element.dataset[key] = String(value);
+    }
+  });
+  return element;
+}
+
+function buildDockHint(entryId, hint) {
+  if (!hint) return null;
+  const classes = ['dock-card-hint'];
+  if (hint.severity) {
+    classes.push(`hint-${hint.severity}`);
+  }
+  const wrapper = createDockElement('div', { className: classes.join(' ') });
+  const textBlock = createDockElement('p', { className: 'dock-card-hint-text' });
+  if (hint.title) {
+    const titleEl = createDockElement('strong', { text: hint.title });
+    textBlock.appendChild(titleEl);
+    if (hint.message) {
+      textBlock.appendChild(document.createTextNode(` ${hint.message}`));
+    }
+  } else if (hint.message) {
+    textBlock.textContent = hint.message;
+  }
+  wrapper.appendChild(textBlock);
+
+  const actions = createDockElement('div', { className: 'dock-card-hint-actions' });
+  let hasAction = false;
+  if (hint.primaryAction && hint.primaryAction.act && hint.primaryAction.label) {
+    const primaryBtn = createDockElement('button', {
+      className: 'btn tight',
+      text: hint.primaryAction.label,
+      attrs: { type: 'button' },
+      dataset: { dockAct: hint.primaryAction.act, id: entryId },
+    });
+    actions.appendChild(primaryBtn);
+    hasAction = true;
+  }
+
+  if (hint.dismissLabel !== null) {
+    const dismissBtn = createDockElement('button', {
+      className: 'btn tight',
+      text: hint.dismissLabel || 'Hinweis ausblenden',
+      attrs: { type: 'button' },
+      dataset: { dockAct: 'dismiss-hint', id: entryId },
+    });
+    actions.appendChild(dismissBtn);
+    hasAction = true;
+  }
+
+  if (hasAction) {
+    wrapper.appendChild(actions);
+  }
+  return wrapper;
 }
 
 function buildDockCard(item) {
-  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase } = item;
-  const card = document.createElement('article');
-  card.className = 'dock-card';
+  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint } = item;
+  const card = createDockElement('article', { className: 'dock-card' });
   card.dataset.entryId = entry.id;
 
-  const amountText = Number(entry.amount) > 0 ? fmtCurr0.format(entry.amount) : '–';
-  const missing = [];
-  if (!checklist.amount) missing.push('Auftragswert');
-  if (!checklist.hasClient) missing.push('Auftraggeber');
-  if (!checklist.hasProjectNumber) missing.push('Projektnummer');
-  if (!checklist.hasKv) missing.push('KV-Nummer');
-  if (!checklist.hasSalesContributions) missing.push('Salesbeiträge');
+  const header = createDockElement('div', { className: 'dock-card-header' });
+  const headline = createDockElement('div', { className: 'dock-card-headline' });
+  const selectLabel = createDockElement('label', { className: 'dock-card-select' });
+  const checkbox = createDockElement('input', {
+    attrs: { type: 'checkbox', 'aria-label': 'Deal auswählen' },
+    dataset: { dockSelect: 'card', id: entry.id },
+  });
+  checkbox.checked = dockSelection.has(entry.id);
+  selectLabel.appendChild(checkbox);
+  const title = createDockElement('h3', { className: 'dock-card-title', text: entry.title || 'Ohne Titel' });
+  headline.append(selectLabel, title);
+  header.appendChild(headline);
 
-  const buttons = [];
-  if (phase === 1) {
-    const ready = isPhaseTwoReady(checklist);
-    buttons.push(`
-      <button class="btn ok tight${ready ? '' : ' disabled'}" data-dock-act="move-phase" data-target-phase="2" data-id="${entry.id}" type="button" ${ready ? '' : 'disabled'}>
-        Daten vollständig
-      </button>
-    `);
-  } else if (phase === 2) {
+  const actions = createDockElement('div', { className: 'dock-card-actions' });
+  const deleteBtn = createDockElement('button', {
+    className: 'dock-card-delete',
+    attrs: { type: 'button', 'aria-label': 'Deal löschen', title: 'Deal löschen' },
+    dataset: { dockAct: 'delete', id: entry.id },
+  });
+  const svgNs = 'http://www.w3.org/2000/svg';
+  const icon = document.createElementNS(svgNs, 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24');
+  icon.setAttribute('focusable', 'false');
+  const path = document.createElementNS(svgNs, 'path');
+  path.setAttribute('d', 'M6 7h12m-9-3h6m-.5 3-.5 12m-5-12.05L8 19');
+  path.setAttribute('stroke-width', '1.6');
+  path.setAttribute('stroke', 'rgba(239,68,68,.85)');
+  path.setAttribute('fill', 'none');
+  icon.appendChild(path);
+  deleteBtn.appendChild(icon);
+  actions.appendChild(deleteBtn);
+  header.appendChild(actions);
+  card.appendChild(header);
+
+  const badgeItems = [];
+  if (businessUnit) badgeItems.push({ className: 'dock-pill accent', text: businessUnit });
+  if (marketTeam) badgeItems.push({ className: 'dock-pill', text: marketTeam });
+  if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
+    badgeItems.push({ className: 'dock-pill warn', text: 'Manuell' });
+  }
+  if (badgeItems.length) {
+    const badgeRow = createDockElement('div', { className: 'dock-badge-row' });
+    badgeItems.forEach((badge) => {
+      badgeRow.appendChild(createDockElement('span', { className: badge.className, text: badge.text }));
+    });
+    card.appendChild(badgeRow);
+  }
+
+  const amountText = Number(entry.amount) > 0 ? fmtCurr0.format(entry.amount) : '–';
+  const kvText = kvList.length ? kvList.join(', ') : '–';
+  const meta = createDockElement('p', { className: 'dock-card-meta' });
+  const metaRows = [
+    ['Auftragswert:', amountText],
+    ['Auftraggeber:', entry.client || '–'],
+    ['Projektnummer:', entry.projectNumber || '–'],
+    ['KV-Nummern:', kvText],
+    ['Einschätzung:', assessmentOwner || '–'],
+  ];
+  metaRows.forEach(([label, value]) => {
+    const row = createDockElement('span');
+    row.appendChild(createDockElement('strong', { text: label }));
+    row.appendChild(document.createTextNode(` ${value || '–'}`));
+    meta.appendChild(row);
+  });
+  card.appendChild(meta);
+
+  const hintEl = buildDockHint(entry.id, conflictHint);
+  if (hintEl) {
+    card.appendChild(hintEl);
+  }
+
+  const checklistList = createDockElement('ul', { className: 'dock-card-checklist' });
+  [
+    ['Auftragswert', checklist.amount],
+    ['Auftraggeber', checklist.hasClient],
+    ['Projektnummer', checklist.hasProjectNumber],
+    ['KV-Nummer', checklist.hasKv],
+    ['Salesbeiträge', checklist.hasSalesContributions],
+  ].forEach(([label, ok]) => {
+    checklistList.appendChild(createDockElement('li', { className: ok ? 'ok' : 'missing', text: label }));
+  });
+  card.appendChild(checklistList);
+
+  const footer = createDockElement('div', { className: 'dock-card-footer' });
+  footer.appendChild(
+    createDockElement('button', {
+      className: 'btn tight',
+      text: 'Bearbeiten',
+      attrs: { type: 'button' },
+      dataset: { dockAct: 'edit', id: entry.id },
+    })
+  );
+
+  if (phase === 2) {
     if (entry.dockBuApproved) {
-      buttons.push(`<span class="dock-pill ok">BU freigegeben</span>`);
+      footer.appendChild(createDockElement('span', { className: 'dock-pill ok', text: 'BU freigegeben' }));
     } else {
-      buttons.push(`
-        <button class="btn ok tight" data-dock-act="bu-approve" data-id="${entry.id}" type="button">
-          BU-Freigabe bestätigen
-        </button>
-      `);
+      footer.appendChild(
+        createDockElement('button', {
+          className: 'btn ok tight',
+          text: 'BU-Freigabe bestätigen',
+          attrs: { type: 'button' },
+          dataset: { dockAct: 'bu-approve', id: entry.id },
+        })
+      );
     }
   } else if (phase === 3) {
-    buttons.push(`
-      <button class="btn tight" data-dock-act="assign" data-target-assignment="fix" data-id="${entry.id}" type="button">Fixauftrag</button>
-    `);
-    buttons.push(`
-      <button class="btn tight" data-dock-act="assign" data-target-assignment="rahmen" data-id="${entry.id}" type="button">Neuer Rahmenvertrag</button>
-    `);
-    buttons.push(`
-      <button class="btn tight" data-dock-act="assign" data-target-assignment="abruf" data-id="${entry.id}" type="button">Abruf aus Rahmenvertrag</button>
-    `);
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Fixauftrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'fix', id: entry.id },
+      })
+    );
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Neuer Rahmenvertrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'rahmen', id: entry.id },
+      })
+    );
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: 'Abruf aus Rahmenvertrag',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'assign', targetAssignment: 'abruf', id: entry.id },
+      })
+    );
   }
 
-  const missingMarkup = missing.length && phase === 1
-    ? `<div class="dock-card-missing">Fehlt: ${escapeHtml(missing.join(', '))}</div>`
-    : '';
+  card.appendChild(footer);
 
-  const kvText = kvList.length ? kvList.join(', ') : '–';
-  const badges = [];
-  if (businessUnit) badges.push(`<span class="dock-pill accent">${escapeHtml(businessUnit)}</span>`);
-  if (marketTeam) badges.push(`<span class="dock-pill">${escapeHtml(marketTeam)}</span>`);
-  if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
-    badges.push(`<span class="dock-pill warn">Manuell</span>`);
+  if (dockSelection.has(entry.id)) {
+    card.classList.add('is-selected');
   }
-
-  card.innerHTML = `
-    <div class="dock-card-header">
-      <div>
-        <span class="dock-phase-tag">${escapeHtml(DOCK_PHASES.find((p) => p.id === phase)?.title || `Phase ${phase}`)}</span>
-        <h3 class="dock-card-title">${escapeHtml(entry.title || 'Ohne Titel')}</h3>
-      </div>
-      <span class="dock-amount">${escapeHtml(amountText)}</span>
-    </div>
-    <p class="dock-card-meta">
-      <span><strong>Auftraggeber:</strong> ${escapeHtml(entry.client || '–')}</span>
-      <span><strong>Projektnummer:</strong> ${escapeHtml(entry.projectNumber || '–')}</span>
-      <span><strong>KV-Nummern:</strong> ${escapeHtml(kvText)}</span>
-      <span><strong>Einschätzung:</strong> ${escapeHtml(assessmentOwner || '–')}</span>
-    </p>
-    <div class="dock-badge-row">${badges.join('')}</div>
-    ${missingMarkup}
-    <ul class="dock-card-checklist">
-      <li class="${checklist.amount ? 'ok' : 'missing'}">Auftragswert</li>
-      <li class="${checklist.hasClient ? 'ok' : 'missing'}">Auftraggeber</li>
-      <li class="${checklist.hasProjectNumber ? 'ok' : 'missing'}">Projektnummer</li>
-      <li class="${checklist.hasKv ? 'ok' : 'missing'}">KV-Nummer</li>
-      <li class="${checklist.hasSalesContributions ? 'ok' : 'missing'}">Salesbeiträge</li>
-    </ul>
-    <div class="dock-card-footer">
-      <button class="btn tight" data-dock-act="edit" data-id="${entry.id}" type="button">Bearbeiten</button>
-      ${buttons.join('')}
-    </div>
-  `;
 
   return card;
 }
 
-async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.') {
+async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.', options = {}) {
+  const { silent = false } = options;
   const updates = { ...extra };
   const history = { ...(entry.dockPhaseHistory || {}) };
   const key = String(targetPhase);
@@ -494,8 +877,10 @@ async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 
     throw new Error(errorText || 'Unbekannter Fehler');
   }
 
-  showToast(successMessage, 'ok');
-  await loadHistory();
+  if (!silent) {
+    showToast(successMessage, 'ok');
+  }
+  await loadHistory(silent);
 }
 
 function handleDockBoardClick(event) {
@@ -512,9 +897,48 @@ function handleDockBoardClick(event) {
   const entry = (Array.isArray(window.entries) ? window.entries : []).find((item) => item.id === id);
   if (!entry) return;
 
+  if (action === 'hint-merge') {
+    const hint = dockConflictHints.get(id);
+    if (hint?.mergeIds?.length >= 2) {
+      showView('fixauftraege');
+      selectFixEntries(hint.mergeIds, true);
+      showToast('Deals mit identischer Projektnummer wurden markiert.', 'warn', 5000);
+    }
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
+  if (action === 'hint-assign-framework') {
+    const hint = dockConflictHints.get(id);
+    if (hint?.frameworkId) {
+      const framework = (Array.isArray(window.entries) ? window.entries : []).find((item) => item.id === hint.frameworkId);
+      if (framework) {
+        openFrameworkAssignmentPrompt(entry, framework);
+      } else {
+        showToast('Rahmenvertrag konnte nicht geladen werden. Bitte Ansicht aktualisieren.', 'warn');
+      }
+    }
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
+  if (action === 'dismiss-hint') {
+    dockConflictHints.delete(id);
+    requestDockBoardRerender();
+    return;
+  }
+
   if (action === 'edit') {
-    showManualPanel(true);
     editEntry(id);
+    return;
+  }
+
+  if (action === 'delete') {
+    dockSelection.delete(id);
+    updateDockSelectionUi();
+    handleDeleteClick(id, 'entry');
     return;
   }
 
@@ -532,21 +956,7 @@ function handleDockBoardClick(event) {
     }
   };
 
-  if (action === 'move-phase') {
-    const targetPhase = Number(button.dataset.targetPhase);
-    const checklist = computeDockChecklist(entry);
-    if (targetPhase === 2 && !isPhaseTwoReady(checklist)) {
-      showToast('Bitte alle Pflichtfelder ergänzen, bevor der Deal als vollständig markiert wird.', 'bad');
-      return;
-    }
-    let message = 'Dock-Status aktualisiert.';
-    if (targetPhase === 2) {
-      message = 'Deal als vollständig markiert.';
-    } else if (targetPhase === 3) {
-      message = 'Deal zur BU-Freigabe verschoben.';
-    }
-    runUpdate(targetPhase, {}, message);
-  } else if (action === 'bu-approve') {
+  if (action === 'bu-approve') {
     if (!confirm('BU-Freigabe bestätigen?')) return;
     runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
   } else if (action === 'assign') {
@@ -557,13 +967,33 @@ function handleDockBoardClick(event) {
     const message = target === 'rahmen'
       ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
       : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
-    runUpdate(4, { dockFinalAssignment: target, dockFinalAssignmentAt: Date.now() }, message);
+    const payload = {
+      dockFinalAssignment: target,
+      dockFinalAssignmentAt: Date.now(),
+    };
+    if (target === 'rahmen') {
+      payload.projectType = 'rahmen';
+    }
+    queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
+    runUpdate(4, payload, message);
   }
 }
 
 ensureDockBoard();
 if (dockBoardEl) {
   dockBoardEl.addEventListener('click', handleDockBoardClick);
+  dockBoardEl.addEventListener('change', (event) => {
+    const checkbox = event.target.closest('input[data-dock-select]');
+    if (!checkbox) return;
+    const { id } = checkbox.dataset;
+    if (!id) return;
+    if (checkbox.checked) {
+      dockSelection.add(id);
+    } else {
+      dockSelection.delete(id);
+    }
+    updateDockSelectionUi();
+  });
 }
 
 if (dockFilterBu) {
@@ -605,10 +1035,9 @@ if (btnManualDeal) {
     if (!confirm('Standardprozess: Deals kommen automatisch aus HubSpot. Nur in Ausnahmefällen manuell anlegen. Fortfahren?')) {
       return;
     }
-    hideManualPanel();
     clearInputFields();
     initFromState();
-    showManualPanel(true);
+    showManualPanel();
   });
 }
 
@@ -619,6 +1048,32 @@ if (btnCloseManualDeal) {
       if (!confirmed) return;
     }
     hideManualPanel();
+    clearInputFields();
+    setHasUnsavedChanges(false);
+  });
+}
+
+if (btnDockBatchDelete) {
+  btnDockBatchDelete.addEventListener('click', () => {
+    const ids = Array.from(dockSelection);
+    if (!ids.length) return;
+    pendingDelete = { ids, type: 'batch-entry', fromDock: true };
+    document.getElementById('confirmDlgTitle').textContent = 'Deals löschen';
+    document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${ids.length} ausgewählten Deals wirklich löschen?`;
+    document.getElementById('confirmDlg').showModal();
+  });
+}
+
+if (dockEntryDialog) {
+  dockEntryDialog.addEventListener('cancel', (event) => {
+    if (getHasUnsavedChanges()) {
+      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!confirmed) {
+        event.preventDefault();
+      }
+    }
+  });
+  dockEntryDialog.addEventListener('close', () => {
     clearInputFields();
     setHasUnsavedChanges(false);
   });
@@ -661,7 +1116,7 @@ navLinks.forEach(link => {
     } else if (viewName === 'erfassung') {
       const dockView = views.erfassung;
       const dockVisible = dockView && !dockView.classList.contains('hide');
-      const manualVisible = dockManualPanel && !dockManualPanel.classList.contains('hide');
+      const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
       if (getHasUnsavedChanges() && dockVisible && manualVisible) {
         const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
         if (!confirmed) return;
@@ -675,7 +1130,7 @@ navLinks.forEach(link => {
         clearInputFields();
         initFromState();
       } else {
-        showManualPanel(false);
+        showManualPanel();
         initFromState(true);
       }
 
@@ -1026,6 +1481,12 @@ if (btnMetaEditToggle) {
             return;
         }
 
+        const conflict = findDockKvConflict(kvNummer.value, entryId);
+        if (conflict) {
+            showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
+            return;
+        }
+
         btnMetaEditToggle.disabled = true;
         showLoader();
         let metaSaveSuccess = false;
@@ -1060,6 +1521,7 @@ if (btnMetaEditToggle) {
                 st.input.freigabedatum = freigabedatum.value || '';
                 saveState(st);
             }
+            queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
             await loadHistory();
             renderHistory();
             renderFrameworkContracts();
@@ -1097,14 +1559,34 @@ async function saveNewEntry(st) {
     id:st.editingId||undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
+  if (!st.editingId && payload.kv_nummer) {
+    const conflict = findDockKvConflict(payload.kv_nummer, null);
+    if (conflict) {
+      showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
+      return;
+    }
+  }
   showLoader();
   try{
     const method = st.editingId ? 'PUT' : 'POST';
     const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
     const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(await r.text());
+    let savedEntry = null;
+    try {
+      savedEntry = await r.json();
+    } catch (err) {
+      console.warn('Antwort konnte nicht gelesen werden:', err);
+    }
     showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
     clearInputFields();
+    if (savedEntry && savedEntry.id) {
+      queueDockAutoCheck(savedEntry.id, {
+        entry: savedEntry,
+        projectNumber: savedEntry.projectNumber || '',
+        kvNummer: savedEntry.kv_nummer || '',
+      });
+    }
     if(payload.projectType === 'rahmen') {
         loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
     } else {
@@ -1288,8 +1770,10 @@ let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'t
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
 let currentMergeContext = null;
 
-async function loadHistory(){
-  showLoader();
+async function loadHistory(silent = false){
+  if (!silent) {
+    showLoader();
+  }
   try{
     const r = await fetch(`${WORKER_BASE}/entries`);
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
@@ -1304,7 +1788,9 @@ async function loadHistory(){
     window.entries = []; // Auch im Fehlerfall zurücksetzen
     showToast('Daten konnten nicht geladen werden.', 'bad');
   } finally{
-    hideLoader();
+    if (!silent) {
+      hideLoader();
+    }
   }
   // Stelle sicher, dass renderHistory auch aufgerufen wird, nachdem window.entries gesetzt ist.
   // Wenn renderHistory() nur die globale `entries` nutzt, ist die Reihenfolge hier okay.
@@ -2069,12 +2555,13 @@ function editEntry(id) {
   saveState(st); initFromState(true);
   showManualPanel(true);
   showView('erfassung');
+  showManualPanel();
 }
 
 document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
 // *** NEU: btnYes click handler (mit bulk-delete) ***
 document.getElementById('btnYes').addEventListener('click',async()=>{
-    const { id, ids, type, parentId } = pendingDelete;
+    const { id, ids, type, parentId, fromDock } = pendingDelete;
     document.getElementById('confirmDlg').close();
     
     showLoader();
@@ -2095,7 +2582,7 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             if (!ids || ids.length === 0) return;
             hideLoader(); // Hide small loader, show batch progress
             showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
-            
+
             const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2112,6 +2599,10 @@ document.getElementById('btnYes').addEventListener('click',async()=>{
             showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
             await loadHistory(); // Lade alle Daten neu
             renderHistory();
+            if (fromDock) {
+              dockSelection.clear();
+              updateDockSelectionUi();
+            }
             // *** ENDE NEUE LOGIK ***
 
         } else if (type === 'transaction') {
