@@ -10944,22 +10944,10 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
+        "key": "Carla Detthlefsen",
+        "name": "Carla Detthlefsen",
         "pct": 100,
         "money": 300000
-      },
-      {
-        "key": "Christopher van den Hövel",
-        "name": "Christopher van den Hövel",
-        "pct": 0,
-        "money": 0
-      },
-      {
-        "key": "Jens Maaßen",
-        "name": "Jens Maaßen",
-        "pct": 0,
-        "money": 0
       }
     ],
     "updatedAt": 1762786741394,
@@ -10981,23 +10969,9 @@
     "complete": true,
     "rows": [
       {
-        "personId": "p_oe_head_02",
-        "name": "Merlin Klein",
+        "personId": "p_oe_skv_07",
+        "name": "Carla Detthlefsen",
         "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_oe_komm_03",
-        "name": "Christopher van den Hövel",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "personId": "p_pi_head_01",
-        "name": "Jens Maaßen",
-        "cs": 0,
         "konzept": 0,
         "pitch": 0
       }
@@ -11022,7 +10996,7 @@
       }
     ],
     "freigabedatum": 1762732800000,
-    "ts": 1762786776435,
-    "modified": 1762786796502
+    "ts": 1762787184010,
+    "modified": 1762787184714
   }
 ]
