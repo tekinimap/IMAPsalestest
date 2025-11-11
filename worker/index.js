@@ -959,7 +959,8 @@ async function readLogEntriesViaRest(env, rootDir, dates) {
   return entries;
 }
 
-async function readLogEntriesViaGraphql(env, rootDir, dates) {
+async function readLogEntriesViaGraphql(env, rootDir, dates, options = {}) {
+  const { totalBudget = LOG_SUBREQUEST_BUDGET, reserve = LOG_SUBREQUEST_RESERVE } = options;
   const repo = parseGitHubRepo(env.GH_REPO);
   if (!repo) {
     throw new Error('GH_REPO must be in "owner/name" format for GraphQL log fetch');
@@ -974,7 +975,11 @@ async function readLogEntriesViaGraphql(env, rootDir, dates) {
     grouped.get(monthKey).add(day);
   }
 
+  const monthCount = grouped.size;
+  let fallbackBudget = Math.max(0, Math.trunc(totalBudget) - monthCount - Math.max(0, Math.trunc(reserve)));
   const entries = [];
+  const satisfiedDays = new Set();
+  const fallbackQueue = [];
   for (const [monthKey, daySet] of grouped) {
     const directory = [rootDir, monthKey].filter(Boolean).join('/');
     const expression = `${branch}:${directory}`;
@@ -1005,22 +1010,49 @@ async function readLogEntriesViaGraphql(env, rootDir, dates) {
       const path = `${directory}/${entry.name}`;
       if (blob && blob.isBinary === false && typeof blob.text === 'string') {
         parseLogLinesInto(entries, blob.text, path);
+        satisfiedDays.add(fullDay);
         continue;
       }
       // Fallback für große Dateien oder fehlende Inhalte.
-      try {
-        const file = await ghGetContent(env, path);
-        parseLogLinesInto(entries, file?.content || '', path);
-      } catch (err) {
-        const msg = String(err || '');
-        if (!msg.includes('404')) {
-          console.error(`Error reading log file ${path}:`, err);
-        }
-      }
+      fallbackQueue.push({ path, day: fullDay });
     }
   }
 
-  return entries;
+  let limited = false;
+  if (fallbackQueue.length) {
+    fallbackQueue.sort((a, b) => a.day.localeCompare(b.day));
+    let toFetch = fallbackQueue;
+    if (fallbackBudget < fallbackQueue.length) {
+      const safeBudget = Math.max(0, fallbackBudget);
+      const skipCount = fallbackQueue.length - safeBudget;
+      if (skipCount > 0) {
+        limited = true;
+        toFetch = safeBudget > 0 ? fallbackQueue.slice(-safeBudget) : [];
+        console.warn(`GraphQL fallback limited to ${toFetch.length} files due to subrequest budget (${skipCount} skipped).`);
+      }
+    }
+
+    for (const item of toFetch) {
+      if (fallbackBudget <= 0) break;
+      fallbackBudget -= 1;
+      try {
+        const file = await ghGetContent(env, item.path);
+        parseLogLinesInto(entries, file?.content || '', item.path);
+        satisfiedDays.add(item.day);
+      } catch (err) {
+        const msg = String(err || '');
+        if (!msg.includes('404')) {
+          console.error(`Error reading log file ${item.path}:`, err);
+        }
+      }
+    }
+
+    if (fallbackBudget <= 0 && satisfiedDays.size < dates.length) {
+      limited = true;
+    }
+  }
+
+  return { entries, limited };
 }
 async function appendFile(env, path, text, message) { let tries = 0; const maxTries = 3; while (true) { tries++; const cur = await ghGetContent(env, path); const next = (cur.content || "") + text; try { const r = await ghPutContent(env, path, next, cur.sha, message); return { sha: r.content?.sha, path: r.content?.path }; } catch (e) { const s = String(e || ""); if (s.includes("sha") && tries < maxTries) { await new Promise(r=>setTimeout(r, 300*tries)); continue; } throw e; } } }
 
@@ -1049,6 +1081,8 @@ async function logJSONL(env, events){
 }
 
 const MAX_FALLBACK_LOG_DAYS = 45;
+const LOG_SUBREQUEST_BUDGET = 47;
+const LOG_SUBREQUEST_RESERVE = 3;
 
 async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
@@ -1058,8 +1092,11 @@ async function readLogEntries(env, rootDir, from, to){
   }
 
   try {
-    const entries = await readLogEntriesViaGraphql(env, trimmedRoot, dates);
-    return { entries, limited: false };
+    const graphqlResult = await readLogEntriesViaGraphql(env, trimmedRoot, dates, {
+      totalBudget: LOG_SUBREQUEST_BUDGET,
+      reserve: LOG_SUBREQUEST_RESERVE,
+    });
+    return graphqlResult;
   } catch (err) {
     console.error('GraphQL log fetch failed, falling back to REST:', err);
   }
