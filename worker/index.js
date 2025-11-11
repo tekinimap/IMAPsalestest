@@ -1718,73 +1718,6 @@ export default {
             return respond(ensureKvStructure({ ...found }), 200, env);
         }
 
-        if (pathname.startsWith("/entries/") && pathname.endsWith("/comments") && request.method === "POST") {
-            const parts = pathname.split('/').filter(Boolean);
-            if (parts.length < 3) {
-                return respond({ error: "invalid_path" }, 400, env);
-            }
-            const id = decodeURIComponent(parts[1]);
-            const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
-            let payload;
-            try { payload = await request.json(); } catch { return respond({ error: "invalid_json" }, 400, env); }
-            const authorRaw = typeof payload?.author === 'string' ? payload.author.trim() : '';
-            const textRaw = typeof payload?.text === 'string' ? payload.text.trim() : '';
-            const resolvedAuthor = identity.person?.name || identity.name || identity.email;
-            if (!authorRaw && !resolvedAuthor) {
-                return respond({ error: "author_required" }, 400, env);
-            }
-            if (!textRaw) {
-                return respond({ error: "text_required" }, 400, env);
-            }
-            const timestamp = Date.now();
-            const commentId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-                ? crypto.randomUUID()
-                : `comment_${timestamp}_${Math.random().toString(16).slice(2)}`;
-            const finalAuthor = resolvedAuthor || authorRaw;
-            const newComment = {
-                id: commentId,
-                author: finalAuthor,
-                text: textRaw,
-                createdAt: timestamp,
-            };
-            if (identity.email) {
-                newComment.authorEmail = identity.email.toLowerCase();
-            }
-            if (identity.person && identity.person.id) {
-                newComment.personId = identity.person.id;
-            }
-
-            for (let attempt = 0; attempt < 3; attempt += 1) {
-                const cur = await ghGetFile(env, ghPath, branch);
-                const idx = cur.items.findIndex(x => String(x.id) === id);
-                if (idx < 0) {
-                    return respond({ error: "not_found" }, 404, env);
-                }
-                const before = cur.items[idx];
-                const existingComments = Array.isArray(before.comments)
-                    ? before.comments.filter(c => c && typeof c === 'object')
-                    : [];
-                const updatedEntry = {
-                    ...before,
-                    comments: [...existingComments, newComment],
-                    modified: Date.now(),
-                };
-                ensureDockMetadata(updatedEntry);
-                cur.items[idx] = updatedEntry;
-                try {
-                    await saveEntries(cur.items, cur.sha, `append comment: ${id}`);
-                    return respond(ensureKvStructure(updatedEntry), 200, env);
-                } catch (e) {
-                    if (String(e).includes('sha') || String(e).includes('conflict')) {
-                        await new Promise(res => setTimeout(res, 400 * (attempt + 1)));
-                        continue;
-                    }
-                    throw e;
-                }
-            }
-            return respond({ error: "conflict" }, 409, env);
-        }
-
         /* ===== Entries POST (Single Create/Upsert) ===== */
         if (pathname === "/entries" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON body" }, 400, env); }
@@ -1859,7 +1792,7 @@ export default {
         }
 
         /* ===== Entries PUT (Single Update) ===== */
-        if (pathname.startsWith("/entries/") && request.method === "PUT" && !pathname.endsWith("/comments")) {
+        if (pathname.startsWith("/entries/") && request.method === "PUT") {
             const id = decodeURIComponent(pathname.split("/").pop());
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const cur = await ghGetFile(env, ghPath, branch);
