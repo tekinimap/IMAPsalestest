@@ -1711,6 +1711,64 @@ export default {
             return jsonResponse(ensureKvStructure({ ...found }), 200, env);
         }
 
+        if (url.pathname.startsWith("/entries/") && url.pathname.endsWith("/comments") && request.method === "POST") {
+            const parts = url.pathname.split('/').filter(Boolean);
+            if (parts.length < 3) {
+                return jsonResponse({ error: "invalid_path" }, 400, env);
+            }
+            const id = decodeURIComponent(parts[1]);
+            let payload;
+            try { payload = await request.json(); } catch { return jsonResponse({ error: "invalid_json" }, 400, env); }
+            const authorRaw = typeof payload?.author === 'string' ? payload.author.trim() : '';
+            const textRaw = typeof payload?.text === 'string' ? payload.text.trim() : '';
+            if (!authorRaw) {
+                return jsonResponse({ error: "author_required" }, 400, env);
+            }
+            if (!textRaw) {
+                return jsonResponse({ error: "text_required" }, 400, env);
+            }
+            const timestamp = Date.now();
+            const commentId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : `comment_${timestamp}_${Math.random().toString(16).slice(2)}`;
+            const newComment = {
+                id: commentId,
+                author: authorRaw,
+                text: textRaw,
+                createdAt: timestamp,
+            };
+
+            for (let attempt = 0; attempt < 3; attempt += 1) {
+                const cur = await ghGetFile(env, ghPath, branch);
+                const idx = cur.items.findIndex(x => String(x.id) === id);
+                if (idx < 0) {
+                    return jsonResponse({ error: "not_found" }, 404, env);
+                }
+                const before = cur.items[idx];
+                const existingComments = Array.isArray(before.comments)
+                    ? before.comments.filter(c => c && typeof c === 'object')
+                    : [];
+                const updatedEntry = {
+                    ...before,
+                    comments: [...existingComments, newComment],
+                    modified: Date.now(),
+                };
+                ensureDockMetadata(updatedEntry);
+                cur.items[idx] = updatedEntry;
+                try {
+                    await saveEntries(cur.items, cur.sha, `append comment: ${id}`);
+                    return jsonResponse(ensureKvStructure(updatedEntry), 200, env);
+                } catch (e) {
+                    if (String(e).includes('sha') || String(e).includes('conflict')) {
+                        await new Promise(res => setTimeout(res, 400 * (attempt + 1)));
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+            return jsonResponse({ error: "conflict" }, 409, env);
+        }
+
         /* ===== Entries POST (Single Create/Upsert) ===== */
         if (url.pathname === "/entries" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON body" }, 400, env); }

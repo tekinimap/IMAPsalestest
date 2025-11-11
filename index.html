@@ -142,9 +142,40 @@
   #btnDockBatchDelete{background:#ef4444;border-color:transparent;}
   #btnDockBatchDelete:disabled{opacity:.45;cursor:not-allowed;}
   #btnDockBatchDelete:not(:disabled):hover{filter:brightness(1.05);}
-  #dockEntryDialog{border:1px solid rgba(59,130,246,.35);background:rgba(11,18,30,.98);color:var(--text);border-radius:14px;padding:0;max-width:900px;width:92vw;}
+  #dockEntryDialog{border:1px solid rgba(59,130,246,.35);background:rgba(11,18,30,.98);color:var(--text);border-radius:14px;padding:0;max-width:1100px;width:96vw;}
   #dockEntryDialog::backdrop{background:rgba(8,15,25,.65);backdrop-filter:blur(4px);}
-  #dockManualPanel{max-height:80vh;overflow-y:auto;}
+  .dock-modal-layout{display:flex;gap:0;max-height:80vh;}
+  #dockManualPanel{flex:1 1 auto;max-height:80vh;overflow-y:auto;}
+  .dock-comments-panel{flex:0 0 300px;display:flex;flex-direction:column;gap:12px;background:var(--panel2);border-left:1px solid var(--border);padding:18px 18px 20px;overflow:hidden;}
+  .dock-comments-header h3{margin:0;font-size:15px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(148,163,184,.9);}
+  .dock-comments-entry{margin:4px 0 0;font-size:12px;color:var(--muted);line-height:1.4;}
+  .dock-comments-list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;}
+  .dock-comment-item{background:#0b1324;border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+  .dock-comment-item:nth-child(odd){background:#0d162a;}
+  .dock-comment-meta{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;line-height:1.3;}
+  .dock-comment-text{margin:0;font-size:13px;line-height:1.5;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+  .dock-comments-empty{font-size:12px;color:var(--muted);margin:0;}
+  .dock-comment-form{display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+  .dock-comment-form label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:rgba(148,163,184,.8);}
+  .dock-comment-form select,.dock-comment-form textarea{background:#0c1424;border:1px solid rgba(148,163,184,.35);border-radius:10px;color:var(--text);padding:8px 10px;font-size:13px;}
+  .dock-comment-form select{height:32px;min-height:32px;}
+  .dock-comment-form textarea{min-height:90px;resize:vertical;}
+  .dock-comment-form .btn{align-self:flex-end;}
+  .dock-comment-form.is-disabled{opacity:.6;pointer-events:none;}
+  .dock-card-comment-indicator{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--muted);background:rgba(59,130,246,.08);border:1px solid rgba(148,163,184,.25);}
+  .dock-card-comment-indicator.has-comments{color:#bfdbfe;background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.35);}
+  .dock-card-comment-indicator.is-empty{opacity:.7;}
+  .dock-card-comment-indicator svg{width:16px;height:16px;}
+  .dock-card-comment-count{font-variant-numeric:tabular-nums;}
+  @media (max-width:1100px){
+    .dock-comments-panel{flex-basis:260px;}
+  }
+  @media (max-width:980px){
+    .dock-modal-layout{flex-direction:column;max-height:none;}
+    #dockManualPanel{max-height:none;}
+    .dock-comments-panel{flex:1 1 auto;border-left:none;border-top:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);}
+    .dock-comments-list{max-height:240px;}
+  }
 
   @media (max-width:768px){
     .dock-board{grid-template-columns:1fr}
@@ -524,143 +555,160 @@
       </div>
 
       <dialog id="dockEntryDialog">
-        <div id="dockManualPanel" class="dock-manual">
-          <div class="dock-manual-header">
-            <div>
-              <h2>Deal bearbeiten oder anlegen</h2>
-              <p>Nur Sales-Mitarbeitende legen Deals manuell an. Der Standardprozess läuft über HubSpot.</p>
+        <div class="dock-modal-layout">
+          <div id="dockManualPanel" class="dock-manual">
+            <div class="dock-manual-header">
+              <div>
+                <h2>Deal bearbeiten oder anlegen</h2>
+                <p>Nur Sales-Mitarbeitende legen Deals manuell an. Der Standardprozess läuft über HubSpot.</p>
+              </div>
+              <div class="dock-manual-actions">
+                <button class="btn" id="btnCloseManualDeal" type="button">Schließen</button>
+              </div>
             </div>
-            <div class="dock-manual-actions">
-              <button class="btn" id="btnCloseManualDeal" type="button">Schließen</button>
+            <div id="abrufInfo" class="info-box hide"></div>
+            <div class="grid-3">
+              <div>
+                <label for="auftraggeber">Auftraggeber *</label>
+                <input id="auftraggeber" type="text" autocomplete="organization">
+                <div class="field-error" data-validation-for="auftraggeber"></div>
+              </div>
+              <div>
+                <label for="projekttitel">Projekttitel *</label>
+                <input id="projekttitel" type="text">
+                <div class="field-error" data-validation-for="projekttitel"></div>
+              </div>
+              <div>
+                <label for="auftragswert">Auftragswert *</label>
+                <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" id="auftragswertBekannt" checked>
+                  <label for="auftragswertBekannt">Auftragswert bekannt?</label>
+                </div>
+                <div class="field-error" data-validation-for="auftragswert"></div>
+              </div>
+            </div>
+            <div class="grid-3 dock-compact-row">
+              <div>
+                <label for="submittedBy">Einschätzung abgegeben von *</label>
+                <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
+                <div class="field-error" data-validation-for="submittedBy"></div>
+              </div>
+              <div id="projectTypeWrapper" style="grid-column: span 2;">
+                <label>Projekttyp *</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
+                  <label><input type="radio" name="projectType" value="rahmen"> Rahmenvertrag</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="grid-3">
+              <div>
+                <label>Gewicht: Consultative Selling (%)</label>
+                <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
+              </div>
+              <div>
+                <label>Gewicht: Konzepterstellung (%)</label>
+                <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
+              </div>
+              <div>
+                <label>Gewicht: Pitch (%)</label>
+                <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
+              </div>
+            </div>
+            <div class="note mono" id="w_note" style="margin-top:6px">Summe Gewichte: 100 %</div>
+            <div class="field-error" data-validation-for="weights"></div>
+
+            <div class="hr"></div>
+
+            <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
+            <div class="field-error" data-validation-for="rows"></div>
+
+            <datalist id="peopleList"></datalist>
+
+            <div class="table-wrapper">
+              <table>
+                <thead><tr>
+                  <th style="width:25%">Person</th>
+                  <th style="width:15%">Consultative Selling</th>
+                  <th style="width:15%">Konzepterstellung</th>
+                  <th style="width:15%">Pitch</th>
+                  <th style="width:20%">Live-Anteil</th>
+                  <th style="width:10%">Aktion</th>
+                </tr></thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+
+            <div class="sumchips" id="sumchips"></div>
+            <div class="field-error" data-validation-for="categories"></div>
+
+            <div class="hr"></div>
+
+            <div class="form-bottom-actions">
+              <div class="meta-edit-section" id="metaEditSection">
+                <div class="meta-edit-header">
+                  <div class="meta-edit-title">
+                    <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
+                    <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
+                  </div>
+                  <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
+                </div>
+                <div class="meta-edit-summary" id="metaSummary">
+                  <div class="meta-summary-row">
+                    <span class="meta-summary-label">Projektnummer</span>
+                    <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
+                  </div>
+                  <div class="meta-summary-row">
+                    <span class="meta-summary-label">KV-Nummer</span>
+                    <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
+                  </div>
+                  <div class="meta-summary-row">
+                    <span class="meta-summary-label">Abschlussdatum</span>
+                    <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
+                  </div>
+                </div>
+                <div class="meta-edit-fields">
+                  <div class="meta-field">
+                    <label for="projectNumber">Projektnummer</label>
+                    <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
+                    <div class="field-error" data-validation-for="projectNumber"></div>
+                  </div>
+                  <div class="meta-field">
+                    <label for="kvNummer">KV-Nummer</label>
+                    <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
+                    <div class="field-error" data-validation-for="kvNummer"></div>
+                  </div>
+                  <div class="meta-field">
+                    <label for="freigabedatum">Abschlussdatum</label>
+                    <input id="freigabedatum" type="date">
+                    <div class="field-error" data-validation-for="freigabedatum"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-bottom-buttons">
+                <button class="btn primary disabled" id="btnSave">Speichern</button>
+              </div>
             </div>
           </div>
-      <div id="abrufInfo" class="info-box hide"></div>
-      <div class="grid-3">
-        <div>
-          <label for="auftraggeber">Auftraggeber *</label>
-          <input id="auftraggeber" type="text" autocomplete="organization">
-          <div class="field-error" data-validation-for="auftraggeber"></div>
-        </div>
-        <div>
-          <label for="projekttitel">Projekttitel *</label>
-          <input id="projekttitel" type="text">
-          <div class="field-error" data-validation-for="projekttitel"></div>
-        </div>
-        <div>
-          <label for="auftragswert">Auftragswert *</label>
-          <input id="auftragswert" type="text" inputmode="decimal" placeholder="z. B. 120.000,00">
-          <div class="checkbox-wrapper">
-            <input type="checkbox" id="auftragswertBekannt" checked>
-            <label for="auftragswertBekannt">Auftragswert bekannt?</label>
-          </div>
-          <div class="field-error" data-validation-for="auftragswert"></div>
-        </div>
-      </div>
-      <div class="grid-3 dock-compact-row">
-        <div>
-          <label for="submittedBy">Einschätzung abgegeben von *</label>
-          <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
-          <div class="field-error" data-validation-for="submittedBy"></div>
-        </div>
-         <div id="projectTypeWrapper" style="grid-column: span 2;">
-          <label>Projekttyp *</label>
-          <div class="radio-group">
-            <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
-            <label><input type="radio" name="projectType" value="rahmen"> Rahmenvertrag</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="grid-3">
-        <div>
-          <label>Gewicht: Consultative Selling (%)</label>
-          <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
-        </div>
-        <div>
-          <label>Gewicht: Konzepterstellung (%)</label>
-          <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
-        </div>
-        <div>
-          <label>Gewicht: Pitch (%)</label>
-          <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
-        </div>
-      </div>
-      <div class="note mono" id="w_note" style="margin-top:6px">Summe Gewichte: 100 %</div>
-      <div class="field-error" data-validation-for="weights"></div>
-
-      <div class="hr"></div>
-
-      <div class="actions"><span class="tag">Person aus Liste wählen oder frei eintippen · 0–100 je Kategorie</span><button class="btn" id="btnAddRow">+ Zeile</button></div>
-      <div class="field-error" data-validation-for="rows"></div>
-
-      <datalist id="peopleList"></datalist>
-
-      <div class="table-wrapper">
-        <table>
-          <thead><tr>
-            <th style="width:25%">Person</th>
-            <th style="width:15%">Consultative Selling</th>
-            <th style="width:15%">Konzepterstellung</th>
-            <th style="width:15%">Pitch</th>
-            <th style="width:20%">Live-Anteil</th>
-            <th style="width:10%">Aktion</th>
-          </tr></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-
-      <div class="sumchips" id="sumchips"></div>
-      <div class="field-error" data-validation-for="categories"></div>
-
-      <div class="hr"></div>
-
-      <div class="form-bottom-actions">
-        <div class="meta-edit-section" id="metaEditSection">
-          <div class="meta-edit-header">
-            <div class="meta-edit-title">
-              <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
-              <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
+          <aside class="dock-comments-panel" id="dockCommentsPanel">
+            <div class="dock-comments-header">
+              <h3>Kommentare</h3>
+              <p id="dockCommentsEntryTitle" class="dock-comments-entry">Wähle einen Deal aus, um Kommentare zu sehen.</p>
             </div>
-            <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
-          </div>
-          <div class="meta-edit-summary" id="metaSummary">
-            <div class="meta-summary-row">
-              <span class="meta-summary-label">Projektnummer</span>
-              <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
-            </div>
-            <div class="meta-summary-row">
-              <span class="meta-summary-label">KV-Nummer</span>
-              <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
-            </div>
-            <div class="meta-summary-row">
-              <span class="meta-summary-label">Abschlussdatum</span>
-              <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
-            </div>
-          </div>
-          <div class="meta-edit-fields">
-            <div class="meta-field">
-              <label for="projectNumber">Projektnummer</label>
-              <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
-              <div class="field-error" data-validation-for="projectNumber"></div>
-            </div>
-            <div class="meta-field">
-              <label for="kvNummer">KV-Nummer</label>
-              <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
-              <div class="field-error" data-validation-for="kvNummer"></div>
-            </div>
-            <div class="meta-field">
-              <label for="freigabedatum">Abschlussdatum</label>
-              <input id="freigabedatum" type="date">
-              <div class="field-error" data-validation-for="freigabedatum"></div>
-            </div>
-          </div>
-        </div>
-        <div class="form-bottom-buttons">
-          <button class="btn primary disabled" id="btnSave">Speichern</button>
-        </div>
-      </div>
+            <div class="dock-comments-list" id="dockCommentsList"></div>
+            <p class="dock-comments-empty" id="dockCommentsEmpty">Noch keine Kommentare vorhanden.</p>
+            <form class="dock-comment-form" id="dockCommentForm">
+              <label for="dockCommentAuthor">Name</label>
+              <select id="dockCommentAuthor"></select>
+              <label for="dockCommentText">Kommentar</label>
+              <textarea id="dockCommentText" placeholder="Kommentar hinzufügen..."></textarea>
+              <button class="btn primary tight" id="dockCommentSubmit" type="submit">Speichern</button>
+            </form>
+          </aside>
         </div>
       </dialog>
     </div>
