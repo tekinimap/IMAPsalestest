@@ -18,15 +18,41 @@ const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 
 /* ------------------------ Utilities ------------------------ */
 
-const getCorsHeaders = (env, request) => {
-    const configuredOrigin = typeof env.ALLOWED_ORIGIN === 'string' ? env.ALLOWED_ORIGIN.trim() : '';
+export const getCorsHeaders = (env, request) => {
+    const configuredOriginRaw = typeof env?.ALLOWED_ORIGIN === 'string'
+      ? env.ALLOWED_ORIGIN.trim()
+      : '';
+    const configuredOrigin = configuredOriginRaw === '*'
+      ? ''
+      : configuredOriginRaw;
     const requestOrigin = request && typeof request.headers?.get === 'function'
       ? String(request.headers.get('Origin') || '').trim()
       : '';
-    let allowOrigin = configuredOrigin || requestOrigin || '*';
+
+    let allowOrigin = configuredOrigin || requestOrigin;
+
+    if (!allowOrigin && request && typeof request.headers?.get === 'function') {
+        const referer = String(request.headers.get('Referer') || '').trim();
+        if (referer) {
+            try {
+                const refererOrigin = new URL(referer).origin;
+                if (refererOrigin) {
+                    allowOrigin = refererOrigin;
+                }
+            } catch (err) {
+                console.warn('Unable to derive origin from referer for CORS handling:', err);
+            }
+        }
+    }
+
+    if (!allowOrigin) {
+        allowOrigin = '*';
+    }
+
     if (allowOrigin === '*' && requestOrigin) {
         allowOrigin = requestOrigin;
     }
+
     const headers = {
         "Access-Control-Allow-Origin": allowOrigin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -34,9 +60,11 @@ const getCorsHeaders = (env, request) => {
         "Access-Control-Max-Age": "86400",
         "Vary": "Origin",
     };
+
     if (allowOrigin !== "*") {
         headers["Access-Control-Allow-Credentials"] = "true";
     }
+
     return headers;
 };
 
