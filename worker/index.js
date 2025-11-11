@@ -747,7 +747,6 @@ async function logJSONL(env, events){
   }
 }
 
-const MAX_LOG_RANGE_DAYS = 90;
 const MAX_FALLBACK_LOG_DAYS = 45;
 const LOG_SUBREQUEST_BUDGET = 47;
 const LOG_SUBREQUEST_RESERVE = 3;
@@ -756,11 +755,8 @@ async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
   const dates = Array.from(dateRange(from, to));
   if (!dates.length) {
-    return { entries: [], limited: false, rangeLimited: false };
+    return { entries: [], limited: false };
   }
-
-  const normalizedFrom = normalizeDateOnly(from);
-  const rangeLimited = Boolean(normalizedFrom && dates[0] && dates[0] !== normalizedFrom);
 
   let graphqlResult;
   try {
@@ -783,15 +779,11 @@ async function readLogEntries(env, rootDir, from, to){
     }
     const entries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
     const limited = limitedDates.length < desiredDates.length;
-    return { entries, limited: limited || rangeLimited, rangeLimited };
+    return { entries, limited };
   }
 
   if (missingDates.length === 0) {
-    return {
-      entries: graphqlResult.entries,
-      limited: Boolean(graphqlResult.limited) || rangeLimited,
-      rangeLimited,
-    };
+    return { entries: graphqlResult.entries, limited: Boolean(graphqlResult.limited) };
   }
 
   const limitedDates = missingDates.slice(-MAX_FALLBACK_LOG_DAYS);
@@ -803,7 +795,7 @@ async function readLogEntries(env, rootDir, from, to){
     ? [...graphqlResult.entries, ...restEntries]
     : restEntries;
   const limited = Boolean(graphqlResult.limited) || limitedDates.length < missingDates.length;
-  return { entries: combinedEntries, limited: limited || rangeLimited, rangeLimited };
+  return { entries: combinedEntries, limited };
 }
 
 /* ------------------------ HubSpot ------------------------ */
@@ -2271,17 +2263,13 @@ export default {
           teamMap.set(name, teamName);
         }
         const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
-        if (logResult.limited || logResult.rangeLimited) {
-          metrics.meta = {
-            ...(metrics.meta || {}),
-            rangeLimited: true,
-            maxDays: MAX_LOG_RANGE_DAYS,
-          };
+        if (logResult.limited) {
+          metrics.meta = { ...(metrics.meta || {}), rangeLimited: true };
         }
         const headers = { ...(
           pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : {}
         ) };
-        if (logResult.limited || logResult.rangeLimited) {
+        if (logResult.limited) {
           headers['X-Log-Range-Limited'] = 'true';
         }
         return respond(metrics, 200, env, headers);
@@ -2404,22 +2392,13 @@ export default {
 }; // Ende export default
 
 // Hilfsfunktion dateRange
-function normalizeDateOnly(input) {
-  if (!input) return '';
-  const parsed = new Date(`${input}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) {
-    return '';
-  }
-  return parsed.toISOString().slice(0, 10);
-}
-
 function* dateRange(from, to){
   const d1 = to   ? new Date(to  +'T00:00:00Z') : new Date();
   const d0 = from ? new Date(from+'T00:00:00Z') : new Date(d1.getTime()-13*24*3600*1000);
   if (d0 > d1) return;
-  const maxRangeMs = MAX_LOG_RANGE_DAYS * 24 * 3600 * 1000;
-  if (d1.getTime() - d0.getTime() > maxRangeMs) {
-      const limitedStart = new Date(d1.getTime() - (maxRangeMs - 24*3600*1000) );
+  const maxRange = 90 * 24 * 3600 * 1000;
+  if (d1.getTime() - d0.getTime() > maxRange) {
+      const limitedStart = new Date(d1.getTime() - (maxRange - 24*3600*1000) );
        for(let d=new Date(limitedStart); d<=d1; d=new Date(d.getTime()+24*3600*1000)){
          yield d.toISOString().slice(0,10);
        }
