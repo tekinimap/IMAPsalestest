@@ -210,24 +210,10 @@ const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
 if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
   btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
 }
-const dockAssignAbrufDlg = document.getElementById('dockAssignAbrufDlg');
-const dockAssignAbrufSelect = document.getElementById('dockAssignAbrufSelect');
-const dockAssignAbrufSearch = document.getElementById('dockAssignAbrufSearch');
-const dockAssignAbrufConfirm = document.getElementById('dockAssignAbrufConfirm');
-const dockAssignAbrufCancel = document.getElementById('dockAssignAbrufCancel');
-const dockAssignAbrufValidation = document.getElementById('dockAssignAbrufValidation');
-const dockAssignAbrufPreview = document.getElementById('dockAssignAbrufPreview');
-const dockAssignAbrufDealInfo = document.getElementById('dockAssignAbrufDealInfo');
-const dockAssignAbrufHint = document.getElementById('dockAssignAbrufHint');
-if (dockAssignAbrufHint && !dockAssignAbrufHint.dataset.defaultText) {
-  dockAssignAbrufHint.dataset.defaultText = dockAssignAbrufHint.textContent || '';
-}
 
 let people = [];
 let currentCommentEntryId = null;
 let isCommentSubmitPending = false;
-let pendingDockAbrufAssignment = null;
-let dockAssignAbrufOptions = [];
 
 function getEntryComments(entry) {
   if (!entry || typeof entry !== 'object') return [];
@@ -974,188 +960,8 @@ function findDockKvConflict(kvValue, excludeId) {
   });
 }
 
-function listFrameworkEntries() {
-  const allEntries = Array.isArray(window.entries) ? window.entries : [];
-  return allEntries.filter((item) => item && (item.projectType || 'fix') === 'rahmen');
-}
-
-function sumFrameworkTransactions(framework) {
-  if (!framework || !Array.isArray(framework.transactions)) return 0;
-  return framework.transactions.reduce((sum, transaction) => sum + (Number(transaction?.amount) || 0), 0);
-}
-
-function frameworkMatchesQuery(framework, query) {
-  if (!query) return true;
-  const needle = query.toLowerCase();
-  if (!needle) return true;
-  const values = [framework.title, framework.client, framework.projectNumber];
-  if (Array.isArray(framework.list)) {
-    framework.list.forEach((person) => values.push(person?.name));
-  }
-  if (Array.isArray(framework.transactions)) {
-    framework.transactions.forEach((transaction) => {
-      values.push(transaction?.title, transaction?.kv_nummer, transaction?.kv);
-    });
-  }
-  return values.some((value) => normalizeDockString(value).toLowerCase().includes(needle));
-}
-
-function updateDockAbrufPreview() {
-  if (!dockAssignAbrufPreview) return;
-  if (!pendingDockAbrufAssignment) {
-    dockAssignAbrufPreview.textContent = '';
-    return;
-  }
-  const selectedId = dockAssignAbrufSelect ? dockAssignAbrufSelect.value : '';
-  if (!selectedId) {
-    dockAssignAbrufPreview.textContent = 'Bitte einen Rahmenvertrag auswählen.';
-    return;
-  }
-  const framework = dockAssignAbrufOptions.find((item) => item.id === selectedId);
-  if (!framework) {
-    dockAssignAbrufPreview.textContent = 'Rahmenvertrag konnte nicht geladen werden.';
-    return;
-  }
-  const total = sumFrameworkTransactions(framework);
-  const abrufCount = Array.isArray(framework.transactions) ? framework.transactions.length : 0;
-  const projectNumberText = normalizeDockString(framework.projectNumber)
-    ? `Projektnummer ${framework.projectNumber}`
-    : 'keine Projektnummer hinterlegt';
-  dockAssignAbrufPreview.textContent = `${framework.title || 'Ohne Titel'} · ${framework.client || 'Ohne Auftraggeber'} (${projectNumberText}). Abrufe: ${abrufCount}, Gesamtvolumen: ${fmtCurr0.format(total)}.`;
-}
-
-function renderDockAbrufOptions(preferredId) {
-  if (!pendingDockAbrufAssignment || !dockAssignAbrufSelect) return;
-  const entry = pendingDockAbrufAssignment.entry;
-  if (!entry) return;
-  const frameworks = listFrameworkEntries();
-  const query = normalizeDockString(dockAssignAbrufSearch ? dockAssignAbrufSearch.value : '').toLowerCase();
-  const normalizedProject = normalizeDockString(entry.projectNumber).toLowerCase();
-  const requestedId = preferredId || pendingDockAbrufAssignment.preferredFrameworkId || entry.dockAssignedFrameworkId || '';
-
-  const filtered = frameworks.filter((framework) => frameworkMatchesQuery(framework, query));
-  filtered.sort((a, b) => {
-    const aSameProject = normalizedProject && normalizeDockString(a.projectNumber).toLowerCase() === normalizedProject ? 1 : 0;
-    const bSameProject = normalizedProject && normalizeDockString(b.projectNumber).toLowerCase() === normalizedProject ? 1 : 0;
-    if (aSameProject !== bSameProject) return bSameProject - aSameProject;
-    const aUpdated = Number(a.modified || a.updatedAt || a.ts || 0);
-    const bUpdated = Number(b.modified || b.updatedAt || b.ts || 0);
-    return bUpdated - aUpdated;
-  });
-
-  dockAssignAbrufOptions = filtered;
-  dockAssignAbrufSelect.innerHTML = '';
-  filtered.forEach((framework) => {
-    const option = document.createElement('option');
-    option.value = framework.id;
-    const projectNumberText = normalizeDockString(framework.projectNumber)
-      ? `PN ${framework.projectNumber}`
-      : 'ohne PN';
-    const total = sumFrameworkTransactions(framework);
-    const abrufCount = Array.isArray(framework.transactions) ? framework.transactions.length : 0;
-    option.textContent = `${framework.title || 'Ohne Titel'} · ${framework.client || 'Ohne Auftraggeber'} · ${projectNumberText} · Abrufe: ${abrufCount} · Gesamt: ${fmtCurr0.format(total)}`;
-    dockAssignAbrufSelect.appendChild(option);
-  });
-
-  let selectionId = '';
-  if (requestedId && filtered.some((item) => item.id === requestedId)) {
-    selectionId = requestedId;
-  } else if (normalizedProject) {
-    const projectMatch = filtered.find((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedProject);
-    if (projectMatch) selectionId = projectMatch.id;
-  }
-  if (!selectionId && filtered.length === 1) {
-    selectionId = filtered[0].id;
-  }
-  if (selectionId) {
-    dockAssignAbrufSelect.value = selectionId;
-  } else if (filtered.length > 0) {
-    dockAssignAbrufSelect.selectedIndex = 0;
-  }
-
-  if (dockAssignAbrufValidation) {
-    dockAssignAbrufValidation.textContent = filtered.length
-      ? ''
-      : 'Keine Rahmenverträge gefunden. Entferne den Suchbegriff oder lege einen neuen Rahmenvertrag an.';
-  }
-  if (dockAssignAbrufConfirm) {
-    dockAssignAbrufConfirm.disabled = filtered.length === 0;
-  }
-  if (dockAssignAbrufHint) {
-    if (!frameworks.length) {
-      dockAssignAbrufHint.textContent = 'Es existieren noch keine Rahmenverträge. Nutze „Neuer Rahmenvertrag“, um den Deal umzuwandeln.';
-    } else if (!filtered.length) {
-      dockAssignAbrufHint.textContent = 'Kein Treffer für deine Suche. Passe den Suchbegriff an oder nutze „Neuer Rahmenvertrag“.';
-    } else if (normalizedProject && filtered.some((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedProject)) {
-      dockAssignAbrufHint.textContent = 'Rahmenverträge mit identischer Projektnummer stehen oben in der Liste.';
-    } else {
-      dockAssignAbrufHint.textContent = 'Wähle den passenden Rahmenvertrag aus der Liste.';
-    }
-  }
-
-  updateDockAbrufPreview();
-}
-
-function resetDockAbrufDialog() {
-  pendingDockAbrufAssignment = null;
-  dockAssignAbrufOptions = [];
-  if (dockAssignAbrufValidation) dockAssignAbrufValidation.textContent = '';
-  if (dockAssignAbrufPreview) dockAssignAbrufPreview.textContent = '';
-  if (dockAssignAbrufDealInfo) dockAssignAbrufDealInfo.textContent = '';
-  if (dockAssignAbrufSearch) dockAssignAbrufSearch.value = '';
-  if (dockAssignAbrufConfirm) dockAssignAbrufConfirm.disabled = false;
-  if (dockAssignAbrufHint && dockAssignAbrufHint.dataset.defaultText != null) {
-    dockAssignAbrufHint.textContent = dockAssignAbrufHint.dataset.defaultText;
-  }
-}
-
-function startDockAbrufAssignment(entry, runUpdate, options = {}) {
-  if (!entry || typeof entry !== 'object') return false;
-  if (typeof runUpdate !== 'function') return false;
-  if (!dockAssignAbrufDlg || !dockAssignAbrufSelect || typeof dockAssignAbrufDlg.showModal !== 'function') {
-    return false;
-  }
-
-  pendingDockAbrufAssignment = {
-    entry,
-    runUpdate,
-    preferredFrameworkId: options.preferredFrameworkId || '',
-  };
-
-  if (dockAssignAbrufValidation) {
-    dockAssignAbrufValidation.textContent = '';
-  }
-  if (dockAssignAbrufSearch) {
-    const preset = options.searchPreset != null ? options.searchPreset : normalizeDockString(entry.projectNumber);
-    dockAssignAbrufSearch.value = preset || '';
-  }
-  if (dockAssignAbrufDealInfo) {
-    const kvList = getEntryKvList(entry);
-    const kvText = kvList.length ? kvList.join(', ') : 'keine KV-Nummern';
-    const projectNumberText = normalizeDockString(entry.projectNumber)
-      ? `Projektnummer ${entry.projectNumber}`
-      : 'keine Projektnummer';
-    dockAssignAbrufDealInfo.textContent = `Deal: ${entry.title || 'Ohne Titel'} · ${entry.client || 'Ohne Auftraggeber'} (${projectNumberText}, KV: ${kvText})`;
-  }
-
-  renderDockAbrufOptions();
-  try {
-    dockAssignAbrufDlg.showModal();
-  } catch (err) {
-    console.error('Abruf-Dialog konnte nicht geöffnet werden.', err);
-    resetDockAbrufDialog();
-    return false;
-  }
-  if (dockAssignAbrufSelect) {
-    dockAssignAbrufSelect.focus();
-  }
-  return true;
-}
-
-function openFrameworkAssignmentPrompt(entry, framework, options = {}) {
+function openFrameworkAssignmentPrompt(entry, framework) {
   if (!framework) return;
-  const started = startDockAbrufAssignment(entry, options.runUpdate, { preferredFrameworkId: framework.id });
-  if (started) return;
   renderFrameworkContracts();
   renderRahmenDetails(framework.id);
   showView('rahmenDetails');
@@ -1441,22 +1247,6 @@ function handleDockBoardClick(event) {
   const entry = findEntryById(id);
   if (!entry) return;
 
-  const runUpdate = async (targetPhase, extra, message) => {
-    try {
-      button.disabled = true;
-      button.classList.add('disabled');
-      showLoader();
-      await updateDockPhase(entry, targetPhase, extra, message);
-      return true;
-    } catch (err) {
-      console.error('Dock-Update fehlgeschlagen', err);
-      showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
-      return false;
-    } finally {
-      hideLoader();
-    }
-  };
-
   if (action === 'hint-merge') {
     const hint = dockConflictHints.get(id);
     if (hint?.mergeIds?.length >= 2) {
@@ -1474,7 +1264,7 @@ function handleDockBoardClick(event) {
     if (hint?.frameworkId) {
       const framework = findEntryById(hint.frameworkId);
       if (framework) {
-        openFrameworkAssignmentPrompt(entry, framework, { runUpdate });
+        openFrameworkAssignmentPrompt(entry, framework);
       } else {
         showToast('Rahmenvertrag konnte nicht geladen werden. Bitte Ansicht aktualisieren.', 'warn');
       }
@@ -1495,6 +1285,20 @@ function handleDockBoardClick(event) {
     return;
   }
 
+  const runUpdate = async (targetPhase, extra, message) => {
+    try {
+      button.disabled = true;
+      button.classList.add('disabled');
+      showLoader();
+      await updateDockPhase(entry, targetPhase, extra, message);
+    } catch (err) {
+      console.error('Dock-Update fehlgeschlagen', err);
+      showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
+    } finally {
+      hideLoader();
+    }
+  };
+
   if (action === 'bu-approve') {
     if (!confirm('BU-Freigabe bestätigen?')) return;
     runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
@@ -1503,28 +1307,12 @@ function handleDockBoardClick(event) {
     if (!target) return;
     const label = DOCK_ASSIGNMENT_LABELS[target] || target;
     if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
-    if (target === 'abruf') {
-      const started = startDockAbrufAssignment(entry, runUpdate);
-      if (!started) {
-        const fallbackPayload = {
-          dockFinalAssignment: target,
-          dockFinalAssignmentAt: Date.now(),
-          dockAssignedFrameworkId: '',
-          dockAssignedFrameworkTitle: '',
-        };
-        queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-        runUpdate(3, fallbackPayload, 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.');
-      }
-      return;
-    }
     const message = target === 'rahmen'
       ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
       : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
     const payload = {
       dockFinalAssignment: target,
       dockFinalAssignmentAt: Date.now(),
-      dockAssignedFrameworkId: '',
-      dockAssignedFrameworkTitle: '',
     };
     if (target === 'rahmen') {
       payload.projectType = 'rahmen';
@@ -1548,90 +1336,6 @@ if (dockBoardEl) {
       dockSelection.delete(id);
     }
     updateDockSelectionUi();
-  });
-}
-
-if (dockAssignAbrufSearch) {
-  dockAssignAbrufSearch.addEventListener('input', () => {
-    if (dockAssignAbrufValidation) {
-      dockAssignAbrufValidation.textContent = '';
-    }
-    renderDockAbrufOptions();
-  });
-}
-
-if (dockAssignAbrufSelect) {
-  dockAssignAbrufSelect.addEventListener('change', () => {
-    if (dockAssignAbrufValidation) {
-      dockAssignAbrufValidation.textContent = '';
-    }
-    updateDockAbrufPreview();
-  });
-}
-
-if (dockAssignAbrufConfirm) {
-  dockAssignAbrufConfirm.addEventListener('click', async () => {
-    if (!pendingDockAbrufAssignment) {
-      dockAssignAbrufDlg?.close?.();
-      return;
-    }
-    const selectedId = dockAssignAbrufSelect ? dockAssignAbrufSelect.value : '';
-    if (!selectedId) {
-      if (dockAssignAbrufValidation) {
-        dockAssignAbrufValidation.textContent = 'Bitte einen Rahmenvertrag auswählen.';
-      }
-      return;
-    }
-    const framework = dockAssignAbrufOptions.find((item) => item.id === selectedId)
-      || listFrameworkEntries().find((item) => item.id === selectedId);
-    if (!framework) {
-      if (dockAssignAbrufValidation) {
-        dockAssignAbrufValidation.textContent = 'Rahmenvertrag konnte nicht geladen werden. Bitte aktualisieren.';
-      }
-      return;
-    }
-    const { entry, runUpdate } = pendingDockAbrufAssignment;
-    const payload = {
-      dockFinalAssignment: 'abruf',
-      dockFinalAssignmentAt: Date.now(),
-      dockAssignedFrameworkId: framework.id,
-      dockAssignedFrameworkTitle: framework.title || '',
-    };
-    dockAssignAbrufConfirm.disabled = true;
-    queueDockAutoCheck(entry.id, {
-      entry,
-      projectNumber: entry.projectNumber || '',
-      finalAssignment: 'abruf',
-      frameworkId: framework.id,
-    });
-    const message = `Abruf zugeordnet. Der Deal wurde dem Rahmenvertrag „${framework.title || 'Ohne Titel'}“ zugewiesen und verschwindet aus dem Dock.`;
-    const success = await runUpdate(3, payload, message);
-    dockAssignAbrufConfirm.disabled = false;
-    if (success) {
-      dockAssignAbrufDlg?.close?.('saved');
-    } else if (dockAssignAbrufValidation) {
-      dockAssignAbrufValidation.textContent = 'Speichern fehlgeschlagen. Bitte erneut versuchen.';
-    }
-  });
-}
-
-if (dockAssignAbrufCancel) {
-  dockAssignAbrufCancel.addEventListener('click', () => {
-    dockAssignAbrufDlg?.close?.('cancel');
-  });
-}
-
-if (dockAssignAbrufDlg) {
-  dockAssignAbrufDlg.addEventListener('cancel', (event) => {
-    event.preventDefault();
-    if (typeof dockAssignAbrufDlg.close === 'function') {
-      dockAssignAbrufDlg.close('cancel');
-      return;
-    }
-    resetDockAbrufDialog();
-  });
-  dockAssignAbrufDlg.addEventListener('close', () => {
-    resetDockAbrufDialog();
   });
 }
 
