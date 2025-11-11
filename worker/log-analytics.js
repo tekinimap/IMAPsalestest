@@ -2,6 +2,6 @@ export {
   computeLogMetrics,
   extractPersonAmounts,
   computeEntryTotal,
-  __sumPersonAmountsForTeam,
-  __round2,
-} from './index.js';
+  sumPersonAmountsForTeam,
+  round2,
+} from './log-analytics-core.js';
