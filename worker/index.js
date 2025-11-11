@@ -6,6 +6,12 @@
 
 
 import { suggestEmailForName } from '../public/shared/email-suggestions.js';
+import {
+  toEpochMillis,
+  extractFreigabedatumFromEntry,
+  resolveFreigabedatum,
+  computeLogMetrics,
+} from './log-analytics-core.js';
 
 const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
@@ -358,31 +364,6 @@ function logCalloffDealEvent(logs, entry, transaction, kv, reason, status, extra
   });
 }
 
-function toEpochMillis(value){
-  if (value == null) return null;
-  if (value instanceof Date){
-    const time = value.getTime();
-    return Number.isFinite(time) ? time : null;
-  }
-  if (typeof value === 'number'){
-    return Number.isFinite(value) ? value : null;
-  }
-  if (typeof value === 'string'){
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    const numeric = Number(trimmed);
-    if (Number.isFinite(numeric)) return numeric;
-    const parsed = Date.parse(trimmed);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
-
-function extractFreigabedatumFromEntry(entry){
-  if (!entry || typeof entry !== 'object') return null;
-  const direct = toEpochMillis(entry.freigabedatum ?? entry.freigabeDatum ?? entry.releaseDate ?? entry.freigabe_datum);
-  return direct != null ? direct : null;
-}
 
 function normalizeTransactionKv(transaction) {
   if (!transaction || typeof transaction !== 'object') return "";
@@ -464,33 +445,6 @@ async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
   }
 }
 
-function resolveFreigabedatum(logEntry, fallbackTs){
-  const fallback = Number.isFinite(Number(fallbackTs)) ? Number(fallbackTs) : Date.now();
-  if (!logEntry || typeof logEntry !== 'object'){
-    return fallback;
-  }
-
-  const rootFreigabe = extractFreigabedatumFromEntry(logEntry);
-  if (rootFreigabe != null) return rootFreigabe;
-
-  const transaction = logEntry.transaction;
-  if (transaction && typeof transaction === 'object'){
-    const txDirect = extractFreigabedatumFromEntry(transaction);
-    if (txDirect != null) return txDirect;
-    const txAfter = extractFreigabedatumFromEntry(transaction.after);
-    if (txAfter != null) return txAfter;
-    const txBefore = extractFreigabedatumFromEntry(transaction.before);
-    if (txBefore != null) return txBefore;
-  }
-
-  const afterFreigabe = extractFreigabedatumFromEntry(logEntry.after);
-  if (afterFreigabe != null) return afterFreigabe;
-
-  const beforeFreigabe = extractFreigabedatumFromEntry(logEntry.before);
-  if (beforeFreigabe != null) return beforeFreigabe;
-
-  return fallback;
-}
 function canonicalizeEntries(items){
   return (items || []).map(entry => {
     const clone = { ...entry };
@@ -551,297 +505,6 @@ function mergeContributionLists(entries, totalAmount){
 
 /* ------------------------ Log Analytics ------------------------ */
 
-var __LOG_ANALYTICS__ = ((existing) => {
-  if (existing) {
-    return existing;
-  }
-
-  const LOG_ANALYTICS_EPSILON = 1e-6;
-
-  function normalizeNumber(value) {
-    const num = Number(value);
-    return Number.isFinite(num) ? num : 0;
-  }
-
-  function extractPersonAmounts(entry) {
-    const map = new Map();
-    if (!entry || typeof entry !== 'object') {
-      return map;
-    }
-
-    const list = Array.isArray(entry.list) ? entry.list : [];
-    const baseAmount = normalizeNumber(entry.amount);
-
-    for (const item of list) {
-      if (!item || typeof item !== 'object') continue;
-      const name = (item.name || item.key || '').trim();
-      if (!name) continue;
-
-      const amount = normalizeNumber(item.money ?? item.amount ?? item.value);
-      const pct = normalizeNumber(item.pct);
-
-      if (!Number.isFinite(amount) || Math.abs(amount) < LOG_ANALYTICS_EPSILON) {
-        if (Number.isFinite(pct) && Math.abs(pct) > LOG_ANALYTICS_EPSILON && baseAmount) {
-          map.set(name, (map.get(name) || 0) + (pct / 100) * baseAmount);
-        }
-        continue;
-      }
-
-      map.set(name, (map.get(name) || 0) + amount);
-    }
-
-    if (map.size === 0 && baseAmount) {
-      const submittedBy = (entry.submittedBy || '').trim();
-      if (submittedBy) {
-        map.set(submittedBy, baseAmount);
-      }
-    }
-
-    return map;
-  }
-
-  function computeEntryTotal(entry) {
-    if (!entry || typeof entry !== 'object') {
-      return 0;
-    }
-
-    const byPerson = extractPersonAmounts(entry);
-    if (byPerson.size > 0) {
-      let sum = 0;
-      for (const value of byPerson.values()) {
-        const normalized = normalizeNumber(value);
-        if (Math.abs(normalized) > LOG_ANALYTICS_EPSILON) {
-          sum += normalized;
-        }
-      }
-      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
-        return sum;
-      }
-    }
-
-    if (Array.isArray(entry.transactions) && entry.transactions.length) {
-      let sum = 0;
-      for (const tx of entry.transactions) {
-        const txAmount = normalizeNumber(tx?.amount);
-        if (Math.abs(txAmount) > LOG_ANALYTICS_EPSILON) {
-          sum += txAmount;
-        }
-      }
-      if (Math.abs(sum) > LOG_ANALYTICS_EPSILON) {
-        return sum;
-      }
-    }
-
-    const amount = normalizeNumber(entry.amount);
-    if (Math.abs(amount) > LOG_ANALYTICS_EPSILON) {
-      return amount;
-    }
-
-    return 0;
-  }
-
-  function sumPersonAmountsForTeam(entry, teamName, personTeamMap) {
-    if (!entry || typeof entry !== 'object') {
-      return 0;
-    }
-
-    const team = (teamName || '').trim();
-    const teamsEnabled = team.length > 0;
-    const amounts = extractPersonAmounts(entry);
-
-    if (!teamsEnabled) {
-      let sum = 0;
-      for (const value of amounts.values()) {
-        sum += value;
-      }
-      return sum;
-    }
-
-    if (!(personTeamMap instanceof Map) || personTeamMap.size === 0) {
-      return 0;
-    }
-
-    let total = 0;
-    for (const [person, amount] of amounts.entries()) {
-      const teamForPerson = (personTeamMap.get(person) || '').trim();
-      if (!teamForPerson) continue;
-      if (teamForPerson.toLowerCase() === team.toLowerCase()) {
-        total += amount;
-      }
-    }
-
-    return total;
-  }
-
-  function round2(value) {
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-      return 0;
-    }
-
-    return Math.round((num + Number.EPSILON) * 100) / 100;
-  }
-
-  function createEmptyBucket() {
-    return {
-      amount: 0,
-      count: 0,
-      positiveCount: 0,
-      positiveAmount: 0,
-      negativeCount: 0,
-      negativeAmount: 0,
-      neutralCount: 0,
-    };
-  }
-
-  function applyDelta(bucket, delta) {
-    if (!bucket) return;
-
-    bucket.amount += delta;
-    bucket.count += 1;
-
-    if (delta > LOG_ANALYTICS_EPSILON) {
-      bucket.positiveCount += 1;
-      bucket.positiveAmount += delta;
-    } else if (delta < -LOG_ANALYTICS_EPSILON) {
-      bucket.negativeCount += 1;
-      bucket.negativeAmount += delta;
-    } else {
-      bucket.neutralCount += 1;
-    }
-  }
-
-  function bucketToObject(key, bucket, keyName) {
-    const successDenominator = bucket.count || 0;
-    const successRate = successDenominator > 0 ? bucket.positiveCount / successDenominator : null;
-    return {
-      [keyName]: key,
-      amount: round2(bucket.amount),
-      count: bucket.count,
-      positiveCount: bucket.positiveCount,
-      positiveAmount: round2(bucket.positiveAmount),
-      negativeCount: bucket.negativeCount,
-      negativeAmount: round2(bucket.negativeAmount),
-      neutralCount: bucket.neutralCount,
-      successRate,
-    };
-  }
-
-  function updateBucket(collection, key, delta) {
-    if (!collection || !key) return;
-    const bucket = collection.get(key) || createEmptyBucket();
-    applyDelta(bucket, delta);
-    collection.set(key, bucket);
-  }
-
-  function computeLogMetrics(logEntries = [], options = {}, personTeamMap = new Map()) {
-    const teamFilter = (options.team || '').trim();
-    const filteredLogs = Array.isArray(logEntries)
-      ? logEntries.filter((entry) => entry && typeof entry === 'object' && Number.isFinite(Number(entry.ts)))
-      : [];
-
-    filteredLogs.sort((a, b) => Number(a.ts) - Number(b.ts));
-
-    const totals = createEmptyBucket();
-    let minDate = null;
-    let maxDate = null;
-
-    const monthlyBuckets = new Map();
-    const dailyBuckets = new Map();
-    const eventBuckets = new Map();
-
-    for (const log of filteredLogs) {
-      const ts = Number(log.ts);
-      if (!Number.isFinite(ts)) continue;
-
-      const freigabeTs = resolveFreigabedatum(log, ts);
-      if (!Number.isFinite(freigabeTs)) continue;
-
-      const dateIso = new Date(freigabeTs).toISOString();
-      const day = dateIso.slice(0, 10);
-      const month = dateIso.slice(0, 7);
-
-      if (!minDate || day < minDate) minDate = day;
-      if (!maxDate || day > maxDate) maxDate = day;
-
-      const beforeVal = sumPersonAmountsForTeam(log.before, teamFilter, personTeamMap);
-      const afterVal = sumPersonAmountsForTeam(log.after, teamFilter, personTeamMap);
-      const delta = afterVal - beforeVal;
-
-      updateBucket(monthlyBuckets, month, delta);
-      updateBucket(dailyBuckets, day, delta);
-      updateBucket(eventBuckets, log.event || 'unbekannt', delta);
-      applyDelta(totals, delta);
-    }
-
-    const successDenominator = totals.count || 0;
-    const successRate = successDenominator > 0 ? totals.positiveCount / successDenominator : null;
-
-    const months = Array.from(monthlyBuckets.entries())
-      .map(([key, bucket]) => bucketToObject(key, bucket, 'month'))
-      .sort((a, b) => a.month.localeCompare(b.month));
-
-    const daily = Array.from(dailyBuckets.entries())
-      .map(([key, bucket]) => bucketToObject(key, bucket, 'date'))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    const events = Array.from(eventBuckets.entries())
-      .map(([key, bucket]) => bucketToObject(key, bucket, 'event'))
-      .sort((a, b) => b.count - a.count || a.event.localeCompare(b.event));
-
-    return {
-      period: { from: options.from || minDate, to: options.to || maxDate },
-      filters: { team: teamFilter || null },
-      totals: {
-        count: totals.count,
-        amount: round2(totals.amount),
-        positiveCount: totals.positiveCount,
-        positiveAmount: round2(totals.positiveAmount),
-        negativeCount: totals.negativeCount,
-        negativeAmount: round2(totals.negativeAmount),
-        neutralCount: totals.neutralCount,
-        successRate,
-      },
-      months,
-      daily,
-      events,
-    };
-  }
-
-  const api = {
-    computeLogMetrics,
-    extractPersonAmounts,
-    computeEntryTotal,
-    sumPersonAmountsForTeam,
-    round2,
-  };
-
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__LOG_ANALYTICS__ = api;
-  }
-
-  return api;
-})(typeof globalThis !== 'undefined' && globalThis.__LOG_ANALYTICS__
-  ? globalThis.__LOG_ANALYTICS__
-  : typeof __LOG_ANALYTICS__ !== 'undefined'
-    ? __LOG_ANALYTICS__
-    : undefined);
-
-const {
-  computeLogMetrics: __computeLogMetrics,
-  extractPersonAmounts: __extractPersonAmounts,
-  computeEntryTotal: __computeEntryTotal,
-  sumPersonAmountsForTeam: __sumPersonAmountsForTeam,
-  round2: __round2,
-} = __LOG_ANALYTICS__;
-
-export {
-  __computeLogMetrics as computeLogMetrics,
-  __extractPersonAmounts as extractPersonAmounts,
-  __computeEntryTotal as computeEntryTotal,
-  __sumPersonAmountsForTeam,
-  __round2,
-};
 
 // Hilfsfunktionen
 function toNumberMaybe(v){ if (v==null || v==='') return null; if (typeof v === 'number' && Number.isFinite(v)) return v; if (typeof v === 'string'){ let t = v.trim().replace(/\s/g,''); if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) { t = t.replace(/\./g,'').replace(',', '.'); } else { t = t.replace(/,/g,''); } const n = Number(t); return Number.isFinite(n) ? n : null; } return null; }
@@ -873,6 +536,191 @@ async function ghGetFile(env, path, branch) { const url = `${GH_API}/repos/${env
 async function ghPutFile(env, path, items, sha, message, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(JSON.stringify(items, null, 2)), branch: branch || env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
 async function ghGetContent(env, path) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { content: "", sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); return { content: raw ? b64decodeUtf8(raw) : "", sha: data.sha }; }
 async function ghPutContent(env, path, content, sha, message) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(content), branch: env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
+
+function parseGitHubRepo(repo) {
+  if (!repo || typeof repo !== 'string') return null;
+  const parts = repo.trim().split('/').filter(Boolean);
+  if (parts.length !== 2) return null;
+  return { owner: parts[0], name: parts[1] };
+}
+
+async function ghGraphql(env, query, variables) {
+  const token = env.GH_TOKEN || env.GITHUB_TOKEN;
+  if (!token) throw new Error('GitHub token missing for GraphQL request');
+  const response = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      ...ghHeaders(env),
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  const json = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = json?.errors?.map(err => err?.message).filter(Boolean).join('; ') || `${response.status}`;
+    throw new Error(`GitHub GraphQL error (${message})`);
+  }
+  if (json?.errors?.length) {
+    const message = json.errors.map(err => err?.message).filter(Boolean).join('; ');
+    throw new Error(`GitHub GraphQL error (${message || 'unknown'})`);
+  }
+  return json?.data;
+}
+
+const LOG_MONTH_QUERY = `
+  query($owner: String!, $name: String!, $expression: String!) {
+    repository(owner: $owner, name: $name) {
+      object(expression: $expression) {
+        ... on Tree {
+          entries {
+            name
+            object {
+              ... on Blob {
+                text
+                byteSize
+                isBinary
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+function parseLogLinesInto(target, content, path) {
+  if (!content) return;
+  const lines = String(content).split(/\n+/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      target.push(JSON.parse(trimmed));
+    } catch (parseErr) {
+      console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
+    }
+  }
+}
+
+async function readLogEntriesViaRest(env, rootDir, dates) {
+  const entries = [];
+  for (const day of dates) {
+    const y = day.slice(0, 4);
+    const m = day.slice(5, 7);
+    const path = `${rootDir}/${y}-${m}/${day}.jsonl`;
+    try {
+      const file = await ghGetContent(env, path);
+      parseLogLinesInto(entries, file?.content || '', path);
+    } catch (err) {
+      const msg = String(err || '');
+      if (!msg.includes('404')) {
+        console.error(`Error reading log file ${path}:`, err);
+      }
+    }
+  }
+  return entries;
+}
+
+async function readLogEntriesViaGraphql(env, rootDir, dates, options = {}) {
+  const { totalBudget = LOG_SUBREQUEST_BUDGET, reserve = LOG_SUBREQUEST_RESERVE } = options;
+  const repo = parseGitHubRepo(env.GH_REPO);
+  if (!repo) {
+    throw new Error('GH_REPO must be in "owner/name" format for GraphQL log fetch');
+  }
+  const branch = env.GH_BRANCH || 'main';
+  const grouped = new Map();
+  for (const day of dates) {
+    const monthKey = day.slice(0, 7);
+    if (!grouped.has(monthKey)) {
+      grouped.set(monthKey, new Set());
+    }
+    grouped.get(monthKey).add(day);
+  }
+
+  const monthCount = grouped.size;
+  let fallbackBudget = Math.max(0, Math.trunc(totalBudget) - monthCount - Math.max(0, Math.trunc(reserve)));
+  const entries = [];
+  const satisfiedDays = new Set();
+  const fallbackQueue = [];
+  for (const [monthKey, daySet] of grouped) {
+    const directory = [rootDir, monthKey].filter(Boolean).join('/');
+    const expression = `${branch}:${directory}`;
+    let data;
+    try {
+      data = await ghGraphql(env, LOG_MONTH_QUERY, {
+        owner: repo.owner,
+        name: repo.name,
+        expression,
+      });
+    } catch (err) {
+      console.error(`GraphQL log fetch failed for ${directory}:`, err);
+      throw err;
+    }
+
+    const tree = data?.repository?.object;
+    const entriesInTree = Array.isArray(tree?.entries) ? tree.entries : [];
+    if (!entriesInTree.length) {
+      continue;
+    }
+
+    for (const entry of entriesInTree) {
+      if (!entry || typeof entry.name !== 'string') continue;
+      if (!entry.name.endsWith('.jsonl')) continue;
+      const fullDay = entry.name.replace(/\.jsonl$/i, '');
+      if (!daySet.has(fullDay)) continue;
+      const blob = entry.object;
+      const path = `${directory}/${entry.name}`;
+      if (blob && blob.isBinary === false && typeof blob.text === 'string') {
+        parseLogLinesInto(entries, blob.text, path);
+        satisfiedDays.add(fullDay);
+        continue;
+      }
+      // Fallback für große Dateien oder fehlende Inhalte.
+      fallbackQueue.push({ path, day: fullDay });
+    }
+  }
+
+  let limited = false;
+  if (fallbackQueue.length) {
+    fallbackQueue.sort((a, b) => a.day.localeCompare(b.day));
+    let toFetch = fallbackQueue;
+    if (fallbackBudget < fallbackQueue.length) {
+      const safeBudget = Math.max(0, fallbackBudget);
+      const skipCount = fallbackQueue.length - safeBudget;
+      if (skipCount > 0) {
+        limited = true;
+        toFetch = safeBudget > 0 ? fallbackQueue.slice(-safeBudget) : [];
+        console.warn(`GraphQL fallback limited to ${toFetch.length} files due to subrequest budget (${skipCount} skipped).`);
+      }
+    }
+
+    for (const item of toFetch) {
+      if (fallbackBudget <= 0) break;
+      fallbackBudget -= 1;
+      try {
+        const file = await ghGetContent(env, item.path);
+        parseLogLinesInto(entries, file?.content || '', item.path);
+        satisfiedDays.add(item.day);
+      } catch (err) {
+        const msg = String(err || '');
+        if (!msg.includes('404')) {
+          console.error(`Error reading log file ${item.path}:`, err);
+        }
+        if (msg.includes('Too many subrequests')) {
+          limited = true;
+          break;
+        }
+      }
+    }
+
+    if (fallbackBudget <= 0 && satisfiedDays.size < dates.length) {
+      limited = true;
+    }
+  }
+
+  return { entries, limited };
+}
 async function appendFile(env, path, text, message) { let tries = 0; const maxTries = 3; while (true) { tries++; const cur = await ghGetContent(env, path); const next = (cur.content || "") + text; try { const r = await ghPutContent(env, path, next, cur.sha, message); return { sha: r.content?.sha, path: r.content?.path }; } catch (e) { const s = String(e || ""); if (s.includes("sha") && tries < maxTries) { await new Promise(r=>setTimeout(r, 300*tries)); continue; } throw e; } } }
 
 /* ------------------------ Logging (JSONL pro Tag) ------------------------ */
@@ -899,35 +747,33 @@ async function logJSONL(env, events){
   }
 }
 
+const MAX_FALLBACK_LOG_DAYS = 45;
+const LOG_SUBREQUEST_BUDGET = 47;
+const LOG_SUBREQUEST_RESERVE = 3;
+
 async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
-  const entries = [];
-  for (const day of dateRange(from, to)){
-    const y = day.slice(0,4);
-    const m = day.slice(5,7);
-    const path = `${trimmedRoot}/${y}-${m}/${day}.jsonl`;
-    try {
-      const file = await ghGetContent(env, path);
-      const content = file?.content || '';
-      if (!content) continue;
-      const lines = content.split(/\n+/);
-      for (const line of lines){
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        try {
-          entries.push(JSON.parse(trimmed));
-        } catch (parseErr){
-          console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
-        }
-      }
-    } catch (err){
-      const msg = String(err || '');
-      if (!msg.includes('404')){
-        console.error(`Error reading log file ${path}:`, err);
-      }
-    }
+  const dates = Array.from(dateRange(from, to));
+  if (!dates.length) {
+    return { entries: [], limited: false };
   }
-  return entries;
+
+  try {
+    const graphqlResult = await readLogEntriesViaGraphql(env, trimmedRoot, dates, {
+      totalBudget: LOG_SUBREQUEST_BUDGET,
+      reserve: LOG_SUBREQUEST_RESERVE,
+    });
+    return graphqlResult;
+  } catch (err) {
+    console.error('GraphQL log fetch failed, falling back to REST:', err);
+  }
+
+  const limitedDates = dates.slice(-MAX_FALLBACK_LOG_DAYS);
+  if (limitedDates.length < dates.length) {
+    console.warn(`Log metrics fallback limited to the most recent ${limitedDates.length} days to avoid subrequest limits.`);
+  }
+  const entries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
+  return { entries, limited: limitedDates.length < dates.length };
 }
 
 /* ------------------------ HubSpot ------------------------ */
@@ -1809,6 +1655,7 @@ export default {
           return jsonResponse(data, status, env, request, headers);
         };
         const url = new URL(request.url);
+        const pathname = url.pathname.replace(/\/+$/, '') || '/';
         const ghPath = env.GH_PATH || "data/entries.json";
         const peoplePath = env.GH_PEOPLE_PATH || "data/people.json";
         const branch = env.GH_BRANCH;
@@ -1817,7 +1664,7 @@ export default {
           return ghPutFile(env, ghPath, payload, sha, message, branch);
         };
 
-        if (url.pathname === "/session" && request.method === "GET") {
+        if (pathname === "/session" && request.method === "GET") {
             const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
             const person = identity.person
               ? {
@@ -1836,21 +1683,21 @@ export default {
         }
 
         /* ===== Entries GET ===== */
-        if (url.pathname === "/entries" && request.method === "GET") {
+        if (pathname === "/entries" && request.method === "GET") {
             const { items } = await ghGetFile(env, ghPath, branch);
             const normalized = canonicalizeEntries(items);
             return respond(normalized, 200, env);
         }
-        if (url.pathname.startsWith("/entries/") && request.method === "GET") {
-            const id = decodeURIComponent(url.pathname.split("/").pop());
+        if (pathname.startsWith("/entries/") && request.method === "GET") {
+            const id = decodeURIComponent(pathname.split("/").pop());
             const { items } = await ghGetFile(env, ghPath, branch);
             const found = items.find(x => String(x.id) === id);
             if (!found) return respond({ error: "not found" }, 404, env);
             return respond(ensureKvStructure({ ...found }), 200, env);
         }
 
-        if (url.pathname.startsWith("/entries/") && url.pathname.endsWith("/comments") && request.method === "POST") {
-            const parts = url.pathname.split('/').filter(Boolean);
+        if (pathname.startsWith("/entries/") && pathname.endsWith("/comments") && request.method === "POST") {
+            const parts = pathname.split('/').filter(Boolean);
             if (parts.length < 3) {
                 return respond({ error: "invalid_path" }, 400, env);
             }
@@ -1917,7 +1764,7 @@ export default {
         }
 
         /* ===== Entries POST (Single Create/Upsert) ===== */
-        if (url.pathname === "/entries" && request.method === "POST") {
+        if (pathname === "/entries" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON body" }, 400, env); }
             const cur = await ghGetFile(env, ghPath, branch);
             const items = cur.items || [];
@@ -1990,8 +1837,8 @@ export default {
         }
 
         /* ===== Entries PUT (Single Update) ===== */
-        if (url.pathname.startsWith("/entries/") && request.method === "PUT") {
-            const id = decodeURIComponent(url.pathname.split("/").pop());
+        if (pathname.startsWith("/entries/") && request.method === "PUT" && !pathname.endsWith("/comments")) {
+            const id = decodeURIComponent(pathname.split("/").pop());
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const cur = await ghGetFile(env, ghPath, branch);
             const idx = cur.items.findIndex(x => String(x.id) === id);
@@ -2036,8 +1883,8 @@ export default {
         }
 
         /* ===== Entries DELETE (Single) ===== */
-        if (url.pathname.startsWith("/entries/") && request.method === "DELETE") {
-             const id = decodeURIComponent(url.pathname.split("/").pop());
+        if (pathname.startsWith("/entries/") && request.method === "DELETE") {
+            const id = decodeURIComponent(pathname.split("/").pop());
              const cur = await ghGetFile(env, ghPath, branch);
              const before = cur.items.find(x => String(x.id) === id);
              if(!before) return respond({ ok: true, message:"already deleted?" }, 200, env);
@@ -2048,7 +1895,7 @@ export default {
         }
 
         /* ===== Entries POST /entries/bulk (Legacy - Nur schlanker KV-Upsert) ===== */
-        if (url.pathname === "/entries/bulk" && request.method === "POST") {
+        if (pathname === "/entries/bulk" && request.method === "POST") {
              console.log("Processing legacy /entries/bulk");
              let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
              const rows = Array.isArray(payload?.rows) ? payload.rows : [];
@@ -2096,7 +1943,7 @@ export default {
         }
 
         /* ===== NEU: Entries POST /entries/bulk-v2 (Full Object Bulk) ===== */
-        if (url.pathname === "/entries/bulk-v2" && request.method === "POST") {
+        if (pathname === "/entries/bulk-v2" && request.method === "POST") {
              console.log("Processing /entries/bulk-v2");
              let payload; try { payload = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
              const rows = Array.isArray(payload?.rows) ? payload.rows : [];
@@ -2164,7 +2011,7 @@ export default {
         } // Ende /entries/bulk-v2
 
         /* ===== NEU: Entries POST /entries/bulk-delete ===== */
-        if (url.pathname === "/entries/bulk-delete" && request.method === "POST") {
+        if (pathname === "/entries/bulk-delete" && request.method === "POST") {
             console.log("Processing /entries/bulk-delete");
             let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
             const idsToDelete = Array.isArray(body?.ids) ? body.ids : [];
@@ -2213,7 +2060,7 @@ export default {
         } // Ende /entries/bulk-delete
 
         /* ===== Entries POST /entries/merge ===== */
-        if (url.pathname === "/entries/merge" && request.method === "POST") {
+        if (pathname === "/entries/merge" && request.method === "POST") {
             console.log("Processing /entries/merge");
             let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
             const ids = Array.isArray(body?.ids) ? body.ids.map(String) : [];
@@ -2274,7 +2121,7 @@ export default {
 
 
         /* ===== People Routes (Wiederhergestellt) ===== */
-        if (url.pathname === "/people" && request.method === "GET") {
+        if (pathname === "/people" && request.method === "GET") {
             try {
                 const { items } = await ghGetFile(env, peoplePath, branch);
                 const normalized = Array.isArray(items) ? items.map(normalizePersonRecord) : [];
@@ -2287,7 +2134,7 @@ export default {
                 throw err;
             }
         }
-        if (url.pathname === "/people" && request.method === "POST") {
+        if (pathname === "/people" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const name = normalizeString(body.name);
             const team = normalizeString(body.team);
@@ -2315,7 +2162,7 @@ export default {
             await ghPutFile(env, peoplePath, currentItems.map(normalizePersonRecord), cur.sha, `add person ${name}`);
             return respond(newPerson, 201, env);
         }
-        if (url.pathname === "/people" && request.method === "PUT") {
+        if (pathname === "/people" && request.method === "PUT") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             if (!body.id) return respond({ error: "ID missing" }, 400, env);
             const cur = await ghGetFile(env, peoplePath, branch);
@@ -2344,7 +2191,7 @@ export default {
             await ghPutFile(env, peoplePath, nextItems.map(normalizePersonRecord), cur.sha, `update person ${body.id}`);
             return respond(normalizedPerson, 200, env);
         }
-        if (url.pathname === "/people" && request.method === "DELETE") {
+        if (pathname === "/people" && request.method === "DELETE") {
              let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
              const idToDelete = body?.id;
              if (!idToDelete) return respond({ error: "ID missing in request body" }, 400, env);
@@ -2357,7 +2204,7 @@ export default {
         }
 
       /* ===== Logs Routes ===== */
-      if (url.pathname === "/log" && request.method === "POST") {
+      if (pathname === "/log" && request.method === "POST") {
         let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
         const dateStr = (payload.date || todayStr()); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env);
         const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = (payload.lines||[]).map(String).join("\n") + "\n";
@@ -2365,13 +2212,14 @@ export default {
         return respond({ ok: true, path, committed: result }, 200, env);
       }
       const isMetricsRequest =
-        request.method === "GET" && (url.pathname === "/log/metrics" || url.pathname === "/analytics/metrics");
+        request.method === "GET" && (pathname === "/log/metrics" || pathname === "/analytics/metrics");
       if (isMetricsRequest) {
         const from = url.searchParams.get("from") || undefined;
         const to = url.searchParams.get("to") || undefined;
         const team = (url.searchParams.get("team") || "").trim();
         const root = LOG_DIR(env);
-        const rawLogs = await readLogEntries(env, root, from, to);
+        const logResult = await readLogEntries(env, root, from, to);
+        const rawLogs = logResult.entries || [];
         let peopleItems = [];
         try {
           const peopleFile = await ghGetFile(env, peoplePath, branch);
@@ -2392,11 +2240,19 @@ export default {
           const teamName = (person.team || 'Ohne Team').trim() || 'Ohne Team';
           teamMap.set(name, teamName);
         }
-        const metrics = __computeLogMetrics(rawLogs, { team, from, to }, teamMap);
-        const headers = url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : undefined;
+        const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
+        if (logResult.limited) {
+          metrics.meta = { ...(metrics.meta || {}), rangeLimited: true };
+        }
+        const headers = { ...(
+          pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : {}
+        ) };
+        if (logResult.limited) {
+          headers['X-Log-Range-Limited'] = 'true';
+        }
         return respond(metrics, 200, env, headers);
       }
-      if (url.pathname === "/log/list" && request.method === "GET") {
+      if (pathname === "/log/list" && request.method === "GET") {
         const from = url.searchParams.get("from"); const to = url.searchParams.get("to"); const out = []; const root = LOG_DIR(env);
         for (const day of dateRange(from, to)) {
           const y = day.slice(0,4), m = day.slice(5,7); const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${day}.jsonl`;
@@ -2409,14 +2265,14 @@ export default {
         return respond(out.slice(0, 5000), 200, env);
       }
       const logPath = env.GH_LOG_PATH || "data/logs.json";
-      if (url.pathname === "/logs") {
+      if (pathname === "/logs") {
           if (request.method === "GET") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch(e) { console.error("Error legacy logs:", e); } return respond((logData.items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)), 200, env); }
           if (request.method === "POST") { let newLogEntries; try { newLogEntries = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); } const logsToAdd = Array.isArray(newLogEntries) ? newLogEntries : [newLogEntries]; if (logsToAdd.length === 0) return respond({ success: true, added: 0 }, 200, env); let currentLogs = [], currentSha = null; try { const logData = await ghGetFile(env, logPath, branch); currentLogs = logData.items || []; currentSha = logData.sha; } catch (e) { if (!String(e).includes('404')) console.error("Error legacy logs POST:", e); } let updatedLogs = logsToAdd.concat(currentLogs); if (updatedLogs.length > MAX_LOG_ENTRIES) updatedLogs = updatedLogs.slice(0, MAX_LOG_ENTRIES); try { await ghPutFile(env, logPath, updatedLogs, currentSha, `add ${logsToAdd.length} log entries`); } catch (e) { /* Retry Logic */ } return respond({ success: true, added: logsToAdd.length }, 201, env); }
           if (request.method === "DELETE") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch (e) { if (String(e).includes('404')) return respond({ success: true, message: "Logs already empty." }, 200, env); else throw e; } await ghPutFile(env, logPath, [], logData.sha, "clear logs"); return respond({ success: true, message: "Logs gelöscht." }, 200, env); }
       }
 
       /* ===== HubSpot Webhook ===== */
-      if (url.pathname === "/hubspot" && request.method === "POST") {
+      if (pathname === "/hubspot" && request.method === "POST") {
         const raw = await request.text();
         const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false);
         if (!okSig) return respond({ error: "invalid signature" }, 401, env);
@@ -2503,8 +2359,8 @@ export default {
         return respond({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
       }
 
-      console.log(`Route not found: ${request.method} ${url.pathname}`);
-      return new Response("Not Found", { status: 404, headers: getCorsHeaders(env) });
+      console.log(`Route not found: ${request.method} ${pathname}`);
+      return jsonResponse({ error: "not_found" }, 404, env, request);
 
     } catch (err) {
       console.error("Worker Error:", err, err.stack);
