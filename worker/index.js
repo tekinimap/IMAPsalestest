@@ -137,6 +137,12 @@ function ensureDockMetadata(entry, options = {}) {
   if (entry.dockFinalAssignment === 'rahmen' && entry.projectType !== 'rahmen') {
     entry.projectType = 'rahmen';
   }
+  if (entry.dockAssignedFrameworkId == null) {
+    entry.dockAssignedFrameworkId = '';
+  }
+  if (entry.dockAssignedFrameworkTitle == null) {
+    entry.dockAssignedFrameworkTitle = '';
+  }
   return entry;
 }
 function splitKvString(value){
