@@ -387,8 +387,14 @@ function logCalloffDealEvent(logs, entry, transaction, kv, reason, status, extra
 }
 
 
-function normalizeTransactionKv(transaction) {
+export function normalizeTransactionKv(transaction) {
   if (!transaction || typeof transaction !== 'object') return "";
+
+  const list = kvListFrom(transaction);
+  if (list.length) {
+    return list[0];
+  }
+
   return firstNonEmpty(
     transaction.kv_nummer,
     transaction.kvNummer,
@@ -530,7 +536,47 @@ function mergeContributionLists(entries, totalAmount){
 
 // Hilfsfunktionen
 function toNumberMaybe(v){ if (v==null || v==='') return null; if (typeof v === 'number' && Number.isFinite(v)) return v; if (typeof v === 'string'){ let t = v.trim().replace(/\s/g,''); if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) { t = t.replace(/\./g,'').replace(',', '.'); } else { t = t.replace(/,/g,''); } const n = Number(t); return Number.isFinite(n) ? n : null; } return null; }
-const pick = (o, keys)=> (o && typeof o==='object' ? (keys.find(k => o[k]!=null && o[k]!=='' ) ? o[keys.find(k => o[k]!=null && o[k]!=='' )] : '') : '');
+function pick(obj, keys) {
+  if (!obj || typeof obj !== 'object') {
+    return '';
+  }
+
+  for (const key of keys) {
+    if (!(key in obj)) continue;
+    const value = obj[key];
+    if (value == null) continue;
+
+    if (typeof value === 'number') {
+      if (Number.isFinite(value)) {
+        return String(value);
+      }
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim();
+      if (normalized) {
+        return normalized;
+      }
+      continue;
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? 'true' : 'false';
+    }
+
+    if (typeof value === 'object') {
+      continue;
+    }
+
+    const normalized = normalizeString(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return '';
+}
 function fieldsOf(obj){
   const kvList = kvListFrom(obj);
   const freigabeTs = extractFreigabedatumFromEntry(obj);

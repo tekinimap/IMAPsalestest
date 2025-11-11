@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { upsertByHubSpotId } from '../../worker/index.js';
+import { upsertByHubSpotId, normalizeTransactionKv } from '../../worker/index.js';
 
 describe('upsertByHubSpotId duplicate handling', () => {
   it('überspringt neuen HubSpot-Deal bei bestehender Projektnummer und KV', () => {
@@ -71,5 +71,24 @@ describe('upsertByHubSpotId duplicate handling', () => {
     assert.equal(result.action, 'update');
     assert.equal(entries[0].title, 'Aktualisierter Titel');
     assert.equal(entries[0].hubspotId, '9003');
+  });
+});
+
+describe('normalizeTransactionKv', () => {
+  it('bevorzugt KV-Listenfelder gegenüber Einzelfeldern', () => {
+    const transaction = {
+      kvNummern: [' KV-100 ', 'KV-200'],
+      kv: 'IGNORED',
+    };
+
+    assert.equal(normalizeTransactionKv(transaction), 'KV-100');
+  });
+
+  it('fällt auf Einzelfelder zurück, wenn keine Liste vorhanden ist', () => {
+    const transaction = {
+      kv_nummer: 'KV-300',
+    };
+
+    assert.equal(normalizeTransactionKv(transaction), 'KV-300');
   });
 });
