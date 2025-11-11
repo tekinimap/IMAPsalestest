@@ -11,11 +11,34 @@
   const WORKER = () => (window.WORKER_BASE || '').replace(/\/+$/,'');
   const fmtEUR = (n)=> new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(n||0);
   function showToast(msg,type){ console.log('[toast]', type||'info', msg); }
+  function resolveCredentials(targetUrl, options){
+    if (options && 'credentials' in options) {
+      return options.credentials;
+    }
+    if (typeof window === 'undefined' || typeof window.location === 'undefined') {
+      return 'include';
+    }
+    try{
+      const resolved = typeof targetUrl === 'string'
+        ? new URL(targetUrl, window.location.href)
+        : targetUrl && typeof targetUrl.url === 'string'
+          ? new URL(targetUrl.url, window.location.href)
+          : null;
+      if (!resolved) return 'omit';
+      return resolved.origin === window.location.origin ? 'include' : 'omit';
+    }catch{
+      return 'omit';
+    }
+  }
+
   async function fetchWithRetry(url, options={}, retryCount=0){
     const limit=2;
     try{
-      const merged = { ...options, credentials: 'include' };
+      const merged = { ...options };
       if (options && options.headers) merged.headers = { ...options.headers };
+      if (!('credentials' in merged)) {
+        merged.credentials = resolveCredentials(url, options);
+      }
       const r = await fetch(url, merged);
       if(!r.ok && retryCount<limit && r.status>=500){
         await new Promise(res=>setTimeout(res, 250*(retryCount+1)));

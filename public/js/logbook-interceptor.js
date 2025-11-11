@@ -31,12 +31,35 @@
   // --- Shims if missing ---
   if (typeof window.WORKER_BASE === 'undefined') window.WORKER_BASE = '';
   if (typeof window.showToast === 'undefined') window.showToast = (m,t)=>console.log('[toast]', t||'info', m);
+  function resolveCredentials(targetUrl, options){
+    if (options && 'credentials' in options) {
+      return options.credentials;
+    }
+    if (typeof window === 'undefined' || typeof window.location === 'undefined') {
+      return 'include';
+    }
+    try {
+      const resolved = typeof targetUrl === 'string'
+        ? new URL(targetUrl, window.location.href)
+        : targetUrl && typeof targetUrl.url === 'string'
+          ? new URL(targetUrl.url, window.location.href)
+          : null;
+      if (!resolved) return 'omit';
+      return resolved.origin === window.location.origin ? 'include' : 'omit';
+    } catch {
+      return 'omit';
+    }
+  }
+
   if (typeof window.fetchWithRetry === 'undefined') {
     window.fetchWithRetry = async function(url, options={}, retryCount=0){
       const limit=3;
       try{
-        const merged = { ...options, credentials: 'include' };
+        const merged = { ...options };
         if (options && options.headers) merged.headers = { ...options.headers };
+        if (!('credentials' in merged)) {
+          merged.credentials = resolveCredentials(url, options);
+        }
         const res = await fetch(url, merged);
         if(!res.ok && retryCount<limit && res.status>=500){
           await new Promise(r=>setTimeout(r, 300*(retryCount+1)));
