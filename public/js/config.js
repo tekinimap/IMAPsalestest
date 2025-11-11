@@ -59,7 +59,13 @@ function recordIssue(type, message) {
 }
 
 function sanitizeUrl(value) {
-  return value.replace(/\s+/g, '').replace(/\/+$/, '');
+  const withoutWhitespace = value.replace(/\s+/g, '');
+  const hadTrailingWildcard = /\/?\*+$/.test(withoutWhitespace);
+  const sanitized = withoutWhitespace
+    .replace(/\/+\*+$/, '')
+    .replace(/\*+$/, '')
+    .replace(/\/+$/, '');
+  return { sanitized, hadTrailingWildcard };
 }
 
 function applyWorkerBase(target, value, sourceLabel) {
@@ -67,7 +73,19 @@ function applyWorkerBase(target, value, sourceLabel) {
     recordIssue('errors', `${sourceLabel}: "workerBase" muss eine nicht-leere URL sein.`);
     return;
   }
-  target.workerBase = sanitizeUrl(value.trim());
+  const { sanitized, hadTrailingWildcard } = sanitizeUrl(value.trim());
+  if (!sanitized) {
+    recordIssue('errors', `${sourceLabel}: "workerBase" muss eine gültige URL ohne Platzhalter sein.`);
+    return;
+  }
+  if (sanitized.includes('*')) {
+    recordIssue('errors', `${sourceLabel}: "workerBase" darf kein "*" enthalten.`);
+    return;
+  }
+  if (hadTrailingWildcard) {
+    recordIssue('warnings', `${sourceLabel}: "workerBase" enthielt am Ende ein "*" und wurde automatisch bereinigt. Bitte nutze die Basis-URL ohne Platzhalter.`);
+  }
+  target.workerBase = sanitized;
 }
 
 function applyTeams(target, value, sourceLabel) {
