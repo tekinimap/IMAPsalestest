@@ -873,6 +873,155 @@ async function ghGetFile(env, path, branch) { const url = `${GH_API}/repos/${env
 async function ghPutFile(env, path, items, sha, message, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(JSON.stringify(items, null, 2)), branch: branch || env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
 async function ghGetContent(env, path) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { content: "", sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); return { content: raw ? b64decodeUtf8(raw) : "", sha: data.sha }; }
 async function ghPutContent(env, path, content, sha, message) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(content), branch: env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
+
+function parseGitHubRepo(repo) {
+  if (!repo || typeof repo !== 'string') return null;
+  const parts = repo.trim().split('/').filter(Boolean);
+  if (parts.length !== 2) return null;
+  return { owner: parts[0], name: parts[1] };
+}
+
+async function ghGraphql(env, query, variables) {
+  const token = env.GH_TOKEN || env.GITHUB_TOKEN;
+  if (!token) throw new Error('GitHub token missing for GraphQL request');
+  const response = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      ...ghHeaders(env),
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  const json = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = json?.errors?.map(err => err?.message).filter(Boolean).join('; ') || `${response.status}`;
+    throw new Error(`GitHub GraphQL error (${message})`);
+  }
+  if (json?.errors?.length) {
+    const message = json.errors.map(err => err?.message).filter(Boolean).join('; ');
+    throw new Error(`GitHub GraphQL error (${message || 'unknown'})`);
+  }
+  return json?.data;
+}
+
+const LOG_MONTH_QUERY = `
+  query($owner: String!, $name: String!, $expression: String!) {
+    repository(owner: $owner, name: $name) {
+      object(expression: $expression) {
+        ... on Tree {
+          entries {
+            name
+            object {
+              ... on Blob {
+                text
+                byteSize
+                isBinary
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+function parseLogLinesInto(target, content, path) {
+  if (!content) return;
+  const lines = String(content).split(/\n+/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      target.push(JSON.parse(trimmed));
+    } catch (parseErr) {
+      console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
+    }
+  }
+}
+
+async function readLogEntriesViaRest(env, rootDir, dates) {
+  const entries = [];
+  for (const day of dates) {
+    const y = day.slice(0, 4);
+    const m = day.slice(5, 7);
+    const path = `${rootDir}/${y}-${m}/${day}.jsonl`;
+    try {
+      const file = await ghGetContent(env, path);
+      parseLogLinesInto(entries, file?.content || '', path);
+    } catch (err) {
+      const msg = String(err || '');
+      if (!msg.includes('404')) {
+        console.error(`Error reading log file ${path}:`, err);
+      }
+    }
+  }
+  return entries;
+}
+
+async function readLogEntriesViaGraphql(env, rootDir, dates) {
+  const repo = parseGitHubRepo(env.GH_REPO);
+  if (!repo) {
+    throw new Error('GH_REPO must be in "owner/name" format for GraphQL log fetch');
+  }
+  const branch = env.GH_BRANCH || 'main';
+  const grouped = new Map();
+  for (const day of dates) {
+    const monthKey = day.slice(0, 7);
+    if (!grouped.has(monthKey)) {
+      grouped.set(monthKey, new Set());
+    }
+    grouped.get(monthKey).add(day);
+  }
+
+  const entries = [];
+  for (const [monthKey, daySet] of grouped) {
+    const directory = [rootDir, monthKey].filter(Boolean).join('/');
+    const expression = `${branch}:${directory}`;
+    let data;
+    try {
+      data = await ghGraphql(env, LOG_MONTH_QUERY, {
+        owner: repo.owner,
+        name: repo.name,
+        expression,
+      });
+    } catch (err) {
+      console.error(`GraphQL log fetch failed for ${directory}:`, err);
+      throw err;
+    }
+
+    const tree = data?.repository?.object;
+    const entriesInTree = Array.isArray(tree?.entries) ? tree.entries : [];
+    if (!entriesInTree.length) {
+      continue;
+    }
+
+    for (const entry of entriesInTree) {
+      if (!entry || typeof entry.name !== 'string') continue;
+      if (!entry.name.endsWith('.jsonl')) continue;
+      const fullDay = entry.name.replace(/\.jsonl$/i, '');
+      if (!daySet.has(fullDay)) continue;
+      const blob = entry.object;
+      const path = `${directory}/${entry.name}`;
+      if (blob && blob.isBinary === false && typeof blob.text === 'string') {
+        parseLogLinesInto(entries, blob.text, path);
+        continue;
+      }
+      // Fallback für große Dateien oder fehlende Inhalte.
+      try {
+        const file = await ghGetContent(env, path);
+        parseLogLinesInto(entries, file?.content || '', path);
+      } catch (err) {
+        const msg = String(err || '');
+        if (!msg.includes('404')) {
+          console.error(`Error reading log file ${path}:`, err);
+        }
+      }
+    }
+  }
+
+  return entries;
+}
 async function appendFile(env, path, text, message) { let tries = 0; const maxTries = 3; while (true) { tries++; const cur = await ghGetContent(env, path); const next = (cur.content || "") + text; try { const r = await ghPutContent(env, path, next, cur.sha, message); return { sha: r.content?.sha, path: r.content?.path }; } catch (e) { const s = String(e || ""); if (s.includes("sha") && tries < maxTries) { await new Promise(r=>setTimeout(r, 300*tries)); continue; } throw e; } } }
 
 /* ------------------------ Logging (JSONL pro Tag) ------------------------ */
@@ -899,35 +1048,28 @@ async function logJSONL(env, events){
   }
 }
 
+const MAX_FALLBACK_LOG_DAYS = 45;
+
 async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
-  const entries = [];
-  for (const day of dateRange(from, to)){
-    const y = day.slice(0,4);
-    const m = day.slice(5,7);
-    const path = `${trimmedRoot}/${y}-${m}/${day}.jsonl`;
-    try {
-      const file = await ghGetContent(env, path);
-      const content = file?.content || '';
-      if (!content) continue;
-      const lines = content.split(/\n+/);
-      for (const line of lines){
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        try {
-          entries.push(JSON.parse(trimmed));
-        } catch (parseErr){
-          console.warn(`Failed to parse log entry in ${path}:`, parseErr, trimmed);
-        }
-      }
-    } catch (err){
-      const msg = String(err || '');
-      if (!msg.includes('404')){
-        console.error(`Error reading log file ${path}:`, err);
-      }
-    }
+  const dates = Array.from(dateRange(from, to));
+  if (!dates.length) {
+    return { entries: [], limited: false };
   }
-  return entries;
+
+  try {
+    const entries = await readLogEntriesViaGraphql(env, trimmedRoot, dates);
+    return { entries, limited: false };
+  } catch (err) {
+    console.error('GraphQL log fetch failed, falling back to REST:', err);
+  }
+
+  const limitedDates = dates.slice(-MAX_FALLBACK_LOG_DAYS);
+  if (limitedDates.length < dates.length) {
+    console.warn(`Log metrics fallback limited to the most recent ${limitedDates.length} days to avoid subrequest limits.`);
+  }
+  const entries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
+  return { entries, limited: limitedDates.length < dates.length };
 }
 
 /* ------------------------ HubSpot ------------------------ */
@@ -2371,7 +2513,8 @@ export default {
         const to = url.searchParams.get("to") || undefined;
         const team = (url.searchParams.get("team") || "").trim();
         const root = LOG_DIR(env);
-        const rawLogs = await readLogEntries(env, root, from, to);
+        const logResult = await readLogEntries(env, root, from, to);
+        const rawLogs = logResult.entries || [];
         let peopleItems = [];
         try {
           const peopleFile = await ghGetFile(env, peoplePath, branch);
@@ -2393,7 +2536,15 @@ export default {
           teamMap.set(name, teamName);
         }
         const metrics = __computeLogMetrics(rawLogs, { team, from, to }, teamMap);
-        const headers = url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : undefined;
+        if (logResult.limited) {
+          metrics.meta = { ...(metrics.meta || {}), rangeLimited: true };
+        }
+        const headers = { ...(
+          url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : {}
+        ) };
+        if (logResult.limited) {
+          headers['X-Log-Range-Limited'] = 'true';
+        }
         return respond(metrics, 200, env, headers);
       }
       if (url.pathname === "/log/list" && request.method === "GET") {
