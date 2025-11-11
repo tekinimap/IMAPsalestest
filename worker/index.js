@@ -5,18 +5,27 @@
  */
 
 
+import { suggestEmailForName } from '../public/shared/email-suggestions.js';
+
 const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 
 /* ------------------------ Utilities ------------------------ */
 
-const getCorsHeaders = (env) => ({
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-HubSpot-Signature-V3, X-HubSpot-Request-Timestamp",
-    "Access-Control-Max-Age": "86400",
-    "Vary": "Origin",
-});
+const getCorsHeaders = (env) => {
+    const origin = env.ALLOWED_ORIGIN || "*";
+    const headers = {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-HubSpot-Signature-V3, X-HubSpot-Request-Timestamp",
+        "Access-Control-Max-Age": "86400",
+        "Vary": "Origin",
+    };
+    if (origin !== "*") {
+        headers["Access-Control-Allow-Credentials"] = "true";
+    }
+    return headers;
+};
 
 const jsonResponse = (data, status = 200, env, additionalHeaders = {}) => {
   const corsHeaders = getCorsHeaders(env);
@@ -71,6 +80,93 @@ async function throttle(delayMs) {
 
 function normKV(v){ return String(v ?? '').trim(); }
 function normalizeString(value){ return String(value ?? '').trim(); }
+
+function normalizePersonRecord(person) {
+  if (!person || typeof person !== 'object') return person;
+  const normalized = { ...person };
+  if (normalized.name != null) {
+    normalized.name = String(normalized.name).trim();
+  }
+  if (normalized.team != null) {
+    normalized.team = String(normalized.team).trim();
+  }
+  if (normalized.email != null) {
+    const trimmedEmail = String(normalized.email).trim().toLowerCase();
+    if (trimmedEmail) {
+      normalized.email = trimmedEmail;
+    } else {
+      delete normalized.email;
+    }
+  }
+  return normalized;
+}
+
+const EMAIL_HEADER_KEYS = [
+  'cf-access-authenticated-user-email',
+  'cf-access-user-email',
+  'cf-access-email',
+  'x-authenticated-user-email',
+];
+
+const NAME_HEADER_KEYS = [
+  'cf-access-authenticated-user-name',
+  'cf-access-user',
+  'cf-access-authenticated-user',
+  'x-authenticated-user',
+];
+
+function readFirstHeader(headers, keys) {
+  for (const key of keys) {
+    const value = headers.get(key);
+    if (value && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+  return '';
+}
+
+async function resolveAccessIdentity(request, env, branch, peoplePath, cachedPeople) {
+  const emailRaw = readFirstHeader(request.headers, EMAIL_HEADER_KEYS);
+  const nameRaw = readFirstHeader(request.headers, NAME_HEADER_KEYS);
+  let peopleItems = Array.isArray(cachedPeople) ? cachedPeople : null;
+  if (!peopleItems) {
+    try {
+      const peopleFile = await ghGetFile(env, peoplePath, branch);
+      if (peopleFile && Array.isArray(peopleFile.items)) {
+        peopleItems = peopleFile.items;
+      } else {
+        peopleItems = [];
+      }
+    } catch (err) {
+      const message = String(err || '');
+      if (!message.includes('404')) {
+        console.error('Failed to load people for identity resolution:', err);
+      }
+      peopleItems = [];
+    }
+  }
+
+  const email = emailRaw.trim();
+  const name = nameRaw.trim();
+  const emailLower = email.toLowerCase();
+  let matchedPerson = null;
+  if (peopleItems && emailLower) {
+    matchedPerson = peopleItems.find((person) => String(person?.email || '').trim().toLowerCase() === emailLower) || null;
+  }
+  if (!matchedPerson && peopleItems && name) {
+    const nameLower = name.toLowerCase();
+    matchedPerson = peopleItems.find((person) => String(person?.name || '').trim().toLowerCase() === nameLower) || null;
+  }
+
+  const displayName = matchedPerson?.name || name || '';
+  return {
+    email,
+    rawName: name,
+    name: displayName,
+    person: matchedPerson,
+    people: peopleItems || [],
+  };
+}
 const MARKET_TEAM_TO_BU = new Map([
   ['vielfalt+', 'Public Impact'],
   ['evaluation und beteiligung', 'Public Impact'],
@@ -1703,6 +1799,24 @@ export default {
           return ghPutFile(env, ghPath, payload, sha, message, branch);
         };
 
+        if (url.pathname === "/session" && request.method === "GET") {
+            const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
+            const person = identity.person
+              ? {
+                  id: identity.person.id,
+                  name: identity.person.name,
+                  team: identity.person.team || '',
+                  email: identity.person.email || '',
+                }
+              : null;
+            return jsonResponse({
+              email: identity.email,
+              name: identity.name,
+              rawName: identity.rawName,
+              person,
+            }, 200, env);
+        }
+
         /* ===== Entries GET ===== */
         if (url.pathname === "/entries" && request.method === "GET") {
             const { items } = await ghGetFile(env, ghPath, branch);
@@ -1723,11 +1837,13 @@ export default {
                 return jsonResponse({ error: "invalid_path" }, 400, env);
             }
             const id = decodeURIComponent(parts[1]);
+            const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
             let payload;
             try { payload = await request.json(); } catch { return jsonResponse({ error: "invalid_json" }, 400, env); }
             const authorRaw = typeof payload?.author === 'string' ? payload.author.trim() : '';
             const textRaw = typeof payload?.text === 'string' ? payload.text.trim() : '';
-            if (!authorRaw) {
+            const resolvedAuthor = identity.person?.name || identity.name || identity.email;
+            if (!authorRaw && !resolvedAuthor) {
                 return jsonResponse({ error: "author_required" }, 400, env);
             }
             if (!textRaw) {
@@ -1737,12 +1853,19 @@ export default {
             const commentId = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : `comment_${timestamp}_${Math.random().toString(16).slice(2)}`;
+            const finalAuthor = resolvedAuthor || authorRaw;
             const newComment = {
                 id: commentId,
-                author: authorRaw,
+                author: finalAuthor,
                 text: textRaw,
                 createdAt: timestamp,
             };
+            if (identity.email) {
+                newComment.authorEmail = identity.email.toLowerCase();
+            }
+            if (identity.person && identity.person.id) {
+                newComment.personId = identity.person.id;
+            }
 
             for (let attempt = 0; attempt < 3; attempt += 1) {
                 const cur = await ghGetFile(env, ghPath, branch);
@@ -2134,16 +2257,44 @@ export default {
 
         /* ===== People Routes (Wiederhergestellt) ===== */
         if (url.pathname === "/people" && request.method === "GET") {
-            const { items } = await ghGetFile(env, peoplePath, branch);
-            return jsonResponse(items, 200, env);
+            try {
+                const { items } = await ghGetFile(env, peoplePath, branch);
+                const normalized = Array.isArray(items) ? items.map(normalizePersonRecord) : [];
+                return jsonResponse(normalized, 200, env);
+            } catch (err) {
+                const message = String(err || '');
+                if (message.includes('404')) {
+                    return jsonResponse([], 200, env);
+                }
+                throw err;
+            }
         }
         if (url.pathname === "/people" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
-            if (!body.name || !body.team) return jsonResponse({ error: "Name and Team required"}, 400, env);
+            const name = normalizeString(body.name);
+            const team = normalizeString(body.team);
+            if (!name || !team) return jsonResponse({ error: "Name and Team required"}, 400, env);
+            let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+            if (!email) {
+                email = suggestEmailForName(name);
+            }
             const cur = await ghGetFile(env, peoplePath, branch);
-            const newPerson = { ...body, id: body.id || rndId('person_'), createdAt: Date.now() };
-            cur.items.push(newPerson);
-            await ghPutFile(env, peoplePath, cur.items.map(person => ({ ...person })), cur.sha, `add person ${body.name}`);
+            const newPersonRaw = {
+                ...body,
+                id: body.id || rndId('person_'),
+                name,
+                team,
+                createdAt: Date.now(),
+            };
+            if (email) {
+                newPersonRaw.email = email;
+            } else {
+                delete newPersonRaw.email;
+            }
+            const newPerson = normalizePersonRecord(newPersonRaw);
+            const currentItems = Array.isArray(cur.items) ? cur.items.slice() : [];
+            currentItems.push(newPerson);
+            await ghPutFile(env, peoplePath, currentItems.map(normalizePersonRecord), cur.sha, `add person ${name}`);
             return jsonResponse(newPerson, 201, env);
         }
         if (url.pathname === "/people" && request.method === "PUT") {
@@ -2152,10 +2303,28 @@ export default {
             const cur = await ghGetFile(env, peoplePath, branch);
             const idx = cur.items.findIndex(x => String(x.id) === String(body.id));
             if (idx < 0) return jsonResponse({ error: "not found" }, 404, env);
-            const updatedPerson = { ...cur.items[idx], ...body, updatedAt: Date.now() };
-            cur.items[idx] = updatedPerson;
-            await ghPutFile(env, peoplePath, cur.items.map(person => ({ ...person })), cur.sha, `update person ${body.id}`);
-            return jsonResponse(updatedPerson, 200, env);
+            const current = cur.items[idx] || {};
+            const updated = { ...current };
+            if (body.name !== undefined) {
+                updated.name = normalizeString(body.name);
+            }
+            if (body.team !== undefined) {
+                updated.team = normalizeString(body.team);
+            }
+            if (body.email !== undefined) {
+                const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+                if (email) {
+                    updated.email = email;
+                } else {
+                    delete updated.email;
+                }
+            }
+            updated.updatedAt = Date.now();
+            const normalizedPerson = normalizePersonRecord(updated);
+            const nextItems = Array.isArray(cur.items) ? cur.items.slice() : [];
+            nextItems[idx] = normalizedPerson;
+            await ghPutFile(env, peoplePath, nextItems.map(normalizePersonRecord), cur.sha, `update person ${body.id}`);
+            return jsonResponse(normalizedPerson, 200, env);
         }
         if (url.pathname === "/people" && request.method === "DELETE") {
              let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
@@ -2165,7 +2334,7 @@ export default {
              const initialLength = cur.items.length;
              const next = cur.items.filter(x => String(x.id) !== String(idToDelete));
              if (next.length === initialLength) return jsonResponse({ error: "not found" }, 404, env);
-             await ghPutFile(env, peoplePath, next.map(person => ({ ...person })), cur.sha, `delete person ${idToDelete}`);
+             await ghPutFile(env, peoplePath, next.map(normalizePersonRecord), cur.sha, `delete person ${idToDelete}`);
              return jsonResponse({ ok: true }, 200, env);
         }
 

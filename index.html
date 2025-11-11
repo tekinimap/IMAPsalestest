@@ -38,6 +38,12 @@
   .sum-display span { color: var(--text); font-size: 20px; }
 
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid-admin{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,1.4fr) auto;gap:16px;align-items:end;}
+  @media (max-width: 960px){
+    .grid-admin{grid-template-columns:1fr;}
+    .grid-admin>div{width:100%;}
+    .grid-admin>div:last-child{justify-self:flex-start;}
+  }
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   label{display:block;font-weight:600;margin:8px 0 6px}
   input[type="text"],input[type="number"],input[type="date"],select{
@@ -162,6 +168,8 @@
   .dock-comment-form textarea{min-height:90px;resize:vertical;}
   .dock-comment-form .btn{align-self:flex-end;}
   .dock-comment-form.is-disabled{opacity:.6;pointer-events:none;}
+  .dock-comment-identity{margin:0;font-size:11px;color:var(--muted);}
+  .dock-comment-identity strong{color:var(--text);font-weight:600;}
   .dock-card-comment-indicator{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--muted);background:rgba(59,130,246,.08);border:1px solid rgba(148,163,184,.25);}
   .dock-card-comment-indicator.has-comments{color:#bfdbfe;background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.35);}
   .dock-card-comment-indicator.is-empty{opacity:.7;}
@@ -705,6 +713,7 @@
             <form class="dock-comment-form" id="dockCommentForm">
               <label for="dockCommentAuthor">Name</label>
               <select id="dockCommentAuthor"></select>
+              <p class="dock-comment-identity" id="dockCommentIdentityHint"></p>
               <label for="dockCommentText">Kommentar</label>
               <textarea id="dockCommentText" placeholder="Kommentar hinzufügen..."></textarea>
               <button class="btn primary tight" id="dockCommentSubmit" type="submit">Speichern</button>
@@ -828,16 +837,17 @@
       <div class="search-wrapper">
         <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
       </div>
-      <div class="grid-3">
+      <div class="grid-admin">
         <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text" placeholder="z. B. Max Mustermann"></div>
         <div><label for="adm_team">Team</label>
           <select id="adm_team" data-placeholder="— bitte wählen —"></select>
         </div>
+        <div><label for="adm_email">E-Mail-Adresse</label><input id="adm_email" type="email" placeholder="wird automatisch vorgeschlagen"></div>
         <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button></div>
       </div>
       <div class="table-wrapper" style="margin-top:14px;">
         <table>
-          <thead><tr><th style="width:40%">Name</th><th style="width:40%">Team</th><th style="width:20%">Aktionen</th></tr></thead>
+          <thead><tr><th style="width:32%">Name</th><th style="width:28%">Team</th><th style="width:28%">E-Mail</th><th style="width:12%">Aktionen</th></tr></thead>
           <tbody id="adm_body"></tbody>
         </table>
       </div>
