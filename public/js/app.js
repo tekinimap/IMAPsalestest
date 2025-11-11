@@ -29,7 +29,6 @@ import {
   parseAmountInput,
   escapeHtml,
 } from './utils/format.js';
-import { suggestEmailForName } from '../shared/email-suggestions.js';
 import {
   showLoader,
   hideLoader,
@@ -1490,7 +1489,6 @@ async function handleAdminClick() {
     showLoader();
     await loadPeople();
     populateAdminTeamOptions();
-    updateAdminEmailSuggestion(true);
     renderPeopleAdmin();
     showView('admin');
   } catch (e) {
@@ -3661,30 +3659,7 @@ function validateModalInput(rows, weights) {
 }
 
 /* ---------- Admin ---------- */
-const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admEmail=document.getElementById('adm_email'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
-let admEmailDirty=false;
-
-function updateAdminEmailSuggestion(force=false){
-  if (!admName || !admEmail) return;
-  const suggestion = suggestEmailForName(admName.value);
-  admEmail.dataset.suggested = suggestion || '';
-  const currentTrimmed = admEmail.value.trim();
-  if (force || !admEmailDirty || !currentTrimmed) {
-    admEmail.value = suggestion || '';
-    admEmailDirty = false;
-  }
-  admEmail.placeholder = suggestion || 'E-Mail-Adresse (optional)';
-}
-
-if (admName){
-  admName.addEventListener('input', ()=>updateAdminEmailSuggestion());
-}
-if (admEmail){
-  admEmail.addEventListener('input', ()=>{
-    const suggestion = admEmail.dataset.suggested || '';
-    admEmailDirty = admEmail.value.trim() !== suggestion;
-  });
-}
+const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
 
 function populateAdminTeamOptions() {
   if (!admTeam) return;
@@ -3724,19 +3699,15 @@ function renderPeopleAdmin(){
   const filteredPeople = people.filter(p => {
     const nameMatch = (p.name || '').toLowerCase().includes(query);
     const teamMatch = (p.team || '').toLowerCase().includes(query);
-    const emailMatch = (p.email || '').toLowerCase().includes(query);
-    return nameMatch || teamMatch || emailMatch;
+    return nameMatch || teamMatch;
   });
 
   filteredPeople.forEach(p=>{
     const tr=document.createElement('tr');
     const safeName = escapeHtml(p.name || '');
-    const safeEmailValue = escapeHtml((p.email && p.email.trim()) || suggestEmailForName(p.name) || '');
-    const emailPlaceholder = escapeHtml(suggestEmailForName(p.name) || 'E-Mail-Adresse');
     tr.innerHTML=`
       <td><input type="text" value="${safeName}"></td>
       <td><select>${TEAMS.map(t=>`<option value="${escapeHtml(t)}" ${p.team===t?'selected':''}>${escapeHtml(t)}</option>`).join('')}</select></td>
-      <td><input type="email" value="${safeEmailValue}" placeholder="${emailPlaceholder}"></td>
       <td style="display:flex;gap:8px">
         <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
         <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -3752,10 +3723,8 @@ admBody.addEventListener('click',async(ev)=>{
     if(act==='save'){
       const name=tr.querySelector('td:nth-child(1) input').value.trim();
       const team=tr.querySelector('td:nth-child(2) select').value;
-      const emailInput = tr.querySelector('td:nth-child(3) input');
-      const email = emailInput ? emailInput.value.trim() : '';
       if(!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
-      const payload = { id, name, team, email };
+      const payload = { id, name, team };
       const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
       if(!r.ok) throw new Error(await r.text());
       showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
@@ -3767,23 +3736,16 @@ admBody.addEventListener('click',async(ev)=>{
   } catch(e){ showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
 });
 async function adminCreate(){
-  const name=admName.value.trim(); const team=admTeam.value; const email=admEmail?admEmail.value.trim():'';
+  const name=admName.value.trim(); const team=admTeam.value;
   if(!name || !team){ showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
   showLoader();
   try{
     const payload = {id:`p_${Date.now()}`,name,team};
-    if (email) payload.email = email;
     const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(await r.text());
     showToast('Person angelegt.', 'ok');
     admName.value='';
     admTeam.value='';
-    if (admEmail){
-      admEmail.value='';
-      admEmail.dataset.suggested='';
-      admEmailDirty=false;
-      updateAdminEmailSuggestion(true);
-    }
     await loadPeople(); renderPeopleAdmin();
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
 }
@@ -5026,7 +4988,6 @@ async function initializeApp(){
   }
 
   populateAdminTeamOptions();
-  updateAdminEmailSuggestion(true);
   initFromState();
 
   try {
