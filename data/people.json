@@ -2,362 +2,434 @@
   {
     "name": "Merlin Klein",
     "id": "p_oe_head_02",
-    "team": "Head of Organisational Excellence"
+    "team": "Head of Organisational Excellence",
+    "email": "klein@imap-institut.de"
   },
   {
     "name": "Eva Wollschläger",
     "id": "p_oe_skv_01",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "wollschlaeger@imap-institut.de"
   },
   {
     "name": "Gunhild Busch",
     "id": "p_oe_skv_02",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "busch@imap-institut.de"
   },
   {
     "name": "Lotta Burron",
     "id": "p_oe_skv_03",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "burron@imap-institut.de"
   },
   {
     "name": "Nana Hengelhaupt",
     "id": "p_oe_skv_04",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "hengelhaupt@imap-institut.de"
   },
   {
     "name": "Philip Lahrmann",
     "id": "p_oe_skv_05",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "lahrmann@imap-institut.de"
   },
   {
     "name": "Leon Zehner",
     "id": "p_oe_skv_06",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "zehner@imap-institut.de"
   },
   {
     "name": "Carla Detthlefsen",
     "id": "p_oe_skv_07",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "detthlefsen@imap-institut.de"
   },
   {
     "name": "Sophie But",
     "id": "p_oe_skv_08",
-    "team": "Sozial- und Krankenversicherungen"
+    "team": "Sozial- und Krankenversicherungen",
+    "email": "but@imap-institut.de"
   },
   {
     "name": "Felix Birkner",
     "id": "p_oe_bul_01",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "birkner@imap-institut.de"
   },
   {
     "name": "Anne-Christin Herhold",
     "id": "p_oe_bul_02",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "herhold@imap-institut.de"
   },
   {
     "name": "Katharina Rapp",
     "id": "p_oe_bul_03",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "rapp@imap-institut.de"
   },
   {
     "name": "Robin Dewald",
     "id": "p_oe_bul_04",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "dewald@imap-institut.de"
   },
   {
     "name": "Thomas Gebhardt",
     "id": "p_oe_bul_05",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "gebhardt@imap-institut.de"
   },
   {
     "name": "Niklas Villwock",
     "id": "p_oe_bul_06",
-    "team": "Bundes- und Landesbehörden"
+    "team": "Bundes- und Landesbehörden",
+    "email": "villwock@imap-institut.de"
   },
   {
     "name": "Luisa Grimmig",
     "id": "p_oe_komm_01",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "grimmig@imap-institut.de"
   },
   {
     "name": "Marita Gasteiger",
     "id": "p_oe_komm_02",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "gasteiger@imap-institut.de"
   },
   {
     "name": "Christopher van den Hövel",
     "id": "p_oe_komm_03",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "vandenhoevel@imap-institut.de"
   },
   {
     "name": "Hanna Nützer",
     "id": "p_oe_komm_04",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "nuetzer@imap-institut.de"
   },
   {
     "name": "Sven Backhausen",
     "id": "p_oe_komm_05",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "backhausen@imap-institut.de"
   },
   {
     "name": "Leonie Athanasiadis",
     "id": "p_oe_komm_06",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "athanasiadis@imap-institut.de"
   },
   {
     "name": "Ole Ringmann",
     "id": "p_oe_komm_07",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "ringmann@imap-institut.de"
   },
   {
     "name": "Ralf Fischer",
     "id": "p_oe_komm_08",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "fischer@imap-institut.de"
   },
   {
     "name": "Marie Enderle",
     "id": "p_oe_komm_09",
-    "team": "Kommunalverwaltungen"
+    "team": "Kommunalverwaltungen",
+    "email": "enderle@imap-institut.de"
   },
   {
     "name": "Rimma Kadyrbayeva",
     "id": "p_oe_iza_01",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "kadyrbayeva@imap-institut.de"
   },
   {
     "name": "Marischa Weiser",
     "id": "p_oe_iza_02",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "weiser@imap-institut.de"
   },
   {
     "name": "Constanze Aka",
     "id": "p_oe_iza_03",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "aka@imap-institut.de"
   },
   {
     "name": "Neele Windelen",
     "id": "p_oe_iza_04",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "windelen@imap-institut.de"
   },
   {
     "name": "Lisa Nöckel",
     "id": "p_oe_iza_05",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "noeckel@imap-institut.de"
   },
   {
     "name": "Jonathan Ott",
     "id": "p_oe_iza_06",
-    "team": "Internationale Zusammenarbeit"
+    "team": "Internationale Zusammenarbeit",
+    "email": "ott@imap-institut.de"
   },
   {
     "name": "Linda Malm",
     "id": "p_oe_cp_01",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "malm@imap-institut.de"
   },
   {
     "name": "Kristin Delf",
     "id": "p_oe_cp_02",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "delf@imap-institut.de"
   },
   {
     "name": "Ralf Böttcher",
     "id": "p_oe_cp_03",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "boettcher@imap-institut.de"
   },
   {
     "name": "Sara Kaufmann",
     "id": "p_oe_cp_04",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "kaufmann@imap-institut.de"
   },
   {
     "name": "Hays Steilberg",
     "id": "p_oe_cp_05",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "steilberg@imap-institut.de"
   },
   {
     "name": "Nadine Magsam",
     "id": "p_oe_cp_06",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "magsam@imap-institut.de"
   },
   {
     "name": "Brhan Marcos",
     "id": "p_oe_cp_07",
-    "team": "ChangePartner"
+    "team": "ChangePartner",
+    "email": "marcos@imap-institut.de"
   },
   {
     "name": "Jens Maaßen",
     "id": "p_pi_head_01",
-    "team": "Head of Public Impact"
+    "team": "Head of Public Impact",
+    "email": "maassen@imap-institut.de"
   },
   {
     "name": "Johannes Groß",
     "id": "p_pi_head_02",
-    "team": "Head of Public Impact"
+    "team": "Head of Public Impact",
+    "email": "gross@imap-institut.de"
   },
   {
     "name": "Anne Gerl",
     "id": "p_pi_head_03",
-    "team": "Head of Public Impact"
+    "team": "Head of Public Impact",
+    "email": "gerl@imap-institut.de"
   },
   {
     "name": "Lydia Kirchner",
     "id": "p_pi_ev_01",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "kirchner@imap-institut.de"
   },
   {
     "name": "Sarah Perry",
     "id": "p_pi_ev_02",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "perry@imap-institut.de"
   },
   {
     "name": "Lisa Wansch",
     "id": "p_pi_ev_03",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "wansch@imap-institut.de"
   },
   {
     "name": "Valeska Korff",
     "id": "p_pi_ev_04",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "korff@imap-institut.de"
   },
   {
     "name": "Justina Doffiné",
     "id": "p_pi_ev_05",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "doffine@imap-institut.de"
   },
   {
     "name": "Barbara Flatters",
     "id": "p_pi_ev_06",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "flatters@imap-institut.de"
   },
   {
     "name": "Lena Noumi",
     "id": "p_pi_ev_07",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "noumi@imap-institut.de"
   },
   {
     "name": "Philipp Breer",
     "id": "p_pi_ev_08",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "breer@imap-institut.de"
   },
   {
     "name": "Anna Herdick",
     "id": "p_pi_ev_09",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "herdick@imap-institut.de"
   },
   {
     "name": "Sophia Braun",
     "id": "p_pi_ev_10",
-    "team": "Evaluierung & Beteiligung (EV)"
+    "team": "Evaluierung & Beteiligung (EV)",
+    "email": "braun@imap-institut.de"
   },
   {
     "name": "Charlotte Frey",
     "id": "p_pi_vp_01",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "frey@imap-institut.de"
   },
   {
     "name": "Charlotte Hartig",
     "id": "p_pi_vp_02",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "hartig@imap-institut.de"
   },
   {
     "name": "Timon Perabo",
     "id": "p_pi_vp_03",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "perabo@imap-institut.de"
   },
   {
     "name": "Jenni Winterhagen",
     "id": "p_pi_vp_04",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "winterhagen@imap-institut.de"
   },
   {
     "name": "Sanaz Rasulli",
     "id": "p_pi_vp_05",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "rasulli@imap-institut.de"
   },
   {
     "name": "Louisa Szymorek",
     "id": "p_pi_vp_06",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "szymorek@imap-institut.de"
   },
   {
     "name": "Tabea Schwickert",
     "id": "p_pi_vp_07",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "schwickert@imap-institut.de"
   },
   {
     "name": "Daniel Bartel",
     "id": "p_pi_vp_08",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "bartel@imap-institut.de"
   },
   {
     "name": "Eileen Stübke",
     "id": "p_pi_vp_09",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "stuebke@imap-institut.de"
   },
   {
     "name": "Dilâra Dayakli",
     "id": "p_pi_vp_10",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "dayakli@imap-institut.de"
   },
   {
     "name": "Laetitia Arndt",
     "id": "p_pi_vp_11",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "arndt@imap-institut.de"
   },
   {
     "name": "Merit Walther",
     "id": "p_pi_vp_12",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "walther@imap-institut.de"
   },
   {
     "name": "Janice Owen-Aghedo",
     "id": "p_pi_vp_13",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "owenaghedo@imap-institut.de"
   },
   {
     "name": "Leon Godeffroy",
     "id": "p_pi_vp_14",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "godeffroy@imap-institut.de"
   },
   {
     "name": "Zübeyde Sarikaya",
     "id": "p_pi_vp_15",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "sarikaya@imap-institut.de"
   },
   {
     "name": "Esma Mamoud",
     "id": "p_pi_vp_16",
-    "team": "Vielfalt+ (V+)"
+    "team": "Vielfalt+ (V+)",
+    "email": "mamoud@imap-institut.de"
   },
   {
     "name": "Anna-Lena Wendt",
     "id": "p_pi_nh_01",
-    "team": "Nachhaltigkeit (NH)"
+    "team": "Nachhaltigkeit (NH)",
+    "email": "wendt@imap-institut.de"
   },
   {
     "name": "Jossa Sippel",
     "id": "p_pi_nh_02",
-    "team": "Nachhaltigkeit (NH)"
+    "team": "Nachhaltigkeit (NH)",
+    "email": "sippel@imap-institut.de"
   },
   {
     "name": "Laura Kirchoff",
     "id": "p_pi_nh_03",
-    "team": "Nachhaltigkeit (NH)"
+    "team": "Nachhaltigkeit (NH)",
+    "email": "kirchoff@imap-institut.de"
   },
   {
     "name": "Uta Giebel",
     "id": "p_pi_nh_04",
-    "team": "Nachhaltigkeit (NH)"
+    "team": "Nachhaltigkeit (NH)",
+    "email": "giebel@imap-institut.de"
   },
   {
     "name": "Benedict Bueb",
     "id": "p_pi_nh_05",
-    "team": "Nachhaltigkeit (NH)"
+    "team": "Nachhaltigkeit (NH)",
+    "email": "bueb@imap-institut.de"
   },
   {
     "id": "p_1759849182050",
     "name": "Sara Kaufmann",
-    "team": "Head of Organisational Excellence"
+    "team": "Head of Organisational Excellence",
+    "email": "kaufmann@imap-institut.de"
   },
   {
     "id": "p_1761054880891",
