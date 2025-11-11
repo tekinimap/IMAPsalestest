@@ -1505,7 +1505,7 @@ async function handleAdminClick() {
 const peopleList = document.getElementById('peopleList');
 async function loadSession() {
   try {
-    const response = await fetch(`${WORKER_BASE}/session`, { credentials: 'include', cache: 'no-store' });
+    const response = await fetch(`${WORKER_BASE}/session`, { cache: 'no-store' });
     if (!response.ok) {
       if (response.status !== 404) {
         console.warn('Session konnte nicht geladen werden (Status):', response.status);
@@ -1539,7 +1539,7 @@ async function loadSession() {
 async function loadPeople(){
   showLoader();
   try{
-    const r=await fetch(`${WORKER_BASE}/people`, { credentials: 'include', cache: 'no-store' });
+    const r=await fetch(`${WORKER_BASE}/people`, { cache: 'no-store' });
     people = r.ok? await r.json(): [];
   }
   catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
@@ -2169,7 +2169,7 @@ async function loadHistory(silent = false){
     showLoader();
   }
   try{
-    const r = await fetch(`${WORKER_BASE}/entries`, { credentials: 'include', cache: 'no-store' });
+    const r = await fetch(`${WORKER_BASE}/entries`, { cache: 'no-store' });
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
     setEntries(fetchedEntries);
 
