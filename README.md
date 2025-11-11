@@ -112,11 +112,10 @@ Dadurch lassen sich Worker-Settings direkt in die Anwendung spiegeln, ohne stati
 
 ### Cloudflare Access / Single Sign-On
 
-Die Anwendung wertet – sofern vorhanden – die von Cloudflare Access gesetzten HTTP-Header aus, um eingeloggte Personen automatisch zu erkennen. Der Worker liest die Header `CF-Access-Authenticated-User-Email` und `CF-Access-Authenticated-User-Name` (sowie einige Fallback-Namen) und gleicht sie mit den Einträgen in [`data/people.json`](data/people.json) ab. Wird eine E-Mail-Adresse oder ein Name gefunden, erhalten Kommentare automatisch die passende Personenzuweisung.
+Die Anwendung wertet – sofern vorhanden – die von Cloudflare Access gesetzten HTTP-Header aus, um eingeloggte Personen automatisch zu erkennen. Der Worker liest die Header `CF-Access-Authenticated-User-Email` und `CF-Access-Authenticated-User-Name` (sowie einige Fallback-Namen) und gleicht sie mit den Einträgen in [`data/people.json`](data/people.json) ab. So können Eingaben im Tool direkt einer bekannten Person zugeordnet werden.
 
 * **Session-Endpoint:** Das Frontend ruft beim Start `GET /session` auf. Die Route wird nur beantwortet, wenn `ALLOWED_ORIGIN` auf einen konkreten Origin gesetzt ist, damit CORS mit Cookies funktioniert. Ohne Access-Header antwortet der Worker mit einem leeren Session-Objekt.
 * **Admin-Bereich:** Beim Anlegen neuer Personen schlägt das UI anhand des Nachnamens automatisch eine IMAP-Adresse vor (z. B. `vandenhoevel@imap-institut.de`). Die Adresse kann vor dem Speichern angepasst werden.
-* **Fallback:** Wenn Cloudflare Access in lokalen Umgebungen fehlt, bleibt das Kommentarformular weiterhin nutzbar – die Person muss dann manuell ausgewählt werden.
 
 ### Cloudflare-Worker aktualisieren (Schritt-für-Schritt)
 

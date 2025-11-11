@@ -121,30 +121,8 @@ const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 const dockEntryDialog = document.getElementById('dockEntryDialog');
 const dockManualPanel = document.getElementById('dockManualPanel');
-const dockCommentsPanel = document.getElementById('dockCommentsPanel');
-const dockCommentsEntryTitle = document.getElementById('dockCommentsEntryTitle');
-const dockCommentsList = document.getElementById('dockCommentsList');
-const dockCommentsEmpty = document.getElementById('dockCommentsEmpty');
-const dockCommentForm = document.getElementById('dockCommentForm');
-const dockCommentAuthor = document.getElementById('dockCommentAuthor');
-const dockCommentText = document.getElementById('dockCommentText');
-const dockCommentSubmit = document.getElementById('dockCommentSubmit');
-const dockCommentIdentityHint = document.getElementById('dockCommentIdentityHint');
 
 let currentSession = { email: '', name: '', rawName: '', person: null };
-
-function getRecognizedCommentAuthor() {
-  if (currentSession.person && currentSession.person.name) {
-    return currentSession.person.name;
-  }
-  if (currentSession.name) {
-    return currentSession.name;
-  }
-  if (currentSession.email) {
-    return currentSession.email;
-  }
-  return '';
-}
 
 function updateRecognizedPersonFromPeople() {
   if (!Array.isArray(people) || people.length === 0) {
@@ -171,32 +149,6 @@ function updateRecognizedPersonFromPeople() {
     }
   }
 }
-
-function updateCommentIdentityHint() {
-  if (!dockCommentIdentityHint) return;
-  const author = getRecognizedCommentAuthor();
-  const email = String(currentSession.email || '').trim();
-  const hasIdentity = Boolean(author || email);
-  if (!hasIdentity) {
-    dockCommentIdentityHint.textContent = 'Keine Cloudflare-Anmeldung erkannt. Bitte wähle einen Namen aus.';
-    return;
-  }
-
-  const safeAuthor = escapeHtml(author);
-  const safeEmail = escapeHtml(email);
-  if (currentSession.person && currentSession.person.name) {
-    dockCommentIdentityHint.innerHTML = email
-      ? `Angemeldet als <strong>${safeAuthor}</strong> (${safeEmail}) über Cloudflare Access.`
-      : `Angemeldet als <strong>${safeAuthor}</strong> über Cloudflare Access.`;
-    return;
-  }
-  if (author && email) {
-    dockCommentIdentityHint.innerHTML = `Angemeldet als <strong>${safeAuthor}</strong> (${safeEmail}). Bitte ordne die Adresse im Admin-Bereich einer Person zu.`;
-    return;
-  }
-  dockCommentIdentityHint.innerHTML = `Angemeldet als <strong>${safeAuthor}</strong>.`;
-}
-const DOCK_COMMENT_DEFAULT_MESSAGE = 'Wähle einen Deal aus, um Kommentare zu sehen.';
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
 const dockFilterBu = document.getElementById('dockFilterBu');
@@ -211,251 +163,6 @@ if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
 }
 
 let people = [];
-let currentCommentEntryId = null;
-let isCommentSubmitPending = false;
-
-function getEntryComments(entry) {
-  if (!entry || typeof entry !== 'object') return [];
-  const list = Array.isArray(entry.comments) ? entry.comments : [];
-  return list.filter((item) => item && typeof item === 'object');
-}
-
-function formatCommentTimestamp(value) {
-  if (!value) return '';
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' });
-  } catch (err) {
-    console.error('Zeitstempel konnte nicht formatiert werden', err);
-    return '';
-  }
-}
-
-function setDockCommentFormDisabled(disabled) {
-  if (!dockCommentForm) return;
-  dockCommentForm.classList.toggle('is-disabled', disabled);
-  if (dockCommentAuthor) {
-    const shouldDisableAuthor = disabled || Boolean(currentSession.person);
-    dockCommentAuthor.disabled = shouldDisableAuthor;
-  }
-  if (dockCommentText) dockCommentText.disabled = disabled;
-  if (dockCommentSubmit) dockCommentSubmit.disabled = disabled || isCommentSubmitPending;
-}
-
-function populateCommentAuthorOptions() {
-  if (!dockCommentAuthor) return;
-  const previousValue = dockCommentAuthor.value;
-  dockCommentAuthor.innerHTML = '';
-  const recognizedPerson = currentSession.person && currentSession.person.name ? currentSession.person : null;
-  const recognizedAuthor = getRecognizedCommentAuthor();
-
-  if (recognizedPerson && recognizedAuthor) {
-    const option = document.createElement('option');
-    option.value = recognizedAuthor;
-    option.textContent = recognizedAuthor;
-    dockCommentAuthor.appendChild(option);
-    dockCommentAuthor.value = recognizedAuthor;
-    dockCommentAuthor.disabled = true;
-  } else {
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Name wählen…';
-    placeholder.disabled = true;
-    dockCommentAuthor.appendChild(placeholder);
-
-    let selectionSet = false;
-    if (recognizedAuthor) {
-      const identityOption = document.createElement('option');
-      identityOption.value = recognizedAuthor;
-      const parts = [];
-      if (currentSession.name) parts.push(currentSession.name);
-      if (currentSession.email) parts.push(currentSession.email);
-      identityOption.textContent = parts.length ? parts.join(' · ') : recognizedAuthor;
-      dockCommentAuthor.appendChild(identityOption);
-      if (!previousValue || previousValue === recognizedAuthor) {
-        dockCommentAuthor.value = recognizedAuthor;
-        selectionSet = true;
-      }
-    }
-
-    people.forEach((person) => {
-      if (!person || !person.name) return;
-      if (person.name === recognizedAuthor && recognizedPerson) return;
-      const option = document.createElement('option');
-      option.value = person.name;
-      option.textContent = person.name;
-      dockCommentAuthor.appendChild(option);
-    });
-
-    if (!selectionSet && previousValue && people.some((person) => person && person.name === previousValue)) {
-      dockCommentAuthor.value = previousValue;
-      selectionSet = true;
-    }
-    if (!selectionSet) {
-      dockCommentAuthor.selectedIndex = 0;
-    }
-    dockCommentAuthor.disabled = false;
-  }
-  updateCommentIdentityHint();
-}
-
-function resetDockCommentPanel() {
-  currentCommentEntryId = null;
-  isCommentSubmitPending = false;
-  if (dockCommentsEntryTitle) {
-    dockCommentsEntryTitle.textContent = DOCK_COMMENT_DEFAULT_MESSAGE;
-    dockCommentsEntryTitle.title = DOCK_COMMENT_DEFAULT_MESSAGE;
-  }
-  if (dockCommentsList) {
-    dockCommentsList.innerHTML = '';
-    dockCommentsList.scrollTop = 0;
-  }
-  if (dockCommentsEmpty) {
-    dockCommentsEmpty.classList.remove('hide');
-  }
-  if (dockCommentText) {
-    dockCommentText.value = '';
-  }
-  if (dockCommentAuthor) {
-    dockCommentAuthor.value = '';
-    dockCommentAuthor.selectedIndex = 0;
-  }
-  setDockCommentFormDisabled(true);
-}
-
-function renderDockCommentPanel(entry) {
-  if (!dockCommentsPanel) return;
-  if (!entry || typeof entry !== 'object') {
-    resetDockCommentPanel();
-    return;
-  }
-  currentCommentEntryId = entry.id;
-  const title = firstNonEmptyString([
-    entry.title,
-    entry.client,
-    entry.projectNumber,
-  ]) || 'Deal';
-  if (dockCommentsEntryTitle) {
-    dockCommentsEntryTitle.textContent = title;
-    dockCommentsEntryTitle.title = title;
-  }
-  const comments = getEntryComments(entry)
-    .slice()
-    .sort((a, b) => {
-      const aTime = Number(a.createdAt) || 0;
-      const bTime = Number(b.createdAt) || 0;
-      if (aTime === bTime) return 0;
-      return aTime < bTime ? -1 : 1;
-    });
-  if (dockCommentsList) {
-    dockCommentsList.innerHTML = '';
-    comments.forEach((comment) => {
-      const item = document.createElement('article');
-      item.className = 'dock-comment-item';
-      const meta = document.createElement('div');
-      meta.className = 'dock-comment-meta';
-      const author = typeof comment.author === 'string' && comment.author.trim()
-        ? comment.author.trim()
-        : 'Unbekannt';
-      meta.textContent = formatCommentTimestamp(comment.createdAt)
-        ? `${author} · ${formatCommentTimestamp(comment.createdAt)}`
-        : author;
-      const text = document.createElement('p');
-      text.className = 'dock-comment-text';
-      text.textContent = comment.text || '';
-      item.append(meta, text);
-      dockCommentsList.appendChild(item);
-    });
-    dockCommentsList.scrollTop = dockCommentsList.scrollHeight;
-  }
-  if (dockCommentsEmpty) {
-    dockCommentsEmpty.classList.toggle('hide', comments.length > 0);
-  }
-  setDockCommentFormDisabled(false);
-}
-
-function refreshDockCommentPanel() {
-  if (!currentCommentEntryId) return;
-  const entry = findEntryById(currentCommentEntryId);
-  if (entry) {
-    renderDockCommentPanel(entry);
-  } else {
-    resetDockCommentPanel();
-  }
-}
-
-async function handleDockCommentSubmit(event) {
-  if (event) {
-    event.preventDefault();
-  }
-  if (!dockCommentForm || isCommentSubmitPending) {
-    return;
-  }
-  const entryId = currentCommentEntryId;
-  if (!entryId) {
-    showToast('Bitte zuerst einen Deal öffnen.', 'warn');
-    return;
-  }
-  const recognizedAuthor = getRecognizedCommentAuthor();
-  const author = recognizedAuthor || (dockCommentAuthor ? dockCommentAuthor.value.trim() : '');
-  const text = dockCommentText ? dockCommentText.value.trim() : '';
-  if (!author) {
-    showToast('Bitte einen Namen auswählen.', 'warn');
-    return;
-  }
-  if (!text) {
-    showToast('Bitte einen Kommentar eingeben.', 'warn');
-    return;
-  }
-  const entry = findEntryById(entryId);
-  if (!entry) {
-    showToast('Der Deal konnte nicht geladen werden.', 'bad');
-    return;
-  }
-  isCommentSubmitPending = true;
-  setDockCommentFormDisabled(true);
-  try {
-    const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ author, text }),
-    });
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-    let updatedEntry = null;
-    try {
-      updatedEntry = await response.json();
-    } catch (err) {
-      console.warn('Kommentarantwort konnte nicht gelesen werden', err);
-    }
-    if (updatedEntry && typeof updatedEntry === 'object') {
-      upsertEntry(updatedEntry);
-      renderDockCommentPanel(updatedEntry);
-    } else {
-      await loadHistory(true);
-      refreshDockCommentPanel();
-    }
-    if (dockCommentText) {
-      dockCommentText.value = '';
-    }
-    showToast('Kommentar gespeichert.', 'ok');
-    requestDockBoardRerender();
-  } catch (err) {
-    console.error('Kommentar konnte nicht gespeichert werden', err);
-    showToast('Kommentar konnte nicht gespeichert werden.', 'bad');
-  } finally {
-    isCommentSubmitPending = false;
-    setDockCommentFormDisabled(false);
-  }
-}
-
-if (dockCommentForm) {
-  dockCommentForm.addEventListener('submit', handleDockCommentSubmit);
-}
-
-resetDockCommentPanel();
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
@@ -1058,31 +765,6 @@ function buildDockCard(item) {
   header.appendChild(headline);
 
   const actions = createDockElement('div', { className: 'dock-card-actions' });
-  const commentCount = getEntryComments(entry).length;
-  const commentIndicator = createDockElement('span', {
-    className: 'dock-card-comment-indicator',
-    attrs: {
-      title: commentCount === 1 ? '1 Kommentar' : `${commentCount} Kommentare`,
-      'aria-label': commentCount === 1 ? '1 Kommentar' : `${commentCount} Kommentare`,
-      role: 'status',
-    },
-  });
-  if (commentCount > 0) {
-    commentIndicator.classList.add('has-comments');
-  } else {
-    commentIndicator.classList.add('is-empty');
-  }
-  const commentIcon = document.createElementNS(svgNs, 'svg');
-  commentIcon.setAttribute('viewBox', '0 0 24 24');
-  commentIcon.setAttribute('focusable', 'false');
-  commentIcon.setAttribute('aria-hidden', 'true');
-  const bubblePath = document.createElementNS(svgNs, 'path');
-  bubblePath.setAttribute('d', 'M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-5l-4 4v-4H7a3 3 0 0 1-3-3V5z');
-  bubblePath.setAttribute('fill', 'currentColor');
-  commentIcon.appendChild(bubblePath);
-  const countEl = createDockElement('span', { className: 'dock-card-comment-count', text: String(commentCount) });
-  commentIndicator.append(commentIcon, countEl);
-  actions.appendChild(commentIndicator);
   const editBtn = createDockElement('button', {
     className: 'dock-card-edit',
     attrs: { type: 'button', 'aria-label': 'Deal bearbeiten', title: 'Deal bearbeiten' },
@@ -1532,7 +1214,6 @@ async function loadSession() {
     currentSession.name = '';
   }
   updateRecognizedPersonFromPeople();
-  populateCommentAuthorOptions();
 }
 async function loadPeople(){
   showLoader();
@@ -1560,7 +1241,6 @@ async function loadPeople(){
     });
   }
   updateRecognizedPersonFromPeople();
-  populateCommentAuthorOptions();
 }
 function findPersonByName(name){ return people.find(p=>p.name && p.name.toLowerCase()===String(name||'').toLowerCase()); }
 function findPersonByEmail(email){
@@ -2079,7 +1759,6 @@ function loadInputForm(inputData, isEditing = false) {
 function clearInputFields() {
     saveState({ source: 'manuell' });
     loadInputForm({}, false);
-    resetDockCommentPanel();
 }
 
 /* ---------- Berechnungslogik ---------- */
@@ -2184,7 +1863,6 @@ async function loadHistory(silent = false){
   // setEntries synchronisiert `window.entries` für ältere Module, daher bleibt die Reihenfolge kompatibel.
   renderHistory();
   renderDockBoard();
-  refreshDockCommentPanel();
 }
   
 function hasPositiveDistribution(list = [], amount = 0){
@@ -2942,7 +2620,6 @@ function editEntry(id) {
             rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
             weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
   saveState(st); initFromState(true);
-  renderDockCommentPanel(e);
   showManualPanel(true);
   showView('erfassung');
   showManualPanel();
