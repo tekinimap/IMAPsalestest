@@ -35,7 +35,7 @@
     window.fetchWithRetry = async function(url, options={}, retryCount=0){
       const limit=3;
       try{
-        const merged = { credentials: 'include', ...options };
+        const merged = { ...options, credentials: 'include' };
         if (options && options.headers) merged.headers = { ...options.headers };
         const res = await fetch(url, merged);
         if(!res.ok && retryCount<limit && res.status>=500){

@@ -14,7 +14,7 @@
   async function fetchWithRetry(url, options={}, retryCount=0){
     const limit=2;
     try{
-      const merged = { credentials: 'include', ...options };
+      const merged = { ...options, credentials: 'include' };
       if (options && options.headers) merged.headers = { ...options.headers };
       const r = await fetch(url, merged);
       if(!r.ok && retryCount<limit && r.status>=500){

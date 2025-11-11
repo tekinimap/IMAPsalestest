@@ -8,8 +8,8 @@ export async function throttle() {
 export async function fetchWithRetry(url, options = {}, retryCount = 0) {
   try {
     const mergedOptions = {
-      credentials: 'include',
       ...options,
+      credentials: 'include',
     };
     if (options && options.headers) {
       mergedOptions.headers = { ...options.headers };

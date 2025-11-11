@@ -29,6 +29,7 @@ import {
   parseAmountInput,
   escapeHtml,
 } from './utils/format.js';
+import { suggestEmailForName } from '../shared/email-suggestions.js';
 import {
   showLoader,
   hideLoader,
@@ -131,40 +132,7 @@ const dockCommentText = document.getElementById('dockCommentText');
 const dockCommentSubmit = document.getElementById('dockCommentSubmit');
 const dockCommentIdentityHint = document.getElementById('dockCommentIdentityHint');
 
-const EMAIL_SUGGESTION_SKIP_PATTERN = /(mitarbeiter|team|lead|\(|\)|\+|\/|\.)/i;
-const UMLAUT_REPLACEMENTS = Object.freeze({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss', Ä: 'ae', Ö: 'oe', Ü: 'ue' });
-
 let currentSession = { email: '', name: '', rawName: '', person: null };
-
-function normalizeEmailComponent(value) {
-  const input = String(value || '')
-    .replace(/[äöüßÄÖÜ]/g, (ch) => UMLAUT_REPLACEMENTS[ch] || ch)
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toLowerCase();
-  return input;
-}
-
-function shouldSkipEmailSuggestion(name) {
-  const trimmed = String(name || '').trim();
-  if (!trimmed) return true;
-  return EMAIL_SUGGESTION_SKIP_PATTERN.test(trimmed);
-}
-
-function suggestEmailForName(name) {
-  if (shouldSkipEmailSuggestion(name)) return '';
-  const trimmed = String(name || '').trim();
-  const parts = trimmed.split(/\s+/);
-  if (parts.length < 2) return '';
-  const localPart = parts
-    .slice(1)
-    .map(normalizeEmailComponent)
-    .filter(Boolean)
-    .join('');
-  if (!localPart) return '';
-  return `${localPart}@imap-institut.de`;
-}
 
 function getRecognizedCommentAuthor() {
   if (currentSession.person && currentSession.person.name) {
@@ -180,12 +148,9 @@ function getRecognizedCommentAuthor() {
 }
 
 function updateRecognizedPersonFromPeople() {
-  if (!Array.isArray(people) || !people.length) {
-    if (currentSession.person && currentSession.email) {
-      const emailLower = currentSession.email.toLowerCase();
-      if (!people.some((person) => String(person?.email || '').toLowerCase() === emailLower)) {
-        currentSession.person = null;
-      }
+  if (!Array.isArray(people) || people.length === 0) {
+    if (currentSession.person) {
+      currentSession.person = null;
     }
     return;
   }
@@ -1850,15 +1815,12 @@ async function loadSession() {
     const data = await response.json();
     currentSession.email = String(data?.email || '').trim();
     currentSession.rawName = String(data?.name || '').trim();
-    if (data && typeof data.person === 'object' && data.person) {
-      currentSession.person = data.person;
-      currentSession.name = String(data.person.name || '').trim() || currentSession.rawName;
+    currentSession.person = data?.person && typeof data.person === 'object' ? data.person : null;
+
+    if (currentSession.person) {
+      currentSession.name = String(currentSession.person.name || '').trim() || currentSession.rawName;
     } else {
-      currentSession.person = null;
-      currentSession.name = String(data?.displayName || data?.name || '').trim();
-    }
-    if (!currentSession.name) {
-      currentSession.name = currentSession.rawName || '';
+      currentSession.name = String(data?.displayName || '').trim() || currentSession.rawName;
     }
   } catch (err) {
     console.warn('Session konnte nicht geladen werden:', err);
