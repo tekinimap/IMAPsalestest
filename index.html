@@ -431,6 +431,7 @@
   #batchProgressBar { width: 100%; height: 10px; margin: 8px 0 4px; }
 
   dialog {border:1px solid var(--border); background: var(--panel); color:var(--text); border-radius: var(--radius); max-width: 90vw; }
+  dialog:not([open]) {display:none;}
   dialog::backdrop {background:rgba(0,0,0,.5); backdrop-filter: blur(4px);}
   dialog .hd { position: relative; }
   dialog .close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 24px; line-height: 1; padding: 0; }
@@ -949,6 +950,32 @@
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button class="btn" id="btnNo">Abbrechen</button>
       <button class="btn danger" id="btnYes">Löschen</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dockAssignAbrufDlg" style="min-width: 520px;">
+  <div class="hd">
+    <h1>Abruf zuordnen</h1>
+    <button class="close-btn" onclick="this.closest('dialog').close()">×</button>
+  </div>
+  <div class="ct">
+    <div id="dockAssignAbrufValidation" class="validation-summary"></div>
+    <p class="note" id="dockAssignAbrufDealInfo"></p>
+    <div class="dock-filter">
+      <label for="dockAssignAbrufSearch">Rahmenvertrag suchen</label>
+      <input type="text" id="dockAssignAbrufSearch" placeholder="Titel, Auftraggeber oder Projektnummer">
+    </div>
+    <div class="dock-filter">
+      <label for="dockAssignAbrufSelect">Rahmenvertrag wählen *</label>
+      <select id="dockAssignAbrufSelect" size="6"></select>
+    </div>
+    <p class="note" id="dockAssignAbrufPreview"></p>
+    <p class="note" id="dockAssignAbrufHint">Kein passender Rahmenvertrag in der Liste? Schließe dieses Fenster und nutze „Neuer Rahmenvertrag“, um den Deal direkt umzuwandeln.</p>
+    <div class="hr"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" id="dockAssignAbrufCancel">Abbrechen</button>
+      <button class="btn ok" id="dockAssignAbrufConfirm">Zuweisen</button>
     </div>
   </div>
 </dialog>
