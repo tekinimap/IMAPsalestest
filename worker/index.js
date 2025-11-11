@@ -532,9 +532,9 @@ function validateRow(row){
 const isFullEntry = (obj)=> !!(obj && (obj.projectType || obj.transactions || Array.isArray(obj.rows) || Array.isArray(obj.list) || Array.isArray(obj.weights)));
 
 /* ------------------------ GitHub I/O ------------------------ */
-async function ghGetFile(env, path, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch || env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { items: [], sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); const content = raw ? b64decodeUtf8(raw) : "[]"; let items = []; try { items = content.trim() ? JSON.parse(content) : []; if (!Array.isArray(items)) items = []; } catch(e) { console.error("Failed to parse JSON from GitHub:", content); throw new Error(`Failed to parse JSON from ${path}: ${e.message}`); } return { items, sha: data.sha }; }
+async function ghGetFile(env, path, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch || env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) { await r.text().catch(() => ''); return { items: [], sha: null }; } if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); const content = raw ? b64decodeUtf8(raw) : "[]"; let items = []; try { items = content.trim() ? JSON.parse(content) : []; if (!Array.isArray(items)) items = []; } catch(e) { console.error("Failed to parse JSON from GitHub:", content); throw new Error(`Failed to parse JSON from ${path}: ${e.message}`); } return { items, sha: data.sha }; }
 async function ghPutFile(env, path, items, sha, message, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(JSON.stringify(items, null, 2)), branch: branch || env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
-async function ghGetContent(env, path) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { content: "", sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); return { content: raw ? b64decodeUtf8(raw) : "", sha: data.sha }; }
+async function ghGetContent(env, path) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) { await r.text().catch(() => ''); return { content: "", sha: null }; } if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); return { content: raw ? b64decodeUtf8(raw) : "", sha: data.sha }; }
 async function ghPutContent(env, path, content, sha, message) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(content), branch: env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
 
 function parseGitHubRepo(repo) {
@@ -719,7 +719,7 @@ async function readLogEntriesViaGraphql(env, rootDir, dates, options = {}) {
     }
   }
 
-  return { entries, limited };
+  return { entries, limited, satisfiedDays: Array.from(satisfiedDays) };
 }
 async function appendFile(env, path, text, message) { let tries = 0; const maxTries = 3; while (true) { tries++; const cur = await ghGetContent(env, path); const next = (cur.content || "") + text; try { const r = await ghPutContent(env, path, next, cur.sha, message); return { sha: r.content?.sha, path: r.content?.path }; } catch (e) { const s = String(e || ""); if (s.includes("sha") && tries < maxTries) { await new Promise(r=>setTimeout(r, 300*tries)); continue; } throw e; } } }
 
@@ -747,6 +747,7 @@ async function logJSONL(env, events){
   }
 }
 
+const MAX_LOG_RANGE_DAYS = 90;
 const MAX_FALLBACK_LOG_DAYS = 45;
 const LOG_SUBREQUEST_BUDGET = 47;
 const LOG_SUBREQUEST_RESERVE = 3;
@@ -755,25 +756,54 @@ async function readLogEntries(env, rootDir, from, to){
   const trimmedRoot = (rootDir || '').replace(/\/+$/, '');
   const dates = Array.from(dateRange(from, to));
   if (!dates.length) {
-    return { entries: [], limited: false };
+    return { entries: [], limited: false, rangeLimited: false };
   }
 
+  const normalizedFrom = normalizeDateOnly(from);
+  const rangeLimited = Boolean(normalizedFrom && dates[0] && dates[0] !== normalizedFrom);
+
+  let graphqlResult;
   try {
-    const graphqlResult = await readLogEntriesViaGraphql(env, trimmedRoot, dates, {
+    graphqlResult = await readLogEntriesViaGraphql(env, trimmedRoot, dates, {
       totalBudget: LOG_SUBREQUEST_BUDGET,
       reserve: LOG_SUBREQUEST_RESERVE,
     });
-    return graphqlResult;
   } catch (err) {
     console.error('GraphQL log fetch failed, falling back to REST:', err);
   }
 
-  const limitedDates = dates.slice(-MAX_FALLBACK_LOG_DAYS);
-  if (limitedDates.length < dates.length) {
+  const satisfied = new Set(graphqlResult?.satisfiedDays || []);
+  const missingDates = dates.filter((day) => !satisfied.has(day));
+
+  if (!graphqlResult || missingDates.length === dates.length) {
+    const desiredDates = missingDates.length ? missingDates : dates;
+    const limitedDates = desiredDates.slice(-MAX_FALLBACK_LOG_DAYS);
+    if (limitedDates.length < desiredDates.length) {
+      console.warn(`Log metrics fallback limited to the most recent ${limitedDates.length} days to avoid subrequest limits.`);
+    }
+    const entries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
+    const limited = limitedDates.length < desiredDates.length;
+    return { entries, limited: limited || rangeLimited, rangeLimited };
+  }
+
+  if (missingDates.length === 0) {
+    return {
+      entries: graphqlResult.entries,
+      limited: Boolean(graphqlResult.limited) || rangeLimited,
+      rangeLimited,
+    };
+  }
+
+  const limitedDates = missingDates.slice(-MAX_FALLBACK_LOG_DAYS);
+  if (limitedDates.length < missingDates.length) {
     console.warn(`Log metrics fallback limited to the most recent ${limitedDates.length} days to avoid subrequest limits.`);
   }
-  const entries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
-  return { entries, limited: limitedDates.length < dates.length };
+  const restEntries = await readLogEntriesViaRest(env, trimmedRoot, limitedDates);
+  const combinedEntries = Array.isArray(graphqlResult.entries)
+    ? [...graphqlResult.entries, ...restEntries]
+    : restEntries;
+  const limited = Boolean(graphqlResult.limited) || limitedDates.length < missingDates.length;
+  return { entries: combinedEntries, limited: limited || rangeLimited, rangeLimited };
 }
 
 /* ------------------------ HubSpot ------------------------ */
@@ -2241,13 +2271,17 @@ export default {
           teamMap.set(name, teamName);
         }
         const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
-        if (logResult.limited) {
-          metrics.meta = { ...(metrics.meta || {}), rangeLimited: true };
+        if (logResult.limited || logResult.rangeLimited) {
+          metrics.meta = {
+            ...(metrics.meta || {}),
+            rangeLimited: true,
+            maxDays: MAX_LOG_RANGE_DAYS,
+          };
         }
         const headers = { ...(
           pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : {}
         ) };
-        if (logResult.limited) {
+        if (logResult.limited || logResult.rangeLimited) {
           headers['X-Log-Range-Limited'] = 'true';
         }
         return respond(metrics, 200, env, headers);
@@ -2370,13 +2404,22 @@ export default {
 }; // Ende export default
 
 // Hilfsfunktion dateRange
+function normalizeDateOnly(input) {
+  if (!input) return '';
+  const parsed = new Date(`${input}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return '';
+  }
+  return parsed.toISOString().slice(0, 10);
+}
+
 function* dateRange(from, to){
   const d1 = to   ? new Date(to  +'T00:00:00Z') : new Date();
   const d0 = from ? new Date(from+'T00:00:00Z') : new Date(d1.getTime()-13*24*3600*1000);
   if (d0 > d1) return;
-  const maxRange = 90 * 24 * 3600 * 1000;
-  if (d1.getTime() - d0.getTime() > maxRange) {
-      const limitedStart = new Date(d1.getTime() - (maxRange - 24*3600*1000) );
+  const maxRangeMs = MAX_LOG_RANGE_DAYS * 24 * 3600 * 1000;
+  if (d1.getTime() - d0.getTime() > maxRangeMs) {
+      const limitedStart = new Date(d1.getTime() - (maxRangeMs - 24*3600*1000) );
        for(let d=new Date(limitedStart); d<=d1; d=new Date(d.getTime()+24*3600*1000)){
          yield d.toISOString().slice(0,10);
        }
