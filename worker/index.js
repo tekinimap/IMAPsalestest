@@ -12,23 +12,30 @@ const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 
 /* ------------------------ Utilities ------------------------ */
 
-const getCorsHeaders = (env) => {
-    const origin = env.ALLOWED_ORIGIN || "*";
+const getCorsHeaders = (env, request) => {
+    const configuredOrigin = typeof env.ALLOWED_ORIGIN === 'string' ? env.ALLOWED_ORIGIN.trim() : '';
+    const requestOrigin = request && typeof request.headers?.get === 'function'
+      ? String(request.headers.get('Origin') || '').trim()
+      : '';
+    let allowOrigin = configuredOrigin || requestOrigin || '*';
+    if (allowOrigin === '*' && requestOrigin) {
+        allowOrigin = requestOrigin;
+    }
     const headers = {
-        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Origin": allowOrigin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, X-HubSpot-Signature-V3, X-HubSpot-Request-Timestamp",
         "Access-Control-Max-Age": "86400",
         "Vary": "Origin",
     };
-    if (origin !== "*") {
+    if (allowOrigin !== "*") {
         headers["Access-Control-Allow-Credentials"] = "true";
     }
     return headers;
 };
 
-const jsonResponse = (data, status = 200, env, additionalHeaders = {}) => {
-  const corsHeaders = getCorsHeaders(env);
+const jsonResponse = (data, status = 200, env, request, additionalHeaders = {}) => {
+  const corsHeaders = getCorsHeaders(env, request);
   const headers = { ...corsHeaders, "Content-Type": "application/json", ...additionalHeaders };
   if (status >= 400) { console.error(`Responding with status ${status}:`, JSON.stringify(data)); }
   return new Response(JSON.stringify(data), { status, headers });
@@ -1786,10 +1793,21 @@ export function upsertByHubSpotId(entries, deal) {
 export default {
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: getCorsHeaders(env) });
+        return new Response(null, { status: 204, headers: getCorsHeaders(env, request) });
     }
 
     try {
+        const respond = (data, status = 200, arg3, arg4) => {
+          let headers = {};
+          if (arg3 === env) {
+            headers = arg4 || {};
+          } else if (arg3 && typeof arg3 === 'object' && arg4 === undefined) {
+            headers = arg3;
+          } else if (arg3 && typeof arg3 === 'object') {
+            headers = arg3;
+          }
+          return jsonResponse(data, status, env, request, headers);
+        };
         const url = new URL(request.url);
         const ghPath = env.GH_PATH || "data/entries.json";
         const peoplePath = env.GH_PEOPLE_PATH || "data/people.json";
@@ -1809,7 +1827,7 @@ export default {
                   email: identity.person.email || '',
                 }
               : null;
-            return jsonResponse({
+            return respond({
               email: identity.email,
               name: identity.name,
               rawName: identity.rawName,
@@ -1821,33 +1839,33 @@ export default {
         if (url.pathname === "/entries" && request.method === "GET") {
             const { items } = await ghGetFile(env, ghPath, branch);
             const normalized = canonicalizeEntries(items);
-            return jsonResponse(normalized, 200, env);
+            return respond(normalized, 200, env);
         }
         if (url.pathname.startsWith("/entries/") && request.method === "GET") {
             const id = decodeURIComponent(url.pathname.split("/").pop());
             const { items } = await ghGetFile(env, ghPath, branch);
             const found = items.find(x => String(x.id) === id);
-            if (!found) return jsonResponse({ error: "not found" }, 404, env);
-            return jsonResponse(ensureKvStructure({ ...found }), 200, env);
+            if (!found) return respond({ error: "not found" }, 404, env);
+            return respond(ensureKvStructure({ ...found }), 200, env);
         }
 
         if (url.pathname.startsWith("/entries/") && url.pathname.endsWith("/comments") && request.method === "POST") {
             const parts = url.pathname.split('/').filter(Boolean);
             if (parts.length < 3) {
-                return jsonResponse({ error: "invalid_path" }, 400, env);
+                return respond({ error: "invalid_path" }, 400, env);
             }
             const id = decodeURIComponent(parts[1]);
             const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
             let payload;
-            try { payload = await request.json(); } catch { return jsonResponse({ error: "invalid_json" }, 400, env); }
+            try { payload = await request.json(); } catch { return respond({ error: "invalid_json" }, 400, env); }
             const authorRaw = typeof payload?.author === 'string' ? payload.author.trim() : '';
             const textRaw = typeof payload?.text === 'string' ? payload.text.trim() : '';
             const resolvedAuthor = identity.person?.name || identity.name || identity.email;
             if (!authorRaw && !resolvedAuthor) {
-                return jsonResponse({ error: "author_required" }, 400, env);
+                return respond({ error: "author_required" }, 400, env);
             }
             if (!textRaw) {
-                return jsonResponse({ error: "text_required" }, 400, env);
+                return respond({ error: "text_required" }, 400, env);
             }
             const timestamp = Date.now();
             const commentId = (typeof crypto !== 'undefined' && crypto.randomUUID)
@@ -1871,7 +1889,7 @@ export default {
                 const cur = await ghGetFile(env, ghPath, branch);
                 const idx = cur.items.findIndex(x => String(x.id) === id);
                 if (idx < 0) {
-                    return jsonResponse({ error: "not_found" }, 404, env);
+                    return respond({ error: "not_found" }, 404, env);
                 }
                 const before = cur.items[idx];
                 const existingComments = Array.isArray(before.comments)
@@ -1886,7 +1904,7 @@ export default {
                 cur.items[idx] = updatedEntry;
                 try {
                     await saveEntries(cur.items, cur.sha, `append comment: ${id}`);
-                    return jsonResponse(ensureKvStructure(updatedEntry), 200, env);
+                    return respond(ensureKvStructure(updatedEntry), 200, env);
                 } catch (e) {
                     if (String(e).includes('sha') || String(e).includes('conflict')) {
                         await new Promise(res => setTimeout(res, 400 * (attempt + 1)));
@@ -1895,12 +1913,12 @@ export default {
                     throw e;
                 }
             }
-            return jsonResponse({ error: "conflict" }, 409, env);
+            return respond({ error: "conflict" }, 409, env);
         }
 
         /* ===== Entries POST (Single Create/Upsert) ===== */
         if (url.pathname === "/entries" && request.method === "POST") {
-            let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON body" }, 400, env); }
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON body" }, 400, env); }
             const cur = await ghGetFile(env, ghPath, branch);
             const items = cur.items || [];
             let entry; let status = 201; let skipSave = false;
@@ -1908,7 +1926,7 @@ export default {
 
             if (isFullEntry(body)) { /* Create Full Entry Logic */
                 const existingById = items.find(e => e.id === body.id);
-                if (existingById) return jsonResponse({ error: "Conflict: ID exists. Use PUT." }, 409, env);
+                if (existingById) return respond({ error: "Conflict: ID exists. Use PUT." }, 409, env);
                 entry = { id: body.id || rndId('entry_'), ...body, ts: body.ts || Date.now(), modified: undefined };
                 if(Array.isArray(entry.transactions)){ entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
                 ensureKvStructure(entry);
@@ -1917,7 +1935,7 @@ export default {
                 const f = fieldsOf(entry); await logJSONL(env, [{ event:'create', source: entry.source||'manuell', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason:'manual_or_import' }]);
             } else { /* Upsert-by-KV Logic */
                 const v = validateRow(body);
-                if (!v.ok) { await logJSONL(env, [{ event:'skip', source: v.source || 'erp', ...v}]); return jsonResponse({ error:'validation_failed', ...v }, 422, env); }
+                if (!v.ok) { await logJSONL(env, [{ event:'skip', source: v.source || 'erp', ...v}]); return respond({ error:'validation_failed', ...v }, 422, env); }
                 const kvList = v.kvList;
                 const existing = items.find(e => entriesShareKv(kvList, e));
                 if (!existing) {
@@ -1968,16 +1986,16 @@ export default {
                     await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_post' });
                 }
             }
-            return jsonResponse(entry, status, env);
+            return respond(entry, status, env);
         }
 
         /* ===== Entries PUT (Single Update) ===== */
         if (url.pathname.startsWith("/entries/") && request.method === "PUT") {
             const id = decodeURIComponent(url.pathname.split("/").pop());
-            let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const cur = await ghGetFile(env, ghPath, branch);
             const idx = cur.items.findIndex(x => String(x.id) === id);
-            if (idx < 0) return jsonResponse({ error: "not found" }, 404, env);
+            if (idx < 0) return respond({ error: "not found" }, 404, env);
             const before = JSON.parse(JSON.stringify(cur.items[idx])); let updatedEntry;
             const hubspotUpdates = [];
 
@@ -1992,7 +2010,7 @@ export default {
                  const f = fieldsOf(updatedEntry); await logJSONL(env, [{ event:'update', source: updatedEntry.source||'manuell', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
             } else {
                 const v = validateRow({ ...before, ...body });
-                if (!v.ok) { await logJSONL(env, [{ event:'skip', ...v }]); return jsonResponse({ error:'validation_failed', ...v }, 422, env); }
+                if (!v.ok) { await logJSONL(env, [{ event:'skip', ...v }]); return respond({ error:'validation_failed', ...v }, 422, env); }
                 updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() });
                 ensureDockMetadata(updatedEntry);
                 cur.items[idx] = updatedEntry;
@@ -2014,7 +2032,7 @@ export default {
             if (hubspotUpdates.length) {
                 await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_put' });
             }
-            return jsonResponse(updatedEntry, 200, env);
+            return respond(updatedEntry, 200, env);
         }
 
         /* ===== Entries DELETE (Single) ===== */
@@ -2022,19 +2040,19 @@ export default {
              const id = decodeURIComponent(url.pathname.split("/").pop());
              const cur = await ghGetFile(env, ghPath, branch);
              const before = cur.items.find(x => String(x.id) === id);
-             if(!before) return jsonResponse({ ok: true, message:"already deleted?" }, 200, env);
+             if(!before) return respond({ ok: true, message:"already deleted?" }, 200, env);
              const next = cur.items.filter(x => String(x.id) !== id);
              await saveEntries(next, cur.sha, `delete entry: ${id}`);
              const f = fieldsOf(before); await logJSONL(env, [{ event:'delete', reason:'delete.entry', before, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
-             return jsonResponse({ ok: true }, 200, env);
+             return respond({ ok: true }, 200, env);
         }
 
         /* ===== Entries POST /entries/bulk (Legacy - Nur schlanker KV-Upsert) ===== */
         if (url.pathname === "/entries/bulk" && request.method === "POST") {
              console.log("Processing legacy /entries/bulk");
-             let payload; try { payload = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
+             let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
              const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-             if (!rows.length) return jsonResponse({ ok:false, message:'rows empty' }, 400, env);
+             if (!rows.length) return respond({ ok:false, message:'rows empty' }, 400, env);
              const cur = await ghGetFile(env, ghPath, branch); const items = cur.items || [];
              const byKV = new Map(items.filter(x=>x && kvListFrom(x).length).flatMap(x=>kvListFrom(x).map(kv=>[kv,x])));
              const logs = []; let created=0, updated=0, skipped=0, errors=0; let changed = false;
@@ -2071,18 +2089,18 @@ export default {
              }
              if (changed) {
                try { await saveEntries(items, cur.sha, `bulk import ${created}C ${updated}U ${skipped}S ${errors}E`); }
-               catch (e) { if (String(e).includes('sha') || String(e).includes('conflict')) { console.warn("Retrying legacy bulk due to SHA conflict", e); return jsonResponse({ error: "Save conflict. Please retry import.", details: e.message }, 409, env); } else { throw e; } }
+               catch (e) { if (String(e).includes('sha') || String(e).includes('conflict')) { console.warn("Retrying legacy bulk due to SHA conflict", e); return respond({ error: "Save conflict. Please retry import.", details: e.message }, 409, env); } else { throw e; } }
              }
              await logJSONL(env, logs);
-             return jsonResponse({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
+             return respond({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
         }
 
         /* ===== NEU: Entries POST /entries/bulk-v2 (Full Object Bulk) ===== */
         if (url.pathname === "/entries/bulk-v2" && request.method === "POST") {
              console.log("Processing /entries/bulk-v2");
-             let payload; try { payload = await request.json(); } catch (e) { return jsonResponse({ error: "Invalid JSON", details: e.message }, 400, env); }
+             let payload; try { payload = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
              const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-             if (!rows.length) return jsonResponse({ created: 0, updated: 0, skipped: 0, errors: 0, message:'rows empty' }, 200, env);
+             if (!rows.length) return respond({ created: 0, updated: 0, skipped: 0, errors: 0, message:'rows empty' }, 200, env);
              const cur = await ghGetFile(env, ghPath, branch);
              const items = cur.items || []; const logs = []; let created=0, updated=0, skipped=0, errors=0; let changed = false;
              const hubspotUpdates = [];
@@ -2134,7 +2152,7 @@ export default {
                 console.log(`Bulk v2: ${created} created, ${updated} updated. Attempting save.`);
                 try { await saveEntries(items, cur.sha, `bulk v2 import: ${created}C ${updated}U ${skipped}S ${errors}E`); }
                 catch (e) {
-                     if (String(e).includes('sha') || String(e).includes('conflict')) { console.error("Bulk v2 save failed (SHA conflict):", e); await logJSONL(env, logs); return jsonResponse({ error: "Save conflict. Please retry import.", details: e.message, created, updated, skipped, errors, saved: false }, 409, env);
+                     if (String(e).includes('sha') || String(e).includes('conflict')) { console.error("Bulk v2 save failed (SHA conflict):", e); await logJSONL(env, logs); return respond({ error: "Save conflict. Please retry import.", details: e.message, created, updated, skipped, errors, saved: false }, 409, env);
                      } else { console.error("Bulk v2 save failed (Other):", e); throw e; }
                 }
              } else { console.log("Bulk v2: No changes detected."); }
@@ -2142,15 +2160,15 @@ export default {
                 await processHubspotSyncQueue(env, hubspotUpdates, { mode: 'batch', reason: 'entries_bulk_v2' });
              }
              await logJSONL(env, logs);
-             return jsonResponse({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
+             return respond({ ok:true, created, updated, skipped, errors, saved: changed }, 200, env);
         } // Ende /entries/bulk-v2
 
         /* ===== NEU: Entries POST /entries/bulk-delete ===== */
         if (url.pathname === "/entries/bulk-delete" && request.method === "POST") {
             console.log("Processing /entries/bulk-delete");
-            let body; try { body = await request.json(); } catch (e) { return jsonResponse({ error: "Invalid JSON", details: e.message }, 400, env); }
+            let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
             const idsToDelete = Array.isArray(body?.ids) ? body.ids : [];
-            if (!idsToDelete.length) return jsonResponse({ ok: true, deletedCount: 0, message: 'No IDs provided' }, 200, env);
+            if (!idsToDelete.length) return respond({ ok: true, deletedCount: 0, message: 'No IDs provided' }, 200, env);
 
             const cur = await ghGetFile(env, ghPath, branch);
             const items = cur.items || [];
@@ -2181,7 +2199,7 @@ export default {
                 } catch (e) {
                     if (String(e).includes('sha') || String(e).includes('conflict')) {
                         console.error("Bulk delete failed due to SHA conflict:", e);
-                        return jsonResponse({ error: "Save conflict. Please retry delete operation.", details: e.message, deletedCount: 0 }, 409, env);
+                        return respond({ error: "Save conflict. Please retry delete operation.", details: e.message, deletedCount: 0 }, 409, env);
                     } else {
                         console.error("Bulk delete failed with other error:", e);
                         throw e;
@@ -2191,15 +2209,15 @@ export default {
                 console.log("Bulk Delete: No matching items found to delete.");
             }
             
-            return jsonResponse({ ok: true, deletedCount: deletedCount }, 200, env);
+            return respond({ ok: true, deletedCount: deletedCount }, 200, env);
         } // Ende /entries/bulk-delete
 
         /* ===== Entries POST /entries/merge ===== */
         if (url.pathname === "/entries/merge" && request.method === "POST") {
             console.log("Processing /entries/merge");
-            let body; try { body = await request.json(); } catch (e) { return jsonResponse({ error: "Invalid JSON", details: e.message }, 400, env); }
+            let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
             const ids = Array.isArray(body?.ids) ? body.ids.map(String) : [];
-            if (!ids.length || ids.length < 2) return jsonResponse({ error: "at least_two_ids_required" }, 400, env);
+            if (!ids.length || ids.length < 2) return respond({ error: "at least_two_ids_required" }, 400, env);
             const targetId = body?.targetId ? String(body.targetId) : ids[0];
 
             const cur = await ghGetFile(env, ghPath, branch);
@@ -2210,13 +2228,13 @@ export default {
               return entry;
             });
             const targetEntry = selected.find(e => String(e.id) === targetId) || selected[0];
-            if (!targetEntry) return jsonResponse({ error: "target_not_found" }, 404, env);
+            if (!targetEntry) return respond({ error: "target_not_found" }, 404, env);
 
             const sourceEntries = selected.filter(e => e !== targetEntry);
             const projectNumbers = new Set(selected.map(e => String(e.projectNumber || '').trim()));
-            if (projectNumbers.size > 1) return jsonResponse({ error: "project_number_mismatch", message: "Die Projektnummern stimmen nicht überein" }, 409, env);
+            if (projectNumbers.size > 1) return respond({ error: "project_number_mismatch", message: "Die Projektnummern stimmen nicht überein" }, 409, env);
             const invalidType = selected.find(e => (e.projectType && e.projectType !== 'fix'));
-            if (invalidType) return jsonResponse({ error: "invalid_project_type", message: "Nur Fixaufträge können zusammengeführt werden" }, 422, env);
+            if (invalidType) return respond({ error: "invalid_project_type", message: "Nur Fixaufträge können zusammengeführt werden" }, 422, env);
 
             const beforeTarget = JSON.parse(JSON.stringify(targetEntry));
             const beforeSources = sourceEntries.map(e => JSON.parse(JSON.stringify(e)));
@@ -2246,12 +2264,12 @@ export default {
             } catch (e) {
               if (String(e).includes('sha') || String(e).includes('conflict')) {
                 console.error("Merge save failed (SHA conflict):", e);
-                return jsonResponse({ error: "save_conflict", details: e.message }, 409, env);
+                return respond({ error: "save_conflict", details: e.message }, 409, env);
               }
               throw e;
             }
 
-            return jsonResponse({ ok: true, mergedInto: targetEntry.id, removed: sourceEntries.map(e=>e.id), entry: targetEntry }, 200, env);
+            return respond({ ok: true, mergedInto: targetEntry.id, removed: sourceEntries.map(e=>e.id), entry: targetEntry }, 200, env);
         }
 
 
@@ -2260,20 +2278,20 @@ export default {
             try {
                 const { items } = await ghGetFile(env, peoplePath, branch);
                 const normalized = Array.isArray(items) ? items.map(normalizePersonRecord) : [];
-                return jsonResponse(normalized, 200, env);
+                return respond(normalized, 200, env);
             } catch (err) {
                 const message = String(err || '');
                 if (message.includes('404')) {
-                    return jsonResponse([], 200, env);
+                    return respond([], 200, env);
                 }
                 throw err;
             }
         }
         if (url.pathname === "/people" && request.method === "POST") {
-            let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const name = normalizeString(body.name);
             const team = normalizeString(body.team);
-            if (!name || !team) return jsonResponse({ error: "Name and Team required"}, 400, env);
+            if (!name || !team) return respond({ error: "Name and Team required"}, 400, env);
             let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
             if (!email) {
                 email = suggestEmailForName(name);
@@ -2295,14 +2313,14 @@ export default {
             const currentItems = Array.isArray(cur.items) ? cur.items.slice() : [];
             currentItems.push(newPerson);
             await ghPutFile(env, peoplePath, currentItems.map(normalizePersonRecord), cur.sha, `add person ${name}`);
-            return jsonResponse(newPerson, 201, env);
+            return respond(newPerson, 201, env);
         }
         if (url.pathname === "/people" && request.method === "PUT") {
-            let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
-            if (!body.id) return jsonResponse({ error: "ID missing" }, 400, env);
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
+            if (!body.id) return respond({ error: "ID missing" }, 400, env);
             const cur = await ghGetFile(env, peoplePath, branch);
             const idx = cur.items.findIndex(x => String(x.id) === String(body.id));
-            if (idx < 0) return jsonResponse({ error: "not found" }, 404, env);
+            if (idx < 0) return respond({ error: "not found" }, 404, env);
             const current = cur.items[idx] || {};
             const updated = { ...current };
             if (body.name !== undefined) {
@@ -2324,27 +2342,27 @@ export default {
             const nextItems = Array.isArray(cur.items) ? cur.items.slice() : [];
             nextItems[idx] = normalizedPerson;
             await ghPutFile(env, peoplePath, nextItems.map(normalizePersonRecord), cur.sha, `update person ${body.id}`);
-            return jsonResponse(normalizedPerson, 200, env);
+            return respond(normalizedPerson, 200, env);
         }
         if (url.pathname === "/people" && request.method === "DELETE") {
-             let body; try { body = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
+             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
              const idToDelete = body?.id;
-             if (!idToDelete) return jsonResponse({ error: "ID missing in request body" }, 400, env);
+             if (!idToDelete) return respond({ error: "ID missing in request body" }, 400, env);
              const cur = await ghGetFile(env, peoplePath, branch);
              const initialLength = cur.items.length;
              const next = cur.items.filter(x => String(x.id) !== String(idToDelete));
-             if (next.length === initialLength) return jsonResponse({ error: "not found" }, 404, env);
+             if (next.length === initialLength) return respond({ error: "not found" }, 404, env);
              await ghPutFile(env, peoplePath, next.map(normalizePersonRecord), cur.sha, `delete person ${idToDelete}`);
-             return jsonResponse({ ok: true }, 200, env);
+             return respond({ ok: true }, 200, env);
         }
 
       /* ===== Logs Routes ===== */
       if (url.pathname === "/log" && request.method === "POST") {
-        let payload; try { payload = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); }
+        let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
         const dateStr = (payload.date || todayStr()); const y = dateStr.slice(0,4), m = dateStr.slice(5,7); const root = LOG_DIR(env);
         const path = `${root.replace(/\/+$/,'')}/${y}-${m}/${dateStr}.jsonl`; const text = (payload.lines||[]).map(String).join("\n") + "\n";
         const result = await appendFile(env, path, text, `log: ${dateStr} (+${(payload.lines||[]).length})`);
-        return jsonResponse({ ok: true, path, committed: result }, 200, env);
+        return respond({ ok: true, path, committed: result }, 200, env);
       }
       const isMetricsRequest =
         request.method === "GET" && (url.pathname === "/log/metrics" || url.pathname === "/analytics/metrics");
@@ -2376,7 +2394,7 @@ export default {
         }
         const metrics = __computeLogMetrics(rawLogs, { team, from, to }, teamMap);
         const headers = url.pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : undefined;
-        return jsonResponse(metrics, 200, env, headers);
+        return respond(metrics, 200, env, headers);
       }
       if (url.pathname === "/log/list" && request.method === "GET") {
         const from = url.searchParams.get("from"); const to = url.searchParams.get("to"); const out = []; const root = LOG_DIR(env);
@@ -2388,26 +2406,26 @@ export default {
           } catch (getFileErr) { if (!String(getFileErr).includes('404')) console.error(`Error reading log file ${path}:`, getFileErr); }
         }
         out.sort((a,b)=> (b.ts||0) - (a.ts||0));
-        return jsonResponse(out.slice(0, 5000), 200, env);
+        return respond(out.slice(0, 5000), 200, env);
       }
       const logPath = env.GH_LOG_PATH || "data/logs.json";
       if (url.pathname === "/logs") {
-          if (request.method === "GET") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch(e) { console.error("Error legacy logs:", e); } return jsonResponse((logData.items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)), 200, env); }
-          if (request.method === "POST") { let newLogEntries; try { newLogEntries = await request.json(); } catch { return jsonResponse({ error: "Invalid JSON" }, 400, env); } const logsToAdd = Array.isArray(newLogEntries) ? newLogEntries : [newLogEntries]; if (logsToAdd.length === 0) return jsonResponse({ success: true, added: 0 }, 200, env); let currentLogs = [], currentSha = null; try { const logData = await ghGetFile(env, logPath, branch); currentLogs = logData.items || []; currentSha = logData.sha; } catch (e) { if (!String(e).includes('404')) console.error("Error legacy logs POST:", e); } let updatedLogs = logsToAdd.concat(currentLogs); if (updatedLogs.length > MAX_LOG_ENTRIES) updatedLogs = updatedLogs.slice(0, MAX_LOG_ENTRIES); try { await ghPutFile(env, logPath, updatedLogs, currentSha, `add ${logsToAdd.length} log entries`); } catch (e) { /* Retry Logic */ } return jsonResponse({ success: true, added: logsToAdd.length }, 201, env); }
-          if (request.method === "DELETE") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch (e) { if (String(e).includes('404')) return jsonResponse({ success: true, message: "Logs already empty." }, 200, env); else throw e; } await ghPutFile(env, logPath, [], logData.sha, "clear logs"); return jsonResponse({ success: true, message: "Logs gelöscht." }, 200, env); }
+          if (request.method === "GET") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch(e) { console.error("Error legacy logs:", e); } return respond((logData.items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)), 200, env); }
+          if (request.method === "POST") { let newLogEntries; try { newLogEntries = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); } const logsToAdd = Array.isArray(newLogEntries) ? newLogEntries : [newLogEntries]; if (logsToAdd.length === 0) return respond({ success: true, added: 0 }, 200, env); let currentLogs = [], currentSha = null; try { const logData = await ghGetFile(env, logPath, branch); currentLogs = logData.items || []; currentSha = logData.sha; } catch (e) { if (!String(e).includes('404')) console.error("Error legacy logs POST:", e); } let updatedLogs = logsToAdd.concat(currentLogs); if (updatedLogs.length > MAX_LOG_ENTRIES) updatedLogs = updatedLogs.slice(0, MAX_LOG_ENTRIES); try { await ghPutFile(env, logPath, updatedLogs, currentSha, `add ${logsToAdd.length} log entries`); } catch (e) { /* Retry Logic */ } return respond({ success: true, added: logsToAdd.length }, 201, env); }
+          if (request.method === "DELETE") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch (e) { if (String(e).includes('404')) return respond({ success: true, message: "Logs already empty." }, 200, env); else throw e; } await ghPutFile(env, logPath, [], logData.sha, "clear logs"); return respond({ success: true, message: "Logs gelöscht." }, 200, env); }
       }
 
       /* ===== HubSpot Webhook ===== */
       if (url.pathname === "/hubspot" && request.method === "POST") {
         const raw = await request.text();
         const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(()=>false);
-        if (!okSig) return jsonResponse({ error: "invalid signature" }, 401, env);
+        if (!okSig) return respond({ error: "invalid signature" }, 401, env);
         let events = [];
         try { events = JSON.parse(raw); }
-        catch { return jsonResponse({ error: "bad payload" }, 400, env); }
-        if (!Array.isArray(events) || events.length === 0) return jsonResponse({ ok: true, processed: 0 }, 200, env);
+        catch { return respond({ error: "bad payload" }, 400, env); }
+        if (!Array.isArray(events) || events.length === 0) return respond({ ok: true, processed: 0 }, 200, env);
         const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s=>s.trim()).filter(Boolean));
-        if (wonIds.size === 0) return jsonResponse({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env);
+        if (wonIds.size === 0) return respond({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env);
         let ghData = await ghGetFile(env, ghPath, branch);
         let itemsChanged = false;
         let lastDeal = null;
@@ -2482,7 +2500,7 @@ export default {
             console.error("GitHub PUT (ghPutFile) FEHLER:", e);
           }
         }
-        return jsonResponse({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
+        return respond({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
       }
 
       console.log(`Route not found: ${request.method} ${url.pathname}`);
@@ -2490,7 +2508,7 @@ export default {
 
     } catch (err) {
       console.error("Worker Error:", err, err.stack);
-      return jsonResponse({ error: err.message || String(err) }, 500, env);
+      return respond({ error: err.message || String(err) }, 500, env);
     }
   }
 }; // Ende export default
