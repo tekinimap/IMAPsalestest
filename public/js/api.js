@@ -7,7 +7,14 @@ export async function throttle() {
 
 export async function fetchWithRetry(url, options = {}, retryCount = 0) {
   try {
-    const response = await fetch(url, options);
+    const mergedOptions = {
+      credentials: 'include',
+      ...options,
+    };
+    if (options && options.headers) {
+      mergedOptions.headers = { ...options.headers };
+    }
+    const response = await fetch(url, mergedOptions);
     if (response.ok) {
       return response;
     }

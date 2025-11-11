@@ -129,6 +129,109 @@ const dockCommentForm = document.getElementById('dockCommentForm');
 const dockCommentAuthor = document.getElementById('dockCommentAuthor');
 const dockCommentText = document.getElementById('dockCommentText');
 const dockCommentSubmit = document.getElementById('dockCommentSubmit');
+const dockCommentIdentityHint = document.getElementById('dockCommentIdentityHint');
+
+const EMAIL_SUGGESTION_SKIP_PATTERN = /(mitarbeiter|team|lead|\(|\)|\+|\/|\.)/i;
+const UMLAUT_REPLACEMENTS = Object.freeze({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss', Ä: 'ae', Ö: 'oe', Ü: 'ue' });
+
+let currentSession = { email: '', name: '', rawName: '', person: null };
+
+function normalizeEmailComponent(value) {
+  const input = String(value || '')
+    .replace(/[äöüßÄÖÜ]/g, (ch) => UMLAUT_REPLACEMENTS[ch] || ch)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
+  return input;
+}
+
+function shouldSkipEmailSuggestion(name) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return true;
+  return EMAIL_SUGGESTION_SKIP_PATTERN.test(trimmed);
+}
+
+function suggestEmailForName(name) {
+  if (shouldSkipEmailSuggestion(name)) return '';
+  const trimmed = String(name || '').trim();
+  const parts = trimmed.split(/\s+/);
+  if (parts.length < 2) return '';
+  const localPart = parts
+    .slice(1)
+    .map(normalizeEmailComponent)
+    .filter(Boolean)
+    .join('');
+  if (!localPart) return '';
+  return `${localPart}@imap-institut.de`;
+}
+
+function getRecognizedCommentAuthor() {
+  if (currentSession.person && currentSession.person.name) {
+    return currentSession.person.name;
+  }
+  if (currentSession.name) {
+    return currentSession.name;
+  }
+  if (currentSession.email) {
+    return currentSession.email;
+  }
+  return '';
+}
+
+function updateRecognizedPersonFromPeople() {
+  if (!Array.isArray(people) || !people.length) {
+    if (currentSession.person && currentSession.email) {
+      const emailLower = currentSession.email.toLowerCase();
+      if (!people.some((person) => String(person?.email || '').toLowerCase() === emailLower)) {
+        currentSession.person = null;
+      }
+    }
+    return;
+  }
+  const emailLower = String(currentSession.email || '').toLowerCase();
+  if (emailLower) {
+    const matchedByEmail = people.find((person) => String(person?.email || '').toLowerCase() === emailLower);
+    if (matchedByEmail) {
+      currentSession.person = matchedByEmail;
+      currentSession.name = matchedByEmail.name || currentSession.name || '';
+      return;
+    }
+  }
+  const nameLower = String(currentSession.name || '').trim().toLowerCase();
+  if (nameLower) {
+    const matchedByName = people.find((person) => String(person?.name || '').trim().toLowerCase() === nameLower);
+    if (matchedByName) {
+      currentSession.person = matchedByName;
+      currentSession.name = matchedByName.name || currentSession.name || '';
+    }
+  }
+}
+
+function updateCommentIdentityHint() {
+  if (!dockCommentIdentityHint) return;
+  const author = getRecognizedCommentAuthor();
+  const email = String(currentSession.email || '').trim();
+  const hasIdentity = Boolean(author || email);
+  if (!hasIdentity) {
+    dockCommentIdentityHint.textContent = 'Keine Cloudflare-Anmeldung erkannt. Bitte wähle einen Namen aus.';
+    return;
+  }
+
+  const safeAuthor = escapeHtml(author);
+  const safeEmail = escapeHtml(email);
+  if (currentSession.person && currentSession.person.name) {
+    dockCommentIdentityHint.innerHTML = email
+      ? `Angemeldet als <strong>${safeAuthor}</strong> (${safeEmail}) über Cloudflare Access.`
+      : `Angemeldet als <strong>${safeAuthor}</strong> über Cloudflare Access.`;
+    return;
+  }
+  if (author && email) {
+    dockCommentIdentityHint.innerHTML = `Angemeldet als <strong>${safeAuthor}</strong> (${safeEmail}). Bitte ordne die Adresse im Admin-Bereich einer Person zu.`;
+    return;
+  }
+  dockCommentIdentityHint.innerHTML = `Angemeldet als <strong>${safeAuthor}</strong>.`;
+}
 const DOCK_COMMENT_DEFAULT_MESSAGE = 'Wähle einen Deal aus, um Kommentare zu sehen.';
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
@@ -182,7 +285,10 @@ function formatCommentTimestamp(value) {
 function setDockCommentFormDisabled(disabled) {
   if (!dockCommentForm) return;
   dockCommentForm.classList.toggle('is-disabled', disabled);
-  if (dockCommentAuthor) dockCommentAuthor.disabled = disabled;
+  if (dockCommentAuthor) {
+    const shouldDisableAuthor = disabled || Boolean(currentSession.person);
+    dockCommentAuthor.disabled = shouldDisableAuthor;
+  }
   if (dockCommentText) dockCommentText.disabled = disabled;
   if (dockCommentSubmit) dockCommentSubmit.disabled = disabled || isCommentSubmitPending;
 }
@@ -191,25 +297,57 @@ function populateCommentAuthorOptions() {
   if (!dockCommentAuthor) return;
   const previousValue = dockCommentAuthor.value;
   dockCommentAuthor.innerHTML = '';
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.textContent = 'Name wählen…';
-  placeholder.disabled = true;
-  placeholder.selected = !previousValue;
-  dockCommentAuthor.appendChild(placeholder);
-  people.forEach((person) => {
-    if (!person || !person.name) return;
+  const recognizedPerson = currentSession.person && currentSession.person.name ? currentSession.person : null;
+  const recognizedAuthor = getRecognizedCommentAuthor();
+
+  if (recognizedPerson && recognizedAuthor) {
     const option = document.createElement('option');
-    option.value = person.name;
-    option.textContent = person.name;
+    option.value = recognizedAuthor;
+    option.textContent = recognizedAuthor;
     dockCommentAuthor.appendChild(option);
-  });
-  if (previousValue && people.some((person) => person.name === previousValue)) {
-    dockCommentAuthor.value = previousValue;
-    dockCommentAuthor.selectedIndex = Math.max(dockCommentAuthor.selectedIndex, 0);
+    dockCommentAuthor.value = recognizedAuthor;
+    dockCommentAuthor.disabled = true;
   } else {
-    dockCommentAuthor.selectedIndex = 0;
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Name wählen…';
+    placeholder.disabled = true;
+    dockCommentAuthor.appendChild(placeholder);
+
+    let selectionSet = false;
+    if (recognizedAuthor) {
+      const identityOption = document.createElement('option');
+      identityOption.value = recognizedAuthor;
+      const parts = [];
+      if (currentSession.name) parts.push(currentSession.name);
+      if (currentSession.email) parts.push(currentSession.email);
+      identityOption.textContent = parts.length ? parts.join(' · ') : recognizedAuthor;
+      dockCommentAuthor.appendChild(identityOption);
+      if (!previousValue || previousValue === recognizedAuthor) {
+        dockCommentAuthor.value = recognizedAuthor;
+        selectionSet = true;
+      }
+    }
+
+    people.forEach((person) => {
+      if (!person || !person.name) return;
+      if (person.name === recognizedAuthor && recognizedPerson) return;
+      const option = document.createElement('option');
+      option.value = person.name;
+      option.textContent = person.name;
+      dockCommentAuthor.appendChild(option);
+    });
+
+    if (!selectionSet && previousValue && people.some((person) => person && person.name === previousValue)) {
+      dockCommentAuthor.value = previousValue;
+      selectionSet = true;
+    }
+    if (!selectionSet) {
+      dockCommentAuthor.selectedIndex = 0;
+    }
+    dockCommentAuthor.disabled = false;
   }
+  updateCommentIdentityHint();
 }
 
 function resetDockCommentPanel() {
@@ -309,7 +447,8 @@ async function handleDockCommentSubmit(event) {
     showToast('Bitte zuerst einen Deal öffnen.', 'warn');
     return;
   }
-  const author = dockCommentAuthor ? dockCommentAuthor.value.trim() : '';
+  const recognizedAuthor = getRecognizedCommentAuthor();
+  const author = recognizedAuthor || (dockCommentAuthor ? dockCommentAuthor.value.trim() : '');
   const text = dockCommentText ? dockCommentText.value.trim() : '';
   if (!author) {
     showToast('Bitte einen Namen auswählen.', 'warn');
@@ -1682,6 +1821,7 @@ async function handleAdminClick() {
     showLoader();
     await loadPeople();
     populateAdminTeamOptions();
+    updateAdminEmailSuggestion(true);
     renderPeopleAdmin();
     showView('admin');
   } catch (e) {
@@ -1694,13 +1834,59 @@ async function handleAdminClick() {
 
 /* ---------- People ---------- */
 const peopleList = document.getElementById('peopleList');
+async function loadSession() {
+  try {
+    const response = await fetch(`${WORKER_BASE}/session`, { credentials: 'include', cache: 'no-store' });
+    if (!response.ok) {
+      if (response.status !== 404) {
+        console.warn('Session konnte nicht geladen werden (Status):', response.status);
+      }
+      currentSession.email = '';
+      currentSession.rawName = '';
+      currentSession.person = null;
+      currentSession.name = '';
+      return;
+    }
+    const data = await response.json();
+    currentSession.email = String(data?.email || '').trim();
+    currentSession.rawName = String(data?.name || '').trim();
+    if (data && typeof data.person === 'object' && data.person) {
+      currentSession.person = data.person;
+      currentSession.name = String(data.person.name || '').trim() || currentSession.rawName;
+    } else {
+      currentSession.person = null;
+      currentSession.name = String(data?.displayName || data?.name || '').trim();
+    }
+    if (!currentSession.name) {
+      currentSession.name = currentSession.rawName || '';
+    }
+  } catch (err) {
+    console.warn('Session konnte nicht geladen werden:', err);
+    currentSession.email = '';
+    currentSession.rawName = '';
+    currentSession.person = null;
+    currentSession.name = '';
+  }
+  updateRecognizedPersonFromPeople();
+  populateCommentAuthorOptions();
+}
 async function loadPeople(){
   showLoader();
-  try{ const r=await fetch(`${WORKER_BASE}/people`); people = r.ok? await r.json(): []; }
+  try{
+    const r=await fetch(`${WORKER_BASE}/people`, { credentials: 'include', cache: 'no-store' });
+    people = r.ok? await r.json(): [];
+  }
   catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
   finally { hideLoader(); }
-  people.sort((a,b)=>{ const lastA=a.name.split(' ').pop(); const lastB=b.name.split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
-  
+  people = Array.isArray(people) ? people.map((person) => {
+    const normalized = { ...person };
+    if (normalized.email && typeof normalized.email === 'string') {
+      normalized.email = normalized.email.trim();
+    }
+    return normalized;
+  }) : [];
+  people.sort((a,b)=>{ const lastA=(a.name||'').split(' ').pop(); const lastB=(b.name||'').split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
+
   if (peopleList){
     peopleList.innerHTML='';
     people.forEach(p=>{
@@ -1709,9 +1895,15 @@ async function loadPeople(){
       peopleList.appendChild(o);
     });
   }
+  updateRecognizedPersonFromPeople();
   populateCommentAuthorOptions();
 }
-function findPersonByName(name){ return people.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase()); }
+function findPersonByName(name){ return people.find(p=>p.name && p.name.toLowerCase()===String(name||'').toLowerCase()); }
+function findPersonByEmail(email){
+  const target = String(email || '').trim().toLowerCase();
+  if (!target) return undefined;
+  return people.find((person) => String(person?.email || '').trim().toLowerCase() === target);
+}
 
 /* ---------- Erfassung ---------- */
 const tbody = document.getElementById('tbody');
@@ -2311,7 +2503,7 @@ async function loadHistory(silent = false){
     showLoader();
   }
   try{
-    const r = await fetch(`${WORKER_BASE}/entries`);
+    const r = await fetch(`${WORKER_BASE}/entries`, { credentials: 'include', cache: 'no-store' });
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
     setEntries(fetchedEntries);
 
@@ -3803,7 +3995,30 @@ function validateModalInput(rows, weights) {
 }
 
 /* ---------- Admin ---------- */
-const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
+const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admEmail=document.getElementById('adm_email'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
+let admEmailDirty=false;
+
+function updateAdminEmailSuggestion(force=false){
+  if (!admName || !admEmail) return;
+  const suggestion = suggestEmailForName(admName.value);
+  admEmail.dataset.suggested = suggestion || '';
+  const currentTrimmed = admEmail.value.trim();
+  if (force || !admEmailDirty || !currentTrimmed) {
+    admEmail.value = suggestion || '';
+    admEmailDirty = false;
+  }
+  admEmail.placeholder = suggestion || 'E-Mail-Adresse (optional)';
+}
+
+if (admName){
+  admName.addEventListener('input', ()=>updateAdminEmailSuggestion());
+}
+if (admEmail){
+  admEmail.addEventListener('input', ()=>{
+    const suggestion = admEmail.dataset.suggested || '';
+    admEmailDirty = admEmail.value.trim() !== suggestion;
+  });
+}
 
 function populateAdminTeamOptions() {
   if (!admTeam) return;
@@ -3840,13 +4055,22 @@ adminSearch.addEventListener('input', renderPeopleAdmin);
 function renderPeopleAdmin(){
   admBody.innerHTML='';
   const query = adminSearch.value.toLowerCase();
-  const filteredPeople = people.filter(p => p.name.toLowerCase().includes(query) || (p.team||'').toLowerCase().includes(query));
+  const filteredPeople = people.filter(p => {
+    const nameMatch = (p.name || '').toLowerCase().includes(query);
+    const teamMatch = (p.team || '').toLowerCase().includes(query);
+    const emailMatch = (p.email || '').toLowerCase().includes(query);
+    return nameMatch || teamMatch || emailMatch;
+  });
 
   filteredPeople.forEach(p=>{
     const tr=document.createElement('tr');
+    const safeName = escapeHtml(p.name || '');
+    const safeEmailValue = escapeHtml((p.email && p.email.trim()) || suggestEmailForName(p.name) || '');
+    const emailPlaceholder = escapeHtml(suggestEmailForName(p.name) || 'E-Mail-Adresse');
     tr.innerHTML=`
-      <td><input type="text" value="${p.name}"></td>
-      <td><select>${TEAMS.map(t=>`<option value="${t}" ${p.team===t?'selected':''}>${t}</option>`).join('')}</select></td>
+      <td><input type="text" value="${safeName}"></td>
+      <td><select>${TEAMS.map(t=>`<option value="${escapeHtml(t)}" ${p.team===t?'selected':''}>${escapeHtml(t)}</option>`).join('')}</select></td>
+      <td><input type="email" value="${safeEmailValue}" placeholder="${emailPlaceholder}"></td>
       <td style="display:flex;gap:8px">
         <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
         <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -3862,8 +4086,11 @@ admBody.addEventListener('click',async(ev)=>{
     if(act==='save'){
       const name=tr.querySelector('td:nth-child(1) input').value.trim();
       const team=tr.querySelector('td:nth-child(2) select').value;
+      const emailInput = tr.querySelector('td:nth-child(3) input');
+      const email = emailInput ? emailInput.value.trim() : '';
       if(!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
-      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,name,team})});
+      const payload = { id, name, team, email };
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
       if(!r.ok) throw new Error(await r.text());
       showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
     } else if(act==='del'){
@@ -3874,13 +4101,24 @@ admBody.addEventListener('click',async(ev)=>{
   } catch(e){ showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
 });
 async function adminCreate(){
-  const name=admName.value.trim(); const team=admTeam.value;
+  const name=admName.value.trim(); const team=admTeam.value; const email=admEmail?admEmail.value.trim():'';
   if(!name || !team){ showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
   showLoader();
   try{
-    const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:`p_${Date.now()}`,name,team})});
+    const payload = {id:`p_${Date.now()}`,name,team};
+    if (email) payload.email = email;
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
     if(!r.ok) throw new Error(await r.text());
-    showToast('Person angelegt.', 'ok'); admName.value=''; admTeam.value=''; await loadPeople(); renderPeopleAdmin();
+    showToast('Person angelegt.', 'ok');
+    admName.value='';
+    admTeam.value='';
+    if (admEmail){
+      admEmail.value='';
+      admEmail.dataset.suggested='';
+      admEmailDirty=false;
+      updateAdminEmailSuggestion(true);
+    }
+    await loadPeople(); renderPeopleAdmin();
   }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
 }
 
@@ -5112,27 +5350,36 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// Initialisierung nach Laden der Personenliste
-loadPeople().then(async ()=>{
-    populateAdminTeamOptions();
-    initFromState();
+async function initializeApp(){
+  try {
+    await loadSession();
+    await loadPeople();
+  } catch (err) {
+    console.error('Initialisierung von Session/Personen fehlgeschlagen:', err);
+    showToast('Cloudflare-Session oder Personenliste konnten nicht geladen werden.', 'bad');
+  }
+
+  populateAdminTeamOptions();
+  updateAdminEmailSuggestion(true);
+  initFromState();
+
+  try {
     await loadHistory();
-    renderDockBoard();
-    showView('erfassung');
+  } catch (err) {
+    console.error('Initiales Laden der Historie fehlgeschlagen:', err);
+  }
+  renderDockBoard();
+  showView('erfassung');
 
-    // *** KORREKTUR: Event Listener HIER hinzufügen ***
-    const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
-    // Sicherheitscheck: Nur hinzufügen, wenn der Button existiert
-    if (btnLegacySalesImport) { 
-        btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
-    } else {
-        console.error("Button #btnLegacySalesImport nicht gefunden!");
-    }
-    // *** ENDE KORREKTUR ***
+  const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
+  if (btnLegacySalesImport) {
+    btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
+  } else {
+    console.error('Button #btnLegacySalesImport nicht gefunden!');
+  }
+}
 
-    // Setze initialen Fokus (optional)
-    // document.getElementById('auftraggeber').focus(); 
-});
+initializeApp();
 
 // Deep Link zu Admin (optional)
 if (location.hash === '#admin') { 
