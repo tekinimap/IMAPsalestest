@@ -4,8 +4,7 @@
  * - v8.8 (Gemini): Finale Version. Kombiniert Owner + Collaborators in 'list' mit 0% Zuweisung, um "Unvollständig" zu erzwingen.
  */
 
-
-import { suggestEmailForName } from '../public/shared/email-suggestions.js';
+// Import für suggestEmailForName wurde hier entfernt.
 import {
   toEpochMillis,
   extractFreigabedatumFromEntry,
@@ -2135,15 +2134,17 @@ export default {
                 throw err;
             }
         }
+        
+        // ##### KORRIGIERTER BLOCK START #####
         if (pathname === "/people" && request.method === "POST") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             const name = normalizeString(body.name);
             const team = normalizeString(body.team);
             if (!name || !team) return respond({ error: "Name and Team required"}, 400, env);
+
+            // E-Mail-Logik (suggestEmailForName) ist hier entfernt.
             let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-            if (!email) {
-                email = suggestEmailForName(name);
-            }
+
             const cur = await ghGetFile(env, peoplePath, branch);
             const newPersonRaw = {
                 ...body,
@@ -2163,6 +2164,8 @@ export default {
             await ghPutFile(env, peoplePath, currentItems.map(normalizePersonRecord), cur.sha, `add person ${name}`);
             return respond(newPerson, 201, env);
         }
+        // ##### KORRIGIERTER BLOCK ENDE #####
+
         if (pathname === "/people" && request.method === "PUT") {
             let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
             if (!body.id) return respond({ error: "ID missing" }, 400, env);
