@@ -1,3 +1,5 @@
+// --- Kompletter Inhalt für public/js/app.js ---
+
 import {
   WORKER_BASE,
   TEAMS,
@@ -1185,9 +1187,8 @@ async function handleAdminClick() {
 const peopleList = document.getElementById('peopleList');
 async function loadSession() {
   try {
-    // --- KORREKTUR ---
+    // ##### KORREKTUR 1/3 #####
     const response = await fetchWithRetry(`${WORKER_BASE}/session`, { cache: 'no-store' });
-    // --- ENDE KORREKTUR ---
     if (!response.ok) {
       if (response.status !== 404) {
         console.warn('Session konnte nicht geladen werden (Status):', response.status);
@@ -1220,9 +1221,8 @@ async function loadSession() {
 async function loadPeople(){
   showLoader();
   try{
-    // --- KORREKTUR ---
+    // ##### KORREKTUR 2/3 #####
     const r=await fetchWithRetry(`${WORKER_BASE}/people`, { cache: 'no-store' });
-    // --- ENDE KORREKTUR ---
     people = r.ok? await r.json(): [];
   }
   catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
@@ -1850,9 +1850,8 @@ async function loadHistory(silent = false){
     showLoader();
   }
   try{
-    // --- KORREKTUR ---
+    // ##### KORREKTUR 3/3 #####
     const r = await fetchWithRetry(`${WORKER_BASE}/entries`, { cache: 'no-store' });
-    // --- ENDE KORREKTUR ---
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
     setEntries(fetchedEntries);
 
@@ -4602,3 +4601,104 @@ btnAnaXlsx.addEventListener('click', () => {
     // Add activity data if available (simple export of the current view)
     const activityChart = document.getElementById('chartActivity');
     if(activityChart && activityChart.innerHTML !== '') {
+         const start = anaStartDate.value;
+         const end = anaEndDate.value;
+         const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
+             const name = g.querySelector('text[x="10"]').textContent;
+             const valueText = g.querySelector('text[font-weight="700"]').textContent;
+             const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
+             const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
+             const countMatch = valueText.match(/\((\d+)\)/); // Extract count
+             const count = countMatch ? parseInt(countMatch[1]) : null;
+             return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
+         });
+         if(activityItems.length > 0) {
+             const ws4 = XLSX.utils.json_to_sheet(activityItems);
+             XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+         }
+    }
+
+    if(wb.SheetNames.length > 0) {
+      XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+    } else {
+        showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+    }
+});
+
+/* ---------- Init & Window Events ---------- */
+function initFromState(isEditing = false){
+  const st=loadState();
+  if(st?.input){
+    const isEditFromHistory = !!st.editingId;
+    loadInputForm(st.input, isEditFromHistory);
+  } else {
+    loadInputForm({}, false); // Ensure default freigabedatum is set
+  }
+  updateWeightNote();
+}
+
+Object.assign(window, {
+  showToast,
+  showLoader,
+  hideLoader,
+  showBatchProgress,
+  updateBatchProgress,
+  hideBatchProgress,
+  fetchWithRetry,
+  throttle,
+  loadHistory,
+  populateAdminTeamOptions,
+});
+
+// Warnung bei ungespeicherten Änderungen oder laufendem Batch
+window.addEventListener('beforeunload', (e) => {
+  if (getHasUnsavedChanges() || getIsBatchRunning()) {
+    const msg = getIsBatchRunning() ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
+    e.preventDefault(); // Standard für die meisten Browser
+    e.returnValue = msg; // Für ältere Browser / Electron
+    return msg; // Für manche Browser
+  }
+});
+
+async function initializeApp(){
+  try {
+    await loadSession();
+    await loadPeople();
+  } catch (err) {
+    console.error('Initialisierung von Session/Personen fehlgeschlagen:', err);
+    showToast('Cloudflare-Session oder Personenliste konnten nicht geladen werden.', 'bad');
+  }
+
+  populateAdminTeamOptions();
+  initFromState();
+
+  try {
+    await loadHistory();
+  } catch (err) {
+    console.error('Initiales Laden der Historie fehlgeschlagen:', err);
+  }
+  renderDockBoard();
+  showView('erfassung');
+
+  const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
+  if (btnLegacySalesImport) {
+    btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
+  } else {
+    console.error('Button #btnLegacySalesImport nicht gefunden!');
+  }
+}
+
+initializeApp();
+
+// Deep Link zu Admin (optional)
+if (location.hash === '#admin') { 
+    // Warte kurz, damit die UI bereit ist
+    setTimeout(handleAdminClick, 100); 
+}
+
+// Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
+document.addEventListener('keydown',(e)=>{ 
+    if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
+        e.preventDefault(); 
+    }
+});
