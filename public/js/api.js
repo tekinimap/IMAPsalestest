@@ -5,12 +5,7 @@ export async function throttle() {
   await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
 }
 
-    return resolved.origin === window.location.origin;
-  } catch (err) {
-    console.warn('Konnte Ziel-URL für fetchWithRetry nicht bestimmen, Credentials werden ausgelassen.', err);
-    return false;
-  }
-}
+// Die 'shouldIncludeCredentials' Funktion wurde komplett entfernt, da sie den Fehler verursacht hat.
 
 export async function fetchWithRetry(url, options = {}, retryCount = 0) {
   try {
@@ -20,10 +15,15 @@ export async function fetchWithRetry(url, options = {}, retryCount = 0) {
     if (options && options.headers) {
       mergedOptions.headers = { ...options.headers };
     }
+    
+    // --- KORREKTUR ---
+    // Wir erzwingen 'include', damit das Access-Cookie (CF_Authorization)
+    // immer mitgesendet wird, auch bei Cross-Origin-Anfragen.
     if (!('credentials' in mergedOptions)) {
-      // IMMER Cookies mitschicken, da wir jetzt Cross-Origin mit Access-Auth arbeiten
       mergedOptions.credentials = 'include';
     }
+    // --- ENDE KORREKTUR ---
+
     const response = await fetch(url, mergedOptions);
     if (response.ok) {
       return response;
