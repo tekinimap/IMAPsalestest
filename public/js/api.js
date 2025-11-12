@@ -5,22 +5,6 @@ export async function throttle() {
   await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
 }
 
-function shouldIncludeCredentials(targetUrl) {
-  if (typeof window === 'undefined' || typeof window.location === 'undefined') {
-    return true;
-  }
-
-  try {
-    const resolved = typeof targetUrl === 'string'
-      ? new URL(targetUrl, window.location.href)
-      : targetUrl && typeof targetUrl.url === 'string'
-        ? new URL(targetUrl.url, window.location.href)
-        : null;
-
-    if (!resolved) {
-      return false;
-    }
-
     return resolved.origin === window.location.origin;
   } catch (err) {
     console.warn('Konnte Ziel-URL für fetchWithRetry nicht bestimmen, Credentials werden ausgelassen.', err);
@@ -37,7 +21,8 @@ export async function fetchWithRetry(url, options = {}, retryCount = 0) {
       mergedOptions.headers = { ...options.headers };
     }
     if (!('credentials' in mergedOptions)) {
-      mergedOptions.credentials = shouldIncludeCredentials(url) ? 'include' : 'omit';
+      // IMMER Cookies mitschicken, da wir jetzt Cross-Origin mit Access-Auth arbeiten
+      mergedOptions.credentials = 'include';
     }
     const response = await fetch(url, mergedOptions);
     if (response.ok) {
