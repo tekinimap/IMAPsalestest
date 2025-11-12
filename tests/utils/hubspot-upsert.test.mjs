@@ -72,6 +72,22 @@ describe('upsertByHubSpotId duplicate handling', () => {
     assert.equal(entries[0].title, 'Aktualisierter Titel');
     assert.equal(entries[0].hubspotId, '9003');
   });
+
+  it('übernimmt die Flagship-Markierung vom HubSpot-Deal', () => {
+    const entries = [];
+    const deal = {
+      id: '9004',
+      properties: {
+        dealname: 'Flagship Deal',
+        flagship_projekt: 'true',
+      },
+    };
+
+    const result = upsertByHubSpotId(entries, deal);
+
+    assert.equal(result.action, 'create');
+    assert.equal(entries[0].flagship_projekt, true);
+  });
 });
 
 describe('normalizeTransactionKv', () => {
