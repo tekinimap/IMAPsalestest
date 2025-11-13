@@ -1,0 +1,21 @@
+name = "imap-sales-app"
+main = "worker/index.js"
+compatibility_date = "2025-11-12"
+
+[assets]
+directory = "public"
+
+[env.production]
+name = "imap-sales-app-prod"
+route = "*.workers.dev"
+
+# Secrets werden als GitHub Secrets definiert:
+# GH_TOKEN - GitHub Personal Access Token
+# GH_REPO - GitHub Repository (tekinimap/IMAPsalestest)
+# GH_BRANCH - Git Branch (main)
+# GH_PATH - Path to entries file (data/entries.json)
+# GH_PEOPLE_PATH - Path to people file (data/people.json)
+# GH_LOG_DIR - Log directory (data/logs)
+# HUBSPOT_ACCESS_TOKEN - HubSpot API token
+# HUBSPOT_APP_SECRET - HubSpot app secret
+# ALLOWED_ORIGIN - CORS origin (z.B. https://example.com)
