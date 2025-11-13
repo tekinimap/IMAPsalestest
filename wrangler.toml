@@ -9,13 +9,19 @@ directory = "public"
 name = "imap-sales-app-prod"
 route = "*.workers.dev"
 
-# Secrets werden als GitHub Secrets definiert:
-# GH_TOKEN - GitHub Personal Access Token
-# GH_REPO - GitHub Repository (tekinimap/IMAPsalestest)
-# GH_BRANCH - Git Branch (main)
-# GH_PATH - Path to entries file (data/entries.json)
-# GH_PEOPLE_PATH - Path to people file (data/people.json)
-# GH_LOG_DIR - Log directory (data/logs)
-# HUBSPOT_ACCESS_TOKEN - HubSpot API token
-# HUBSPOT_APP_SECRET - HubSpot app secret
-# ALLOWED_ORIGIN - CORS origin (z.B. https://example.com)
+
+# Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
+# Die Secrets werden von Cloudflare verwaltet über:
+# - Cloudflare Dashboard → Settings → Environment Variables
+# - oder via: wrangler secret put SECRET_NAME
+#
+# Erforderliche Secrets:
+# - GH_TOKEN: GitHub Personal Access Token
+# - GH_REPO: tekinimap/IMAPsalestest
+# - GH_BRANCH: main (optional, default: main)
+# - GH_PATH: data/entries.json (optional)
+# - GH_PEOPLE_PATH: data/people.json (optional)
+# - GH_LOG_DIR: data/logs (optional)
+# - HUBSPOT_ACCESS_TOKEN: HubSpot API token
+# - HUBSPOT_APP_SECRET: HubSpot app secret
+# - ALLOWED_ORIGIN: CORS origin (optional)
