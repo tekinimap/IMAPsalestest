@@ -9,20 +9,16 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm install
-      
+
       - name: Deploy to Cloudflare Workers
         run: npx wrangler deploy
         env:
@@ -35,5 +31,3 @@ jobs:
           GH_PEOPLE_PATH: ${{ secrets.GH_PEOPLE_PATH }}
           GH_LOG_DIR: ${{ secrets.GH_LOG_DIR }}
           HUBSPOT_ACCESS_TOKEN: ${{ secrets.HUBSPOT_ACCESS_TOKEN }}
-          HUBSPOT_APP_SECRET: ${{ secrets.HUBSPOT_APP_SECRET }}
-          ALLOWED_ORIGIN: ${{ secrets.ALLOWED_ORIGIN }}
