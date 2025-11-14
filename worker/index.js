@@ -1542,13 +1542,14 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
   return false;
 }
-async function hsFetchDeal(dealId, env) {
+export async function hsFetchDeal(dealId, env) {
   if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing");
 
   const properties = [
     "dealname", "amount", "dealstage", "closedate", "hs_object_id", "pipeline",
     "hubspot_owner_id",
-    "hs_all_collaborator_owner_ids"
+    "hs_all_collaborator_owner_ids",
+    "flagship_projekt",
   ];
 
   const associations = "company";
