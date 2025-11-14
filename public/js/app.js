@@ -4046,38 +4046,90 @@ getEntries().forEach(e => {
 
 // Zeitintervall-basierte Aktivität der Rahmenverträge
 function renderActivityAnalytics() {
-    const start = getTimestamp(anaStartDate.value);
-    // Ende des Tages für das Enddatum nehmen
-    const end = getTimestamp(anaEndDate.value + 'T23:59:59.999'); 
-    
-    if (!start || !end || end < start) {
-        showToast('Ungültiger Datumsbereich', 'bad');
-        drawBars('chartActivity', [], false); // Leere Grafik anzeigen
-        document.getElementById('chartActivityTitle').textContent = 'Aktivste Rahmenverträge (ungültiger Zeitraum)';
-        return;
+  const start = getTimestamp(anaStartDate.value);
+  // Ende des Tages für das Enddatum nehmen
+  const end = getTimestamp(`${anaEndDate.value}T23:59:59.999`);
+  const titleEl = document.getElementById('chartActivityTitle');
+
+  if (!start || !end || end < start) {
+    showToast('Ungültiger Datumsbereich', 'bad');
+    if (titleEl) {
+      titleEl.textContent = 'Rahmenvertragsnutzung & Hunter/Founder-Anteile (ungültiger Zeitraum)';
     }
-    
-    const rahmenMap = new Map();
-    entries.filter(e => e.projectType === 'rahmen').forEach(e => {
-        let total = 0;
-        let count = 0;
-        (e.transactions || []).forEach(t => {
-            const datum = t.freigabedatum || t.ts || 0; // Abschlussdatum primär
-            if (datum >= start && datum <= end) {
-                total += (t.amount || 0);
-                count++;
-            }
-        });
-        if (total > 0) {
-            // Speichere ID, um Duplikate zu vermeiden, falls Titel nicht eindeutig
-            rahmenMap.set(e.id, { id: e.id, name: e.title, val: total, count: count });
-        }
+    renderFrameworkActivityChart('chartActivity', []);
+    return;
+  }
+
+  const frameworks = getEntries().filter((entry) => entry.projectType === 'rahmen');
+  const aggregated = [];
+
+  frameworks.forEach((entry) => {
+    let total = 0;
+    let founderTotal = 0;
+    let hunterTotal = 0;
+    let otherTotal = 0;
+    let count = 0;
+
+    (entry.transactions || []).forEach((transaction) => {
+      const date = Number(transaction?.freigabedatum ?? transaction?.ts ?? 0);
+      if (!Number.isFinite(date) || date < start || date > end) {
+        return;
+      }
+
+      const amountRaw = transaction?.amount;
+      const amount =
+        typeof amountRaw === 'string'
+          ? parseAmountInput(amountRaw)
+          : Number(amountRaw ?? 0);
+      if (!Number.isFinite(amount)) {
+        return;
+      }
+
+      total += amount;
+      const type = String(transaction?.type || '').toLowerCase();
+      if (type === 'founder') {
+        founderTotal += amount;
+      } else if (type === 'hunter') {
+        hunterTotal += amount;
+      } else {
+        otherTotal += amount;
+      }
+      count += 1;
     });
-    
-    const rahmenArr = Array.from(rahmenMap.values()).sort((a,b) => b.val - a.val).slice(0, 10);
-    const title = `Aktivste Rahmenverträge (${new Date(start).toLocaleDateString('de-DE')} - ${new Date(end).toLocaleDateString('de-DE')})`;
-    document.getElementById('chartActivityTitle').textContent = title;
-    drawBars('chartActivity', rahmenArr, true); // showCount = true
+
+    if (total <= 0 && count === 0) {
+      return;
+    }
+
+    const volume = getFrameworkVolume(entry);
+    const utilizationPct = volume != null && volume > 0 ? (total / volume) * 100 : null;
+
+    aggregated.push({
+      id: entry.id,
+      name: entry.title || '–',
+      client: entry.client || '',
+      projectNumber: entry.projectNumber || '',
+      total,
+      founder: founderTotal,
+      hunter: hunterTotal,
+      other: otherTotal,
+      count,
+      volume,
+      utilizationPct,
+    });
+  });
+
+  const topFrameworks = aggregated
+    .filter((item) => item.total > 0 || (item.volume && item.utilizationPct != null))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  const startLabel = new Date(start).toLocaleDateString('de-DE');
+  const endLabel = new Date(end).toLocaleDateString('de-DE');
+  if (titleEl) {
+    titleEl.textContent = `Rahmenvertragsnutzung & Hunter/Founder-Anteile (${startLabel} – ${endLabel})`;
+  }
+  renderFrameworkActivityChart('chartActivity', topFrameworks);
 }
 
 
@@ -4317,6 +4369,212 @@ function drawBars(hostOrId, items, showCount = false, options = {}) {
   });
 
   host.appendChild(svg);
+}
+
+function createActivityMetricCell(primaryText, secondaryLines = []) {
+  const cell = document.createElement('td');
+  cell.style.textAlign = 'right';
+  cell.style.whiteSpace = 'nowrap';
+
+  const main = document.createElement('div');
+  main.textContent = primaryText;
+  main.style.fontWeight = '600';
+  cell.appendChild(main);
+
+  secondaryLines.forEach((line) => {
+    if (!line) return;
+    const detail = document.createElement('div');
+    detail.className = 'small';
+    if (typeof line === 'string') {
+      detail.style.color = 'var(--muted)';
+      detail.textContent = line;
+    } else if (typeof line === 'object') {
+      detail.style.color = line.color || 'var(--muted)';
+      detail.textContent = line.text || '';
+    }
+    cell.appendChild(detail);
+  });
+
+  return cell;
+}
+
+function normalizeFrameworkVolume(value) {
+  if (value == null) return null;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+  if (typeof value === 'string') {
+    const parsed = parseAmountInput(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+  return null;
+}
+
+function getFrameworkVolume(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+
+  const directKeys = [
+    'frameworkVolume',
+    'framework_volume',
+    'rahmenVolume',
+    'rahmenvolumen',
+    'rahmenVolumen',
+    'rahmenvertragVolumen',
+    'volume',
+    'maxVolume',
+    'amount',
+  ];
+
+  for (const key of directKeys) {
+    if (key in entry) {
+      const normalized = normalizeFrameworkVolume(entry[key]);
+      if (normalized != null) {
+        return normalized;
+      }
+    }
+  }
+
+  const nestedKeys = ['meta', 'details', 'data'];
+  for (const nestedKey of nestedKeys) {
+    const nested = entry[nestedKey];
+    if (nested && typeof nested === 'object') {
+      for (const [key, value] of Object.entries(nested)) {
+        if (/volumen|volume/i.test(key)) {
+          const normalized = normalizeFrameworkVolume(value);
+          if (normalized != null) {
+            return normalized;
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function renderFrameworkActivityChart(hostOrId, items) {
+  const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
+  if (!host) return;
+  host.innerHTML = '';
+
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'log-metrics-empty';
+    empty.textContent = 'Keine Rahmenvertragsabrufe im Zeitraum.';
+    host.appendChild(empty);
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'table-wrapper';
+
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr>
+      <th style="text-align:left">Rahmenvertrag</th>
+      <th>Founder-Umsatz</th>
+      <th>Hunter-Umsatz</th>
+      <th>Summe Zeitraum</th>
+      <th>Rahmenvolumen</th>
+      <th>Ausnutzung</th>
+    </tr>
+  `;
+
+  const tbody = document.createElement('tbody');
+  list.forEach((item) => {
+    const tr = document.createElement('tr');
+
+    const metaParts = [];
+    if (item.client) metaParts.push(item.client);
+    if (item.projectNumber) metaParts.push(item.projectNumber);
+
+    const nameCell = document.createElement('td');
+    nameCell.style.textAlign = 'left';
+    const title = document.createElement('div');
+    title.textContent = item.name || '–';
+    title.style.fontWeight = '600';
+    nameCell.appendChild(title);
+    if (metaParts.length) {
+      const meta = document.createElement('div');
+      meta.className = 'small';
+      meta.style.color = 'var(--muted)';
+      meta.textContent = metaParts.join(' • ');
+      nameCell.appendChild(meta);
+    }
+    tr.appendChild(nameCell);
+
+    const total = Number.isFinite(item.total) ? item.total : 0;
+    const founder = Number.isFinite(item.founder) ? item.founder : 0;
+    const hunter = Number.isFinite(item.hunter) ? item.hunter : 0;
+    const other = Number.isFinite(item.other) ? item.other : 0;
+    const hasShareBase = Math.abs(total) > 0.0001;
+    const founderShare = hasShareBase ? (founder / total) * 100 : null;
+    const hunterShare = hasShareBase ? (hunter / total) * 100 : null;
+
+    tr.appendChild(
+      createActivityMetricCell(fmtCurr0.format(founder),
+        founderShare != null ? [`${fmtPct.format(founderShare)} % Anteil`] : [])
+    );
+    tr.appendChild(
+      createActivityMetricCell(fmtCurr0.format(hunter),
+        hunterShare != null ? [`${fmtPct.format(hunterShare)} % Anteil`] : [])
+    );
+
+    const sumDetails = [`Abrufe: ${fmtInt.format(item.count || 0)}`];
+    if (Math.abs(other) > 0.01) {
+      sumDetails.push(`Sonstige: ${fmtCurr0.format(other)}`);
+    }
+    tr.appendChild(createActivityMetricCell(fmtCurr0.format(total), sumDetails));
+
+    const normalizedVolume = Number.isFinite(item.volume) ? item.volume : null;
+    if (normalizedVolume != null) {
+      const remaining = normalizedVolume - total;
+      const secondary = [];
+      if (Math.abs(remaining) > 0.01) {
+        secondary.push(
+          remaining >= 0
+            ? `Rest: ${fmtCurr0.format(remaining)}`
+            : { text: `Überzogen: ${fmtCurr0.format(Math.abs(remaining))}`, color: 'var(--warn)' }
+        );
+      }
+      tr.appendChild(createActivityMetricCell(fmtCurr0.format(normalizedVolume), secondary));
+    } else {
+      tr.appendChild(createActivityMetricCell('–'));
+    }
+
+    const utilization = Number.isFinite(item.utilizationPct) ? item.utilizationPct : null;
+    if (utilization != null) {
+      tr.appendChild(createActivityMetricCell(`${fmtPct.format(utilization)} %`));
+    } else {
+      tr.appendChild(createActivityMetricCell('–'));
+    }
+
+    const tooltipParts = [
+      `Summe: ${fmtCurr0.format(total)}`,
+      `Founder: ${fmtCurr0.format(founder)}`,
+      `Hunter: ${fmtCurr0.format(hunter)}`,
+      `Abrufe: ${fmtInt.format(item.count || 0)}`,
+    ];
+    if (Math.abs(other) > 0.01) {
+      tooltipParts.push(`Sonstige: ${fmtCurr0.format(other)}`);
+    }
+    if (normalizedVolume != null) {
+      tooltipParts.push(`Volumen: ${fmtCurr0.format(normalizedVolume)}`);
+    }
+    if (utilization != null) {
+      tooltipParts.push(`Ausnutzung: ${fmtPct.format(utilization)} %`);
+    }
+    tr.title = `${item.name}${item.client ? ` (${item.client})` : ''} • ${tooltipParts.join(' • ')}`;
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  host.appendChild(wrapper);
 }
 
 function initLogMetricsControls() {
