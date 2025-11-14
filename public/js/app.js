@@ -1058,7 +1058,7 @@ function handleDockBoardClick(event) {
 
   const card = event.target.closest('.dock-card');
   if (!card) return;
-  if (event.target.closest('input[data-dock-select]') || event.target.closest('.dock-card-select')) {
+  if (event.target.closest('.dock-card-select')) {
     return;
   }
 
