@@ -6,8 +6,9 @@ compatibility_date = "2025-11-12"
 directory = "public"
 
 [env.production]
-name = "imap-sales-app-prod"
-route = "*.workers.dev"
+name = "imap-sales-worker"
+route = "**.workers.dev"
+
 
 
 # Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
