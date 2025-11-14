@@ -26,7 +26,7 @@ import {
   formatAmountInput,
   getTodayDate,
   formatDateForInput,
-  formatIsoDate,
+  formatIsoDate as formatIsoDateDisplay,
   clamp01,
   toInt0,
   parseAmountInput,
@@ -1500,7 +1500,7 @@ function updateMetaSummary() {
     const dateValue = freigabedatum?.value;
     metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
     metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
-    metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDate(dateValue) : '–';
+    metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDateDisplay(dateValue) : '–';
 }
 
 function applyMetaDisabledState(forceDisabled = false) {
