@@ -87,7 +87,14 @@
   injectOnce('slpm-styles', `
     <style>
       /* Logbook */
-      dialog#slpm-logbook { border:1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; min-width:980px; z-index: 10000; }
+      dialog#slpm-logbook { border:1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; min-width:980px; z-index: 10000; position:relative; overflow:visible; }
+      dialog#slpm-import { border:1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; min-width:1024px; z-index: 10000; position:relative; overflow:visible; }
+      dialog#slpm-logbook .dialog-close,
+      dialog#slpm-import .dialog-close { position:absolute; top:-18px; right:-18px; width:40px; height:40px; border-radius:999px; border:1px solid rgba(148,163,184,.45); background:rgba(11,18,30,.95); color:#94a3b8; display:inline-flex; align-items:center; justify-content:center; font-size:20px; line-height:1; padding:0; cursor:pointer; box-shadow:0 12px 28px rgba(8,15,28,.45); transition:background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; z-index:10; }
+      dialog#slpm-logbook .dialog-close:hover,
+      dialog#slpm-import .dialog-close:hover { background:#3b82f6; border-color:#3b82f6; color:#fff; transform:translateY(-1px); }
+      dialog#slpm-logbook .dialog-close:focus-visible,
+      dialog#slpm-import .dialog-close:focus-visible { outline:3px solid rgba(59,130,246,.45); outline-offset:2px; }
       #slpm-lb .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 10px; }
       #slpm-lb table { width:100%; border-collapse:collapse; min-width:960px; }
       #slpm-lb th { text-align:left; border-bottom:1px solid #213044; padding:8px; }
@@ -101,7 +108,6 @@
       .slpm-btn:hover { filter:brightness(1.05); }
 
       /* Import Preview */
-      dialog#slpm-import { border:1px solid #213044; background:#0f1724; color:#e6ebf3; border-radius:14px; padding:16px; min-width:1024px; z-index: 10000; }
       #slpm-ip .topbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; }
       #slpm-ip .kpis { display:flex; gap:14px; flex-wrap:wrap; }
       #slpm-ip .card { background:#111a2b; border:1px solid #213044; border-radius:12px; padding:10px 12px; min-width:180px; }
@@ -124,9 +130,9 @@
   // Logbook dialog
   injectOnce('slpm-logbook', `
     <dialog id="slpm-logbook">
+      <button class="dialog-close" type="button" id="slpm-lb-close" aria-label="Modal schließen">×</button>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <h1 style="margin:0;font-size:18px;">Logbuch</h1>
-        <button class="slpm-btn slpm-sm" id="slpm-lb-close">Schließen</button>
       </div>
       <div id="slpm-lb">
         <div class="controls">
@@ -157,9 +163,9 @@
   // Import preview dialog
   injectOnce('slpm-import', `
     <dialog id="slpm-import">
+      <button class="dialog-close" type="button" id="slpm-ip-close" aria-label="Modal schließen">×</button>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <h1 style="margin:0;font-size:18px;">Import-Vorschau (ERP)</h1>
-        <button class="slpm-btn slpm-sm" id="slpm-ip-close">Schließen</button>
       </div>
       <div id="slpm-ip">
         <div class="topbar">
@@ -278,7 +284,9 @@
   }
   (function wireLB(){
     const dlg = document.getElementById('slpm-logbook');
-    document.getElementById('slpm-lb-close').onclick = ()=> { dlg.close(); LB.open=false; };
+    document.getElementById('slpm-lb-close').onclick = ()=> { dlg.close(); };
+    dlg.addEventListener('close', ()=> { LB.open=false; });
+    dlg.addEventListener('click', (event)=> { if (event.target === dlg) dlg.close(); });
     document.getElementById('slpm-lb-refresh').onclick = ()=> {
       const f = document.getElementById('slpm-lb-from').value, t=document.getElementById('slpm-lb-to').value;
       LOGBOOK3.load(f,t);
@@ -430,6 +438,8 @@
   };
 
   // Wire dialog close
-  document.getElementById('slpm-ip-close').onclick = ()=> document.getElementById('slpm-import').close();
+  const importDlg = document.getElementById('slpm-import');
+  document.getElementById('slpm-ip-close').onclick = ()=> importDlg.close();
+  importDlg.addEventListener('click', (event)=> { if (event.target === importDlg) importDlg.close(); });
 
 })();
