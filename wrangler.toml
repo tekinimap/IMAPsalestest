@@ -1,4 +1,4 @@
-name = "imap-sales-app"
+name = "imap-sales-worker"
 main = "worker/index.js"
 compatibility_date = "2025-11-12"
 
