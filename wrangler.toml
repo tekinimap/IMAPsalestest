@@ -1,0 +1,35 @@
+name = "imap-sales-app"
+main = "worker/index.js"
+compatibility_date = "2025-11-12"
+keep_vars = true
+# Verhindert, dass wrangler.toml die im Dashboard definierten Variables/Secrets überschreibt
+
+[assets]
+directory = "public"
+
+[env.production]
+name = "imap-sales-worker"
+workers_dev = true
+
+[env.production.vars]
+GH_REPO = "tekinimap/IMAPsalestest"
+GH_BRANCH = "main"
+GH_PATH = "data/entries.json"
+GH_PEOPLE_PATH = "data/people.json"
+GH_LOG_DIR = "data/logs"
+
+# Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
+# Die Secrets werden von Cloudflare verwaltet über:
+# - Cloudflare Dashboard → Settings → Environment Variables
+# - oder via: wrangler secret put SECRET_NAME
+#
+# Erforderliche Secrets:
+# - GH_TOKEN: GitHub Personal Access Token
+# - GH_REPO: tekinimap/IMAPsalestest
+# - GH_BRANCH: main (optional, default: main)
+# - GH_PATH: data/entries.json (optional)
+# - GH_PEOPLE_PATH: data/people.json (optional)
+# - GH_LOG_DIR: data/logs (optional)
+# - HUBSPOT_ACCESS_TOKEN: HubSpot API token
+# - HUBSPOT_APP_SECRET: HubSpot app secret
+# - ALLOWED_ORIGIN: CORS origin (optional)
