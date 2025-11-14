@@ -3947,16 +3947,16 @@ const anaEndDate = document.getElementById('anaEndDate');
 const btnAnaThisYear = document.getElementById('btnAnaThisYear');
 const btnAnaLastYear = document.getElementById('btnAnaLastYear');
 const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
-const logMetricsFrom = document.getElementById('logMetricsFrom');
-const logMetricsTo = document.getElementById('logMetricsTo');
-const logMetricsTeam = document.getElementById('logMetricsTeam');
-const btnLogMetricsLoad = document.getElementById('btnLogMetricsLoad');
-const btnLogMetricsCsv = document.getElementById('btnLogMetricsCsv');
-const btnLogMetricsXlsx = document.getElementById('btnLogMetricsXlsx');
-const logMetricsSummary = document.getElementById('logMetricsSummary');
-const logMetricsMonthlyChart = document.getElementById('logMetricsMonthlyChart');
-const logMetricsSuccessChart = document.getElementById('logMetricsSuccessChart');
-const logMetricsEventChart = document.getElementById('logMetricsEventChart');
+const trendFromMonth = document.getElementById('trendFromMonth');
+const trendToMonth = document.getElementById('trendToMonth');
+const btnTrendThisYear = document.getElementById('btnTrendThisYear');
+const btnTrendLast12 = document.getElementById('btnTrendLast12');
+const btnTrendLoad = document.getElementById('btnTrendLoad');
+const btnTrendCsv = document.getElementById('btnTrendCsv');
+const btnTrendXlsx = document.getElementById('btnTrendXlsx');
+const trendSummary = document.getElementById('trendSummary');
+const trendRevenueChart = document.getElementById('trendRevenueChart');
+const trendCumulativeChart = document.getElementById('trendCumulativeChart');
 
 function initAnalytics() {
     // Fülle Jahres-Dropdown (für Top-Listen)
@@ -3973,8 +3973,8 @@ function initAnalytics() {
     // Führe beide Render-Funktionen aus
     renderAnalytics(); // Jährliche Auswertung
     renderActivityAnalytics(); // Zeitintervall-Auswertung
-    initLogMetricsControls();
-    loadLogMetrics();
+    initTrendControls();
+    renderTrendInsights();
 }
 
 function setAnaDateRange(rangeType) {
@@ -4006,8 +4006,7 @@ document.getElementById('anaRefresh').addEventListener('click', renderAnalytics)
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
 let analyticsData = { persons: [], teams: [], totals: [] };
-let logMetricsInitialized = false;
-let logMetricsData = null;
+let trendData = null;
 
 // Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
@@ -4608,179 +4607,320 @@ function renderFrameworkActivityChart(hostOrId, items) {
   host.appendChild(wrapper);
 }
 
-function initLogMetricsControls() {
-  if (logMetricsInitialized) {
+
+const trendMonthFormatter = new Intl.DateTimeFormat('de-DE', { month: 'short', year: 'numeric' });
+const trendAverageFormatter = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+function initTrendControls() {
+  if (!trendFromMonth || !trendToMonth) {
     return;
   }
-  if (logMetricsTeam) {
-    const existing = new Set(Array.from(logMetricsTeam.options || []).map((opt) => opt.value));
-    (TEAMS || []).forEach((teamName) => {
-      if (!existing.has(teamName)) {
-        const opt = document.createElement('option');
-        opt.value = teamName;
-        opt.textContent = teamName;
-        logMetricsTeam.appendChild(opt);
-      }
-    });
+  if (!trendFromMonth.value || !trendToMonth.value) {
+    setTrendRange('last12');
   }
-  setDefaultLogMetricsRange();
-  btnLogMetricsLoad?.addEventListener('click', () => loadLogMetrics());
-  btnLogMetricsCsv?.addEventListener('click', exportLogMetricsCsv);
-  btnLogMetricsXlsx?.addEventListener('click', exportLogMetricsXlsx);
-  logMetricsInitialized = true;
+  btnTrendThisYear?.addEventListener('click', () => {
+    setTrendRange('thisYear');
+    renderTrendInsights();
+  });
+  btnTrendLast12?.addEventListener('click', () => {
+    setTrendRange('last12');
+    renderTrendInsights();
+  });
+  btnTrendLoad?.addEventListener('click', () => renderTrendInsights());
+  btnTrendCsv?.addEventListener('click', exportTrendCsv);
+  btnTrendXlsx?.addEventListener('click', exportTrendXlsx);
 }
 
-function setDefaultLogMetricsRange() {
-  if (!logMetricsFrom || !logMetricsTo) return;
+function setTrendRange(rangeType) {
+  if (!trendFromMonth || !trendToMonth) return;
   const now = new Date();
-  const end = formatDateForInput(now.getTime());
-  const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-  logMetricsTo.value = end;
-  logMetricsFrom.value = formatDateForInput(start.getTime());
+  let start;
+  let end;
+  if (rangeType === 'thisYear') {
+    start = new Date(now.getFullYear(), 0, 1);
+    end = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else {
+    end = new Date(now.getFullYear(), now.getMonth(), 1);
+    start = new Date(end.getFullYear(), end.getMonth() - 11, 1);
+  }
+  trendFromMonth.value = formatMonthInputValue(start);
+  trendToMonth.value = formatMonthInputValue(end);
 }
 
-function validateLogMetricsRange(from, to) {
-  if (!from || !to) return true;
-  const start = new Date(`${from}T00:00:00`);
-  const end = new Date(`${to}T23:59:59`);
-  return !(start > end);
+function formatMonthInputValue(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
 }
 
-async function loadLogMetrics() {
-  if (!logMetricsFrom || !logMetricsTo) return;
-  const from = logMetricsFrom.value;
-  const to = logMetricsTo.value;
-  if (!validateLogMetricsRange(from, to)) {
-    showToast('Ungültiger Zeitraum für Log-Insights.', 'bad');
+function parseMonthValue(value) {
+  if (!value || typeof value !== 'string') return null;
+  const [yearStr, monthStr] = value.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return null;
+  if (month < 1 || month > 12) return null;
+  const date = new Date(year, month - 1, 1);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getEndOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function normalizeTrendTimestamp(value) {
+  if (value == null) return Number.NaN;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return Number.NaN;
+    return value > 1e12 ? value : value * 1000;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return Number.NaN;
+    if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+      const numeric = Number(trimmed);
+      if (!Number.isFinite(numeric)) return Number.NaN;
+      return numeric > 1e12 ? numeric : numeric * 1000;
+    }
+    const parsed = Date.parse(trimmed);
+    return Number.isFinite(parsed) ? parsed : Number.NaN;
+  }
+  if (value instanceof Date) {
+    const time = value.getTime();
+    return Number.isNaN(time) ? Number.NaN : time;
+  }
+  return Number.NaN;
+}
+
+function normalizeTrendAmount(value) {
+  if (value == null) return 0;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return 0;
+    const parsed = parseAmountInput(trimmed);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function collectTrendItems(entry) {
+  const items = [];
+  if (!entry || typeof entry !== 'object') return items;
+
+  const transactionItems = Array.isArray(entry.transactions)
+    ? entry.transactions
+        .map((tx) => {
+          const ts = normalizeTrendTimestamp(tx?.freigabedatum ?? tx?.ts ?? tx?.date);
+          const amount = normalizeTrendAmount(tx?.amount ?? tx?.value);
+          if (!Number.isFinite(ts) || !(amount > 0)) {
+            return null;
+          }
+          return { timestamp: ts, amount };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (transactionItems.length) {
+    items.push(...transactionItems);
+    return items;
+  }
+
+  const baseTimestamp = normalizeTrendTimestamp(
+    entry.freigabedatum ?? entry.ts ?? entry.abschlussdatum ?? entry.closeDate ?? entry.date
+  );
+  const baseAmount = normalizeTrendAmount(entry.amount ?? entry.value ?? entry.auftragswert);
+  if (!Number.isFinite(baseTimestamp) || !(baseAmount > 0)) {
+    return items;
+  }
+
+  const projectType = String(entry.projectType || '').toLowerCase();
+  if (projectType === 'rahmen' && Array.isArray(entry.transactions) && entry.transactions.length > 0) {
+    return items;
+  }
+
+  items.push({ timestamp: baseTimestamp, amount: baseAmount });
+  return items;
+}
+
+function computeTrendData(fromDate, toDate) {
+  const startMs = fromDate.getTime();
+  const endMs = getEndOfMonth(toDate).getTime();
+  const monthsMap = new Map();
+
+  getEntries().forEach((entry) => {
+    collectTrendItems(entry).forEach((item) => {
+      if (!Number.isFinite(item.timestamp) || item.timestamp < startMs || item.timestamp > endMs) {
+        return;
+      }
+      const date = new Date(item.timestamp);
+      const year = date.getFullYear();
+      const monthIndex = date.getMonth();
+      const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+      let bucket = monthsMap.get(key);
+      if (!bucket) {
+        bucket = {
+          year,
+          monthIndex,
+          amount: 0,
+          count: 0,
+          label: trendMonthFormatter.format(new Date(year, monthIndex, 1)),
+        };
+        monthsMap.set(key, bucket);
+      }
+      bucket.amount += item.amount;
+      bucket.count += 1;
+    });
+  });
+
+  const sortedKeys = Array.from(monthsMap.keys()).sort();
+  const months = sortedKeys.map((key) => {
+    const bucket = monthsMap.get(key);
+    return {
+      key,
+      label: bucket.label,
+      amount: bucket.amount,
+      count: bucket.count,
+      year: bucket.year,
+      monthIndex: bucket.monthIndex,
+    };
+  });
+
+  let cumulative = 0;
+  months.forEach((month) => {
+    cumulative += month.amount;
+    month.cumulativeAmount = cumulative;
+  });
+
+  const totalAmount = months.reduce((sum, month) => sum + month.amount, 0);
+  const totalDeals = months.reduce((sum, month) => sum + month.count, 0);
+  const averageAmount = months.length ? totalAmount / months.length : 0;
+  const averageDeals = months.length ? totalDeals / months.length : 0;
+  const bestMonth = months.reduce((best, month) => {
+    if (!best || month.amount > best.amount) {
+      return month;
+    }
+    return best;
+  }, null);
+
+  const revenueSeries = months.map((month) => ({
+    label: month.label,
+    value: Number(month.amount.toFixed(2)),
+    count: month.count,
+  }));
+  const cumulativeSeries = months.map((month) => ({
+    label: month.label,
+    value: Number(month.cumulativeAmount.toFixed(2)),
+  }));
+
+  return {
+    period: {
+      from: formatMonthInputValue(fromDate),
+      to: formatMonthInputValue(toDate),
+      label: `${trendMonthFormatter.format(fromDate)} – ${trendMonthFormatter.format(toDate)}`,
+    },
+    months,
+    totals: {
+      amount: totalAmount,
+      deals: totalDeals,
+      averageAmount,
+      averageDeals,
+      bestMonth,
+    },
+    series: {
+      revenue: revenueSeries,
+      cumulative: cumulativeSeries,
+    },
+  };
+}
+
+function renderTrendSummary(data) {
+  if (!trendSummary) return;
+  if (!data || data.months.length === 0) {
+    trendSummary.innerHTML = '<div class="log-metrics-empty">Keine Daten im gewählten Zeitraum.</div>';
     return;
   }
-  const params = new URLSearchParams();
-  if (from) params.set('from', from);
-  if (to) params.set('to', to);
-  if (logMetricsTeam && logMetricsTeam.value) params.set('team', logMetricsTeam.value);
-  const url = `${WORKER_BASE}/analytics/metrics${params.toString() ? `?${params.toString()}` : ''}`;
 
-  if (logMetricsSummary) {
-    logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Lade Logdaten…</div>';
-  }
-  if (logMetricsMonthlyChart) logMetricsMonthlyChart.innerHTML = '';
-  if (logMetricsSuccessChart) logMetricsSuccessChart.innerHTML = '';
-  if (logMetricsEventChart) logMetricsEventChart.innerHTML = '';
-
-  try {
-    const response = await fetchWithRetry(url, { headers: { Accept: 'application/json' } });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    const data = await response.json();
-    logMetricsData = data;
-    renderLogMetrics(data);
-  } catch (err) {
-    console.error('Log metrics fetch failed:', err);
-    showToast('Log-Insights konnten nicht geladen werden.', 'bad');
-    if (logMetricsSummary) {
-      logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Fehler beim Laden der Daten.</div>';
-    }
-  }
-}
-
-function formatIsoDate(dateString) {
-  if (!dateString) return '–';
-  const date = new Date(`${dateString}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return dateString;
-  return date.toLocaleDateString('de-DE');
-}
-
-function renderLogMetrics(data) {
-  if (!logMetricsSummary) return;
-  if (!data || !data.totals) {
-    logMetricsSummary.innerHTML = '<div class="log-metrics-empty">Keine Daten verfügbar.</div>';
-    return;
-  }
-
+  const monthsCount = data.months.length;
   const totals = data.totals;
-  const period = data.period || {};
-  const filters = data.filters || {};
-  const successRatePct = totals.successRate != null ? totals.successRate * 100 : null;
+  const bestMonth = totals.bestMonth;
+  const monthsLabel = monthsCount === 1 ? '1 Monat analysiert' : `${monthsCount} Monate analysiert`;
+  const totalAmountText = fmtCurr2.format(totals.amount || 0);
+  const avgAmountText = fmtCurr2.format(totals.averageAmount || 0);
+  const totalDealsText = fmtInt.format(totals.deals || 0);
+  const avgDealsText = trendAverageFormatter.format(totals.averageDeals || 0);
+  const bestLabel = bestMonth ? bestMonth.label : '–';
+  const bestSub = bestMonth
+    ? `${fmtCurr2.format(bestMonth.amount || 0)} • ${fmtInt.format(bestMonth.count || 0)} Deals`
+    : 'Noch keine Umsätze';
 
-  logMetricsSummary.innerHTML = `
+  trendSummary.innerHTML = `
     <div class="metric-card">
       <div class="label">Zeitraum</div>
-      <div class="value">${formatIsoDate(period.from)} – ${formatIsoDate(period.to)}</div>
-      <div class="sub">${filters.team || 'Alle Teams'}</div>
+      <div class="value">${data.period.label}</div>
+      <div class="sub">${monthsLabel}</div>
     </div>
     <div class="metric-card">
-      <div class="label">Netto-Delta</div>
-      <div class="value">${fmtCurr2.format(totals.amount || 0)}</div>
-      <div class="sub">Positiv: ${fmtCurr2.format(totals.positiveAmount || 0)} · Negativ: ${fmtCurr2.format(totals.negativeAmount || 0)}</div>
+      <div class="label">Gesamtumsatz</div>
+      <div class="value">${totalAmountText}</div>
+      <div class="sub">Ø ${avgAmountText} pro Monat</div>
     </div>
     <div class="metric-card">
-      <div class="label">Ereignisse</div>
-      <div class="value">${fmtInt.format(totals.count || 0)}</div>
-      <div class="sub">Erfolgreich: ${fmtInt.format(totals.positiveCount || 0)} · Negativ: ${fmtInt.format(totals.negativeCount || 0)}</div>
+      <div class="label">Deals</div>
+      <div class="value">${totalDealsText}</div>
+      <div class="sub">Ø ${avgDealsText} Deals pro Monat</div>
     </div>
     <div class="metric-card">
-      <div class="label">Erfolgsquote</div>
-      <div class="value">${successRatePct != null ? `${fmtPct.format(successRatePct)} %` : '–'}</div>
-      <div class="sub">Neutrale Logs: ${fmtInt.format(totals.neutralCount || 0)}</div>
+      <div class="label">Bester Monat</div>
+      <div class="value">${bestLabel}</div>
+      <div class="sub">${bestSub}</div>
     </div>
   `;
+}
 
-  const monthSeries = Array.isArray(data.months)
-    ? data.months.map((month) => ({
-        label: month.month,
-        value: month.amount,
-        count: month.count,
-      }))
-    : [];
-  drawLineChart(logMetricsMonthlyChart, monthSeries, {
-    formatter: (value) => fmtCurr2.format(value || 0),
-    emptyMessage: 'Keine Logbewegungen im Zeitraum.',
+function renderTrendInsights() {
+  if (!trendFromMonth || !trendToMonth) return;
+  const from = parseMonthValue(trendFromMonth.value);
+  const to = parseMonthValue(trendToMonth.value);
+  if (!from || !to) {
+    if (trendSummary) {
+      trendSummary.innerHTML = '<div class="log-metrics-empty">Bitte gültige Monate auswählen.</div>';
+    }
+    showToast('Bitte wählen Sie einen gültigen Zeitraum.', 'warn');
+    return;
+  }
+  if (from > to) {
+    showToast('Der Startmonat darf nicht nach dem Endmonat liegen.', 'warn');
+    return;
+  }
+
+  trendData = computeTrendData(from, to);
+  renderTrendSummary(trendData);
+
+  const revenueSeries = trendData.series?.revenue || [];
+  const cumulativeSeries = trendData.series?.cumulative || [];
+
+  drawLineChart(trendRevenueChart, revenueSeries, {
+    formatter: (value) => fmtCurr2.format(value),
+    emptyMessage: 'Keine Umsätze im Zeitraum.',
+    color: '#3b82f6',
   });
 
-  const successSeries = Array.isArray(data.months)
-    ? data.months
-        .filter((month) => month.successRate != null)
-        .map((month) => ({ label: month.month, value: month.successRate * 100 }))
-    : [];
-  drawLineChart(logMetricsSuccessChart, successSeries, {
-    formatter: (value) => `${fmtPct.format(value || 0)} %`,
-    minValue: 0,
-    maxValue: 100,
-    zeroBased: true,
-    emptyMessage: 'Für diesen Zeitraum ist keine Erfolgsquote verfügbar.',
+  drawLineChart(trendCumulativeChart, cumulativeSeries, {
+    formatter: (value) => fmtCurr2.format(value),
+    emptyMessage: 'Keine Umsätze im Zeitraum.',
     color: '#22c55e',
-  });
-
-  const events = Array.isArray(data.events)
-    ? data.events.map((event) => ({
-        name: event.event,
-        val: event.count,
-        count: event.count,
-        amount: event.amount,
-        successRate: event.successRate,
-        positiveCount: event.positiveCount,
-        negativeCount: event.negativeCount,
-      }))
-    : [];
-  drawBars(logMetricsEventChart, events, false, {
-    formatter: fmtInt,
-    valueFormatter: (item) => fmtInt.format(item.val || 0),
-    titleFormatter: (item, formattedValue) => {
-      const amountText = fmtCurr2.format(item.amount || 0);
-      const rateText = item.successRate != null ? `${fmtPct.format(item.successRate * 100)} %` : '–';
-      return `${item.name}: ${formattedValue} • Δ ${amountText} • Erfolgsquote ${rateText}`;
-    },
-    barColor: '#38bdf8',
-    emptyMessage: 'Keine Ereignisse im Zeitraum.',
   });
 }
 
-function buildLogExportFilename(extension) {
-  const from = logMetricsData?.period?.from || 'start';
-  const to = logMetricsData?.period?.to || 'ende';
+function buildTrendExportFilename(extension) {
+  const from = trendData?.period?.from || 'start';
+  const to = trendData?.period?.to || 'ende';
   const suffix = `${from}_${to}`.replace(/[^0-9A-Za-z_-]+/g, '_');
-  return `log_insights_${suffix}.${extension}`;
+  return `umsatz_trends_${suffix}.${extension}`;
 }
 
 function downloadBlob(content, mimeType, filename) {
@@ -4802,106 +4942,102 @@ function downloadBlob(content, mimeType, filename) {
   }
 }
 
-function exportLogMetricsCsv() {
-  if (!logMetricsData) {
-    showToast('Keine Logdaten zum Exportieren vorhanden.', 'warn');
+function exportTrendCsv() {
+  if (!trendData) {
+    showToast('Keine Trenddaten zum Exportieren vorhanden.', 'warn');
     return;
   }
-  const { period = {}, filters = {}, totals = {}, months = [], events = [] } = logMetricsData;
+
+  const { period, totals, months } = trendData;
   const lines = [];
-  lines.push('Abschnitt;Spalte1;Spalte2;Spalte3;Spalte4;Spalte5;Spalte6');
-  lines.push(`Übersicht;Von;${period.from || ''};Bis;${period.to || ''};Team;${filters.team || 'Alle Teams'}`);
+  lines.push('Abschnitt;Feld;Wert');
+  lines.push(`Zeitraum;Von;${period.from || ''}`);
+  lines.push(`Zeitraum;Bis;${period.to || ''}`);
+  lines.push(`Zeitraum;Monate;${months.length}`);
   lines.push(
-    `Übersicht;Netto_Delta_EUR;${(totals.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};Ereignisse;${totals.count || 0};Erfolgsquote_%;${
-      totals.successRate != null ? (totals.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''
-    }`
+    `Gesamt;Umsatz_EUR;${(totals.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   );
+  lines.push(`Gesamt;Deals;${totals.deals || 0}`);
   lines.push(
-    `Übersicht;Positiv_EUR;${(totals.positiveAmount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};Negativ_EUR;${(totals.negativeAmount || 0).toLocaleString('de-DE', {
+    `Gesamt;Ø_Monatsumsatz_EUR;${(totals.averageAmount || 0).toLocaleString('de-DE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })};Neutrale;${totals.neutralCount || 0}`
+    })}`
   );
-  lines.push('');
-  lines.push('Monate;Monat;Netto_Delta_EUR;Ereignisse;Erfolgreich;Negativ;Erfolgsquote_%');
-  months.forEach((month) => {
-    const rate = month.successRate != null ? (month.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+  lines.push(
+    `Gesamt;Ø_Deals_pro_Monat;${(totals.averageDeals || 0).toLocaleString('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
+  );
+  if (totals.bestMonth) {
+    lines.push(`Gesamt;Bester_Monat;${totals.bestMonth.label}`);
     lines.push(
-      `Monat;${month.month};${(month.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};${month.count || 0};${month.positiveCount || 0};${month.negativeCount || 0};${rate}`
+      `Gesamt;Bester_Monat_Umsatz_EUR;${(totals.bestMonth.amount || 0).toLocaleString('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
     );
-  });
+    lines.push(`Gesamt;Bester_Monat_Deals;${totals.bestMonth.count || 0}`);
+  }
   lines.push('');
-  lines.push('Ereignisse;Ereignis;Anzahl;Netto_Delta_EUR;Erfolgreich;Negativ;Erfolgsquote_%');
-  events.forEach((event) => {
-    const rate = event.successRate != null ? (event.successRate * 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+  lines.push('Monate;Monat;Umsatz_EUR;Deals;Kumuliert_EUR');
+  months.forEach((month) => {
     lines.push(
-      `Ereignis;${event.event};${event.count || 0};${(event.amount || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })};${event.positiveCount || 0};${event.negativeCount || 0};${rate}`
+      `Monat;${month.label};${(month.amount || 0).toLocaleString('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })};${month.count || 0};${(month.cumulativeAmount || 0).toLocaleString('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
     );
   });
 
   const csvContent = '\ufeff' + lines.join('\n');
-  downloadBlob(csvContent, 'text/csv;charset=utf-8;', buildLogExportFilename('csv'));
+  downloadBlob(csvContent, 'text/csv;charset=utf-8;', buildTrendExportFilename('csv'));
 }
 
-function exportLogMetricsXlsx() {
-  if (!logMetricsData) {
-    showToast('Keine Logdaten zum Exportieren vorhanden.', 'warn');
+function exportTrendXlsx() {
+  if (!trendData) {
+    showToast('Keine Trenddaten zum Exportieren vorhanden.', 'warn');
     return;
   }
   if (typeof XLSX === 'undefined') {
     showToast('XLSX-Bibliothek nicht verfügbar.', 'bad');
     return;
   }
+
   const wb = XLSX.utils.book_new();
-  const { period = {}, filters = {}, totals = {}, months = [], events = [], daily = [] } = logMetricsData;
+  const { period, totals, months } = trendData;
 
   const summarySheet = [
     { Kennzahl: 'Von', Wert: period.from || '' },
     { Kennzahl: 'Bis', Wert: period.to || '' },
-    { Kennzahl: 'Team', Wert: filters.team || 'Alle Teams' },
-    { Kennzahl: 'Netto Delta EUR', Wert: Number((totals.amount || 0).toFixed(2)) },
-    { Kennzahl: 'Ereignisse', Wert: totals.count || 0 },
-    {
-      Kennzahl: 'Erfolgsquote %',
-      Wert: totals.successRate != null ? Number((totals.successRate * 100).toFixed(2)) : null,
-    },
-    { Kennzahl: 'Positiv EUR', Wert: Number((totals.positiveAmount || 0).toFixed(2)) },
-    { Kennzahl: 'Negativ EUR', Wert: Number((totals.negativeAmount || 0).toFixed(2)) },
-    { Kennzahl: 'Neutrale Ereignisse', Wert: totals.neutralCount || 0 },
+    { Kennzahl: 'Monate', Wert: months.length },
+    { Kennzahl: 'Gesamtumsatz EUR', Wert: Number((totals.amount || 0).toFixed(2)) },
+    { Kennzahl: 'Ø Monatsumsatz EUR', Wert: Number((totals.averageAmount || 0).toFixed(2)) },
+    { Kennzahl: 'Deals gesamt', Wert: totals.deals || 0 },
+    { Kennzahl: 'Ø Deals pro Monat', Wert: Number((totals.averageDeals || 0).toFixed(2)) },
   ];
+
+  if (totals.bestMonth) {
+    summarySheet.push({ Kennzahl: 'Bester Monat', Wert: totals.bestMonth.label });
+    summarySheet.push({ Kennzahl: 'Bester Monat Umsatz EUR', Wert: Number((totals.bestMonth.amount || 0).toFixed(2)) });
+    summarySheet.push({ Kennzahl: 'Deals im besten Monat', Wert: totals.bestMonth.count || 0 });
+  }
+
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summarySheet), 'Übersicht');
 
   const monthSheet = months.map((month) => ({
-    Monat: month.month,
-    Netto_Delta_EUR: Number((month.amount || 0).toFixed(2)),
-    Ereignisse: month.count || 0,
-    Erfolgreich: month.positiveCount || 0,
-    Negativ: month.negativeCount || 0,
-    Erfolgsquote_Prozent: month.successRate != null ? Number((month.successRate * 100).toFixed(2)) : null,
+    Monat: month.label,
+    Umsatz_EUR: Number((month.amount || 0).toFixed(2)),
+    Deals: month.count || 0,
+    Kumuliert_EUR: Number((month.cumulativeAmount || 0).toFixed(2)),
   }));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthSheet), 'Monate');
 
-  const eventSheet = events.map((event) => ({
-    Ereignis: event.event,
-    Anzahl: event.count || 0,
-    Netto_Delta_EUR: Number((event.amount || 0).toFixed(2)),
-    Erfolgreich: event.positiveCount || 0,
-    Negativ: event.negativeCount || 0,
-    Erfolgsquote_Prozent: event.successRate != null ? Number((event.successRate * 100).toFixed(2)) : null,
-  }));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(eventSheet), 'Ereignisse');
-
-  const dailySheet = daily.map((day) => ({
-    Datum: day.date,
-    Netto_Delta_EUR: Number((day.amount || 0).toFixed(2)),
-    Ereignisse: day.count || 0,
-    Erfolgreich: day.positiveCount || 0,
-    Negativ: day.negativeCount || 0,
-    Erfolgsquote_Prozent: day.successRate != null ? Number((day.successRate * 100).toFixed(2)) : null,
-  }));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dailySheet), 'Tage');
-
-  XLSX.writeFile(wb, buildLogExportFilename('xlsx'));
+  XLSX.writeFile(wb, buildTrendExportFilename('xlsx'));
 }
 
 btnAnaXlsx.addEventListener('click', () => {
