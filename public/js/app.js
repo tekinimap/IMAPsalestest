@@ -320,6 +320,33 @@ function resolveAssessmentOwner(entry) {
   ]);
 }
 
+function parseFlagshipValue(value) {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return false;
+    if (['1', 'true', 'yes', 'ja', 'y', 'on', 'wahr'].includes(normalized)) {
+      return true;
+    }
+    if (['0', 'false', 'no', 'nein', 'n', 'off'].includes(normalized)) {
+      return false;
+    }
+  }
+  return false;
+}
+
+function isFlagshipProject(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  const rawValue = entry.flagship_projekt ?? entry.flagshipProjekt ?? entry.flagshipProject;
+  return parseFlagshipValue(rawValue);
+}
+
 function augmentDockEntry(entry) {
   const phase = getDockPhase(entry);
   const checklist = computeDockChecklist(entry);
@@ -339,6 +366,7 @@ function augmentDockEntry(entry) {
     updatedAt,
     show: shouldDisplayInDock(entry),
     conflictHint: dockConflictHints.get(entry.id) || null,
+    isFlagship: isFlagshipProject(entry),
   };
 }
 
@@ -748,7 +776,7 @@ function buildDockHint(entryId, hint) {
 }
 
 function buildDockCard(item) {
-  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint } = item;
+  const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint, isFlagship } = item;
   const card = createDockElement('article', { className: 'dock-card' });
   card.dataset.entryId = entry.id;
   const svgNs = 'http://www.w3.org/2000/svg';
@@ -762,7 +790,17 @@ function buildDockCard(item) {
   });
   checkbox.checked = dockSelection.has(entry.id);
   selectLabel.appendChild(checkbox);
-  const title = createDockElement('h3', { className: 'dock-card-title', text: entry.title || 'Ohne Titel' });
+  const title = createDockElement('h3', { className: 'dock-card-title' });
+  if (isFlagship) {
+    const flagIcon = createDockElement('span', {
+      className: 'dock-card-flag',
+      text: '⛵️',
+      attrs: { title: 'Flagship-Projekt', role: 'img', 'aria-label': 'Flagship-Projekt' },
+    });
+    title.appendChild(flagIcon);
+  }
+  const titleText = createDockElement('span', { className: 'dock-card-title-text', text: entry.title || 'Ohne Titel' });
+  title.appendChild(titleText);
   headline.append(selectLabel, title);
   header.appendChild(headline);
 
