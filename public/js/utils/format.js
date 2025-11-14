@@ -41,6 +41,23 @@ export function formatDateForInput(ts) {
   }
 }
 
+export function formatIsoDate(value) {
+  if (!value) return '';
+  const str = String(value).trim();
+  if (!str) return '';
+
+  const isoPart = str.includes('T') ? str.split('T')[0] : str;
+  const segments = isoPart.split('-');
+  if (segments.length === 3) {
+    const [year, month, day] = segments;
+    if (year && month && day) {
+      return `${day.padStart(2, '0')}.${month.padStart(2, '0')}.${year}`;
+    }
+  }
+
+  return str;
+}
+
 export function clamp01(x) {
   return Math.max(0, Math.min(100, x));
 }
