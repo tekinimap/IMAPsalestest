@@ -968,91 +968,103 @@ async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 
 
 function handleDockBoardClick(event) {
   const button = event.target.closest('button[data-dock-act]');
-  if (!button) return;
-  const id = button.dataset.id;
-  const action = button.dataset.dockAct;
-  if (!id || !action) return;
-  if (button.classList.contains('disabled') || button.disabled) {
-    event.preventDefault();
-    return;
-  }
-
-  const entry = findEntryById(id);
-  if (!entry) return;
-
-  if (action === 'hint-merge') {
-    const hint = dockConflictHints.get(id);
-    if (hint?.mergeIds?.length >= 2) {
-      showView('fixauftraege');
-      selectFixEntries(hint.mergeIds, true);
-      showToast('Deals mit identischer Projektnummer wurden markiert.', 'warn', 5000);
+  if (button) {
+    const id = button.dataset.id;
+    const action = button.dataset.dockAct;
+    if (!id || !action) return;
+    if (button.classList.contains('disabled') || button.disabled) {
+      event.preventDefault();
+      return;
     }
-    dockConflictHints.delete(id);
-    requestDockBoardRerender();
-    return;
-  }
 
-  if (action === 'hint-assign-framework') {
-    const hint = dockConflictHints.get(id);
-    if (hint?.frameworkId) {
-      const framework = findEntryById(hint.frameworkId);
-      if (framework) {
-        openFrameworkAssignmentPrompt(entry, framework);
-      } else {
-        showToast('Rahmenvertrag konnte nicht geladen werden. Bitte Ansicht aktualisieren.', 'warn');
+    const entry = findEntryById(id);
+    if (!entry) return;
+
+    if (action === 'hint-merge') {
+      const hint = dockConflictHints.get(id);
+      if (hint?.mergeIds?.length >= 2) {
+        showView('fixauftraege');
+        selectFixEntries(hint.mergeIds, true);
+        showToast('Deals mit identischer Projektnummer wurden markiert.', 'warn', 5000);
       }
+      dockConflictHints.delete(id);
+      requestDockBoardRerender();
+      return;
     }
-    dockConflictHints.delete(id);
-    requestDockBoardRerender();
-    return;
-  }
 
-  if (action === 'dismiss-hint') {
-    dockConflictHints.delete(id);
-    requestDockBoardRerender();
-    return;
-  }
-
-  if (action === 'edit') {
-    editEntry(id);
-    return;
-  }
-
-  const runUpdate = async (targetPhase, extra, message) => {
-    try {
-      button.disabled = true;
-      button.classList.add('disabled');
-      showLoader();
-      await updateDockPhase(entry, targetPhase, extra, message);
-    } catch (err) {
-      console.error('Dock-Update fehlgeschlagen', err);
-      showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
-    } finally {
-      hideLoader();
+    if (action === 'hint-assign-framework') {
+      const hint = dockConflictHints.get(id);
+      if (hint?.frameworkId) {
+        const framework = findEntryById(hint.frameworkId);
+        if (framework) {
+          openFrameworkAssignmentPrompt(entry, framework);
+        } else {
+          showToast('Rahmenvertrag konnte nicht geladen werden. Bitte Ansicht aktualisieren.', 'warn');
+        }
+      }
+      dockConflictHints.delete(id);
+      requestDockBoardRerender();
+      return;
     }
-  };
 
-  if (action === 'bu-approve') {
-    if (!confirm('BU-Freigabe bestätigen?')) return;
-    runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
-  } else if (action === 'assign') {
-    const target = button.dataset.targetAssignment;
-    if (!target) return;
-    const label = DOCK_ASSIGNMENT_LABELS[target] || target;
-    if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
-    const message = target === 'rahmen'
-      ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
-      : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
-    const payload = {
-      dockFinalAssignment: target,
-      dockFinalAssignmentAt: Date.now(),
+    if (action === 'dismiss-hint') {
+      dockConflictHints.delete(id);
+      requestDockBoardRerender();
+      return;
+    }
+
+    if (action === 'edit') {
+      editEntry(id);
+      return;
+    }
+
+    const runUpdate = async (targetPhase, extra, message) => {
+      try {
+        button.disabled = true;
+        button.classList.add('disabled');
+        showLoader();
+        await updateDockPhase(entry, targetPhase, extra, message);
+      } catch (err) {
+        console.error('Dock-Update fehlgeschlagen', err);
+        showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
+      } finally {
+        hideLoader();
+      }
     };
-    if (target === 'rahmen') {
-      payload.projectType = 'rahmen';
+
+    if (action === 'bu-approve') {
+      if (!confirm('BU-Freigabe bestätigen?')) return;
+      runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
+    } else if (action === 'assign') {
+      const target = button.dataset.targetAssignment;
+      if (!target) return;
+      const label = DOCK_ASSIGNMENT_LABELS[target] || target;
+      if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
+      const message = target === 'rahmen'
+        ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
+        : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
+      const payload = {
+        dockFinalAssignment: target,
+        dockFinalAssignmentAt: Date.now(),
+      };
+      if (target === 'rahmen') {
+        payload.projectType = 'rahmen';
+      }
+      queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
+      runUpdate(3, payload, message);
     }
-    queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-    runUpdate(3, payload, message);
+    return;
   }
+
+  const card = event.target.closest('.dock-card');
+  if (!card) return;
+  if (event.target.closest('.dock-card-select')) {
+    return;
+  }
+
+  const { entryId } = card.dataset;
+  if (!entryId) return;
+  editEntry(entryId);
 }
 
 ensureDockBoard();
