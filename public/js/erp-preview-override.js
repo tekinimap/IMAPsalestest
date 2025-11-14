@@ -108,7 +108,10 @@
     if (document.getElementById('erpPreviewDlg')) return;
     const css = document.createElement('style');
     css.textContent = `
-      dialog#erpPreviewDlg{border:1px solid #213044;background:#0f1724;color:#e6ebf3;border-radius:14px;min-width:1100px; max-width: 95vw; padding:16px;z-index:10000}
+      dialog#erpPreviewDlg{border:1px solid #213044;background:#0f1724;color:#e6ebf3;border-radius:14px;min-width:1100px; max-width: 95vw; padding:16px;z-index:10000;position:relative;overflow:visible}
+      dialog#erpPreviewDlg .dialog-close{position:absolute;top:-18px;right:-18px;width:40px;height:40px;border-radius:999px;border:1px solid rgba(148,163,184,.45);background:rgba(11,18,30,.95);color:#94a3b8;display:inline-flex;align-items:center;justify-content:center;font-size:20px;line-height:1;padding:0;cursor:pointer;box-shadow:0 12px 28px rgba(8,15,28,.45);transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease;z-index:10}
+      dialog#erpPreviewDlg .dialog-close:hover{background:#3b82f6;border-color:#3b82f6;color:#fff;transform:translateY(-1px)}
+      dialog#erpPreviewDlg .dialog-close:focus-visible{outline:3px solid rgba(59,130,246,.45);outline-offset:2px}
       #erpPrev .kpis{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 12px}
       #erpPrev .card{background:#111a2b;border:1px solid #213044;border-radius:12px;padding:10px 12px;min-width:190px}
       #erpPrev .label{font-size:12px;opacity:.7}
@@ -128,6 +131,7 @@
     const dlg = document.createElement('dialog');
     dlg.id = 'erpPreviewDlg';
     dlg.innerHTML = `
+      <button class="dialog-close" type="button" id="btnClosePreview" aria-label="Modal schließen">×</button>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
         <div>
           <h1 style="margin:0;font-size:18px;">Import-Vorschau (ERP)</h1>
@@ -135,7 +139,6 @@
         </div>
         <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
           <button class="btnx small" id="btnApplyImport">Änderungen übernehmen</button>
-          <button class="btnx small" id="btnClosePreview">Schließen</button>
         </div>
       </div>
       <div id="erpPrev">
@@ -170,6 +173,11 @@
     document.body.appendChild(dlg);
 
     document.getElementById('btnClosePreview').onclick = ()=> dlg.close();
+    dlg.addEventListener('click', (event) => {
+      if (event.target === dlg) {
+        dlg.close();
+      }
+    });
     document.getElementById('btnApplyImport').onclick  = applyErpImport;
   }
 

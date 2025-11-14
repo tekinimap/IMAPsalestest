@@ -259,6 +259,18 @@ function hideManualPanel() {
   }
 }
 
+function requestDockEntryDialogClose() {
+  if (!dockEntryDialog) return false;
+  if (dockEntryDialog.open && getHasUnsavedChanges()) {
+    const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+    if (!confirmed) {
+      return false;
+    }
+  }
+  hideManualPanel();
+  return true;
+}
+
 function getEntryKvList(entry) {
   if (!entry || typeof entry !== 'object') return [];
   if (Array.isArray(entry.kvNummern) && entry.kvNummern.length) return entry.kvNummern;
@@ -1107,13 +1119,7 @@ if (btnManualDeal) {
 
 if (btnCloseManualDeal) {
   btnCloseManualDeal.addEventListener('click', () => {
-    if (getHasUnsavedChanges()) {
-      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
-      if (!confirmed) return;
-    }
-    hideManualPanel();
-    clearInputFields();
-    setHasUnsavedChanges(false);
+    requestDockEntryDialogClose();
   });
 }
 
@@ -1142,6 +1148,19 @@ if (dockEntryDialog) {
     setHasUnsavedChanges(false);
   });
 }
+
+document.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!target || !(target instanceof HTMLElement)) return;
+  if (target.tagName !== 'DIALOG') return;
+  const dialogEl = target;
+  if (!dialogEl.open) return;
+  if (dialogEl.id === 'dockEntryDialog') {
+    requestDockEntryDialogClose();
+  } else {
+    dialogEl.close();
+  }
+});
 
 function showView(viewName) {
   if (getIsBatchRunning()) {
