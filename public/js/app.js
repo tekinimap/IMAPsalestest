@@ -4566,7 +4566,7 @@ function renderFrameworkActivityChart(hostOrId, items) {
     if (utilization != null) {
       tooltipParts.push(`Ausnutzung: ${fmtPct.format(utilization)} %`);
     }
-    tr.title = `${item.name}${item.client ? ` (${item.client})` : ''} • ${tooltipParts.join(' • ')}`;
+    tr.title = `${escapeHtml(item.name)}${item.client ? ` (${escapeHtml(item.client)})` : ''} • ${tooltipParts.join(' • ')}`;
 
     tbody.appendChild(tr);
   });
