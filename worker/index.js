@@ -313,6 +313,27 @@ function firstNonEmpty(...values) {
   }
   return "";
 }
+
+function parseHubspotCheckbox(value, fallback = false) {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return Boolean(fallback);
+    if (['1', 'true', 'yes', 'ja', 'y', 'on', 'wahr'].includes(normalized)) {
+      return true;
+    }
+    if (['0', 'false', 'no', 'nein', 'n', 'off'].includes(normalized)) {
+      return false;
+    }
+  }
+  return Boolean(fallback);
+}
 function kvListFrom(obj){
   if (!obj || typeof obj !== 'object') return [];
   const arrayFields = ['kvNummern','kv_nummern','kvNumbers','kv_numbers','kvList','kv_list'];
@@ -1521,13 +1542,14 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
   return false;
 }
-async function hsFetchDeal(dealId, env) {
+export async function hsFetchDeal(dealId, env) {
   if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing");
 
   const properties = [
     "dealname", "amount", "dealstage", "closedate", "hs_object_id", "pipeline",
     "hubspot_owner_id",
-    "hs_all_collaborator_owner_ids"
+    "hs_all_collaborator_owner_ids",
+    "flagship_projekt",
   ];
 
   const associations = "company";
@@ -1654,6 +1676,10 @@ export function upsertByHubSpotId(entries, deal) {
     previousEntry?.assessment_owner,
     ownerName
   ));
+  const flagshipProjekt = parseHubspotCheckbox(
+    deal?.properties?.flagship_projekt,
+    previousEntry?.flagship_projekt === true
+  );
 
   const base = {
     id: previousEntry?.id || rndId('hubspot_'),
@@ -1676,6 +1702,7 @@ export function upsertByHubSpotId(entries, deal) {
     dockFinalAssignment: previousEntry?.dockFinalAssignment || '',
     dockFinalAssignmentAt: previousEntry?.dockFinalAssignmentAt || null,
     dockPhase: previousEntry?.dockPhase,
+    flagship_projekt: flagshipProjekt,
   };
 
   if (projectNumber) {
