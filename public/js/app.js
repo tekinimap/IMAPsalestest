@@ -4097,7 +4097,7 @@ function renderActivityAnalytics() {
       count += 1;
     });
 
-    if (total <= 0 && count === 0) {
+    if (count === 0) {
       return;
     }
 
