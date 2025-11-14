@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { upsertByHubSpotId, normalizeTransactionKv } from '../../worker/index.js';
+import { upsertByHubSpotId, normalizeTransactionKv, hsFetchDeal } from '../../worker/index.js';
 
 describe('upsertByHubSpotId duplicate handling', () => {
   it('überspringt neuen HubSpot-Deal bei bestehender Projektnummer und KV', () => {
@@ -72,6 +72,22 @@ describe('upsertByHubSpotId duplicate handling', () => {
     assert.equal(entries[0].title, 'Aktualisierter Titel');
     assert.equal(entries[0].hubspotId, '9003');
   });
+
+  it('übernimmt die Flagship-Markierung vom HubSpot-Deal', () => {
+    const entries = [];
+    const deal = {
+      id: '9004',
+      properties: {
+        dealname: 'Flagship Deal',
+        flagship_projekt: 'true',
+      },
+    };
+
+    const result = upsertByHubSpotId(entries, deal);
+
+    assert.equal(result.action, 'create');
+    assert.equal(entries[0].flagship_projekt, true);
+  });
 });
 
 describe('normalizeTransactionKv', () => {
@@ -90,5 +106,27 @@ describe('normalizeTransactionKv', () => {
     };
 
     assert.equal(normalizeTransactionKv(transaction), 'KV-300');
+  });
+});
+
+describe('hsFetchDeal', () => {
+  it('fordert flagship_projekt bei HubSpot an', async () => {
+    const originalFetch = globalThis.fetch;
+    let requestedUrl = '';
+    globalThis.fetch = async (url) => {
+      requestedUrl = url;
+      return {
+        ok: true,
+        json: async () => ({ properties: {} }),
+      };
+    };
+
+    try {
+      await hsFetchDeal('12345', { HUBSPOT_ACCESS_TOKEN: 'test-token' });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    assert.ok(requestedUrl.includes('flagship_projekt'));
   });
 });
