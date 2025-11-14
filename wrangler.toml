@@ -9,6 +9,13 @@ directory = "public"
 name = "imap-sales-worker"
 workers_dev = true
 
+[env.production.vars]
+GH_REPO = "tekinimap/IMAPsalestest"
+GH_BRANCH = "main"
+GH_PATH = "data/entries.json"
+GH_PEOPLE_PATH = "data/people.json"
+GH_LOG_DIR = "data/logs"
+
 
 # Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
 # Die Secrets werden von Cloudflare verwaltet über:
