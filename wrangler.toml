@@ -15,6 +15,7 @@ GH_BRANCH = "main"
 GH_PATH = "data/entries.json"
 GH_PEOPLE_PATH = "data/people.json"
 GH_LOG_DIR = "data/logs"
+HUBSPOT_ACCESS_TOKEN = "pat-na1-46370348-34e9-4d62-8928-248994d71193"
 
 
 # Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
