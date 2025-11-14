@@ -1,6 +1,8 @@
 name = "imap-sales-app"
 main = "worker/index.js"
 compatibility_date = "2025-11-12"
+keep_vars = true
+# Verhindert, dass wrangler.toml die im Dashboard definierten Variables/Secrets überschreibt
 
 [assets]
 directory = "public"
