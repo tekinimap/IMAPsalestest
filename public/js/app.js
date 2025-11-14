@@ -794,7 +794,7 @@ function buildDockCard(item) {
   if (isFlagship) {
     const flagIcon = createDockElement('span', {
       className: 'dock-card-flag',
-      text: '🚩',
+      text: '⛵',
       attrs: { title: 'Flagship-Projekt', role: 'img', 'aria-label': 'Flagship-Projekt' },
     });
     title.appendChild(flagIcon);
