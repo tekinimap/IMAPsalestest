@@ -10944,34 +10944,10 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "hubspot_user_Merlin Klein",
+        "key": "Merlin Klein",
         "name": "Merlin Klein",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Jens Maaßen",
-        "name": "Jens Maaßen",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Sarah Perry",
-        "name": "Sarah Perry",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Bülent Arslan",
-        "name": "Bülent Arslan",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Charlotte Hartig",
-        "name": "Charlotte Hartig",
-        "money": 0,
-        "pct": 0
+        "pct": 100,
+        "money": 100000
       }
     ],
     "updatedAt": 1763393304329,
@@ -10994,6 +10970,36 @@
       "1": 1763393304329
     },
     "freigabedatum": 1761868800000,
-    "modified": 1763393342649
+    "modified": 1763393348454,
+    "complete": true,
+    "rows": [
+      {
+        "personId": "p_oe_head_02",
+        "name": "Merlin Klein",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1763393347956
   }
 ]
