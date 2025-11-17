@@ -179,6 +179,7 @@ const dockAutoCheckQueue = new Map();
 const dockAutoCheckHistory = new Map();
 const dockConflictHints = new Map();
 let dockBoardRerenderScheduled = false;
+let pendingDockAbrufAssignment = null;
 
 function normalizeDockString(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -239,6 +240,193 @@ function ensureDockBoard() {
     dockColumnBodies.set(phase.id, column.querySelector(`[data-phase-body="${phase.id}"]`));
     dockColumnCounts.set(phase.id, column.querySelector(`[data-phase-count="${phase.id}"]`));
   });
+}
+
+function ensureAbrufAssignmentDialog() {
+  let dialog = document.getElementById('abrufAssignDlg');
+  if (dialog) return dialog;
+
+  dialog = document.createElement('dialog');
+  dialog.id = 'abrufAssignDlg';
+  dialog.innerHTML = `
+    <button class="dialog-close" type="button" aria-label="Modal schließen">×</button>
+    <div class="hd"><h1>Abruf zuordnen</h1></div>
+    <div class="ct">
+      <div id="abrufAssignValidation" class="validation-summary"></div>
+      <div class="grid-1">
+        <label for="abrufAssignFramework">Rahmenvertrag auswählen *</label>
+        <select id="abrufAssignFramework"></select>
+      </div>
+      <div style="margin-top:12px">
+        <label>Abruf-Typ *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="abrufAssignType" value="founder"> Passiver Abruf (Founder)</label>
+          <label><input type="radio" name="abrufAssignType" value="hunter" checked> Aktiver Abruf (Hunter)</label>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn" data-abort>Abbrechen</button>
+        <button class="btn ok" data-confirm>Abruf erfassen</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+
+  dialog.addEventListener('click', (ev) => {
+    if (ev.target.matches('.dialog-close') || ev.target.dataset.abort !== undefined) {
+      dialog.close();
+      pendingDockAbrufAssignment = null;
+    }
+  });
+
+  const confirmBtn = dialog.querySelector('[data-confirm]');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => handleAbrufAssignConfirm());
+  }
+
+  return dialog;
+}
+
+function populateAbrufAssignmentDialog(frameworks, preselectId) {
+  const dialog = ensureAbrufAssignmentDialog();
+  const select = dialog.querySelector('#abrufAssignFramework');
+  const validation = dialog.querySelector('#abrufAssignValidation');
+  if (!select || !validation) return;
+
+  validation.textContent = '';
+  select.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+  frameworks
+    .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+    .forEach((fw) => {
+      const opt = document.createElement('option');
+      opt.value = fw.id;
+      opt.textContent = `${fw.title || 'Unbenannt'} (${fw.client || '–'})`;
+      if (preselectId && fw.id === preselectId) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+}
+
+async function finalizeDockAbruf(entryId) {
+  const entry = findEntryById(entryId);
+  if (!entry) {
+    pendingDockAbrufAssignment = null;
+    return;
+  }
+  try {
+    await updateDockPhase(
+      entry,
+      entry.dockPhase || 3,
+      { dockFinalAssignment: 'abruf', dockFinalAssignmentAt: Date.now() },
+      'Deal als Abruf markiert.',
+      { silent: true }
+    );
+    showToast('Deal als Abruf markiert.', 'ok');
+  } catch (err) {
+    console.error('Abruf-Markierung fehlgeschlagen', err);
+    showToast('Dock-Status konnte nach dem Abruf nicht aktualisiert werden.', 'bad');
+  } finally {
+    pendingDockAbrufAssignment = null;
+  }
+}
+
+function startAbrufMode(entry, framework) {
+  if (!framework) return;
+  const freigabeDate = entry.freigabedatum ? formatDateForInput(entry.freigabedatum) : getTodayDate();
+  saveState({
+    source: 'manuell',
+    isAbrufMode: true,
+    parentEntry: framework,
+    dockAssignmentId: entry.id,
+    input: {
+      client: framework.client || entry.client || '',
+      title: entry.title || '',
+      amountKnown: entry.amount > 0,
+      amount: entry.amount || 0,
+      rows: entry.rows || [],
+      weights: entry.weights || [],
+      submittedBy: entry.submittedBy || '',
+      projectNumber: framework.projectNumber || '',
+      kvNummer: entry.kv_nummer || entry.kv || '',
+      freigabedatum: freigabeDate,
+    },
+  });
+  showManualPanel();
+  initFromState();
+  showView('erfassung');
+}
+
+function startDockAbrufAssignment(entry) {
+  if (!entry) return;
+  const frameworks = getEntries().filter((item) => (item.projectType || 'fix') === 'rahmen');
+  if (!frameworks.length) {
+    showToast('Kein Rahmenvertrag verfügbar. Bitte zuerst einen Rahmenvertrag anlegen.', 'warn');
+    return;
+  }
+
+  const hint = dockConflictHints.get(entry.id);
+  const preselectId = hint?.frameworkId;
+  if (preselectId) {
+    const framework = findEntryById(preselectId);
+    if (framework) {
+      openFrameworkAssignmentPrompt(entry, framework);
+    }
+  }
+
+  pendingDockAbrufAssignment = { entry };
+  populateAbrufAssignmentDialog(frameworks, preselectId);
+
+  const dialog = ensureAbrufAssignmentDialog();
+  try {
+    dialog.showModal();
+  } catch (err) {
+    console.error('Abruf-Dialog konnte nicht geöffnet werden.', err);
+    showToast('Abruf-Auswahl konnte nicht geöffnet werden.', 'bad');
+    pendingDockAbrufAssignment = null;
+  }
+}
+
+function handleAbrufAssignConfirm() {
+  const dialog = ensureAbrufAssignmentDialog();
+  const select = dialog.querySelector('#abrufAssignFramework');
+  const validation = dialog.querySelector('#abrufAssignValidation');
+  const type = dialog.querySelector('input[name="abrufAssignType"]:checked')?.value || 'hunter';
+
+  if (!pendingDockAbrufAssignment || !select || !validation) {
+    dialog.close();
+    pendingDockAbrufAssignment = null;
+    return;
+  }
+
+  const frameworkId = select.value;
+  if (!frameworkId) {
+    validation.textContent = 'Bitte Rahmenvertrag auswählen.';
+    return;
+  }
+  const framework = findEntryById(frameworkId);
+  if (!framework) {
+    validation.textContent = 'Rahmenvertrag konnte nicht geladen werden.';
+    return;
+  }
+
+  pendingDockAbrufAssignment.frameworkId = frameworkId;
+  pendingDockAbrufAssignment.mode = type;
+  dialog.close();
+
+  if (type === 'founder') {
+    const transactionTemplate = {
+      type: 'founder',
+      amount: pendingDockAbrufAssignment.entry?.amount || 0,
+      kv_nummer: pendingDockAbrufAssignment.entry?.kv_nummer || pendingDockAbrufAssignment.entry?.kv || '',
+      freigabedatum:
+        pendingDockAbrufAssignment.entry?.freigabedatum || pendingDockAbrufAssignment.entry?.ts || Date.now(),
+    };
+    openEditTransactionModal(transactionTemplate, framework);
+  } else {
+    startAbrufMode(pendingDockAbrufAssignment.entry, framework);
+  }
 }
 
 function showManualPanel() {
@@ -1039,6 +1227,11 @@ function handleDockBoardClick(event) {
     } else if (action === 'assign') {
       const target = button.dataset.targetAssignment;
       if (!target) return;
+      if (target === 'abruf') {
+        if (!confirm('Abruf erfassen und Deal aus dem Dock entfernen?')) return;
+        startDockAbrufAssignment(entry);
+        return;
+      }
       const label = DOCK_ASSIGNMENT_LABELS[target] || target;
       if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
       const message = target === 'rahmen'
@@ -2914,13 +3107,16 @@ async function saveHunterAbruf(st) {
         const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
         });
-        if (!r.ok) throw new Error(await r.text());
-        showToast(`Aktiver Abruf hinzugefügt`, 'ok');
-        clearInputFields();
-        loadHistory().then(() => { // Reload data after save
-          renderFrameworkContracts();
-          showView('rahmen');
-        });
+    if (!r.ok) throw new Error(await r.text());
+    showToast(`Aktiver Abruf hinzugefügt`, 'ok');
+    clearInputFields();
+    await loadHistory();
+    renderFrameworkContracts();
+    const assignmentId = st.dockAssignmentId || pendingDockAbrufAssignment?.entry?.id;
+    if (assignmentId) {
+      await finalizeDockAbruf(assignmentId);
+    }
+    showView('rahmen');
     } catch (e) {
         showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
         console.error(e);
@@ -3300,10 +3496,12 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
         if (!r.ok) throw new Error(await r.text());
         showToast('Abruf aktualisiert', 'ok');
         editTransactionDlg.close();
-        loadHistory().then(() => { // Reload data after saving
-            renderRahmenDetails(currentFrameworkEntryId);
-            renderFrameworkContracts(); // Update list view sum
-        });
+        await loadHistory();
+        renderRahmenDetails(currentFrameworkEntryId);
+        renderFrameworkContracts(); // Update list view sum
+        if (pendingDockAbrufAssignment?.mode === 'founder' && pendingDockAbrufAssignment.entry?.id) {
+          await finalizeDockAbruf(pendingDockAbrufAssignment.entry.id);
+        }
     } catch (e) {
         showToast('Update fehlgeschlagen', 'bad'); console.error(e);
     } finally {
