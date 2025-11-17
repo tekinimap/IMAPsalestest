@@ -10944,34 +10944,34 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "hubspot_user_Merlin Klein",
+        "key": "Merlin Klein",
         "name": "Merlin Klein",
-        "money": 0,
-        "pct": 0
+        "pct": 100,
+        "money": 100000
       },
       {
-        "key": "hubspot_user_Jens Maaßen",
+        "key": "Jens Maaßen",
         "name": "Jens Maaßen",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Sarah Perry",
+        "key": "Sarah Perry",
         "name": "Sarah Perry",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Bülent Arslan",
+        "key": "Bülent Arslan",
         "name": "Bülent Arslan",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Charlotte Hartig",
+        "key": "Charlotte Hartig",
         "name": "Charlotte Hartig",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763125738097,
@@ -10994,6 +10994,64 @@
       "1": 1763125738097
     },
     "freigabedatum": 1761782400000,
-    "modified": 1763390807029
+    "modified": 1763390898723,
+    "complete": true,
+    "rows": [
+      {
+        "personId": "p_oe_head_02",
+        "name": "Merlin Klein",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_pi_head_01",
+        "name": "Jens Maaßen",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_pi_ev_02",
+        "name": "Sarah Perry",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": null,
+        "name": "Bülent Arslan",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_pi_vp_02",
+        "name": "Charlotte Hartig",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 100
+      },
+      {
+        "key": "konzept",
+        "weight": 0
+      },
+      {
+        "key": "pitch",
+        "weight": 0
+      }
+    ],
+    "ts": 1763390898368
   }
 ]
