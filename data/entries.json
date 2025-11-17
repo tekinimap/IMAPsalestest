@@ -10939,7 +10939,7 @@
     "amount": 100000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "9999",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -10985,11 +10985,15 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "kvNummern": [
+      "9999"
+    ],
+    "kv_nummer": "9999",
+    "kv": "9999",
     "dockPhaseHistory": {
       "1": 1763125738097
-    }
+    },
+    "freigabedatum": 1761782400000,
+    "modified": 1763390807029
   }
 ]
