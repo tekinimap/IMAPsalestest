@@ -372,6 +372,7 @@ function startDockAbrufAssignment(entry) {
     const framework = findEntryById(preselectId);
     if (framework) {
       openFrameworkAssignmentPrompt(entry, framework);
+      return;
     }
   }
 
