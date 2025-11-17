@@ -981,7 +981,6 @@ function buildDockCard(item) {
   const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint, isFlagship } = item;
   const card = createDockElement('article', { className: 'dock-card' });
   card.dataset.entryId = entry.id;
-  const svgNs = 'http://www.w3.org/2000/svg';
 
   const header = createDockElement('div', { className: 'dock-card-header' });
   const headline = createDockElement('div', { className: 'dock-card-headline' });
@@ -1006,34 +1005,6 @@ function buildDockCard(item) {
   headline.append(selectLabel, title);
   header.appendChild(headline);
 
-  const actions = createDockElement('div', { className: 'dock-card-actions' });
-  const editBtn = createDockElement('button', {
-    className: 'dock-card-edit',
-    attrs: { type: 'button', 'aria-label': 'Deal bearbeiten', title: 'Deal bearbeiten' },
-    dataset: { dockAct: 'edit', id: entry.id },
-  });
-  const icon = document.createElementNS(svgNs, 'svg');
-  icon.setAttribute('viewBox', '0 0 24 24');
-  icon.setAttribute('focusable', 'false');
-  icon.setAttribute('aria-hidden', 'true');
-  const framePath = document.createElementNS(svgNs, 'path');
-  framePath.setAttribute('d', 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7');
-  framePath.setAttribute('fill', 'none');
-  framePath.setAttribute('stroke', 'currentColor');
-  framePath.setAttribute('stroke-width', '1.5');
-  framePath.setAttribute('stroke-linecap', 'round');
-  framePath.setAttribute('stroke-linejoin', 'round');
-  const pencilPath = document.createElementNS(svgNs, 'path');
-  pencilPath.setAttribute('d', 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z');
-  pencilPath.setAttribute('fill', 'none');
-  pencilPath.setAttribute('stroke', 'currentColor');
-  pencilPath.setAttribute('stroke-width', '1.5');
-  pencilPath.setAttribute('stroke-linecap', 'round');
-  pencilPath.setAttribute('stroke-linejoin', 'round');
-  icon.append(framePath, pencilPath);
-  editBtn.appendChild(icon);
-  actions.appendChild(editBtn);
-  header.appendChild(actions);
   card.appendChild(header);
 
   const badgeItems = [];
