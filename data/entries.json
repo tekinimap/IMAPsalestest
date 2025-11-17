@@ -10939,7 +10939,7 @@
     "amount": 100000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "999",
+    "projectNumber": "ekom21-01-001",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -10972,7 +10972,7 @@
       "3": 1763393355875
     },
     "freigabedatum": 1761868800000,
-    "modified": 1763393356294,
+    "modified": 1763395867699,
     "complete": true,
     "rows": [
       {
