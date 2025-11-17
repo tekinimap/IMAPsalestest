@@ -76,7 +76,7 @@
   .dock-column-count{font-size:12px;color:var(--muted);background:#0b1326;border:1px solid var(--border);padding:4px 10px;border-radius:999px;white-space:nowrap}
   .dock-column-body{display:flex;flex-direction:column;gap:12px}
   .dock-card{background:var(--panel);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 24px rgba(8,15,28,.35);cursor:pointer;transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;}
-  .dock-card:hover:not(.is-selected){border-color:var(--accent);box-shadow:0 10px 26px rgba(8,15,28,.45),0 0 0 1px rgba(59,130,246,.25);transform:translateY(-2px);}
+  .dock-card:hover:not(.is-selected), .dock-card:focus-visible:not(.is-selected){border-color:var(--accent);box-shadow:0 10px 26px rgba(8,15,28,.45),0 0 0 1px rgba(59,130,246,.25);transform:translateY(-2px);}
   .dock-card.is-selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,.35);}
   .dock-card-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .dock-card-headline{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0;}
