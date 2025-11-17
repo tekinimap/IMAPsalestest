@@ -181,6 +181,10 @@ const dockConflictHints = new Map();
 let dockBoardRerenderScheduled = false;
 let pendingDockAbrufAssignment = null;
 
+function normalizeProjectNumber(value) {
+  return normalizeDockString(value).toLowerCase();
+}
+
 function normalizeDockString(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -412,21 +416,98 @@ function handleAbrufAssignConfirm() {
     return;
   }
 
+  const entryProject = normalizeProjectNumber(pendingDockAbrufAssignment.entry?.projectNumber);
+  const frameworkProject = normalizeProjectNumber(framework.projectNumber);
+  if (entryProject && frameworkProject && entryProject !== frameworkProject) {
+    validation.textContent = 'Warnung: Die Projektnummer des Abrufs stimmt nicht mit der Projektnummer des Rahmenvertrags überein. Bitte überprüfen Sie die Eingabe.';
+    return;
+  }
+
   pendingDockAbrufAssignment.frameworkId = frameworkId;
   pendingDockAbrufAssignment.mode = type;
   dialog.close();
 
   if (type === 'founder') {
-    const transactionTemplate = {
-      type: 'founder',
-      amount: pendingDockAbrufAssignment.entry?.amount || 0,
-      kv_nummer: pendingDockAbrufAssignment.entry?.kv_nummer || pendingDockAbrufAssignment.entry?.kv || '',
-      freigabedatum:
-        pendingDockAbrufAssignment.entry?.freigabedatum || pendingDockAbrufAssignment.entry?.ts || Date.now(),
-    };
-    openEditTransactionModal(transactionTemplate, framework);
+    if (!confirm('Warnung: Dieser Rahmenvertrag hat bereits Founder und die im Deal angegebenen Sales Verteilungen werden verworfen. Fortfahren?')) {
+      return;
+    }
+    createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
   } else {
-    startAbrufMode(pendingDockAbrufAssignment.entry, framework);
+    createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
+  }
+}
+
+function buildTransactionFromDockEntry(entry, type = 'hunter') {
+  const kvNummer = normalizeDockString(entry?.kv_nummer || entry?.kv || '');
+  const fallbackDate = Number.isFinite(entry?.freigabedatum) ? entry.freigabedatum : entry?.ts;
+  const freigabe = Number.isFinite(fallbackDate) ? fallbackDate : Date.now();
+
+  if (type === 'founder') {
+    return {
+      id: rndId('trans_'),
+      type: 'founder',
+      amount: Number(entry?.amount) || 0,
+      kv_nummer: kvNummer,
+      projectNumber: entry?.projectNumber || '',
+      title: entry?.title || '',
+      ts: Date.now(),
+      freigabedatum: freigabe,
+    };
+  }
+
+  return {
+    id: rndId('trans_'),
+    type: 'hunter',
+    amount: Number(entry?.amount) || 0,
+    kv_nummer: kvNummer,
+    projectNumber: entry?.projectNumber || '',
+    title: entry?.title || '',
+    ts: Date.now(),
+    freigabedatum: freigabe,
+    rows: Array.isArray(entry?.rows) ? entry.rows : [],
+    list: Array.isArray(entry?.list) ? entry.list : [],
+    weights: Array.isArray(entry?.weights) ? entry.weights : [],
+    submittedBy: entry?.submittedBy || '',
+  };
+}
+
+async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
+  if (!entry || !framework) return;
+  const transaction = buildTransactionFromDockEntry(entry, type);
+  if (!Array.isArray(framework.transactions)) {
+    framework.transactions = [];
+  }
+  framework.transactions.push(transaction);
+  framework.modified = Date.now();
+
+  showLoader();
+  try {
+    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(framework.id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(framework),
+    });
+    if (!r.ok) throw new Error(await r.text());
+
+    const successMessage = type === 'founder'
+      ? 'Passiver Abruf hinzugefügt.'
+      : 'Aktiver Abruf hinzugefügt.';
+    showToast(successMessage, 'ok');
+    await loadHistory();
+    renderFrameworkContracts();
+    if (currentFrameworkEntryId === framework.id) {
+      renderRahmenDetails(framework.id);
+    }
+    const assignmentId = entry.id || pendingDockAbrufAssignment?.entry?.id;
+    if (assignmentId) {
+      await finalizeDockAbruf(assignmentId);
+    }
+  } catch (err) {
+    console.error('Abruf konnte nicht gespeichert werden.', err);
+    showToast('Abruf konnte nicht gespeichert werden.', 'bad');
+  } finally {
+    pendingDockAbrufAssignment = null;
+    hideLoader();
   }
 }
 
