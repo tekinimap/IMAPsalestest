@@ -1850,6 +1850,27 @@ export function upsertByHubSpotId(entries, deal) {
 /* ------------------------ Router ------------------------ */
 export default {
   async fetch(request, env, ctx) {
+    const addCorsToResponse = (response) => {
+      const corsHeaders = getCorsHeaders(env, request);
+
+      if (!response) {
+        return new Response(null, { status: 500, headers: corsHeaders });
+      }
+
+      const headers = new Headers(response.headers || {});
+      for (const [key, value] of Object.entries(corsHeaders)) {
+        if (!headers.has(key)) {
+          headers.set(key, value);
+        }
+      }
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    };
+
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: getCorsHeaders(env, request) });
     }
@@ -1863,7 +1884,7 @@ export default {
       } else if (arg3 && typeof arg3 === 'object') {
         headers = arg3;
       }
-      return jsonResponse(data, status, env, request, headers);
+      return addCorsToResponse(jsonResponse(data, status, env, request, headers));
     };
 
     try {
@@ -2632,11 +2653,11 @@ export default {
       }
 
       console.log(`Route not found: ${request.method} ${pathname}`);
-      return jsonResponse({ error: "not_found" }, 404, env, request);
+      return addCorsToResponse(jsonResponse({ error: "not_found" }, 404, env, request));
 
     } catch (err) {
       console.error("Worker Error:", err, err.stack);
-      return respond({ error: err.message || String(err) }, 500, env);
+      return addCorsToResponse(respond({ error: err.message || String(err) }, 500, env));
     }
   }
 }; // Ende export default
