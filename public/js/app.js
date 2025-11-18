@@ -944,22 +944,6 @@ function handleDockAutoCheck(entry, context = {}) {
 
   if (projectNumber) {
     const sameProject = others.filter((item) => normalizeDockString(item.projectNumber).toLowerCase() === normalizedPn);
-    const fixMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'fix');
-    if (fixMatches.length > 0) {
-      dockConflictHints.set(entry.id, {
-        type: 'merge',
-        severity: 'warn',
-        title: 'Projektnummer doppelt vergeben',
-        message: 'Es gibt bereits einen Fixauftrag mit derselben Projektnummer. Prüfe, ob beide Deals zusammengehören.',
-        mergeIds: [entry.id, ...fixMatches.map((item) => item.id)],
-        primaryAction: { act: 'hint-merge', label: 'Deals zusammenführen' },
-        dismissLabel: 'Später prüfen',
-      });
-      showToast('Doppelte Projektnummer entdeckt. Du kannst die Deals zusammenführen.', 'warn', 6000);
-      requestDockBoardRerender();
-      return;
-    }
-
     const frameworkMatches = sameProject.filter((item) => (item.projectType || 'fix') === 'rahmen');
     if (frameworkMatches.length > 0) {
       const framework = frameworkMatches[0];
@@ -1264,18 +1248,6 @@ function handleDockBoardClick(event) {
 
     const entry = findEntryById(id);
     if (!entry) return;
-
-    if (action === 'hint-merge') {
-      const hint = dockConflictHints.get(id);
-      if (hint?.mergeIds?.length >= 2) {
-        showView('fixauftraege');
-        selectFixEntries(hint.mergeIds, true);
-        showToast('Deals mit identischer Projektnummer wurden markiert.', 'warn', 5000);
-      }
-      dockConflictHints.delete(id);
-      requestDockBoardRerender();
-      return;
-    }
 
     if (action === 'hint-assign-framework') {
       const hint = dockConflictHints.get(id);
@@ -2267,22 +2239,10 @@ const rahmenSearch = document.getElementById('rahmenSearch');
 const btnXlsx=document.getElementById('btnXlsx');
 const btnBatchDelete=document.getElementById('btnBatchDelete');
 const btnMoveToFramework=document.getElementById('btnMoveToFramework');
-const btnMergeFixEntries=document.getElementById('btnMergeFixEntries');
-const mergeSuggestions=document.getElementById('mergeSuggestions');
-const mergeFixDlg=document.getElementById('mergeFixDlg');
-const mergeFixValidation=document.getElementById('mergeFixValidation');
-const mergeFixSelectionBody=document.getElementById('mergeFixSelectionBody');
-const mergeFixListBody=document.getElementById('mergeFixListBody');
-const mergeFixProjectNumber=document.getElementById('mergeFixProjectNumber');
-const mergeFixPreview=document.getElementById('mergeFixPreview');
-const mergeFixTotal=document.getElementById('mergeFixTotal');
-const btnMergeFixCancel=document.getElementById('btnMergeFixCancel');
-const btnMergeFixConfirm=document.getElementById('btnMergeFixConfirm');
 const checkAllFix=document.getElementById('checkAllFix');
 const entries = getEntries();
 let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
-let currentMergeContext = null;
 
 async function loadHistory(silent = false){
   if (!silent) {
@@ -2471,92 +2431,11 @@ function updatePersonFilterOptions() {
   }
 }
 
-function renderMergeSuggestions(list) {
-  if (!mergeSuggestions) return;
-
-  const groups = new Map();
-  (Array.isArray(list) ? list : []).forEach(entry => {
-    const projectNumber = (entry.projectNumber || '').trim();
-    if (!projectNumber) {
-      return;
-    }
-    if (!groups.has(projectNumber)) {
-      groups.set(projectNumber, []);
-    }
-    groups.get(projectNumber).push(entry);
-  });
-
-  const duplicates = Array.from(groups.entries()).filter(([, items]) => items.length >= 2);
-  mergeSuggestions.innerHTML = '';
-
-  if (!duplicates.length) {
-    mergeSuggestions.classList.add('hide');
-    return;
-  }
-
-  mergeSuggestions.classList.remove('hide');
-
-  const title = document.createElement('p');
-  title.className = 'merge-suggestions-title';
-  title.textContent = duplicates.length === 1
-    ? 'Hinweis: 1 Projektnummer taucht mehrfach auf. Jetzt zusammenführen?'
-    : `Hinweis: ${duplicates.length} Projektnummern tauchen mehrfach auf. Jetzt zusammenführen?`;
-  mergeSuggestions.appendChild(title);
-
-  const listEl = document.createElement('div');
-  listEl.className = 'merge-suggestions-list';
-
-  const collator = new Intl.Collator('de', { numeric: true, sensitivity: 'base' });
-  duplicates.sort((a, b) => collator.compare(a[0], b[0]));
-
-  duplicates.forEach(([projectNumber, items]) => {
-    const item = document.createElement('div');
-    item.className = 'merge-suggestion-item';
-
-    const textWrap = document.createElement('div');
-    textWrap.className = 'merge-suggestion-text';
-
-    const pnEl = document.createElement('strong');
-    pnEl.textContent = projectNumber;
-    textWrap.appendChild(pnEl);
-
-    const countSpan = document.createElement('span');
-    const count = items.length;
-    countSpan.textContent = count === 2 ? '2 passende Aufträge' : `${count} passende Aufträge`;
-    textWrap.appendChild(countSpan);
-
-    const titles = items.map(e => e.title).filter(Boolean);
-    if (titles.length) {
-      const detail = document.createElement('span');
-      detail.className = 'merge-suggestion-detail';
-      const preview = titles.slice(0, 2);
-      detail.textContent = preview.join(' · ') + (titles.length > 2 ? ' …' : '');
-      textWrap.appendChild(detail);
-    }
-
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn tight';
-    btn.textContent = 'Markieren & zusammenführen';
-    const ids = items.map(e => e.id);
-    btn.addEventListener('click', () => {
-      selectFixEntries(ids, true);
-    });
-
-    item.appendChild(textWrap);
-    item.appendChild(btn);
-    listEl.appendChild(item);
-  });
-
-  mergeSuggestions.appendChild(listEl);
-}
-
 function renderHistory(){
   historyBody.innerHTML='';
   updateSortIcons();
   updatePersonFilterOptions();
   const arr = filtered('fix');
-  renderMergeSuggestions(arr);
   let totalSum = 0;
 
   const groups = {
@@ -2637,42 +2516,6 @@ function getSelectedFixIds() {
     return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
 }
 
-function selectFixEntries(ids = [], autoOpenMerge = false) {
-    const idSet = new Set(Array.isArray(ids) ? ids : []);
-    const highlightRows = [];
-
-    document.querySelectorAll('#historyBody tr').forEach(row => row.classList.remove('merge-suggestion-highlight'));
-
-    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
-        const shouldSelect = idSet.has(cb.dataset.id);
-        cb.checked = shouldSelect;
-        if (shouldSelect) {
-            const row = cb.closest('tr');
-            if (row) {
-                highlightRows.push(row);
-            }
-        }
-    });
-
-    updateBatchButtons();
-
-    if (highlightRows.length) {
-        highlightRows.forEach(row => row.classList.add('merge-suggestion-highlight'));
-        highlightRows[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-            highlightRows.forEach(row => row.classList.remove('merge-suggestion-highlight'));
-        }, 2000);
-    }
-
-    if (autoOpenMerge && ids.length >= 2) {
-        setTimeout(() => {
-            if (!btnMergeFixEntries.classList.contains('hide')) {
-                btnMergeFixEntries.click();
-            }
-        }, 100);
-    }
-}
-
 function updateBatchButtons() {
     const selectedIds = getSelectedFixIds();
     if (selectedIds.length > 0) {
@@ -2680,24 +2523,9 @@ function updateBatchButtons() {
         btnMoveToFramework.classList.remove('hide');
         btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
         btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
-        if (selectedIds.length >= 2) {
-            const selectedEntries = entries.filter(e => selectedIds.includes(e.id));
-            const projectNumbers = Array.from(new Set(selectedEntries.map(e => (e.projectNumber || '').trim())));
-            const hasMismatch = projectNumbers.length > 1;
-            btnMergeFixEntries.classList.remove('hide');
-            btnMergeFixEntries.textContent = `Aufträge zusammenführen (${selectedIds.length})`;
-            btnMergeFixEntries.title = hasMismatch
-                ? 'Auswahl enthält unterschiedliche Projektnummern.'
-                : '';
-        } else {
-            btnMergeFixEntries.classList.add('hide');
-            btnMergeFixEntries.title = '';
-        }
     } else {
         btnBatchDelete.classList.add('hide');
         btnMoveToFramework.classList.add('hide');
-        btnMergeFixEntries.classList.add('hide');
-        btnMergeFixEntries.title = '';
     }
     checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
@@ -2714,290 +2542,6 @@ historyBody.addEventListener('change', (ev) => {
         updateBatchButtons();
     }
 });
-
-btnMergeFixEntries.addEventListener('click', () => {
-    const selectedIds = getSelectedFixIds();
-    if (selectedIds.length < 2) {
-        showToast('Bitte wählen Sie mindestens zwei Aufträge aus.', 'warn');
-        return;
-    }
-    const selectedEntries = entries.filter(e => selectedIds.includes(e.id));
-    if (selectedEntries.length < 2) {
-        showToast('Die ausgewählten Einträge konnten nicht geladen werden.', 'bad');
-        return;
-    }
-    currentMergeContext = prepareMergeContext(selectedEntries);
-    renderMergeDialog(currentMergeContext);
-    mergeFixDlg.showModal();
-});
-
-btnMergeFixCancel.addEventListener('click', () => {
-    mergeFixDlg.close();
-    currentMergeContext = null;
-});
-
-mergeFixDlg.addEventListener('close', () => {
-    currentMergeContext = null;
-});
-
-btnMergeFixConfirm.addEventListener('click', async () => {
-    if (!currentMergeContext || currentMergeContext.error || !currentMergeContext.mergedEntry || !currentMergeContext.primaryId) {
-        return;
-    }
-    mergeFixDlg.close();
-    showLoader();
-    try {
-        const { primaryId, mergedEntry, deleteIds } = currentMergeContext;
-        const putRes = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(primaryId)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mergedEntry)
-        });
-        if (!putRes.ok) {
-            throw new Error(await putRes.text());
-        }
-
-        for (const delId of deleteIds) {
-            const delRes = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(delId)}`, { method: 'DELETE' });
-            if (!delRes.ok) {
-                throw new Error(await delRes.text());
-            }
-        }
-
-        showToast('Aufträge zusammengeführt.', 'ok');
-        await loadHistory();
-        renderHistory();
-    } catch (err) {
-        console.error('Fehler bei der Zusammenführung', err);
-        showToast('Zusammenführung fehlgeschlagen.', 'bad');
-    } finally {
-        hideLoader();
-        currentMergeContext = null;
-    }
-});
-
-function prepareMergeContext(selectedEntries) {
-    const sortedEntries = [...selectedEntries].sort((a, b) => {
-        const aTs = Number.isFinite(a.freigabedatum) ? a.freigabedatum : (Number.isFinite(a.ts) ? a.ts : 0);
-        const bTs = Number.isFinite(b.freigabedatum) ? b.freigabedatum : (Number.isFinite(b.ts) ? b.ts : 0);
-        return aTs - bTs;
-    });
-
-    const projectNumbers = sortedEntries.map(e => (e.projectNumber || '').trim());
-    const uniqueProjectNumbers = Array.from(new Set(projectNumbers));
-    const context = {
-        selectedEntries: sortedEntries,
-        projectNumbers: uniqueProjectNumbers,
-        projectNumber: uniqueProjectNumbers[0] || '',
-        mismatch: uniqueProjectNumbers.length > 1,
-        error: null,
-        totalAmount: 0,
-        combinedList: [],
-        combinedRows: [],
-        combinedTotals: { cs: 0, konzept: 0, pitch: 0 },
-        combinedWeights: [],
-        mergedEntry: null,
-        deleteIds: [],
-        primaryId: sortedEntries[0]?.id || null,
-        kvNumbers: []
-    };
-
-    if (context.mismatch) {
-        context.error = 'Die ausgewählten Aufträge haben unterschiedliche Projektnummern und können nicht zusammengeführt werden.';
-        return context;
-    }
-
-    const totalAmount = sortedEntries.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
-    context.totalAmount = Number(totalAmount.toFixed(2));
-
-    const listMap = new Map();
-    sortedEntries.forEach(entry => {
-        (entry.list || []).forEach(item => {
-            const key = (item.name || item.key || '').trim() || item.key || item.name || `person_${listMap.size}`;
-            const current = listMap.get(key) || { key, name: item.name || item.key || '–', money: 0 };
-            current.money += Number(item.money) || 0;
-            listMap.set(key, current);
-        });
-    });
-
-    let combinedList = Array.from(listMap.values()).map(item => {
-        const money = Number(item.money.toFixed(2));
-        const pct = totalAmount > 0 ? Number(((money / totalAmount) * 100).toFixed(4)) : 0;
-        return { key: item.key, name: item.name, money, pct };
-    });
-    combinedList.sort((a, b) => b.money - a.money);
-    if (combinedList.length > 0) {
-        const pctSum = combinedList.reduce((sum, item) => sum + item.pct, 0);
-        const adjust = Number((100 - pctSum).toFixed(4));
-        combinedList[0].pct = Number((combinedList[0].pct + adjust).toFixed(4));
-        const moneySum = combinedList.reduce((sum, item) => sum + item.money, 0);
-        const moneyAdjust = Number((totalAmount - moneySum).toFixed(2));
-        if (moneyAdjust !== 0) {
-            combinedList[0].money = Number((combinedList[0].money + moneyAdjust).toFixed(2));
-        }
-    }
-
-    const rowMap = new Map();
-    const fallbackWeightArr = [
-        { key: 'cs', weight: DEFAULT_WEIGHTS.cs },
-        { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept },
-        { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }
-    ];
-
-    sortedEntries.forEach(entry => {
-        const entryAmount = Number(entry.amount) || 0;
-        const factor = totalAmount > 0
-            ? entryAmount / totalAmount
-            : (sortedEntries.length > 0 ? 1 / sortedEntries.length : 0);
-        const rows = Array.isArray(entry.rows) ? entry.rows : [];
-        rows.forEach(row => {
-            const key = (row.name || '').trim() || `person_${rowMap.size}`;
-            const current = rowMap.get(key) || { name: row.name || '', cs: 0, konzept: 0, pitch: 0 };
-            current.cs += (Number(row.cs) || 0) * factor;
-            current.konzept += (Number(row.konzept) || 0) * factor;
-            current.pitch += (Number(row.pitch) || 0) * factor;
-            rowMap.set(key, current);
-        });
-    });
-
-    let combinedRows = Array.from(rowMap.values()).map(row => ({
-        name: row.name,
-        cs: Math.max(0, Math.min(100, Number(row.cs.toFixed(2)))),
-        konzept: Math.max(0, Math.min(100, Number(row.konzept.toFixed(2)))),
-        pitch: Math.max(0, Math.min(100, Number(row.pitch.toFixed(2))))
-    })).filter(row => (row.name && (row.cs || row.konzept || row.pitch)));
-
-    if (combinedRows.length === 0 && sortedEntries[0]) {
-        combinedRows = Array.isArray(sortedEntries[0].rows)
-            ? sortedEntries[0].rows.map(row => ({ ...row }))
-            : [];
-    }
-
-    const weightTotals = { cs: 0, konzept: 0, pitch: 0 };
-    sortedEntries.forEach(entry => {
-        const entryAmount = Number(entry.amount) || 0;
-        const factor = totalAmount > 0
-            ? entryAmount / totalAmount
-            : (sortedEntries.length > 0 ? 1 / sortedEntries.length : 0);
-        const entryWeights = Array.isArray(entry.weights) && entry.weights.length > 0
-            ? entry.weights
-            : fallbackWeightArr;
-        entryWeights.forEach(w => {
-            if (weightTotals[w.key] === undefined) weightTotals[w.key] = 0;
-            weightTotals[w.key] += (Number(w.weight) || 0) * factor;
-        });
-    });
-
-    let combinedWeights = Object.keys(weightTotals).map(key => ({
-        key,
-        weight: Math.round(weightTotals[key])
-    }));
-
-    if (totalAmount <= 0) {
-        combinedWeights = Array.isArray(sortedEntries[0]?.weights) && sortedEntries[0].weights.length > 0
-            ? sortedEntries[0].weights.map(w => ({ ...w }))
-            : fallbackWeightArr.map(w => ({ ...w }));
-    } else if (combinedWeights.length > 0) {
-        const weightSum = combinedWeights.reduce((sum, w) => sum + w.weight, 0);
-        if (weightSum !== 100) {
-            combinedWeights[0].weight += (100 - weightSum);
-        }
-    }
-
-    const primaryClone = sortedEntries[0] ? JSON.parse(JSON.stringify(sortedEntries[0])) : {};
-    primaryClone.amount = context.totalAmount;
-    primaryClone.list = combinedList.map(item => ({
-        key: item.key,
-        name: item.name,
-        pct: Math.max(0, Math.min(100, Number(item.pct.toFixed(2)))),
-        money: Number(item.money.toFixed(2))
-    }));
-    const pctSumAfter = primaryClone.list.reduce((sum, item) => sum + (Number(item.pct) || 0), 0);
-    const pctDiffAfter = Number((100 - pctSumAfter).toFixed(2));
-    if (primaryClone.list.length > 0 && pctDiffAfter !== 0) {
-        primaryClone.list[0].pct = Math.max(0, Math.min(100, Number((primaryClone.list[0].pct + pctDiffAfter).toFixed(2))));
-    }
-    const moneySumAfter = primaryClone.list.reduce((sum, item) => sum + (Number(item.money) || 0), 0);
-    const moneyDiffAfter = Number((primaryClone.amount - moneySumAfter).toFixed(2));
-    if (primaryClone.list.length > 0 && moneyDiffAfter !== 0) {
-        primaryClone.list[0].money = Number((primaryClone.list[0].money + moneyDiffAfter).toFixed(2));
-    }
-    primaryClone.rows = combinedRows.map(row => ({
-        name: row.name,
-        cs: Number(row.cs),
-        konzept: Number(row.konzept),
-        pitch: Number(row.pitch)
-    }));
-    primaryClone.weights = combinedWeights.map(w => ({ key: w.key, weight: Number(w.weight) }));
-    primaryClone.totals = totals(primaryClone.rows || []);
-    primaryClone.projectNumber = context.projectNumber || '';
-    const kvNumbers = Array.from(new Set(sortedEntries.map(e => (e.kv_nummer || '').trim()).filter(Boolean)));
-    primaryClone.kv_nummer = kvNumbers.length === 1 ? kvNumbers[0] : '';
-    primaryClone.modified = Date.now();
-    primaryClone.complete = autoComplete(primaryClone);
-
-    context.combinedList = primaryClone.list;
-    context.combinedRows = primaryClone.rows;
-    context.combinedTotals = primaryClone.totals;
-    context.combinedWeights = primaryClone.weights;
-    context.mergedEntry = primaryClone;
-    context.kvNumbers = kvNumbers;
-    context.deleteIds = sortedEntries.slice(1).map(e => e.id);
-
-    return context;
-}
-
-function renderMergeDialog(ctx) {
-    mergeFixSelectionBody.innerHTML = '';
-    ctx.selectedEntries.forEach(entry => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${entry.id}</td>
-            <td>${entry.title || '–'}</td>
-            <td>${entry.client || '–'}</td>
-            <td>${(entry.projectNumber || '').trim() || '–'}</td>
-            <td>${entry.amount ? fmtCurr2.format(entry.amount) : '–'}</td>
-        `;
-        mergeFixSelectionBody.appendChild(tr);
-    });
-
-    const pnLabel = ctx.mismatch
-        ? `Projektnummern der Auswahl: ${ctx.projectNumbers.map(p => p || '–').join(', ')}`
-        : `Gemeinsame Projektnummer: ${ctx.projectNumber || '–'}`;
-    mergeFixProjectNumber.textContent = pnLabel;
-
-    if (ctx.error) {
-        mergeFixValidation.textContent = ctx.error;
-        mergeFixValidation.classList.remove('hide');
-        mergeFixPreview.classList.add('hide');
-        btnMergeFixConfirm.classList.add('disabled');
-        btnMergeFixConfirm.disabled = true;
-    } else {
-        mergeFixValidation.textContent = '';
-        mergeFixValidation.classList.add('hide');
-        mergeFixPreview.classList.remove('hide');
-        btnMergeFixConfirm.classList.remove('disabled');
-        btnMergeFixConfirm.disabled = false;
-
-        mergeFixTotal.textContent = fmtCurr2.format(ctx.totalAmount || 0);
-        mergeFixListBody.innerHTML = '';
-        if (!ctx.combinedList || ctx.combinedList.length === 0) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="3" style="text-align:center; color: var(--muted);">Keine Verteilungsdaten vorhanden.</td>`;
-            mergeFixListBody.appendChild(tr);
-        } else {
-            ctx.combinedList.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.name || '–'}</td>
-                    <td>${fmtPct.format(item.pct || 0)}</td>
-                    <td>${fmtCurr2.format(item.money || 0)}</td>
-                `;
-                mergeFixListBody.appendChild(tr);
-            });
-        }
-    }
-}
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
