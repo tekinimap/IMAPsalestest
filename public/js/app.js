@@ -2249,9 +2249,16 @@ const btnXlsx=document.getElementById('btnXlsx');
 const btnBatchDelete=document.getElementById('btnBatchDelete');
 const btnMoveToFramework=document.getElementById('btnMoveToFramework');
 const checkAllFix=document.getElementById('checkAllFix');
+const fixPaginationInfo = document.getElementById('fixPaginationInfo');
+const fixPageIndicator = document.getElementById('fixPageIndicator');
+const fixPrevPage = document.getElementById('fixPrevPage');
+const fixNextPage = document.getElementById('fixNextPage');
+const fixPageSizeSelect = document.getElementById('fixPageSize');
 const entries = getEntries();
 let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
 let currentSort = { key: 'freigabedatum', direction: 'desc' };
+let fixCurrentPage = 1;
+let fixPageSize = fixPageSizeSelect ? Number(fixPageSizeSelect.value) || 25 : 25;
 
 async function loadHistory(silent = false){
   if (!silent) {
@@ -2274,6 +2281,7 @@ async function loadHistory(silent = false){
   }
   // Stelle sicher, dass renderHistory auch aufgerufen wird, nachdem der Eintrags-Store aktualisiert wurde.
   // setEntries synchronisiert `window.entries` für ältere Module, daher bleibt die Reihenfolge kompatibel.
+  resetFixPagination();
   renderHistory();
   renderDockBoard();
 }
@@ -2440,6 +2448,48 @@ function updatePersonFilterOptions() {
   }
 }
 
+function resetFixPagination() {
+  fixCurrentPage = 1;
+}
+
+function getFixPaginationMeta(totalItems) {
+  const totalPages = totalItems > 0 ? Math.ceil(totalItems / fixPageSize) : 0;
+  if (totalPages > 0) {
+    fixCurrentPage = Math.min(Math.max(fixCurrentPage, 1), totalPages);
+  } else {
+    fixCurrentPage = 1;
+  }
+
+  const startIndex = totalItems === 0 ? 0 : (fixCurrentPage - 1) * fixPageSize;
+  const endIndex = totalItems === 0 ? 0 : Math.min(totalItems, startIndex + fixPageSize);
+
+  return { totalPages, startIndex, endIndex };
+}
+
+function updateFixPaginationUI(totalItems, totalPages) {
+  if (typeof totalPages !== 'number') {
+    totalPages = totalItems > 0 ? Math.ceil(totalItems / fixPageSize) : 0;
+  }
+
+  const start = totalItems === 0 ? 0 : (fixCurrentPage - 1) * fixPageSize + 1;
+  const end = totalItems === 0 ? 0 : Math.min(totalItems, fixCurrentPage * fixPageSize);
+
+  if (fixPaginationInfo) {
+    fixPaginationInfo.textContent = totalItems === 0
+      ? 'Keine Fixaufträge gefunden.'
+      : `Zeige ${start}–${end} von ${totalItems} Fixaufträgen`;
+  }
+
+  if (fixPageIndicator) {
+    fixPageIndicator.textContent = totalPages === 0
+      ? 'Seite 0 / 0'
+      : `Seite ${fixCurrentPage} / ${totalPages}`;
+  }
+
+  if (fixPrevPage) fixPrevPage.disabled = totalItems === 0 || fixCurrentPage <= 1;
+  if (fixNextPage) fixNextPage.disabled = totalItems === 0 || fixCurrentPage >= totalPages;
+}
+
 function renderHistory(){
   historyBody.innerHTML='';
   updateSortIcons();
@@ -2447,15 +2497,22 @@ function renderHistory(){
   const arr = filtered('fix');
   let totalSum = 0;
 
+  const decoratedEntries = arr.map((entry) => {
+    const ok = autoComplete(entry);
+    totalSum += (entry.amount || 0);
+    return { entry, ok };
+  });
+
+  const { totalPages, startIndex, endIndex } = getFixPaginationMeta(decoratedEntries.length);
+  const pageItems = decoratedEntries.slice(startIndex, endIndex);
+
   const groups = {
     complete: [],
     incomplete: []
   };
 
-  for(const e of arr){
-    const ok = autoComplete(e);
-    totalSum += (e.amount || 0);
-    groups[ok ? 'complete' : 'incomplete'].push({ entry: e, ok });
+  for (const item of pageItems) {
+    groups[item.ok ? 'complete' : 'incomplete'].push(item);
   }
 
   const createRow = (entry, ok) => {
@@ -2513,13 +2570,55 @@ function renderHistory(){
   appendSection('Vollständig', groups.complete, 'ok');
 
   document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+  updateFixPaginationUI(decoratedEntries.length, totalPages);
+  checkAllFix.checked = false;
   updateBatchButtons();
 }
-omniSearch.addEventListener('input', renderHistory);
+omniSearch.addEventListener('input', () => {
+  resetFixPagination();
+  renderHistory();
+});
 if (personFilter) {
-  personFilter.addEventListener('change', renderHistory);
+  personFilter.addEventListener('change', () => {
+    resetFixPagination();
+    renderHistory();
+  });
 }
 rahmenSearch.addEventListener('input', renderFrameworkContracts);
+
+if (fixPageSizeSelect) {
+  fixPageSizeSelect.addEventListener('change', () => {
+    const parsed = Number(fixPageSizeSelect.value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      fixPageSize = parsed;
+    } else {
+      fixPageSize = 25;
+      fixPageSizeSelect.value = '25';
+    }
+    resetFixPagination();
+    renderHistory();
+  });
+}
+
+if (fixPrevPage) {
+  fixPrevPage.addEventListener('click', () => {
+    if (fixCurrentPage > 1) {
+      fixCurrentPage -= 1;
+      renderHistory();
+    }
+  });
+}
+
+if (fixNextPage) {
+  fixNextPage.addEventListener('click', () => {
+    const totalItems = filtered('fix').length;
+    const { totalPages } = getFixPaginationMeta(totalItems);
+    if (fixCurrentPage < totalPages) {
+      fixCurrentPage += 1;
+      renderHistory();
+    }
+  });
+}
 
 function getSelectedFixIds() {
     return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
@@ -2562,6 +2661,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
       // Default sort direction based on column type
       currentSort.direction = (key === 'title' || key === 'client' || key === 'source' || key === 'projectNumber' || key === 'submittedBy') ? 'asc' : 'desc';
     }
+    resetFixPagination();
     renderHistory();
   });
 });
