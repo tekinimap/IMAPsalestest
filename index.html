@@ -724,12 +724,9 @@
         <div class="batch-actions">
             <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
             <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
-            <button class="btn hide" id="btnMergeFixEntries">Aufträge zusammenführen</button>
             <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
         </div>
       </div>
-
-      <div id="mergeSuggestions" class="merge-suggestions hide"></div>
 
       <div class="table-wrapper">
         <table>
@@ -970,38 +967,6 @@
         <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
             <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
-        </div>
-    </div>
-</dialog>
-
-<dialog id="mergeFixDlg" style="min-width: 720px;">
-    <button class="dialog-close" type="button" aria-label="Modal schließen" onclick="this.closest('dialog').close()">×</button>
-    <div class="hd">
-        <h1>Aufträge zusammenführen</h1>
-    </div>
-    <div class="ct">
-        <div id="mergeFixValidation" class="validation-summary"></div>
-        <p id="mergeFixProjectNumber" class="note"></p>
-        <div class="table-wrapper" style="margin-bottom: 16px;">
-            <table style="min-width:auto;">
-                <thead><tr><th>ID</th><th>Titel</th><th>Auftraggeber</th><th>Projektnummer</th><th>Wert</th></tr></thead>
-                <tbody id="mergeFixSelectionBody"></tbody>
-            </table>
-        </div>
-        <div id="mergeFixPreview" class="hide">
-            <div class="sum-display">💰 Zusammengeführter Wert: <span id="mergeFixTotal"></span></div>
-            <p class="note">Anteile nach Zusammenführung:</p>
-            <div class="table-wrapper">
-                <table style="min-width:auto;">
-                    <thead><tr><th>Person</th><th>Anteil %</th><th>Betrag</th></tr></thead>
-                    <tbody id="mergeFixListBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div class="hr"></div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button class="btn" id="btnMergeFixCancel">Abbrechen</button>
-            <button class="btn ok" id="btnMergeFixConfirm">Zusammenführen</button>
         </div>
     </div>
 </dialog>
