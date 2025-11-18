@@ -465,19 +465,28 @@ async function handleAbrufAssignConfirm(ev) {
   pendingDockAbrufAssignment.mode = type;
   dialog.close();
 
-  if (type === 'founder') {
-    if (!confirm('Warnung: Dieser Rahmenvertrag hat bereits Founder und die im Deal angegebenen Sales Verteilungen werden verworfen. Fortfahren?')) {
-      confirmBtn?.classList.remove('disabled');
-      confirmBtn && (confirmBtn.disabled = false);
-      return;
+  try {
+    if (type === 'founder') {
+      if (!confirm('Warnung: Dieser Rahmenvertrag hat bereits Founder und die im Deal angegebenen Sales Verteilungen werden verworfen. Fortfahren?')) {
+        confirmBtn?.classList.remove('disabled');
+        confirmBtn && (confirmBtn.disabled = false);
+        return;
+      }
+      await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
+    } else {
+      await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
     }
-    await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
-  } else {
-    await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
+  } catch (err) {
+    console.error('Fehler bei der Zuweisung:', err);
+    showToast('Ein Fehler ist aufgetreten: ' + err.message, 'bad');
+  } finally {
+    confirmBtn?.classList.remove('disabled');
+    confirmBtn && (confirmBtn.disabled = false);
   }
+}
 
-  confirmBtn?.classList.remove('disabled');
-  confirmBtn && (confirmBtn.disabled = false);
+function rndId(prefix = '') {
+  return (prefix || '') + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 }
 
 function buildTransactionFromDockEntry(entry, type = 'hunter') {
