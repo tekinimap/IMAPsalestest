@@ -1876,7 +1876,7 @@ if (kvNummer) {
         return;
       }
       try {
-        const body = { kv_nummer: value, kv: value, kvNummern: [value] };
+        const body = { kvNummern: [value] };
         const currentState = loadState();
         if (currentState?.editingId) body.id = currentState.editingId;
         const response = await fetch(`${WORKER_BASE}/api/validation/check_kv`, {
