@@ -295,7 +295,7 @@ function ensureAbrufAssignmentDialog() {
 
   const confirmBtn = dialog.querySelector('[data-confirm]');
   if (confirmBtn) {
-    confirmBtn.addEventListener('click', () => handleAbrufAssignConfirm());
+    confirmBtn.addEventListener('click', (ev) => handleAbrufAssignConfirm(ev));
   }
 
   return dialog;
@@ -309,6 +309,7 @@ function populateAbrufAssignmentDialog(frameworks, preselectId) {
 
   validation.textContent = '';
   select.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+  let hasPreselect = false;
   frameworks
     .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
     .forEach((fw) => {
@@ -317,9 +318,13 @@ function populateAbrufAssignmentDialog(frameworks, preselectId) {
       opt.textContent = `${fw.title || 'Unbenannt'} (${fw.client || '–'})`;
       if (preselectId && fw.id === preselectId) {
         opt.selected = true;
+        hasPreselect = true;
       }
       select.appendChild(opt);
     });
+  if (hasPreselect) {
+    select.value = preselectId;
+  }
 }
 
 async function finalizeDockAbruf(entryId) {
@@ -414,10 +419,11 @@ function startDockAbrufAssignment(entry) {
   }
 }
 
-function handleAbrufAssignConfirm() {
+async function handleAbrufAssignConfirm(ev) {
   const dialog = ensureAbrufAssignmentDialog();
   const select = dialog.querySelector('#abrufAssignFramework');
   const validation = dialog.querySelector('#abrufAssignValidation');
+  const confirmBtn = ev?.currentTarget || dialog.querySelector('[data-confirm]');
   const type = dialog.querySelector('input[name="abrufAssignType"]:checked')?.value || 'hunter';
 
   if (!pendingDockAbrufAssignment || !select || !validation) {
@@ -426,14 +432,23 @@ function handleAbrufAssignConfirm() {
     return;
   }
 
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.classList.add('disabled');
+  }
+
   const frameworkId = select.value;
   if (!frameworkId) {
     validation.textContent = 'Bitte Rahmenvertrag auswählen.';
+    confirmBtn?.classList.remove('disabled');
+    confirmBtn && (confirmBtn.disabled = false);
     return;
   }
   const framework = findEntryById(frameworkId);
   if (!framework) {
     validation.textContent = 'Rahmenvertrag konnte nicht geladen werden.';
+    confirmBtn?.classList.remove('disabled');
+    confirmBtn && (confirmBtn.disabled = false);
     return;
   }
 
@@ -441,6 +456,8 @@ function handleAbrufAssignConfirm() {
   const frameworkProject = normalizeProjectNumber(framework.projectNumber);
   if (entryProject && frameworkProject && entryProject !== frameworkProject) {
     validation.textContent = 'Warnung: Die Projektnummer des Abrufs stimmt nicht mit der Projektnummer des Rahmenvertrags überein. Bitte überprüfen Sie die Eingabe.';
+    confirmBtn?.classList.remove('disabled');
+    confirmBtn && (confirmBtn.disabled = false);
     return;
   }
 
@@ -450,12 +467,17 @@ function handleAbrufAssignConfirm() {
 
   if (type === 'founder') {
     if (!confirm('Warnung: Dieser Rahmenvertrag hat bereits Founder und die im Deal angegebenen Sales Verteilungen werden verworfen. Fortfahren?')) {
+      confirmBtn?.classList.remove('disabled');
+      confirmBtn && (confirmBtn.disabled = false);
       return;
     }
-    createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
+    await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
   } else {
-    createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
+    await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
   }
+
+  confirmBtn?.classList.remove('disabled');
+  confirmBtn && (confirmBtn.disabled = false);
 }
 
 function buildTransactionFromDockEntry(entry, type = 'hunter') {
