@@ -380,9 +380,21 @@ function startDockAbrufAssignment(entry) {
   }
 
   const hint = dockConflictHints.get(entry.id);
-  const preselectId = hint?.frameworkId;
-  if (preselectId) {
-    const framework = findEntryById(preselectId);
+  const hintFrameworkId = hint?.frameworkId;
+  let preselectId = hintFrameworkId;
+  if (!preselectId) {
+    const normalizedProject = normalizeProjectNumber(entry.projectNumber);
+    if (normalizedProject) {
+      const matchingFramework = frameworks.find(
+        (fw) => normalizeProjectNumber(fw.projectNumber) === normalizedProject
+      );
+      if (matchingFramework) {
+        preselectId = matchingFramework.id;
+      }
+    }
+  }
+  if (hintFrameworkId) {
+    const framework = findEntryById(hintFrameworkId);
     if (framework) {
       openFrameworkAssignmentPrompt(entry, framework);
       return;
