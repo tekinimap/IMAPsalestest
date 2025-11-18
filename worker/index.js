@@ -189,7 +189,7 @@ function readFirstHeader(headers, keys) {
 
 function isAdminRequest(request, env) {
   const secret = normalizeString(env.ADMIN_SECRET || env.ADMIN_TOKEN);
-  if (!secret) return true; // Fallback: wenn keine Secret-Config gesetzt ist, nicht blockieren.
+  if (!secret) return false; // Fallback: if no secret is set, block access.
 
   const authHeader = normalizeString(request.headers.get('authorization'));
   const token = authHeader.toLowerCase().startsWith('bearer ')
