@@ -2317,10 +2317,16 @@ export default {
             const additiveMerge = (existingList, ...lists) => {
               const merged = [];
               const seen = new Set();
+              const createKey = (item) => {
+                if (!item) return null;
+                if (item.id) return String(item.id);
+                // Create a canonical key for objects without an ID by sorting keys.
+                return JSON.stringify(item, Object.keys(item).sort());
+              };
               const pushItem = (item) => {
                 if (!item) return;
-                const key = item.id ? String(item.id) : JSON.stringify(item);
-                if (seen.has(key)) return;
+                const key = createKey(item);
+                if (key === null || seen.has(key)) return;
                 seen.add(key);
                 merged.push({ ...item });
               };
