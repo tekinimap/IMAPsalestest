@@ -120,6 +120,14 @@ const DOCK_ASSIGNMENT_LABELS = {
   abruf: 'Abruf aus Rahmenvertrag',
 };
 
+function debounce(fn, wait = 300) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), wait);
+  };
+}
+
 const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 const dockEntryDialog = document.getElementById('dockEntryDialog');
@@ -1580,6 +1588,18 @@ const submittedBy  = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
 const kvNummer = document.getElementById('kvNummer');
 const freigabedatum = document.getElementById('freigabedatum');
+const kvValidationHint = document.createElement('div');
+kvValidationHint.className = 'inline-hint';
+kvValidationHint.dataset.state = 'idle';
+const pnValidationHint = document.createElement('div');
+pnValidationHint.className = 'inline-hint';
+pnValidationHint.dataset.state = 'idle';
+if (kvNummer && kvNummer.parentNode) {
+  kvNummer.parentNode.insertBefore(kvValidationHint, kvNummer.nextSibling);
+}
+if (projectNumber && projectNumber.parentNode) {
+  projectNumber.parentNode.insertBefore(pnValidationHint, projectNumber.nextSibling);
+}
 const metaEditSection = document.getElementById('metaEditSection');
 const btnMetaEditToggle = document.getElementById('btnMetaEditToggle');
 const metaSummary = document.getElementById('metaSummary');
@@ -1596,6 +1616,15 @@ const w_pitch = document.getElementById('w_pitch');
 const w_note = document.getElementById('w_note');
 const btnAddRow = document.getElementById('btnAddRow');
 const btnSave = document.getElementById('btnSave');
+
+function renderInlineHint(el, message, severity = 'info') {
+  if (!el) return;
+  el.textContent = message || '';
+  el.dataset.state = message ? severity : 'idle';
+  el.style.color = severity === 'bad' ? '#b00020' : severity === 'warn' ? '#b26a00' : '#444';
+  el.style.fontSize = '0.85rem';
+  el.style.marginTop = '4px';
+}
 
 function addRow(focus = false) {
   appendFormRow({
@@ -1807,10 +1836,69 @@ function setMetaQuickEditActive(active) {
 if (projectNumber) {
     projectNumber.addEventListener('input', updateMetaSummary);
     projectNumber.addEventListener('change', updateMetaSummary);
+    const runPnValidation = debounce(async () => {
+      const value = projectNumber.value.trim();
+      if (!value) {
+        renderInlineHint(pnValidationHint, '');
+        return;
+      }
+      try {
+        const body = { projectNumber: value };
+        const currentState = loadState();
+        if (currentState?.editingId) body.id = currentState.editingId;
+        const response = await fetch(`${WORKER_BASE}/api/validation/check_projektnummer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (payload?.warning?.message) {
+          const severity = payload.warning.reason === 'RAHMENVERTRAG_FOUND' ? 'warn' : 'info';
+          renderInlineHint(pnValidationHint, payload.warning.message, severity);
+        } else {
+          renderInlineHint(pnValidationHint, '');
+        }
+      } catch (err) {
+        console.warn('Projekt-Validierung fehlgeschlagen', err);
+      }
+    }, 350);
+    projectNumber.addEventListener('input', runPnValidation);
+    projectNumber.addEventListener('blur', runPnValidation);
 }
 if (kvNummer) {
     kvNummer.addEventListener('input', updateMetaSummary);
     kvNummer.addEventListener('change', updateMetaSummary);
+    const runKvValidation = debounce(async () => {
+      const value = kvNummer.value.trim();
+      if (!value) {
+        renderInlineHint(kvValidationHint, '');
+        return;
+      }
+      try {
+        const body = { kv_nummer: value, kv: value, kvNummern: [value] };
+        const currentState = loadState();
+        if (currentState?.editingId) body.id = currentState.editingId;
+        const response = await fetch(`${WORKER_BASE}/api/validation/check_kv`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (payload.valid === false && payload.message) {
+          renderInlineHint(kvValidationHint, payload.message, 'bad');
+        } else if (payload.warning?.message) {
+          renderInlineHint(kvValidationHint, payload.warning.message, 'warn');
+        } else {
+          renderInlineHint(kvValidationHint, '');
+        }
+      } catch (err) {
+        console.warn('KV-Validierung fehlgeschlagen', err);
+      }
+    }, 350);
+    kvNummer.addEventListener('input', runKvValidation);
+    kvNummer.addEventListener('blur', runKvValidation);
 }
 if (freigabedatum) {
     freigabedatum.addEventListener('input', updateMetaSummary);

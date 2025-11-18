@@ -14,6 +14,7 @@ import {
 
 const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
+const VALIDATION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
 /* ------------------------ Utilities ------------------------ */
 
@@ -141,6 +142,27 @@ function normalizePersonRecord(person) {
   return normalized;
 }
 
+/**
+ * Sehr leichte Cache-Implementierung für Validierungsendpunkte.
+ * Die Worker-Laufzeit hält globale Variablen typischerweise warm,
+ * sodass wir hier einen simplen Map-basierten Cache verwenden können.
+ */
+const validationCache = new Map();
+
+function readValidationCache(key) {
+  const entry = validationCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > VALIDATION_CACHE_TTL_MS) {
+    validationCache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function writeValidationCache(key, value) {
+  validationCache.set(key, { value, ts: Date.now() });
+}
+
 const EMAIL_HEADER_KEYS = [
   'cf-access-authenticated-user-email',
   'cf-access-user-email',
@@ -163,6 +185,19 @@ function readFirstHeader(headers, keys) {
     }
   }
   return '';
+}
+
+function isAdminRequest(request, env) {
+  const secret = normalizeString(env.ADMIN_SECRET || env.ADMIN_TOKEN);
+  if (!secret) return true; // Fallback: wenn keine Secret-Config gesetzt ist, nicht blockieren.
+
+  const authHeader = normalizeString(request.headers.get('authorization'));
+  const token = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7)
+    : '';
+  const headerSecret = normalizeString(request.headers.get('x-admin-secret'));
+
+  return token === secret || headerSecret === secret;
 }
 
 async function resolveAccessIdentity(request, env, branch, peoplePath, cachedPeople) {
@@ -274,6 +309,86 @@ function ensureDockMetadata(entry, options = {}) {
     entry.projectType = 'rahmen';
   }
   return entry;
+}
+
+function isDockEntryActive(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  const phase = Number(entry.dockPhase);
+  if (Number.isFinite(phase) && phase >= 4) return false;
+  const assignment = normalizeString(entry.dockFinalAssignment).toLowerCase();
+  if (assignment === 'archived' || assignment === 'merged') return false;
+  return true;
+}
+
+function findDuplicateKv(entries, kvList, selfId) {
+  const normalized = uniqueNormalizedKvList(kvList || []);
+  if (!normalized.length) return null;
+  for (const entry of entries || []) {
+    if (!entry || entry.id === selfId) continue;
+    const current = kvListFrom(entry);
+    if (!current.length) continue;
+    const conflict = normalized.find((kv) => current.includes(kv));
+    if (conflict) {
+      return { conflict, entry };
+    }
+  }
+  return null;
+}
+
+function validateProjectNumberUsage(entries, projectNumber, selfId) {
+  const normalized = normalizeString(projectNumber);
+  if (!normalized) return { valid: true };
+
+  const matches = (entries || []).filter((entry) => {
+    if (!entry || entry.id === selfId) return false;
+    const pn = normalizeString(entry.projectNumber);
+    if (!pn) return false;
+    return pn.toLowerCase() === normalized.toLowerCase();
+  });
+
+  if (!matches.length) return { valid: true };
+
+  const framework = matches.find((item) => normalizeString(item.projectType) === 'rahmen');
+  if (framework) {
+    return {
+      valid: true,
+      warning: {
+        reason: 'RAHMENVERTRAG_FOUND',
+        message: 'Es existiert ein Rahmenvertrag mit der gleichen Projektnummer.',
+        relatedCardId: framework.id,
+      },
+    };
+  }
+
+  const fix = matches.find((item) => normalizeString(item.projectType) !== 'rahmen');
+  if (fix) {
+    return {
+      valid: true,
+      warning: {
+        reason: 'PROJECT_EXISTS',
+        message: 'Es existiert ein Auftrag mit der Projektnummer.',
+        relatedCardId: fix.id,
+      },
+    };
+  }
+
+  return { valid: true };
+}
+
+function validateKvNumberUsage(entries, kvList, selfId) {
+  const normalized = uniqueNormalizedKvList(kvList || []);
+  if (!normalized.length) return { valid: true };
+
+  const result = findDuplicateKv(entries, normalized, selfId);
+  if (!result) return { valid: true };
+
+  return {
+    valid: false,
+    reason: 'DUPLICATE_KV',
+    message: 'Es existiert bereits ein Auftrag mit dieser KV-Nummer.',
+    relatedCardId: result.entry?.id,
+    conflictKv: result.conflict,
+  };
 }
 function splitKvString(value){
   const trimmed = String(value ?? '').trim();
@@ -501,6 +616,9 @@ function canonicalizeEntries(items){
     if (Array.isArray(entry.rows)) clone.rows = entry.rows.map(row => ({ ...row }));
     if (Array.isArray(entry.weights)) clone.weights = entry.weights.map(w => ({ ...w }));
     if (Array.isArray(entry.transactions)) clone.transactions = entry.transactions.map(t => ({ ...t }));
+    if (Array.isArray(entry.comments)) clone.comments = entry.comments.map(c => ({ ...c }));
+    if (Array.isArray(entry.attachments)) clone.attachments = entry.attachments.map(a => ({ ...a }));
+    if (Array.isArray(entry.history)) clone.history = entry.history.map(h => ({ ...h }));
     if (entry.dockPhaseHistory && typeof entry.dockPhaseHistory === 'object') {
       clone.dockPhaseHistory = { ...entry.dockPhaseHistory };
     }
@@ -1776,6 +1894,63 @@ export default {
             }, 200, env);
         }
 
+        /* ===== Validation Endpoints ===== */
+        if (pathname === "/api/validation/check_kv" && request.method === "POST") {
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
+            const kvList = kvListFrom(body);
+            const cacheKey = `kv:${kvList.join('|')}:id:${body.id || ''}`;
+            const cached = readValidationCache(cacheKey);
+            if (cached) return respond(cached, 200, env);
+
+            const { items } = await ghGetFile(env, ghPath, branch);
+            const active = items.filter(isDockEntryActive);
+            const result = validateKvNumberUsage(active, kvList, body.id ? String(body.id) : undefined);
+            writeValidationCache(cacheKey, result);
+            return respond(result, 200, env);
+        }
+
+        if (pathname === "/api/validation/check_projektnummer" && request.method === "POST") {
+            let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
+            const projectNumber = body.projectNumber || body.projektnummer || body.project_no || '';
+            const cacheKey = `pn:${normalizeString(projectNumber).toLowerCase()}:id:${body.id || ''}`;
+            const cached = readValidationCache(cacheKey);
+            if (cached) return respond(cached, 200, env);
+
+            const { items } = await ghGetFile(env, ghPath, branch);
+            const active = items.filter(isDockEntryActive);
+            const result = validateProjectNumberUsage(active, projectNumber, body.id ? String(body.id) : undefined);
+            writeValidationCache(cacheKey, result);
+            return respond(result, 200, env);
+        }
+
+        if (pathname === "/api/admin/validation/legacy_report" && request.method === "GET") {
+            if (!isAdminRequest(request, env)) {
+              return respond({ error: 'forbidden' }, 403, env);
+            }
+            const { items } = await ghGetFile(env, ghPath, branch);
+            const active = items.filter(isDockEntryActive);
+            const offenders = [];
+            const seen = new Set();
+
+            for (const entry of active) {
+              const kvList = kvListFrom(entry);
+              const conflict = findDuplicateKv(active, kvList, entry.id);
+              if (conflict && conflict.entry) {
+                const key = [entry.id, conflict.entry.id].sort().join('::');
+                if (seen.has(key)) continue;
+                seen.add(key);
+                offenders.push({
+                  cardId: entry.id,
+                  title: entry.title || '',
+                  kvNummer: conflict.conflict,
+                  conflictingCardId: conflict.entry.id,
+                });
+              }
+            }
+
+            return respond(offenders, 200, env, { 'Content-Type': 'application/json; charset=utf-8' });
+        }
+
         /* ===== Entries GET ===== */
         if (pathname === "/entries" && request.method === "GET") {
             const { items } = await ghGetFile(env, ghPath, branch);
@@ -2093,6 +2268,7 @@ export default {
             const ids = Array.isArray(body?.ids) ? body.ids.map(String) : [];
             if (!ids.length || ids.length < 2) return respond({ error: "at least_two_ids_required" }, 400, env);
             const targetId = body?.targetId ? String(body.targetId) : ids[0];
+            const fieldResolutions = (body && typeof body.fieldResolutions === 'object') ? body.fieldResolutions : {};
 
             const cur = await ghGetFile(env, ghPath, branch);
             const items = cur.items || [];
@@ -2117,10 +2293,60 @@ export default {
             const mergedKvList = mergeKvLists(...selected.map(kvListFrom));
             const mergedList = mergeContributionLists(selected, mergedAmount);
 
-            targetEntry.amount = mergedAmount;
+            const pickValue = (field, fallback) => {
+              const chosenId = fieldResolutions?.[field];
+              if (!chosenId) return fallback;
+              const candidate = selected.find((item) => String(item.id) === String(chosenId));
+              if (!candidate) return fallback;
+              return candidate[field] !== undefined ? candidate[field] : fallback;
+            };
+
+            const resolvedAmount = pickValue('amount', mergedAmount);
+            targetEntry.amount = Number.isFinite(Number(resolvedAmount)) ? Number(resolvedAmount) : mergedAmount;
             targetEntry.list = mergedList;
             targetEntry.modified = Date.now();
             applyKvList(targetEntry, mergedKvList);
+            ensureDockMetadata(targetEntry);
+            ['title','client','projectNumber','projectType','submittedBy','source','marketTeam','businessUnit','assessmentOwner','flagship_projekt']
+              .forEach((field) => {
+                if (field in targetEntry || field in fieldResolutions) {
+                  targetEntry[field] = pickValue(field, targetEntry[field]);
+                }
+              });
+
+            const additiveMerge = (existingList, ...lists) => {
+              const merged = [];
+              const seen = new Set();
+              const pushItem = (item) => {
+                if (!item) return;
+                const key = item.id ? String(item.id) : JSON.stringify(item);
+                if (seen.has(key)) return;
+                seen.add(key);
+                merged.push({ ...item });
+              };
+              (existingList || []).forEach(pushItem);
+              lists.flat().forEach(pushItem);
+              return merged;
+            };
+
+            const mergedComments = additiveMerge(targetEntry.comments, ...sourceEntries.map((e) => e.comments));
+            const mergedAttachments = additiveMerge(targetEntry.attachments, ...sourceEntries.map((e) => e.attachments));
+            const mergedHistory = additiveMerge(targetEntry.history, ...sourceEntries.map((e) => e.history));
+
+            const mergedAtIso = new Date().toISOString();
+            const mergedSourceSummary = sourceEntries.map((src) => `[ID: ${src.id}${src.title ? `, Titel: '${src.title}'` : ''}]`).join(', ');
+            const systemComment = {
+              id: rndId('comment_'),
+              timestamp: mergedAtIso,
+              author: 'SYSTEM',
+              type: 'system_event',
+              text: `SYSTEM: Diese Karte wurde am ${mergedAtIso} mit ${sourceEntries.length} Karte(n) zusammengeführt. Quell-Karten: ${mergedSourceSummary || 'k.A.'}`,
+            };
+            mergedComments.push(systemComment);
+
+            targetEntry.comments = mergedComments;
+            if (mergedAttachments.length) targetEntry.attachments = mergedAttachments;
+            if (mergedHistory.length) targetEntry.history = mergedHistory;
             ensureKvStructure(targetEntry);
 
             const idsToRemove = new Set(sourceEntries.map(e => e.id));
@@ -2129,7 +2355,15 @@ export default {
 
             const logs = [
               { event:'merge_target', targetId: targetEntry.id, mergedIds: sourceEntries.map(e=>e.id), before: beforeTarget, after: targetEntry, ...fieldsOf(targetEntry), reason:'merge_fix_orders' },
-              ...beforeSources.map(src => ({ event:'merge_source', sourceId: src.id, mergedInto: targetEntry.id, before: src, ...fieldsOf(src), reason:'merge_fix_orders' }))
+              ...beforeSources.map(src => ({
+                event:'merge_source',
+                sourceId: src.id,
+                mergedInto: targetEntry.id,
+                before: src,
+                after: { ...src, dockFinalAssignment: 'merged', dockFinalAssignmentAt: Date.now(), dockPhase: 4 },
+                ...fieldsOf(src),
+                reason:'merge_fix_orders',
+              }))
             ];
 
             try {
