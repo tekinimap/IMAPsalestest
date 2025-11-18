@@ -1854,18 +1854,19 @@ export default {
         return new Response(null, { status: 204, headers: getCorsHeaders(env, request) });
     }
 
+    const respond = (data, status = 200, arg3, arg4) => {
+      let headers = {};
+      if (arg3 === env) {
+        headers = arg4 || {};
+      } else if (arg3 && typeof arg3 === 'object' && arg4 === undefined) {
+        headers = arg3;
+      } else if (arg3 && typeof arg3 === 'object') {
+        headers = arg3;
+      }
+      return jsonResponse(data, status, env, request, headers);
+    };
+
     try {
-        const respond = (data, status = 200, arg3, arg4) => {
-          let headers = {};
-          if (arg3 === env) {
-            headers = arg4 || {};
-          } else if (arg3 && typeof arg3 === 'object' && arg4 === undefined) {
-            headers = arg3;
-          } else if (arg3 && typeof arg3 === 'object') {
-            headers = arg3;
-          }
-          return jsonResponse(data, status, env, request, headers);
-        };
         const url = new URL(request.url);
         const pathname = url.pathname.replace(/\/+$/, '') || '/';
         const ghPath = env.GH_PATH || "data/entries.json";
