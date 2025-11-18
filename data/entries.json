@@ -1448,9 +1448,51 @@
         "amount": 80456.25,
         "ts": 1761664649063,
         "freigabedatum": 1745366400000
+      },
+      {
+        "id": "trans_mi4qijoknae",
+        "type": "hunter",
+        "amount": 100000,
+        "kv_nummer": "999",
+        "projectNumber": "ekom21-01-001",
+        "title": "Diversity Befragung",
+        "ts": 1763480092196,
+        "freigabedatum": 1761868800000,
+        "rows": [
+          {
+            "personId": "p_oe_head_02",
+            "name": "Merlin Klein",
+            "cs": 100,
+            "konzept": 0,
+            "pitch": 0
+          }
+        ],
+        "list": [
+          {
+            "key": "Merlin Klein",
+            "name": "Merlin Klein",
+            "pct": 100,
+            "money": 100000
+          }
+        ],
+        "weights": [
+          {
+            "key": "cs",
+            "weight": 100
+          },
+          {
+            "key": "konzept",
+            "weight": 0
+          },
+          {
+            "key": "pitch",
+            "weight": 0
+          }
+        ],
+        "submittedBy": "Merlin Klein"
       }
     ],
-    "modified": 1761664685831,
+    "modified": 1763480091324,
     "kvNummern": [],
     "kv": ""
   },
