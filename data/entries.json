@@ -84,7 +84,9 @@
     ],
     "modified": 1762772809953,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
@@ -131,7 +133,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_baköv_seminare",
@@ -168,7 +172,9 @@
     "ts": 1761032940002,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_bmbf_pe_referenten",
@@ -205,7 +211,9 @@
     "ts": 1761032940003,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_bmdv_teamklausuren",
@@ -308,7 +316,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_dlr_schulung_prozess",
@@ -345,7 +355,9 @@
     "ts": 1761032940005,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_dlr_coaching_pool",
@@ -382,7 +394,9 @@
     "ts": 1761032940006,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bawü_training",
@@ -469,7 +483,9 @@
     ],
     "modified": 1762772817562,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
@@ -532,7 +548,9 @@
     ],
     "modified": 1762772800460,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_interkult_komm",
@@ -569,7 +587,9 @@
     "ts": 1761032940009,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_entwickl_dialog",
@@ -616,7 +636,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_sozvers_fachw",
@@ -663,7 +685,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_foerderkreise",
@@ -718,7 +742,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_next_campus",
@@ -765,7 +791,9 @@
     ],
     "modified": 1761665970379,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_teamentw",
@@ -876,7 +904,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
@@ -913,7 +943,9 @@
     "ts": 1761032940015,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_abt50_digistrat",
@@ -960,7 +992,9 @@
     ],
     "modified": 1762772806619,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_abt30_veraend",
@@ -1007,7 +1041,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_bund_mod_fuehr_veranst",
@@ -1126,7 +1162,9 @@
     ],
     "modified": 1762772793365,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_kbs_fk_qual_ii",
@@ -1213,7 +1251,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_kbs_fk_qual_i_basis",
@@ -1250,7 +1290,9 @@
     "ts": 1761032940020,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_md_ext_mod",
@@ -1297,7 +1339,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_drv_rheinland_mod_workshops",
@@ -1368,7 +1412,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_dfs_fk_trainings",
@@ -1405,7 +1451,9 @@
     "ts": 1761032940023,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_ekom21_rv_spezial",
@@ -1452,7 +1500,9 @@
     ],
     "modified": 1763480699709,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_ekom21_unterst_los6",
@@ -1489,7 +1539,9 @@
     "ts": 1761032940025,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_ekom21_unterst_los7",
@@ -1526,7 +1578,9 @@
     "ts": 1761032940026,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_goethe_team_coach_los2",
@@ -1573,7 +1627,9 @@
     ],
     "modified": 1761042132128,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_kommone_fke_los1",
@@ -1636,7 +1692,9 @@
     ],
     "modified": 1762772804943,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_stadt_bochum_teamentw",
@@ -1715,7 +1773,9 @@
     ],
     "modified": 1762772807181,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_stadt_koblenz_begl_teamentw",
@@ -1770,7 +1830,9 @@
     ],
     "modified": 1762772802163,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_stadt_koeln_leitlinien",
@@ -1889,7 +1951,9 @@
     ],
     "modified": 1761667835543,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_stadt_mg_fke_a21082",
@@ -1926,7 +1990,9 @@
     "ts": 1761032940032,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_dataport_teamentw",
@@ -1989,7 +2055,9 @@
     ],
     "modified": 1762772813403,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
@@ -2044,7 +2112,9 @@
     ],
     "modified": 1762772799265,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_steb_koeln_change",
@@ -2115,7 +2185,9 @@
     ],
     "modified": 1762772815280,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_ekom21_miniwettbewerb",
@@ -2162,7 +2234,9 @@
     ],
     "modified": 1761042132127,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_wdr_change_fuehrung",
@@ -2225,7 +2299,9 @@
     ],
     "modified": 1762772803283,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_giz_ewfl_de_en",
@@ -2272,7 +2348,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_giz_ewfl_fr",
@@ -2319,7 +2397,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_giz_koop_steuerung",
@@ -2366,7 +2446,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_aiz_agile_veranst",
@@ -2437,7 +2519,9 @@
     ],
     "modified": 1761664685831,
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "manuell_giz_partnering_business",
@@ -2474,7 +2558,9 @@
     "ts": 1761032940044,
     "transactions": [],
     "kvNummern": [],
-    "kv": ""
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649059_KV20230140",
@@ -2527,7 +2613,9 @@
     "kvNummern": [
       "KV-2023-0140"
     ],
-    "kv": "KV-2023-0140"
+    "kv": "KV-2023-0140",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250009",
@@ -2580,7 +2668,9 @@
     "kvNummern": [
       "KV-2025-0009"
     ],
-    "kv": "KV-2025-0009"
+    "kv": "KV-2025-0009",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250010",
@@ -2633,7 +2723,9 @@
     "kvNummern": [
       "KV-2025-0010"
     ],
-    "kv": "KV-2025-0010"
+    "kv": "KV-2025-0010",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250012",
@@ -2686,7 +2778,9 @@
     "kvNummern": [
       "KV-2025-0012"
     ],
-    "kv": "KV-2025-0012"
+    "kv": "KV-2025-0012",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250013",
@@ -2739,7 +2833,9 @@
     "kvNummern": [
       "KV-2025-0013"
     ],
-    "kv": "KV-2025-0013"
+    "kv": "KV-2025-0013",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250014",
@@ -2792,7 +2888,9 @@
     "kvNummern": [
       "KV-2025-0014"
     ],
-    "kv": "KV-2025-0014"
+    "kv": "KV-2025-0014",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250016",
@@ -2845,7 +2943,9 @@
     "kvNummern": [
       "KV-2025-0016"
     ],
-    "kv": "KV-2025-0016"
+    "kv": "KV-2025-0016",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250017",
@@ -2898,7 +2998,9 @@
     "kvNummern": [
       "KV-2025-0017"
     ],
-    "kv": "KV-2025-0017"
+    "kv": "KV-2025-0017",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250018",
@@ -2951,7 +3053,9 @@
     "kvNummern": [
       "KV-2025-0018"
     ],
-    "kv": "KV-2025-0018"
+    "kv": "KV-2025-0018",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250019",
@@ -3004,7 +3108,9 @@
     "kvNummern": [
       "KV-2025-0019"
     ],
-    "kv": "KV-2025-0019"
+    "kv": "KV-2025-0019",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250020",
@@ -3057,7 +3163,9 @@
     "kvNummern": [
       "KV-2025-0020"
     ],
-    "kv": "KV-2025-0020"
+    "kv": "KV-2025-0020",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250021",
@@ -3110,7 +3218,9 @@
     "kvNummern": [
       "KV-2025-0021"
     ],
-    "kv": "KV-2025-0021"
+    "kv": "KV-2025-0021",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250022",
@@ -3130,7 +3240,9 @@
     "kvNummern": [
       "KV-2025-0022"
     ],
-    "kv": "KV-2025-0022"
+    "kv": "KV-2025-0022",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649060_KV20250023",
@@ -3183,7 +3295,9 @@
     "kvNummern": [
       "KV-2025-0023"
     ],
-    "kv": "KV-2025-0023"
+    "kv": "KV-2025-0023",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250024",
@@ -3236,7 +3350,9 @@
     "kvNummern": [
       "KV-2025-0024"
     ],
-    "kv": "KV-2025-0024"
+    "kv": "KV-2025-0024",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250026",
@@ -3289,7 +3405,9 @@
     "kvNummern": [
       "KV-2025-0026"
     ],
-    "kv": "KV-2025-0026"
+    "kv": "KV-2025-0026",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250027",
@@ -3342,7 +3460,9 @@
     "kvNummern": [
       "KV-2025-0027"
     ],
-    "kv": "KV-2025-0027"
+    "kv": "KV-2025-0027",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250029",
@@ -3395,7 +3515,9 @@
     "kvNummern": [
       "KV-2025-0029"
     ],
-    "kv": "KV-2025-0029"
+    "kv": "KV-2025-0029",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250031",
@@ -3448,7 +3570,9 @@
     "kvNummern": [
       "KV-2025-0031"
     ],
-    "kv": "KV-2025-0031"
+    "kv": "KV-2025-0031",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250032",
@@ -3501,7 +3625,9 @@
     "kvNummern": [
       "KV-2025-0032"
     ],
-    "kv": "KV-2025-0032"
+    "kv": "KV-2025-0032",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250033",
@@ -3554,7 +3680,9 @@
     "kvNummern": [
       "KV-2025-0033"
     ],
-    "kv": "KV-2025-0033"
+    "kv": "KV-2025-0033",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250034",
@@ -3607,7 +3735,9 @@
     "kvNummern": [
       "KV-2025-0034"
     ],
-    "kv": "KV-2025-0034"
+    "kv": "KV-2025-0034",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250035",
@@ -3660,7 +3790,9 @@
     "kvNummern": [
       "KV-2025-0035"
     ],
-    "kv": "KV-2025-0035"
+    "kv": "KV-2025-0035",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250036",
@@ -3713,7 +3845,9 @@
     "kvNummern": [
       "KV-2025-0036"
     ],
-    "kv": "KV-2025-0036"
+    "kv": "KV-2025-0036",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250037",
@@ -3766,7 +3900,9 @@
     "kvNummern": [
       "KV-2025-0037"
     ],
-    "kv": "KV-2025-0037"
+    "kv": "KV-2025-0037",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250038",
@@ -3819,7 +3955,9 @@
     "kvNummern": [
       "KV-2025-0038"
     ],
-    "kv": "KV-2025-0038"
+    "kv": "KV-2025-0038",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250040",
@@ -3872,7 +4010,9 @@
     "kvNummern": [
       "KV-2025-0040"
     ],
-    "kv": "KV-2025-0040"
+    "kv": "KV-2025-0040",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250042",
@@ -3949,7 +4089,9 @@
     "kvNummern": [
       "KV-2025-0042"
     ],
-    "kv": "KV-2025-0042"
+    "kv": "KV-2025-0042",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250043",
@@ -3969,7 +4111,9 @@
     "kvNummern": [
       "KV-2025-0043"
     ],
-    "kv": "KV-2025-0043"
+    "kv": "KV-2025-0043",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250044",
@@ -4034,7 +4178,9 @@
     "kvNummern": [
       "KV-2025-0044"
     ],
-    "kv": "KV-2025-0044"
+    "kv": "KV-2025-0044",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250045",
@@ -4087,7 +4233,9 @@
     "kvNummern": [
       "KV-2025-0045"
     ],
-    "kv": "KV-2025-0045"
+    "kv": "KV-2025-0045",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250046",
@@ -4140,7 +4288,9 @@
     "kvNummern": [
       "KV-2025-0046"
     ],
-    "kv": "KV-2025-0046"
+    "kv": "KV-2025-0046",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250047",
@@ -4193,7 +4343,9 @@
     "kvNummern": [
       "KV-2025-0047"
     ],
-    "kv": "KV-2025-0047"
+    "kv": "KV-2025-0047",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649061_KV20250048",
@@ -4246,7 +4398,9 @@
     "kvNummern": [
       "KV-2025-0048"
     ],
-    "kv": "KV-2025-0048"
+    "kv": "KV-2025-0048",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250052",
@@ -4299,7 +4453,9 @@
     "kvNummern": [
       "KV-2025-0052"
     ],
-    "kv": "KV-2025-0052"
+    "kv": "KV-2025-0052",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250053",
@@ -4352,7 +4508,9 @@
     "kvNummern": [
       "KV-2025-0053"
     ],
-    "kv": "KV-2025-0053"
+    "kv": "KV-2025-0053",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250054",
@@ -4405,7 +4563,9 @@
     "kvNummern": [
       "KV-2025-0054"
     ],
-    "kv": "KV-2025-0054"
+    "kv": "KV-2025-0054",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250057",
@@ -4458,7 +4618,9 @@
     "kvNummern": [
       "KV-2025-0057"
     ],
-    "kv": "KV-2025-0057"
+    "kv": "KV-2025-0057",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250058",
@@ -4511,7 +4673,9 @@
     "kvNummern": [
       "KV-2025-0058"
     ],
-    "kv": "KV-2025-0058"
+    "kv": "KV-2025-0058",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250059",
@@ -4564,7 +4728,9 @@
     "kvNummern": [
       "KV-2025-0059"
     ],
-    "kv": "KV-2025-0059"
+    "kv": "KV-2025-0059",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250061",
@@ -4617,7 +4783,9 @@
     "kvNummern": [
       "KV-2025-0061"
     ],
-    "kv": "KV-2025-0061"
+    "kv": "KV-2025-0061",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250064",
@@ -4682,7 +4850,9 @@
     "kvNummern": [
       "KV-2025-0064"
     ],
-    "kv": "KV-2025-0064"
+    "kv": "KV-2025-0064",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250065",
@@ -4735,7 +4905,9 @@
     "kvNummern": [
       "KV-2025-0065"
     ],
-    "kv": "KV-2025-0065"
+    "kv": "KV-2025-0065",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250066",
@@ -4788,7 +4960,9 @@
     "kvNummern": [
       "KV-2025-0066"
     ],
-    "kv": "KV-2025-0066"
+    "kv": "KV-2025-0066",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250067",
@@ -4841,7 +5015,9 @@
     "kvNummern": [
       "KV-2025-0067"
     ],
-    "kv": "KV-2025-0067"
+    "kv": "KV-2025-0067",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250068",
@@ -4894,7 +5070,9 @@
     "kvNummern": [
       "KV-2025-0068"
     ],
-    "kv": "KV-2025-0068"
+    "kv": "KV-2025-0068",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250070",
@@ -4947,7 +5125,9 @@
     "kvNummern": [
       "KV-2025-0070"
     ],
-    "kv": "KV-2025-0070"
+    "kv": "KV-2025-0070",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250071",
@@ -5000,7 +5180,9 @@
     "kvNummern": [
       "KV-2025-0071"
     ],
-    "kv": "KV-2025-0071"
+    "kv": "KV-2025-0071",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250073",
@@ -5053,7 +5235,9 @@
     "kvNummern": [
       "KV-2025-0073"
     ],
-    "kv": "KV-2025-0073"
+    "kv": "KV-2025-0073",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250077",
@@ -5106,7 +5290,9 @@
     "kvNummern": [
       "KV-2025-0077"
     ],
-    "kv": "KV-2025-0077"
+    "kv": "KV-2025-0077",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250078",
@@ -5159,7 +5345,9 @@
     "kvNummern": [
       "KV-2025-0078"
     ],
-    "kv": "KV-2025-0078"
+    "kv": "KV-2025-0078",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250079",
@@ -5212,7 +5400,9 @@
     "kvNummern": [
       "KV-2025-0079"
     ],
-    "kv": "KV-2025-0079"
+    "kv": "KV-2025-0079",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250084",
@@ -5265,7 +5455,9 @@
     "kvNummern": [
       "KV-2025-0084"
     ],
-    "kv": "KV-2025-0084"
+    "kv": "KV-2025-0084",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649062_KV20250085",
@@ -5318,7 +5510,9 @@
     "kvNummern": [
       "KV-2025-0085"
     ],
-    "kv": "KV-2025-0085"
+    "kv": "KV-2025-0085",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250086",
@@ -5371,7 +5565,9 @@
     "kvNummern": [
       "KV-2025-0086"
     ],
-    "kv": "KV-2025-0086"
+    "kv": "KV-2025-0086",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250087",
@@ -5436,7 +5632,9 @@
     "kvNummern": [
       "KV-2025-0087"
     ],
-    "kv": "KV-2025-0087"
+    "kv": "KV-2025-0087",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250088",
@@ -5489,7 +5687,9 @@
     "kvNummern": [
       "KV-2025-0088"
     ],
-    "kv": "KV-2025-0088"
+    "kv": "KV-2025-0088",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250089",
@@ -5542,7 +5742,9 @@
     "kvNummern": [
       "KV-2025-0089"
     ],
-    "kv": "KV-2025-0089"
+    "kv": "KV-2025-0089",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250091",
@@ -5595,7 +5797,9 @@
     "kvNummern": [
       "KV-2025-0091"
     ],
-    "kv": "KV-2025-0091"
+    "kv": "KV-2025-0091",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250093",
@@ -5648,7 +5852,9 @@
     "kvNummern": [
       "KV-2025-0093"
     ],
-    "kv": "KV-2025-0093"
+    "kv": "KV-2025-0093",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250098",
@@ -5701,7 +5907,9 @@
     "kvNummern": [
       "KV-2025-0098"
     ],
-    "kv": "KV-2025-0098"
+    "kv": "KV-2025-0098",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250099",
@@ -5754,7 +5962,9 @@
     "kvNummern": [
       "KV-2025-0099"
     ],
-    "kv": "KV-2025-0099"
+    "kv": "KV-2025-0099",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250101",
@@ -5807,7 +6017,9 @@
     "kvNummern": [
       "KV-2025-0101"
     ],
-    "kv": "KV-2025-0101"
+    "kv": "KV-2025-0101",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250102",
@@ -5860,7 +6072,9 @@
     "kvNummern": [
       "KV-2025-0102"
     ],
-    "kv": "KV-2025-0102"
+    "kv": "KV-2025-0102",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250105",
@@ -5913,7 +6127,9 @@
     "kvNummern": [
       "KV-2025-0105"
     ],
-    "kv": "KV-2025-0105"
+    "kv": "KV-2025-0105",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250107",
@@ -5966,7 +6182,9 @@
     "kvNummern": [
       "KV-2025-0107"
     ],
-    "kv": "KV-2025-0107"
+    "kv": "KV-2025-0107",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250108",
@@ -6031,7 +6249,9 @@
     "kvNummern": [
       "KV-2025-0108"
     ],
-    "kv": "KV-2025-0108"
+    "kv": "KV-2025-0108",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250110",
@@ -6084,7 +6304,9 @@
     "kvNummern": [
       "KV-2025-0110"
     ],
-    "kv": "KV-2025-0110"
+    "kv": "KV-2025-0110",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250111",
@@ -6137,7 +6359,9 @@
     "kvNummern": [
       "KV-2025-0111"
     ],
-    "kv": "KV-2025-0111"
+    "kv": "KV-2025-0111",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250112",
@@ -6190,7 +6414,9 @@
     "kvNummern": [
       "KV-2025-0112"
     ],
-    "kv": "KV-2025-0112"
+    "kv": "KV-2025-0112",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250114",
@@ -6243,7 +6469,9 @@
     "kvNummern": [
       "KV-2025-0114"
     ],
-    "kv": "KV-2025-0114"
+    "kv": "KV-2025-0114",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250119",
@@ -6296,7 +6524,9 @@
     "kvNummern": [
       "KV-2025-0119"
     ],
-    "kv": "KV-2025-0119"
+    "kv": "KV-2025-0119",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250120",
@@ -6349,7 +6579,9 @@
     "kvNummern": [
       "KV-2025-0120"
     ],
-    "kv": "KV-2025-0120"
+    "kv": "KV-2025-0120",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250124",
@@ -6402,7 +6634,9 @@
     "kvNummern": [
       "KV-2025-0124"
     ],
-    "kv": "KV-2025-0124"
+    "kv": "KV-2025-0124",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250125",
@@ -6455,7 +6689,9 @@
     "kvNummern": [
       "KV-2025-0125"
     ],
-    "kv": "KV-2025-0125"
+    "kv": "KV-2025-0125",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649063_KV20250127",
@@ -6508,7 +6744,9 @@
     "kvNummern": [
       "KV-2025-0127"
     ],
-    "kv": "KV-2025-0127"
+    "kv": "KV-2025-0127",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250128",
@@ -6561,7 +6799,9 @@
     "kvNummern": [
       "KV-2025-0128"
     ],
-    "kv": "KV-2025-0128"
+    "kv": "KV-2025-0128",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250129",
@@ -6614,7 +6854,9 @@
     "kvNummern": [
       "KV-2025-0129"
     ],
-    "kv": "KV-2025-0129"
+    "kv": "KV-2025-0129",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250130",
@@ -6679,7 +6921,9 @@
     "kvNummern": [
       "KV-2025-0130"
     ],
-    "kv": "KV-2025-0130"
+    "kv": "KV-2025-0130",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250131",
@@ -6732,7 +6976,9 @@
     "kvNummern": [
       "KV-2025-0131"
     ],
-    "kv": "KV-2025-0131"
+    "kv": "KV-2025-0131",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250132",
@@ -6785,7 +7031,9 @@
     "kvNummern": [
       "KV-2025-0132"
     ],
-    "kv": "KV-2025-0132"
+    "kv": "KV-2025-0132",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250133",
@@ -6838,7 +7086,9 @@
     "kvNummern": [
       "KV-2025-0133"
     ],
-    "kv": "KV-2025-0133"
+    "kv": "KV-2025-0133",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250137",
@@ -6891,7 +7141,9 @@
     "kvNummern": [
       "KV-2025-0137"
     ],
-    "kv": "KV-2025-0137"
+    "kv": "KV-2025-0137",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250138",
@@ -6944,7 +7196,9 @@
     "kvNummern": [
       "KV-2025-0138"
     ],
-    "kv": "KV-2025-0138"
+    "kv": "KV-2025-0138",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250139",
@@ -6997,7 +7251,9 @@
     "kvNummern": [
       "KV-2025-0139"
     ],
-    "kv": "KV-2025-0139"
+    "kv": "KV-2025-0139",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250141",
@@ -7050,7 +7306,9 @@
     "kvNummern": [
       "KV-2025-0141"
     ],
-    "kv": "KV-2025-0141"
+    "kv": "KV-2025-0141",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250142",
@@ -7103,7 +7361,9 @@
     "kvNummern": [
       "KV-2025-0142"
     ],
-    "kv": "KV-2025-0142"
+    "kv": "KV-2025-0142",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250143",
@@ -7156,7 +7416,9 @@
     "kvNummern": [
       "KV-2025-0143"
     ],
-    "kv": "KV-2025-0143"
+    "kv": "KV-2025-0143",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250144",
@@ -7209,7 +7471,9 @@
     "kvNummern": [
       "KV-2025-0144"
     ],
-    "kv": "KV-2025-0144"
+    "kv": "KV-2025-0144",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250145",
@@ -7262,7 +7526,9 @@
     "kvNummern": [
       "KV-2025-0145"
     ],
-    "kv": "KV-2025-0145"
+    "kv": "KV-2025-0145",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250146",
@@ -7315,7 +7581,9 @@
     "kvNummern": [
       "KV-2025-0146"
     ],
-    "kv": "KV-2025-0146"
+    "kv": "KV-2025-0146",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250147",
@@ -7368,7 +7636,9 @@
     "kvNummern": [
       "KV-2025-0147"
     ],
-    "kv": "KV-2025-0147"
+    "kv": "KV-2025-0147",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250148",
@@ -7421,7 +7691,9 @@
     "kvNummern": [
       "KV-2025-0148"
     ],
-    "kv": "KV-2025-0148"
+    "kv": "KV-2025-0148",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250149",
@@ -7474,7 +7746,9 @@
     "kvNummern": [
       "KV-2025-0149"
     ],
-    "kv": "KV-2025-0149"
+    "kv": "KV-2025-0149",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250153",
@@ -7527,7 +7801,9 @@
     "kvNummern": [
       "KV-2025-0153"
     ],
-    "kv": "KV-2025-0153"
+    "kv": "KV-2025-0153",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250154",
@@ -7580,7 +7856,9 @@
     "kvNummern": [
       "KV-2025-0154"
     ],
-    "kv": "KV-2025-0154"
+    "kv": "KV-2025-0154",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250155",
@@ -7633,7 +7911,9 @@
     "kvNummern": [
       "KV-2025-0155"
     ],
-    "kv": "KV-2025-0155"
+    "kv": "KV-2025-0155",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250156",
@@ -7686,7 +7966,9 @@
     "kvNummern": [
       "KV-2025-0156"
     ],
-    "kv": "KV-2025-0156"
+    "kv": "KV-2025-0156",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250158",
@@ -7739,7 +8021,9 @@
     "kvNummern": [
       "KV-2025-0158"
     ],
-    "kv": "KV-2025-0158"
+    "kv": "KV-2025-0158",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250160",
@@ -7792,7 +8076,9 @@
     "kvNummern": [
       "KV-2025-0160"
     ],
-    "kv": "KV-2025-0160"
+    "kv": "KV-2025-0160",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250161",
@@ -7869,7 +8155,9 @@
     "kvNummern": [
       "KV-2025-0161"
     ],
-    "kv": "KV-2025-0161"
+    "kv": "KV-2025-0161",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250162",
@@ -7922,7 +8210,9 @@
     "kvNummern": [
       "KV-2025-0162"
     ],
-    "kv": "KV-2025-0162"
+    "kv": "KV-2025-0162",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649064_KV20250163",
@@ -7975,7 +8265,9 @@
     "kvNummern": [
       "KV-2025-0163"
     ],
-    "kv": "KV-2025-0163"
+    "kv": "KV-2025-0163",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250164",
@@ -8028,7 +8320,9 @@
     "kvNummern": [
       "KV-2025-0164"
     ],
-    "kv": "KV-2025-0164"
+    "kv": "KV-2025-0164",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250166",
@@ -8081,7 +8375,9 @@
     "kvNummern": [
       "KV-2025-0166"
     ],
-    "kv": "KV-2025-0166"
+    "kv": "KV-2025-0166",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250167",
@@ -8101,7 +8397,9 @@
     "kvNummern": [
       "KV-2025-0167"
     ],
-    "kv": "KV-2025-0167"
+    "kv": "KV-2025-0167",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250170",
@@ -8154,7 +8452,9 @@
     "kvNummern": [
       "KV-2025-0170"
     ],
-    "kv": "KV-2025-0170"
+    "kv": "KV-2025-0170",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250174",
@@ -8207,7 +8507,9 @@
     "kvNummern": [
       "KV-2025-0174"
     ],
-    "kv": "KV-2025-0174"
+    "kv": "KV-2025-0174",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250176",
@@ -8272,7 +8574,9 @@
     "kvNummern": [
       "KV-2025-0176"
     ],
-    "kv": "KV-2025-0176"
+    "kv": "KV-2025-0176",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250177",
@@ -8337,7 +8641,9 @@
     "kvNummern": [
       "KV-2025-0177"
     ],
-    "kv": "KV-2025-0177"
+    "kv": "KV-2025-0177",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250179",
@@ -8390,7 +8696,9 @@
     "kvNummern": [
       "KV-2025-0179"
     ],
-    "kv": "KV-2025-0179"
+    "kv": "KV-2025-0179",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250180",
@@ -8455,7 +8763,9 @@
     "kvNummern": [
       "KV-2025-0180"
     ],
-    "kv": "KV-2025-0180"
+    "kv": "KV-2025-0180",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250185",
@@ -8508,7 +8818,9 @@
     "kvNummern": [
       "KV-2025-0185"
     ],
-    "kv": "KV-2025-0185"
+    "kv": "KV-2025-0185",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649065_KV20250186",
@@ -8561,7 +8873,9 @@
     "kvNummern": [
       "KV-2025-0186"
     ],
-    "kv": "KV-2025-0186"
+    "kv": "KV-2025-0186",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250187",
@@ -8581,7 +8895,9 @@
     "kvNummern": [
       "KV-2025-0187"
     ],
-    "kv": "KV-2025-0187"
+    "kv": "KV-2025-0187",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250189",
@@ -8634,7 +8950,9 @@
     "kvNummern": [
       "KV-2025-0189"
     ],
-    "kv": "KV-2025-0189"
+    "kv": "KV-2025-0189",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250190",
@@ -8687,7 +9005,9 @@
     "kvNummern": [
       "KV-2025-0190"
     ],
-    "kv": "KV-2025-0190"
+    "kv": "KV-2025-0190",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250191",
@@ -8740,7 +9060,9 @@
     "kvNummern": [
       "KV-2025-0191"
     ],
-    "kv": "KV-2025-0191"
+    "kv": "KV-2025-0191",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250192",
@@ -8793,7 +9115,9 @@
     "kvNummern": [
       "KV-2025-0192"
     ],
-    "kv": "KV-2025-0192"
+    "kv": "KV-2025-0192",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250196",
@@ -8813,7 +9137,9 @@
     "kvNummern": [
       "KV-2025-0196"
     ],
-    "kv": "KV-2025-0196"
+    "kv": "KV-2025-0196",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250197",
@@ -8866,7 +9192,9 @@
     "kvNummern": [
       "KV-2025-0197"
     ],
-    "kv": "KV-2025-0197"
+    "kv": "KV-2025-0197",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250198",
@@ -8886,7 +9214,9 @@
     "kvNummern": [
       "KV-2025-0198"
     ],
-    "kv": "KV-2025-0198"
+    "kv": "KV-2025-0198",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250199",
@@ -8939,7 +9269,9 @@
     "kvNummern": [
       "KV-2025-0199"
     ],
-    "kv": "KV-2025-0199"
+    "kv": "KV-2025-0199",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649067_KV20250200",
@@ -8992,7 +9324,9 @@
     "kvNummern": [
       "KV-2025-0200"
     ],
-    "kv": "KV-2025-0200"
+    "kv": "KV-2025-0200",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250202",
@@ -9045,7 +9379,9 @@
     "kvNummern": [
       "KV-2025-0202"
     ],
-    "kv": "KV-2025-0202"
+    "kv": "KV-2025-0202",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250203",
@@ -9098,7 +9434,9 @@
     "kvNummern": [
       "KV-2025-0203"
     ],
-    "kv": "KV-2025-0203"
+    "kv": "KV-2025-0203",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250204",
@@ -9151,7 +9489,9 @@
     "kvNummern": [
       "KV-2025-0204"
     ],
-    "kv": "KV-2025-0204"
+    "kv": "KV-2025-0204",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250206",
@@ -9204,7 +9544,9 @@
     "kvNummern": [
       "KV-2025-0206"
     ],
-    "kv": "KV-2025-0206"
+    "kv": "KV-2025-0206",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250212",
@@ -9257,7 +9599,9 @@
     "kvNummern": [
       "KV-2025-0212"
     ],
-    "kv": "KV-2025-0212"
+    "kv": "KV-2025-0212",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250214",
@@ -9310,7 +9654,9 @@
     "kvNummern": [
       "KV-2025-0214"
     ],
-    "kv": "KV-2025-0214"
+    "kv": "KV-2025-0214",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250216",
@@ -9363,7 +9709,9 @@
     "kvNummern": [
       "KV-2025-0216"
     ],
-    "kv": "KV-2025-0216"
+    "kv": "KV-2025-0216",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250219",
@@ -9416,7 +9764,9 @@
     "kvNummern": [
       "KV-2025-0219"
     ],
-    "kv": "KV-2025-0219"
+    "kv": "KV-2025-0219",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250220",
@@ -9469,7 +9819,9 @@
     "kvNummern": [
       "KV-2025-0220"
     ],
-    "kv": "KV-2025-0220"
+    "kv": "KV-2025-0220",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250221",
@@ -9522,7 +9874,9 @@
     "kvNummern": [
       "KV-2025-0221"
     ],
-    "kv": "KV-2025-0221"
+    "kv": "KV-2025-0221",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250222",
@@ -9575,7 +9929,9 @@
     "kvNummern": [
       "KV-2025-0222"
     ],
-    "kv": "KV-2025-0222"
+    "kv": "KV-2025-0222",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250226",
@@ -9628,7 +9984,9 @@
     "kvNummern": [
       "KV-2025-0226"
     ],
-    "kv": "KV-2025-0226"
+    "kv": "KV-2025-0226",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250228",
@@ -9681,7 +10039,9 @@
     "kvNummern": [
       "KV-2025-0228"
     ],
-    "kv": "KV-2025-0228"
+    "kv": "KV-2025-0228",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250229",
@@ -9734,7 +10094,9 @@
     "kvNummern": [
       "KV-2025-0229"
     ],
-    "kv": "KV-2025-0229"
+    "kv": "KV-2025-0229",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649068_KV20250230",
@@ -9787,7 +10149,9 @@
     "kvNummern": [
       "KV-2025-0230"
     ],
-    "kv": "KV-2025-0230"
+    "kv": "KV-2025-0230",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250232",
@@ -9840,7 +10204,9 @@
     "kvNummern": [
       "KV-2025-0232"
     ],
-    "kv": "KV-2025-0232"
+    "kv": "KV-2025-0232",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250234",
@@ -9893,7 +10259,9 @@
     "kvNummern": [
       "KV-2025-0234"
     ],
-    "kv": "KV-2025-0234"
+    "kv": "KV-2025-0234",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250235",
@@ -9946,7 +10314,9 @@
     "kvNummern": [
       "KV-2025-0235"
     ],
-    "kv": "KV-2025-0235"
+    "kv": "KV-2025-0235",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250236",
@@ -9999,7 +10369,9 @@
     "kvNummern": [
       "KV-2025-0236"
     ],
-    "kv": "KV-2025-0236"
+    "kv": "KV-2025-0236",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250238",
@@ -10052,7 +10424,9 @@
     "kvNummern": [
       "KV-2025-0238"
     ],
-    "kv": "KV-2025-0238"
+    "kv": "KV-2025-0238",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250239",
@@ -10105,7 +10479,9 @@
     "kvNummern": [
       "KV-2025-0239"
     ],
-    "kv": "KV-2025-0239"
+    "kv": "KV-2025-0239",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250240",
@@ -10170,7 +10546,9 @@
     "kvNummern": [
       "KV-2025-0240"
     ],
-    "kv": "KV-2025-0240"
+    "kv": "KV-2025-0240",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250242",
@@ -10223,7 +10601,9 @@
     "kvNummern": [
       "KV-2025-0242"
     ],
-    "kv": "KV-2025-0242"
+    "kv": "KV-2025-0242",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250243",
@@ -10276,7 +10656,9 @@
     "kvNummern": [
       "KV-2025-0243"
     ],
-    "kv": "KV-2025-0243"
+    "kv": "KV-2025-0243",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250244",
@@ -10329,7 +10711,9 @@
     "kvNummern": [
       "KV-2025-0244"
     ],
-    "kv": "KV-2025-0244"
+    "kv": "KV-2025-0244",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250245",
@@ -10382,7 +10766,9 @@
     "kvNummern": [
       "KV-2025-0245"
     ],
-    "kv": "KV-2025-0245"
+    "kv": "KV-2025-0245",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250248",
@@ -10435,7 +10821,9 @@
     "kvNummern": [
       "KV-2025-0248"
     ],
-    "kv": "KV-2025-0248"
+    "kv": "KV-2025-0248",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250251",
@@ -10488,7 +10876,9 @@
     "kvNummern": [
       "KV-2025-0251"
     ],
-    "kv": "KV-2025-0251"
+    "kv": "KV-2025-0251",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250254",
@@ -10508,7 +10898,9 @@
     "kvNummern": [
       "KV-2025-0254"
     ],
-    "kv": "KV-2025-0254"
+    "kv": "KV-2025-0254",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250259",
@@ -10528,7 +10920,9 @@
     "kvNummern": [
       "KV-2025-0259"
     ],
-    "kv": "KV-2025-0259"
+    "kv": "KV-2025-0259",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250262",
@@ -10549,7 +10943,9 @@
       "KV-2025-0262"
     ],
     "kv": "KV-2025-0262",
-    "modified": 1762771216620
+    "modified": 1762771216620,
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250263",
@@ -10569,7 +10965,9 @@
     "kvNummern": [
       "KV-2025-0263"
     ],
-    "kv": "KV-2025-0263"
+    "kv": "KV-2025-0263",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250264",
@@ -10589,7 +10987,9 @@
     "kvNummern": [
       "KV-2025-0264"
     ],
-    "kv": "KV-2025-0264"
+    "kv": "KV-2025-0264",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250265",
@@ -10609,7 +11009,9 @@
     "kvNummern": [
       "KV-2025-0265"
     ],
-    "kv": "KV-2025-0265"
+    "kv": "KV-2025-0265",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250266",
@@ -10629,7 +11031,9 @@
     "kvNummern": [
       "KV-2025-0266"
     ],
-    "kv": "KV-2025-0266"
+    "kv": "KV-2025-0266",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250270",
@@ -10650,7 +11054,9 @@
       "KV-2025-0270"
     ],
     "kv": "KV-2025-0270",
-    "modified": 1762772793365
+    "modified": 1762772793365,
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649069_KV20250272",
@@ -10670,7 +11076,9 @@
     "kvNummern": [
       "KV-2025-0272"
     ],
-    "kv": "KV-2025-0272"
+    "kv": "KV-2025-0272",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649070_KV20250275",
@@ -10690,7 +11098,9 @@
     "kvNummern": [
       "KV-2025-0275"
     ],
-    "kv": "KV-2025-0275"
+    "kv": "KV-2025-0275",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649070_KV20250280",
@@ -10710,7 +11120,9 @@
     "kvNummern": [
       "KV-2025-0280"
     ],
-    "kv": "KV-2025-0280"
+    "kv": "KV-2025-0280",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1761664649070_KV20250281",
@@ -10730,7 +11142,9 @@
     "kvNummern": [
       "KV-2025-0281"
     ],
-    "kv": "KV-2025-0281"
+    "kv": "KV-2025-0281",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744441_KV20250288",
@@ -10750,7 +11164,9 @@
     "kvNummern": [
       "KV-2025-0288"
     ],
-    "kv": "KV-2025-0288"
+    "kv": "KV-2025-0288",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744441_KV20250287",
@@ -10770,7 +11186,9 @@
     "kvNummern": [
       "KV-2025-0287"
     ],
-    "kv": "KV-2025-0287"
+    "kv": "KV-2025-0287",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744441_KV20250286",
@@ -10790,7 +11208,9 @@
     "kvNummern": [
       "KV-2025-0286"
     ],
-    "kv": "KV-2025-0286"
+    "kv": "KV-2025-0286",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744441_KV20250282",
@@ -10810,7 +11230,9 @@
     "kvNummern": [
       "KV-2025-0282"
     ],
-    "kv": "KV-2025-0282"
+    "kv": "KV-2025-0282",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744458_KV20250285",
@@ -10830,7 +11252,9 @@
     "kvNummern": [
       "KV-2025-0285"
     ],
-    "kv": "KV-2025-0285"
+    "kv": "KV-2025-0285",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744458_KV20250284",
@@ -10850,7 +11274,9 @@
     "kvNummern": [
       "KV-2025-0284"
     ],
-    "kv": "KV-2025-0284"
+    "kv": "KV-2025-0284",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744472_KV20250269",
@@ -10870,7 +11296,9 @@
     "kvNummern": [
       "KV-2025-0269"
     ],
-    "kv": "KV-2025-0269"
+    "kv": "KV-2025-0269",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744508_KV20250290",
@@ -10890,7 +11318,9 @@
     "kvNummern": [
       "KV-2025-0290"
     ],
-    "kv": "KV-2025-0290"
+    "kv": "KV-2025-0290",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772744995_KV20250283",
@@ -10910,7 +11340,9 @@
     "kvNummern": [
       "KV-2025-0283"
     ],
-    "kv": "KV-2025-0283"
+    "kv": "KV-2025-0283",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "entry_1762772745252_KV20250100",
@@ -10930,7 +11362,9 @@
     "kvNummern": [
       "KV-2025-0100"
     ],
-    "kv": "KV-2025-0100"
+    "kv": "KV-2025-0100",
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   },
   {
     "id": "hubspot_996ad1943751590f873e52b449e6eac5",
@@ -11026,78 +11460,8 @@
         "weight": 0
       }
     ],
-    "ts": 1763463171749
-  },
-  {
-    "id": "hubspot_84187c79499c2cba0365d2b06f313535",
-    "hubspotId": "49624657983",
-    "title": "FKE",
-    "amount": 500000,
-    "source": "hubspot",
-    "projectType": "fix",
-    "projectNumber": "test",
-    "client": "IMAP GmbH",
-    "submittedBy": "Merlin Klein",
-    "list": [
-      {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
-        "pct": 100,
-        "money": 500000
-      }
-    ],
-    "updatedAt": 1763556646008,
-    "marketTeam": "",
-    "market_team": "",
-    "businessUnit": "",
-    "assessmentOwner": "Merlin Klein",
-    "dockBuApproved": true,
-    "dockBuApprovedAt": 1763556705705,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null,
-    "dockPhase": 3,
-    "flagship_projekt": true,
-    "kvNummern": [
-      "test"
-    ],
-    "kv_nummer": "test",
-    "kv": "test",
-    "dockPhaseHistory": {
-      "1": 1763556646008,
-      "2": 1763556695572,
-      "3": 1763556705706
-    },
-    "freigabedatum": 1763510400000,
-    "modified": 1763556706810,
-    "complete": true,
-    "rows": [
-      {
-        "personId": "p_oe_head_02",
-        "name": "Merlin Klein",
-        "cs": 100,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "totals": {
-      "cs": 100,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 100
-      },
-      {
-        "key": "konzept",
-        "weight": 0
-      },
-      {
-        "key": "pitch",
-        "weight": 0
-      }
-    ],
-    "ts": 1763556692569
+    "ts": 1763463171749,
+    "dockRewardFactor": 1,
+    "dockRewardComment": ""
   }
 ]
