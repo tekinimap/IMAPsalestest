@@ -121,10 +121,10 @@ const DOCK_ASSIGNMENT_LABELS = {
 };
 
 const DOCK_WEIGHTING_STEPS = [
-  { value: 0.5, short: '0.5×', label: '0.5× Basic', description: 'Geringere Priorität oder kleineren Hebel' },
-  { value: 1, short: '1.0×', label: '1.0×', description: 'Normalfall ohne strategische Gewichtung' },
-  { value: 1.5, short: '1.5×', label: '1.5× Fokus', description: 'Hohe Relevanz für BU oder Portfolio' },
-  { value: 2, short: '2.0×', label: '2.0× Strategic', description: 'Flagship-Deal mit maximaler Hebelwirkung' },
+  { value: 0.5, short: '0,5×', label: 'Kalte Ausschreibung' },
+  { value: 1, short: '1,0×', label: 'Standard' },
+  { value: 1.5, short: '1,5×', label: '' },
+  { value: 2, short: '2,0×', label: 'KI Projekte, Privatwirtschaft' },
 ];
 const DOCK_WEIGHTING_DEFAULT = 1;
 const DOCK_WEIGHTING_COMMENT_LIMIT = 280;
@@ -195,7 +195,6 @@ let dockAutoAdvanceRunning = false;
 const dockAutoCheckQueue = new Map();
 const dockAutoCheckHistory = new Map();
 const dockConflictHints = new Map();
-const dockWeightDrafts = new Map();
 let dockBoardRerenderScheduled = false;
 let pendingDockAbrufAssignment = null;
 
@@ -259,149 +258,9 @@ function clampDockRewardFactor(value) {
   return Number(nearest);
 }
 
-function getDockWeightStepInfo(value) {
-  const snapped = clampDockRewardFactor(value);
-  return (
-    DOCK_WEIGHTING_STEPS.find((step) => Math.abs(step.value - snapped) < 0.001) || DOCK_WEIGHTING_STEPS[0]
-  );
-}
-
-function getDockWeightIndexForValue(value) {
-  const snapped = clampDockRewardFactor(value);
-  const index = DOCK_WEIGHTING_STEPS.findIndex((step) => Math.abs(step.value - snapped) < 0.001);
-  return index >= 0 ? index : 0;
-}
-
-function getDockWeightValueForIndex(index) {
-  const idx = Math.max(0, Math.min(DOCK_WEIGHTING_STEPS.length - 1, Number(index) || 0));
-  return DOCK_WEIGHTING_STEPS[idx].value;
-}
-
-function formatDockWeightLabel(value, options = {}) {
-  const info = getDockWeightStepInfo(value);
-  if (options.short) {
-    return info.short;
-  }
-  return info.label;
-}
-
-function formatDockWeightSummary(entry, factor) {
-  const amount = Number(entry?.amount);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return 'Gewichtung wirkt sich nur auf die Auswertung aus.';
-  }
-  const weighted = amount * factor;
-  return `${fmtCurr0.format(amount)} \u2192 ${fmtCurr0.format(weighted)}`;
-}
-
 function getEntryRewardFactor(entry) {
   if (!entry || typeof entry !== 'object') return DOCK_WEIGHTING_DEFAULT;
   return clampDockRewardFactor(entry.dockRewardFactor);
-}
-
-function getDockWeightUiState(entry, draftOverride) {
-  if (!entry) {
-    return {
-      value: DOCK_WEIGHTING_DEFAULT,
-      baseValue: DOCK_WEIGHTING_DEFAULT,
-      comment: '',
-      baseComment: '',
-      dirty: false,
-    };
-  }
-  const baseValue = getEntryRewardFactor(entry);
-  const baseComment = typeof entry.dockRewardComment === 'string' ? entry.dockRewardComment.trim() : '';
-  const draft = draftOverride ?? dockWeightDrafts.get(entry.id);
-  let value = baseValue;
-  if (draft && Object.prototype.hasOwnProperty.call(draft, 'value')) {
-    value = clampDockRewardFactor(draft.value);
-  }
-  let comment = baseComment;
-  if (draft && Object.prototype.hasOwnProperty.call(draft, 'comment')) {
-    comment = String(draft.comment ?? '').trim();
-  }
-  if (comment.length > DOCK_WEIGHTING_COMMENT_LIMIT) {
-    comment = comment.slice(0, DOCK_WEIGHTING_COMMENT_LIMIT);
-  }
-  const dirty = Math.abs(value - baseValue) > 0.001 || comment !== baseComment;
-  return { value, comment, baseValue, baseComment, dirty };
-}
-
-function applyDockWeightDraft(entry, changes = {}) {
-  if (!entry) return;
-  const currentDraft = dockWeightDrafts.get(entry.id) || {};
-  const nextDraft = { ...currentDraft };
-  if (Object.prototype.hasOwnProperty.call(changes, 'value')) {
-    nextDraft.value = clampDockRewardFactor(changes.value);
-  }
-  if (Object.prototype.hasOwnProperty.call(changes, 'comment')) {
-    const comment = String(changes.comment ?? '').trim();
-    nextDraft.comment = comment.slice(0, DOCK_WEIGHTING_COMMENT_LIMIT);
-  }
-  const state = getDockWeightUiState(entry, nextDraft);
-  if (state.dirty) {
-    dockWeightDrafts.set(entry.id, { value: state.value, comment: state.comment });
-  } else {
-    dockWeightDrafts.delete(entry.id);
-  }
-  updateDockWeightUi(entry.id);
-}
-
-function updateDockWeightUi(entryId) {
-  if (!dockBoardEl || !entryId) return;
-  const entry = findEntryById(entryId);
-  if (!entry) {
-    dockWeightDrafts.delete(entryId);
-    return;
-  }
-  const state = getDockWeightUiState(entry);
-  const scope = dockBoardEl;
-  const valueEl = scope.querySelector(`[data-dock-weight-display="${entryId}"]`);
-  if (valueEl) {
-    valueEl.textContent = formatDockWeightLabel(state.value);
-  }
-  const descEl = scope.querySelector(`[data-dock-weight-description="${entryId}"]`);
-  if (descEl) {
-    descEl.textContent = getDockWeightStepInfo(state.value).description;
-  }
-  const previewEl = scope.querySelector(`[data-dock-weight-preview="${entryId}"]`);
-  if (previewEl) {
-    previewEl.textContent = formatDockWeightSummary(entry, state.value);
-  }
-  const commentEl = scope.querySelector(`[data-dock-weight-comment="${entryId}"]`);
-  if (commentEl) {
-    commentEl.textContent = state.comment || 'Keine Notiz hinterlegt';
-    commentEl.classList.toggle('empty', !state.comment);
-  }
-  const statusEl = scope.querySelector(`[data-dock-weight-status="${entryId}"]`);
-  if (statusEl) {
-    statusEl.textContent = state.dirty ? 'Nicht gespeichert' : 'Gespeichert';
-  }
-  const noteBtn = scope.querySelector(`[data-dock-weight-note-btn="${entryId}"]`);
-  if (noteBtn) {
-    noteBtn.textContent = state.comment ? 'Notiz bearbeiten' : 'Notiz hinzuf\u00fcgen';
-  }
-  const saveBtn = scope.querySelector(`button[data-dock-act="weight-save"][data-id="${entryId}"]`);
-  if (saveBtn) {
-    saveBtn.disabled = !state.dirty;
-  }
-  const slider = scope.querySelector(`input[data-dock-weight-slider][data-id="${entryId}"]`);
-  if (slider) {
-    slider.value = String(getDockWeightIndexForValue(state.value));
-  }
-  const panel = scope.querySelector(`.dock-weight-panel[data-entry-id="${entryId}"]`);
-  if (panel) {
-    panel.classList.toggle('is-dirty', state.dirty);
-  }
-  const pill = scope.querySelector(`[data-dock-weight-pill="${entryId}"]`);
-  if (pill) {
-    pill.textContent = formatDockWeightLabel(state.value, { short: true });
-    pill.setAttribute('title', formatDockWeightLabel(state.value));
-  }
-  const summaryEl = scope.querySelector(`[data-dock-weight-summary="${entryId}"]`);
-  if (summaryEl) {
-    summaryEl.textContent = formatDockWeightSummary(entry, state.value);
-  }
 }
 
 function ensureDockBoard() {
@@ -1271,7 +1130,6 @@ function buildDockCard(item) {
   const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint, isFlagship } = item;
   const card = createDockElement('article', { className: 'dock-card' });
   card.dataset.entryId = entry.id;
-  const weightState = getDockWeightUiState(entry);
 
   const header = createDockElement('div', { className: 'dock-card-header' });
   const headline = createDockElement('div', { className: 'dock-card-headline' });
@@ -1344,10 +1202,6 @@ function buildDockCard(item) {
     card.appendChild(hintEl);
   }
 
-  if (phase >= 2) {
-    card.appendChild(buildDockWeightPanel(entry, { editable: phase === 2 }));
-  }
-
   const footer = createDockElement('div', { className: 'dock-card-footer' });
 
   if (phase === 2) {
@@ -1401,113 +1255,6 @@ function buildDockCard(item) {
   return card;
 }
 
-function buildDockWeightPanel(entry, options = {}) {
-  const { editable = false } = options;
-  const state = getDockWeightUiState(entry);
-  const info = getDockWeightStepInfo(state.value);
-  const panelClasses = ['dock-weight-panel'];
-  if (state.dirty) {
-    panelClasses.push('is-dirty');
-  }
-  if (!editable) {
-    panelClasses.push('is-readonly');
-  }
-  const panel = createDockElement('section', {
-    className: panelClasses.join(' '),
-    dataset: { entryId: entry.id },
-  });
-
-  const header = createDockElement('div', { className: 'dock-weight-header' });
-  header.appendChild(createDockElement('span', { className: 'dock-weight-title', text: 'Strategische Gewichtung' }));
-  header.appendChild(
-    createDockElement('span', {
-      className: 'dock-weight-value',
-      text: formatDockWeightLabel(state.value),
-      dataset: { dockWeightDisplay: entry.id },
-    })
-  );
-  panel.appendChild(header);
-
-  panel.appendChild(
-    createDockElement('p', {
-      className: 'dock-weight-description',
-      text: info.description,
-      dataset: { dockWeightDescription: entry.id },
-    })
-  );
-
-  if (editable) {
-    const sliderWrap = createDockElement('div', { className: 'dock-weight-slider-wrap compact' });
-    const slider = createDockElement('input', {
-      className: 'dock-weight-slider',
-      attrs: {
-        type: 'range',
-        min: '0',
-        max: String(DOCK_WEIGHTING_STEPS.length - 1),
-        step: '1',
-        'aria-label': 'Strategische Gewichtung',
-      },
-      dataset: { dockWeightSlider: entry.id },
-    });
-    slider.value = String(getDockWeightIndexForValue(state.value));
-    sliderWrap.appendChild(slider);
-
-    const scale = createDockElement('div', { className: 'dock-weight-scale' });
-    DOCK_WEIGHTING_STEPS.forEach((step) => {
-      scale.appendChild(createDockElement('span', { className: 'dock-weight-scale-label', text: step.short }));
-    });
-    sliderWrap.appendChild(scale);
-    panel.appendChild(sliderWrap);
-  }
-
-  const commentRow = createDockElement('div', { className: 'dock-weight-comment-row' });
-  commentRow.appendChild(
-    createDockElement('span', {
-      className: `dock-weight-comment${state.comment ? '' : ' empty'}`,
-      text: state.comment || 'Keine Notiz hinterlegt',
-      dataset: { dockWeightComment: entry.id },
-    })
-  );
-  panel.appendChild(commentRow);
-
-  if (editable) {
-    const actions = createDockElement('div', { className: 'dock-weight-actions compact' });
-
-    // Note button
-    actions.appendChild(
-      createDockElement('button', {
-        className: 'btn tight',
-        text: state.comment ? 'Notiz bearbeiten' : 'Notiz',
-        attrs: { type: 'button' },
-        dataset: { dockAct: 'weight-note', id: entry.id, dockWeightNoteBtn: entry.id },
-      })
-    );
-
-    // Save button
-    const saveBtn = createDockElement('button', {
-      className: 'btn ok tight',
-      text: 'Speichern',
-      attrs: { type: 'button' },
-      dataset: { dockAct: 'weight-save', id: entry.id },
-    });
-    if (!state.dirty) {
-      saveBtn.disabled = true;
-    }
-    actions.appendChild(saveBtn);
-    panel.appendChild(actions);
-  } else {
-    panel.appendChild(
-      createDockElement('div', {
-        className: 'dock-weight-summary',
-        text: formatDockWeightSummary(entry, state.value),
-        dataset: { dockWeightSummary: entry.id },
-      })
-    );
-  }
-
-  return panel;
-}
-
 async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.', options = {}) {
   const { silent = false } = options;
   const updates = { ...extra };
@@ -1536,54 +1283,6 @@ async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 
   await loadHistory(silent);
 }
 
-async function persistDockWeight(entry, triggerButton) {
-  if (!entry) return;
-  const state = getDockWeightUiState(entry);
-  if (!state.dirty) {
-    showToast('Keine Änderungen zum Speichern.', 'warn');
-    return;
-  }
-  const payload = {
-    dockRewardFactor: state.value,
-    dockRewardComment: state.comment,
-  };
-  try {
-    if (triggerButton) {
-      triggerButton.disabled = true;
-      triggerButton.classList.add('disabled');
-    }
-    showLoader();
-    const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || 'Unbekannter Fehler');
-    }
-    const updatedEntry = await response.json().catch(() => null);
-    if (updatedEntry && updatedEntry.id) {
-      upsertEntry(updatedEntry);
-      requestDockBoardRerender();
-    } else {
-      await loadHistory(true);
-    }
-    dockWeightDrafts.delete(entry.id);
-    showToast('Gewichtung gespeichert.', 'ok');
-  } catch (err) {
-    console.error('Gewichtung konnte nicht gespeichert werden', err);
-    showToast('Gewichtung konnte nicht gespeichert werden.', 'bad');
-  } finally {
-    hideLoader();
-    if (triggerButton) {
-      triggerButton.disabled = false;
-      triggerButton.classList.remove('disabled');
-    }
-    updateDockWeightUi(entry.id);
-  }
-}
-
 function handleDockBoardClick(event) {
   const button = event.target.closest('button[data-dock-act]');
   if (button) {
@@ -1597,6 +1296,8 @@ function handleDockBoardClick(event) {
 
     const entry = findEntryById(id);
     if (!entry) return;
+    const rewardFactor = getEntryRewardFactor(entry);
+    const rewardComment = typeof entry.dockRewardComment === 'string' ? entry.dockRewardComment.trim() : '';
 
     if (action === 'hint-assign-framework') {
       const hint = dockConflictHints.get(id);
@@ -1624,18 +1325,6 @@ function handleDockBoardClick(event) {
       return;
     }
 
-    if (action === 'weight-note') {
-      const next = prompt('Strategische Notiz (optional)', weightState.comment || '');
-      if (next === null) return;
-      applyDockWeightDraft(entry, { comment: next });
-      return;
-    }
-
-    if (action === 'weight-save') {
-      persistDockWeight(entry, button);
-      return;
-    }
-
     const runUpdate = async (targetPhase, extra, message) => {
       let success = false;
       try {
@@ -1658,14 +1347,10 @@ function handleDockBoardClick(event) {
       const payload = {
         dockBuApproved: true,
         dockBuApprovedAt: Date.now(),
-        dockRewardFactor: weightState.value,
-        dockRewardComment: weightState.comment,
+        dockRewardFactor: rewardFactor,
+        dockRewardComment: rewardComment,
       };
-      runUpdate(3, payload, 'Freigabe erfasst.').then((ok) => {
-        if (ok) {
-          dockWeightDrafts.delete(entry.id);
-        }
-      });
+      runUpdate(3, payload, 'Freigabe erfasst.');
     } else if (action === 'assign') {
       const target = button.dataset.targetAssignment;
       if (!target) return;
@@ -1683,18 +1368,14 @@ function handleDockBoardClick(event) {
       const payload = {
         dockFinalAssignment: target,
         dockFinalAssignmentAt: Date.now(),
-        dockRewardFactor: weightState.value,
-        dockRewardComment: weightState.comment,
+        dockRewardFactor: rewardFactor,
+        dockRewardComment: rewardComment,
       };
       if (target === 'rahmen') {
         payload.projectType = 'rahmen';
       }
       queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-      runUpdate(3, payload, message).then((ok) => {
-        if (ok) {
-          dockWeightDrafts.delete(entry.id);
-        }
-      });
+      runUpdate(3, payload, message);
     }
     return;
   }
@@ -1702,9 +1383,6 @@ function handleDockBoardClick(event) {
   const card = event.target.closest('.dock-card');
   if (!card) return;
   if (event.target.closest('.dock-card-select')) {
-    return;
-  }
-  if (event.target.closest('.dock-weight-panel')) {
     return;
   }
 
@@ -1716,18 +1394,6 @@ function handleDockBoardClick(event) {
 ensureDockBoard();
 if (dockBoardEl) {
   dockBoardEl.addEventListener('click', handleDockBoardClick);
-  dockBoardEl.addEventListener('input', (event) => {
-    const slider = event.target.closest('input[data-dock-weight-slider]');
-    if (!slider) return;
-    event.stopPropagation();
-    const { id } = slider.dataset;
-    if (!id) return;
-    const entry = findEntryById(id);
-    if (!entry) return;
-    const weightState = getDockWeightUiState(entry);
-    const nextValue = getDockWeightValueForIndex(Number(slider.value));
-    applyDockWeightDraft(entry, { value: nextValue });
-  });
   dockBoardEl.addEventListener('change', (event) => {
     const checkbox = event.target.closest('input[data-dock-select]');
     if (!checkbox) return;
@@ -2019,6 +1685,29 @@ const w_pitch = document.getElementById('w_pitch');
 const w_note = document.getElementById('w_note');
 const btnAddRow = document.getElementById('btnAddRow');
 const btnSave = document.getElementById('btnSave');
+const weightingFactorInputs = document.querySelectorAll('input[name="weightingFactor"]');
+
+function getSelectedWeightingFactor() {
+  const selected = document.querySelector('input[name="weightingFactor"]:checked');
+  const numeric = selected ? parseFloat(selected.value) : NaN;
+  return Number.isFinite(numeric) ? clampDockRewardFactor(numeric) : DOCK_WEIGHTING_DEFAULT;
+}
+
+function setSelectedWeightingFactor(value) {
+  const targetValue = clampDockRewardFactor(value);
+  let applied = false;
+  weightingFactorInputs.forEach((input) => {
+    const numeric = parseFloat(input.value);
+    if (!applied && Math.abs(numeric - targetValue) < 0.001) {
+      input.checked = true;
+      applied = true;
+    }
+  });
+  if (!applied) {
+    const fallback = document.querySelector('input[name="weightingFactor"][value="1.0"]') || weightingFactorInputs[0];
+    if (fallback) fallback.checked = true;
+  }
+}
 
 function renderInlineHint(el, message, severity = 'info') {
   if (!el) return;
@@ -2155,7 +1844,6 @@ function updateLiveResults(resultList) {
 
 function saveCurrentInputState() {
   const stPrev = loadState() || {};
-  const weightingFactorSelect = document.getElementById('weightingFactor');
   const currentInput = {
     client: auftraggeber.value.trim(),
     title: projekttitel.value.trim(),
@@ -2168,7 +1856,7 @@ function saveCurrentInputState() {
     projectNumber: projectNumber.value.trim(),
     kvNummer: kvNummer.value.trim(),
     freigabedatum: freigabedatum.value || '',
-    dockRewardFactor: weightingFactorSelect ? parseFloat(weightingFactorSelect.value) : 1.0
+    dockRewardFactor: getSelectedWeightingFactor(),
   };
   saveState({ ...stPrev, input: currentInput });
 }
@@ -2310,6 +1998,14 @@ if (freigabedatum) {
   freigabedatum.addEventListener('change', updateMetaSummary);
 }
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
+if (weightingFactorInputs.length) {
+  weightingFactorInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      setHasUnsavedChanges(true);
+      saveCurrentInputState();
+    });
+  });
+}
 auftragswertBekannt.addEventListener('change', () => {
   auftragswert.disabled = !auftragswertBekannt.checked;
   if (!auftragswertBekannt.checked) auftragswert.value = '';
@@ -2565,12 +2261,8 @@ function loadInputForm(inputData, isEditing = false) {
     });
   } else { addRow(true); addRow(false); }
 
-  // Load weighting factor
-  const weightingFactorSelect = document.getElementById('weightingFactor');
-  if (weightingFactorSelect) {
-    const factor = inputData.dockRewardFactor || 1.0;
-    weightingFactorSelect.value = String(factor);
-  }
+  const factor = inputData.dockRewardFactor || 1.0;
+  setSelectedWeightingFactor(factor);
 
   setHasUnsavedChanges(false);
   recalc();
@@ -4437,6 +4129,54 @@ const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 let analyticsData = { persons: [], teams: [], totals: [] };
 let trendData = null;
 
+function renderSalesContributionSummary(hostOrId, actualValue, weightedValue) {
+  const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
+  if (!host) return;
+  const actual = Math.max(0, Number(actualValue) || 0);
+  const weighted = Math.max(0, Number(weightedValue) || 0);
+  host.innerHTML = '';
+  if (actual === 0 && weighted === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'log-metrics-empty';
+    empty.textContent = 'Keine Daten verfügbar.';
+    host.appendChild(empty);
+    return;
+  }
+  const maxValue = Math.max(actual, weighted) || 1;
+  const fragment = document.createDocumentFragment();
+  const bars = [
+    { key: 'actual', label: 'Tatsächlicher Salesbeitrag', value: actual },
+    { key: 'weighted', label: 'Gewichteter Salesbeitrag', value: weighted },
+  ];
+  bars.forEach((bar) => {
+    const row = document.createElement('div');
+    row.className = 'sales-summary-row';
+    const label = document.createElement('span');
+    label.className = 'sales-summary-label';
+    label.textContent = bar.label;
+    const track = document.createElement('div');
+    track.className = 'sales-summary-track';
+    const fill = document.createElement('div');
+    fill.className = `sales-summary-fill sales-${bar.key}`;
+    const widthPct = (bar.value / maxValue) * 100;
+    fill.style.width = `${widthPct}%`;
+    const amount = document.createElement('span');
+    amount.className = `sales-summary-amount sales-${bar.key}`;
+    amount.textContent = fmtCurr0.format(bar.value);
+    track.append(fill, amount);
+    row.append(label, track);
+    fragment.appendChild(row);
+  });
+  const legend = document.createElement('div');
+  legend.className = 'sales-summary-legend';
+  legend.innerHTML = `
+    <span><span class="legend-dot legend-actual"></span>Tatsächlicher Salesbeitrag</span>
+    <span><span class="legend-dot legend-weighted"></span>Gewichteter Salesbeitrag</span>
+  `;
+  fragment.appendChild(legend);
+  host.appendChild(fragment);
+}
+
 // Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
   try {
@@ -4530,8 +4270,13 @@ function renderAnalytics() {
     { name: 'Rahmenverträge', actual: rahmenTotal, weighted: rahmenWeightedTotal },
     { name: 'Gesamt', actual: fixTotal + rahmenTotal, weighted: fixWeightedTotal + rahmenWeightedTotal },
   ].filter((item) => item.actual > 0 || item.weighted > 0);
+  renderSalesContributionSummary('salesContributionSummary', fixTotal + rahmenTotal, fixWeightedTotal + rahmenWeightedTotal);
   drawComparisonBars('chartTotals', totalArr);
   analyticsData.totals = totalArr;
+  analyticsData.salesSummary = {
+    actual: fixTotal + rahmenTotal,
+    weighted: fixWeightedTotal + rahmenWeightedTotal,
+  };
 }
 
 // Zeitintervall-basierte Aktivität der Rahmenverträge
@@ -5758,51 +5503,3 @@ document.addEventListener('keydown', (e) => {
 
 // --- Weighting Feature Event Listeners ---
 
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-dock-act]');
-  if (!btn) return;
-
-  const act = btn.dataset.dockAct;
-  const id = btn.dataset.id;
-  if (!act || !id) return;
-
-  const entry = getEntries().find((e) => e.id === id);
-  if (!entry) return;
-
-  if (act === 'weight-save') {
-    persistDockWeight(entry, btn);
-  } else if (act === 'weight-note') {
-    const state = getDockWeightUiState(entry);
-    const newComment = prompt('Notiz zur Gewichtung:', state.comment || '');
-    if (newComment !== null) {
-      let draft = dockWeightDrafts.get(entry.id);
-      if (!draft) {
-        draft = { value: state.value };
-        dockWeightDrafts.set(entry.id, draft);
-      }
-      draft.comment = newComment;
-      updateDockWeightUi(entry.id);
-    }
-  }
-});
-
-document.addEventListener('input', (e) => {
-  if (e.target.matches('[data-dock-weight-slider]')) {
-    const id = e.target.dataset.dockWeightSlider;
-    const entry = getEntries().find((e) => e.id === id);
-    if (!entry) return;
-
-    const index = parseInt(e.target.value, 10);
-    const value = getDockWeightValueForIndex(index);
-
-    let draft = dockWeightDrafts.get(entry.id);
-    if (!draft) {
-      // Preserve existing comment if starting a new draft
-      const currentState = getDockWeightUiState(entry);
-      draft = { comment: currentState.comment };
-      dockWeightDrafts.set(entry.id, draft);
-    }
-    draft.value = value;
-    updateDockWeightUi(entry.id);
-  }
-});

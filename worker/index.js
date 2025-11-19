@@ -1761,6 +1761,7 @@ export function upsertByHubSpotId(entries, deal) {
   const companyName = deal?.properties?.fetched_company_name || "";
   const ownerName = deal?.properties?.fetched_owner_name || "";
   const collaboratorNames = deal?.properties?.fetched_collaborator_names || [];
+  const closeDate = toEpochMillis(deal?.properties?.closedate);
 
   const kvList = kvListFrom(deal?.properties);
   const projectNumber = normalizeString(firstNonEmpty(
@@ -1855,6 +1856,7 @@ export function upsertByHubSpotId(entries, deal) {
     dockFinalAssignmentAt: previousEntry?.dockFinalAssignmentAt || null,
     dockPhase: previousEntry?.dockPhase,
     flagship_projekt: flagshipProjekt,
+    freigabedatum: closeDate != null ? closeDate : previousEntry?.freigabedatum || null,
   };
 
   if (projectNumber) {
