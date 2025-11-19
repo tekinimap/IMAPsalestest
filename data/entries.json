@@ -11463,5 +11463,49 @@
     "ts": 1763463171749,
     "dockRewardFactor": 1,
     "dockRewardComment": ""
+  },
+  {
+    "id": "hubspot_f0ac0014cc8d4286e4aaed4b8e78ab51",
+    "hubspotId": "49624657983",
+    "title": "FKE",
+    "amount": 500000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Merlin Klein",
+    "list": [
+      {
+        "key": "hubspot_user_Merlin Klein",
+        "name": "Merlin Klein",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Jens Maaßen",
+        "name": "Jens Maaßen",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1763557561400,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Merlin Klein",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": true,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1763557561400
+    }
   }
 ]
