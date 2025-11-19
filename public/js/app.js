@@ -1857,30 +1857,30 @@ document.addEventListener('click', (event) => {
 
 function showView(viewName) {
   if (getIsBatchRunning()) {
-      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-      return;
+    showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+    return;
   }
   Object.values(views).forEach(v => v.classList.add('hide'));
   navLinks.forEach(l => l.classList.remove('active'));
   hideBatchProgress();
-  
+
   if (views[viewName]) {
     views[viewName].classList.remove('hide');
     const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
     if (activeLink) activeLink.classList.add('active');
   }
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
 }
 
 navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     if (getIsBatchRunning()) {
-        showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-        return;
+      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
+      return;
     }
     const viewName = e.target.getAttribute('data-view');
-    
+
     if (viewName === 'fixauftraege') {
       loadHistory().then(() => showView('fixauftraege'));
     } else if (viewName === 'rahmen') {
@@ -1928,8 +1928,8 @@ async function handleAdminClick() {
   } catch (e) {
     console.error('Admin init failed', e);
     showToast('Konnte Admin-Daten nicht laden.', 'bad');
-  } finally { 
-    hideLoader(); 
+  } finally {
+    hideLoader();
   }
 }
 
@@ -1968,14 +1968,14 @@ async function loadSession() {
   }
   updateRecognizedPersonFromPeople();
 }
-async function loadPeople(){
+async function loadPeople() {
   showLoader();
-  try{
+  try {
     // ##### KORREKTUR 2/3 #####
-    const r=await fetchWithRetry(`${WORKER_BASE}/people`, { cache: 'no-store' });
-    people = r.ok? await r.json(): [];
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`, { cache: 'no-store' });
+    people = r.ok ? await r.json() : [];
   }
-  catch{ people=[]; showToast('Personenliste konnte nicht geladen werden.', 'bad');}
+  catch { people = []; showToast('Personenliste konnte nicht geladen werden.', 'bad'); }
   finally { hideLoader(); }
   people = Array.isArray(people) ? people.map((person) => {
     const normalized = { ...person };
@@ -1984,20 +1984,20 @@ async function loadPeople(){
     }
     return normalized;
   }) : [];
-  people.sort((a,b)=>{ const lastA=(a.name||'').split(' ').pop(); const lastB=(b.name||'').split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
+  people.sort((a, b) => { const lastA = (a.name || '').split(' ').pop(); const lastB = (b.name || '').split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
 
-  if (peopleList){
-    peopleList.innerHTML='';
-    people.forEach(p=>{
+  if (peopleList) {
+    peopleList.innerHTML = '';
+    people.forEach(p => {
       const o = document.createElement('option');
-      o.value=p.name;
+      o.value = p.name;
       peopleList.appendChild(o);
     });
   }
   updateRecognizedPersonFromPeople();
 }
-function findPersonByName(name){ return people.find(p=>p.name && p.name.toLowerCase()===String(name||'').toLowerCase()); }
-function findPersonByEmail(email){
+function findPersonByName(name) { return people.find(p => p.name && p.name.toLowerCase() === String(name || '').toLowerCase()); }
+function findPersonByEmail(email) {
   const target = String(email || '').trim().toLowerCase();
   if (!target) return undefined;
   return people.find((person) => String(person?.email || '').trim().toLowerCase() === target);
@@ -2010,7 +2010,7 @@ const auftraggeber = document.getElementById('auftraggeber');
 const projekttitel = document.getElementById('projekttitel');
 const auftragswert = document.getElementById('auftragswert');
 const auftragswertBekannt = document.getElementById('auftragswertBekannt');
-const submittedBy  = document.getElementById('submittedBy');
+const submittedBy = document.getElementById('submittedBy');
 const projectNumber = document.getElementById('projectNumber');
 const kvNummer = document.getElementById('kvNummer');
 const freigabedatum = document.getElementById('freigabedatum');
@@ -2061,77 +2061,77 @@ function addRow(focus = false) {
     findPersonByName,
   });
 }
-function totals(rows){ return rows.reduce((a,r)=>{a.cs+=r.cs;a.konzept+=r.konzept;a.pitch+=r.pitch;return a;},{cs:0,konzept:0,pitch:0}); }
-function renderChips(t){
-  sumchips.innerHTML='';
-  [["cs","Consultative Selling"],["konzept","Konzepterstellung"],["pitch","Pitch"]].forEach(([k,label])=>{
-    const x=t[k]; const div=document.createElement('div');div.className='chip';
-    const dot=document.createElement('span');dot.className='dot';
-    const txt=document.createElement('span');txt.innerHTML=`<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
-    if(x===0 || x===100) div.classList.add('ok'); else if(x>100) div.classList.add('bad'); else div.classList.add('warn');
-    div.appendChild(dot);div.appendChild(txt);sumchips.appendChild(div);
+function totals(rows) { return rows.reduce((a, r) => { a.cs += r.cs; a.konzept += r.konzept; a.pitch += r.pitch; return a; }, { cs: 0, konzept: 0, pitch: 0 }); }
+function renderChips(t) {
+  sumchips.innerHTML = '';
+  [["cs", "Consultative Selling"], ["konzept", "Konzepterstellung"], ["pitch", "Pitch"]].forEach(([k, label]) => {
+    const x = t[k]; const div = document.createElement('div'); div.className = 'chip';
+    const dot = document.createElement('span'); dot.className = 'dot';
+    const txt = document.createElement('span'); txt.innerHTML = `<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
+    if (x === 0 || x === 100) div.classList.add('ok'); else if (x > 100) div.classList.add('bad'); else div.classList.add('warn');
+    div.appendChild(dot); div.appendChild(txt); sumchips.appendChild(div);
   });
 }
-function currentWeights(){return[{key:'cs',weight:clamp01(toInt0(w_cs.value))},{key:'konzept',weight:clamp01(toInt0(w_konzept.value))},{key:'pitch',weight:clamp01(toInt0(w_pitch.value))}]}
-function updateWeightNote(){const ws=currentWeights();const sum=ws.reduce((a,c)=>a+Number(c.weight||0),0);w_note.textContent=`Summe Gewichte: ${sum} %`;}
+function currentWeights() { return [{ key: 'cs', weight: clamp01(toInt0(w_cs.value)) }, { key: 'konzept', weight: clamp01(toInt0(w_konzept.value)) }, { key: 'pitch', weight: clamp01(toInt0(w_pitch.value)) }] }
+function updateWeightNote() { const ws = currentWeights(); const sum = ws.reduce((a, c) => a + Number(c.weight || 0), 0); w_note.textContent = `Summe Gewichte: ${sum} %`; }
 
 function validateInput(forLive = false) {
-    const errors = {};
-    const st = loadState() || {};
-    if (!forLive) {
-        if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
-        if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
-        if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
-        
-        if (st.isAbrufMode && !kvNummer.value.trim()) {
-            errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
-        }
+  const errors = {};
+  const st = loadState() || {};
+  if (!forLive) {
+    if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
+    if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
+    if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
 
-        if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
-        if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
+    if (st.isAbrufMode && !kvNummer.value.trim()) {
+      errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
     }
 
-    const t = totals(readRows());
-    const weights = currentWeights();
-    let categoryErrors = [];
-    weights.forEach(w => {
-        if (forLive) {
-            if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
-        } else {
-            if (w.weight > 0 && t[w.key] !== 100) {
-                categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
-            }
-            if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
-                 categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
-            }
-        }
-    });
-    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+    if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
+    if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
+  }
 
-    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
-    if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
-    if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
-    
-    return errors;
+  const t = totals(readRows());
+  const weights = currentWeights();
+  let categoryErrors = [];
+  weights.forEach(w => {
+    if (forLive) {
+      if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
+    } else {
+      if (w.weight > 0 && t[w.key] !== 100) {
+        categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+      }
+      if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+        categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+      }
+    }
+  });
+  if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+
+  const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+  if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+  if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+
+  return errors;
 }
 
-function clearValidation(){
-    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-    document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
+function clearValidation() {
+  document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+  document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
 }
 
-function displayValidation(errors){
-    clearValidation();
-    Object.keys(errors).forEach(key => {
-        const el = document.querySelector(`[data-validation-for="${key}"]`);
-        if (el) el.textContent = errors[key];
-        
-        const input = document.getElementById(key);
-        if(input) input.classList.add('invalid-field');
-    });
+function displayValidation(errors) {
+  clearValidation();
+  Object.keys(errors).forEach(key => {
+    const el = document.querySelector(`[data-validation-for="${key}"]`);
+    if (el) el.textContent = errors[key];
+
+    const input = document.getElementById(key);
+    if (input) input.classList.add('invalid-field');
+  });
 }
 
-function recalc(){
+function recalc() {
   const liveErrors = validateInput(true);
   const liveAmount = parseAmountInput(auftragswert.value);
   if (Object.keys(liveErrors).length === 0) {
@@ -2140,17 +2140,17 @@ function recalc(){
   } else {
     updateLiveResults([]);
   }
-  
+
   const finalErrors = validateInput(false);
   displayValidation(finalErrors);
   renderChips(totals(readRows()));
 
-  if (Object.keys(finalErrors).length === 0) { 
-    btnSave.classList.remove('disabled'); 
-    btnSave.removeAttribute('aria-disabled'); 
-  } else { 
-    btnSave.classList.add('disabled'); 
-    btnSave.setAttribute('aria-disabled', 'true'); 
+  if (Object.keys(finalErrors).length === 0) {
+    btnSave.classList.remove('disabled');
+    btnSave.removeAttribute('aria-disabled');
+  } else {
+    btnSave.classList.add('disabled');
+    btnSave.setAttribute('aria-disabled', 'true');
   }
 }
 
@@ -2177,178 +2177,178 @@ function updateLiveResults(resultList) {
 }
 
 function saveCurrentInputState() {
-    const stPrev = loadState() || {};
-    const currentInput = {
-        client: auftraggeber.value.trim(),
-        title: projekttitel.value.trim(),
-        amount: parseAmountInput(auftragswert.value),
-        amountKnown: auftragswertBekannt.checked,
-        projectType: document.querySelector('input[name="projectType"]:checked').value,
-        rows: readRows(),
-        weights: currentWeights(),
-        submittedBy: submittedBy.value,
-        projectNumber: projectNumber.value.trim(),
-        kvNummer: kvNummer.value.trim(),
-        freigabedatum: freigabedatum.value || ''
-    };
-    saveState({ ...stPrev, input: currentInput });
+  const stPrev = loadState() || {};
+  const currentInput = {
+    client: auftraggeber.value.trim(),
+    title: projekttitel.value.trim(),
+    amount: parseAmountInput(auftragswert.value),
+    amountKnown: auftragswertBekannt.checked,
+    projectType: document.querySelector('input[name="projectType"]:checked').value,
+    rows: readRows(),
+    weights: currentWeights(),
+    submittedBy: submittedBy.value,
+    projectNumber: projectNumber.value.trim(),
+    kvNummer: kvNummer.value.trim(),
+    freigabedatum: freigabedatum.value || ''
+  };
+  saveState({ ...stPrev, input: currentInput });
 }
 
 function updateMetaSummary() {
-    if (!metaSummaryFields) return;
-    const pn = projectNumber?.value.trim();
-    const kv = kvNummer?.value.trim();
-    const dateValue = freigabedatum?.value;
-    metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
-    metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
-    metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDateDisplay(dateValue) : '–';
+  if (!metaSummaryFields) return;
+  const pn = projectNumber?.value.trim();
+  const kv = kvNummer?.value.trim();
+  const dateValue = freigabedatum?.value;
+  metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
+  metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
+  metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDateDisplay(dateValue) : '–';
 }
 
 function applyMetaDisabledState(forceDisabled = false) {
-    if (!projectNumber || !kvNummer || !freigabedatum) return;
-    if (forceDisabled) {
-        projectNumber.disabled = true;
-        kvNummer.disabled = true;
-        freigabedatum.disabled = true;
-    } else {
-        projectNumber.disabled = !!metaBaseDisabledState.projectNumber;
-        kvNummer.disabled = !!metaBaseDisabledState.kvNummer;
-        freigabedatum.disabled = !!metaBaseDisabledState.freigabedatum;
-    }
+  if (!projectNumber || !kvNummer || !freigabedatum) return;
+  if (forceDisabled) {
+    projectNumber.disabled = true;
+    kvNummer.disabled = true;
+    freigabedatum.disabled = true;
+  } else {
+    projectNumber.disabled = !!metaBaseDisabledState.projectNumber;
+    kvNummer.disabled = !!metaBaseDisabledState.kvNummer;
+    freigabedatum.disabled = !!metaBaseDisabledState.freigabedatum;
+  }
 }
 
 function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false }) {
-    metaBaseDisabledState = { ...baseDisabled };
-    metaQuickEditEnabled = false;
-    if (!btnMetaEditToggle || !metaEditSection) {
-        applyMetaDisabledState(false);
-        return;
-    }
-    btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
-    btnMetaEditToggle.textContent = 'Bearbeiten';
-    btnMetaEditToggle.disabled = false;
-    metaEditSection.classList.remove('is-editing');
-    metaEditSection.classList.toggle('meta-edit-inline', !showQuickEdit);
-    if (showQuickEdit) {
-        metaEditSection.classList.add('meta-edit-available');
-        applyMetaDisabledState(true);
-    } else {
-        metaEditSection.classList.remove('meta-edit-available');
-        applyMetaDisabledState(false);
-    }
-    updateMetaSummary();
+  metaBaseDisabledState = { ...baseDisabled };
+  metaQuickEditEnabled = false;
+  if (!btnMetaEditToggle || !metaEditSection) {
+    applyMetaDisabledState(false);
+    return;
+  }
+  btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
+  btnMetaEditToggle.textContent = 'Bearbeiten';
+  btnMetaEditToggle.disabled = false;
+  metaEditSection.classList.remove('is-editing');
+  metaEditSection.classList.toggle('meta-edit-inline', !showQuickEdit);
+  if (showQuickEdit) {
+    metaEditSection.classList.add('meta-edit-available');
+    applyMetaDisabledState(true);
+  } else {
+    metaEditSection.classList.remove('meta-edit-available');
+    applyMetaDisabledState(false);
+  }
+  updateMetaSummary();
 }
 
 function setMetaQuickEditActive(active) {
-    metaQuickEditEnabled = active;
-    if (!btnMetaEditToggle || !metaEditSection) {
-        applyMetaDisabledState(false);
-        return;
-    }
-    if (active) {
-        metaEditSection.classList.add('is-editing');
-        btnMetaEditToggle.textContent = 'Speichern';
-        applyMetaDisabledState(false);
-    } else {
-        metaEditSection.classList.remove('is-editing');
-        btnMetaEditToggle.textContent = 'Bearbeiten';
-        const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
-        applyMetaDisabledState(quickEditAvailable);
-    }
-    updateMetaSummary();
+  metaQuickEditEnabled = active;
+  if (!btnMetaEditToggle || !metaEditSection) {
+    applyMetaDisabledState(false);
+    return;
+  }
+  if (active) {
+    metaEditSection.classList.add('is-editing');
+    btnMetaEditToggle.textContent = 'Speichern';
+    applyMetaDisabledState(false);
+  } else {
+    metaEditSection.classList.remove('is-editing');
+    btnMetaEditToggle.textContent = 'Bearbeiten';
+    const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
+    applyMetaDisabledState(quickEditAvailable);
+  }
+  updateMetaSummary();
 }
 
 [auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }); });
 if (projectNumber) {
-    projectNumber.addEventListener('input', updateMetaSummary);
-    projectNumber.addEventListener('change', updateMetaSummary);
-    const runPnValidation = debounce(async () => {
-      const value = projectNumber.value.trim();
-      if (!value) {
+  projectNumber.addEventListener('input', updateMetaSummary);
+  projectNumber.addEventListener('change', updateMetaSummary);
+  const runPnValidation = debounce(async () => {
+    const value = projectNumber.value.trim();
+    if (!value) {
+      renderInlineHint(pnValidationHint, '');
+      return;
+    }
+    try {
+      const body = { projectNumber: value };
+      const currentState = loadState();
+      if (currentState?.editingId) body.id = currentState.editingId;
+      const response = await fetch(`${WORKER_BASE}/api/validation/check_projektnummer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload?.warning?.message) {
+        const severity = payload.warning.reason === 'RAHMENVERTRAG_FOUND' ? 'warn' : 'info';
+        renderInlineHint(pnValidationHint, payload.warning.message, severity);
+      } else {
         renderInlineHint(pnValidationHint, '');
-        return;
       }
-      try {
-        const body = { projectNumber: value };
-        const currentState = loadState();
-        if (currentState?.editingId) body.id = currentState.editingId;
-        const response = await fetch(`${WORKER_BASE}/api/validation/check_projektnummer`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (payload?.warning?.message) {
-          const severity = payload.warning.reason === 'RAHMENVERTRAG_FOUND' ? 'warn' : 'info';
-          renderInlineHint(pnValidationHint, payload.warning.message, severity);
-        } else {
-          renderInlineHint(pnValidationHint, '');
-        }
-      } catch (err) {
-        console.warn('Projekt-Validierung fehlgeschlagen', err);
-      }
-    }, 350);
-    projectNumber.addEventListener('input', runPnValidation);
-    projectNumber.addEventListener('blur', runPnValidation);
+    } catch (err) {
+      console.warn('Projekt-Validierung fehlgeschlagen', err);
+    }
+  }, 350);
+  projectNumber.addEventListener('input', runPnValidation);
+  projectNumber.addEventListener('blur', runPnValidation);
 }
 if (kvNummer) {
-    kvNummer.addEventListener('input', updateMetaSummary);
-    kvNummer.addEventListener('change', updateMetaSummary);
-    const runKvValidation = debounce(async () => {
-      const value = kvNummer.value.trim();
-      if (!value) {
+  kvNummer.addEventListener('input', updateMetaSummary);
+  kvNummer.addEventListener('change', updateMetaSummary);
+  const runKvValidation = debounce(async () => {
+    const value = kvNummer.value.trim();
+    if (!value) {
+      renderInlineHint(kvValidationHint, '');
+      return;
+    }
+    try {
+      const body = { kvNummern: [value] };
+      const currentState = loadState();
+      if (currentState?.editingId) body.id = currentState.editingId;
+      const response = await fetch(`${WORKER_BASE}/api/validation/check_kv`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload.valid === false && payload.message) {
+        renderInlineHint(kvValidationHint, payload.message, 'bad');
+      } else if (payload.warning?.message) {
+        renderInlineHint(kvValidationHint, payload.warning.message, 'warn');
+      } else {
         renderInlineHint(kvValidationHint, '');
-        return;
       }
-      try {
-        const body = { kvNummern: [value] };
-        const currentState = loadState();
-        if (currentState?.editingId) body.id = currentState.editingId;
-        const response = await fetch(`${WORKER_BASE}/api/validation/check_kv`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) return;
-        const payload = await response.json();
-        if (payload.valid === false && payload.message) {
-          renderInlineHint(kvValidationHint, payload.message, 'bad');
-        } else if (payload.warning?.message) {
-          renderInlineHint(kvValidationHint, payload.warning.message, 'warn');
-        } else {
-          renderInlineHint(kvValidationHint, '');
-        }
-      } catch (err) {
-        console.warn('KV-Validierung fehlgeschlagen', err);
-      }
-    }, 350);
-    kvNummer.addEventListener('input', runKvValidation);
-    kvNummer.addEventListener('blur', runKvValidation);
+    } catch (err) {
+      console.warn('KV-Validierung fehlgeschlagen', err);
+    }
+  }, 350);
+  kvNummer.addEventListener('input', runKvValidation);
+  kvNummer.addEventListener('blur', runKvValidation);
 }
 if (freigabedatum) {
-    freigabedatum.addEventListener('input', updateMetaSummary);
-    freigabedatum.addEventListener('change', updateMetaSummary);
+  freigabedatum.addEventListener('input', updateMetaSummary);
+  freigabedatum.addEventListener('change', updateMetaSummary);
 }
 document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
 auftragswertBekannt.addEventListener('change', () => {
-    auftragswert.disabled = !auftragswertBekannt.checked;
-    if(!auftragswertBekannt.checked) auftragswert.value = '';
-    setHasUnsavedChanges(true);
-    saveCurrentInputState();
-    recalc();
+  auftragswert.disabled = !auftragswertBekannt.checked;
+  if (!auftragswertBekannt.checked) auftragswert.value = '';
+  setHasUnsavedChanges(true);
+  saveCurrentInputState();
+  recalc();
 });
 
-auftragswert.addEventListener('blur',()=>{
-    const raw=parseAmountInput(auftragswert.value);
-    auftragswert.value=raw > 0 ? formatAmountInput(raw) : '';
-    saveCurrentInputState(); recalc();
+auftragswert.addEventListener('blur', () => {
+  const raw = parseAmountInput(auftragswert.value);
+  auftragswert.value = raw > 0 ? formatAmountInput(raw) : '';
+  saveCurrentInputState(); recalc();
 });
-[w_cs,w_konzept,w_pitch].forEach(el=>el.addEventListener('input',()=>{
-    el.value=String(clamp01(toInt0(el.value)));
-    setHasUnsavedChanges(true); updateWeightNote(); saveCurrentInputState(); recalc();
+[w_cs, w_konzept, w_pitch].forEach(el => el.addEventListener('input', () => {
+  el.value = String(clamp01(toInt0(el.value)));
+  setHasUnsavedChanges(true); updateWeightNote(); saveCurrentInputState(); recalc();
 }));
-btnAddRow.addEventListener('click',()=>addRow(true));
+btnAddRow.addEventListener('click', () => addRow(true));
 
 btnSave.addEventListener('click', async () => {
   const errors = validateInput();
@@ -2358,7 +2358,7 @@ btnSave.addEventListener('click', async () => {
   }
   setHasUnsavedChanges(false);
 
-  const st = loadState(); if(!st?.input) return;
+  const st = loadState(); if (!st?.input) return;
 
   if (st.isAbrufMode) {
     // Save as a "Hunter" transaction on a framework contract
@@ -2370,96 +2370,96 @@ btnSave.addEventListener('click', async () => {
 });
 
 if (btnMetaEditToggle) {
-    btnMetaEditToggle.addEventListener('click', async () => {
-        if (!metaQuickEditEnabled) {
-            setMetaQuickEditActive(true);
-            projectNumber?.focus();
-            return;
+  btnMetaEditToggle.addEventListener('click', async () => {
+    if (!metaQuickEditEnabled) {
+      setMetaQuickEditActive(true);
+      projectNumber?.focus();
+      return;
+    }
+
+    const st = loadState() || {};
+    const entryId = st.editingId;
+    if (!entryId) {
+      setMetaQuickEditActive(false);
+      return;
+    }
+
+    const conflict = findDockKvConflict(kvNummer.value, entryId);
+    if (conflict) {
+      showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
+      return;
+    }
+
+    btnMetaEditToggle.disabled = true;
+    showLoader();
+    let metaSaveSuccess = false;
+    try {
+      const payload = {
+        projectNumber: projectNumber.value.trim(),
+        kv_nummer: kvNummer.value.trim(),
+      };
+      let dateMs = null;
+      if (freigabedatum.value) {
+        const parsed = Date.parse(freigabedatum.value);
+        if (!Number.isNaN(parsed)) {
+          dateMs = parsed;
         }
+      }
+      payload.freigabedatum = dateMs != null ? dateMs : null;
 
-        const st = loadState() || {};
-        const entryId = st.editingId;
-        if (!entryId) {
-            setMetaQuickEditActive(false);
-            return;
-        }
+      const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
 
-        const conflict = findDockKvConflict(kvNummer.value, entryId);
-        if (conflict) {
-            showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
-            return;
-        }
-
-        btnMetaEditToggle.disabled = true;
-        showLoader();
-        let metaSaveSuccess = false;
-        try {
-            const payload = {
-                projectNumber: projectNumber.value.trim(),
-                kv_nummer: kvNummer.value.trim(),
-            };
-            let dateMs = null;
-            if (freigabedatum.value) {
-                const parsed = Date.parse(freigabedatum.value);
-                if (!Number.isNaN(parsed)) {
-                    dateMs = parsed;
-                }
-            }
-            payload.freigabedatum = dateMs != null ? dateMs : null;
-
-            const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
-
-            showToast('Metadaten aktualisiert.', 'ok');
-            metaSaveSuccess = true;
-            if (st.input) {
-                st.input.projectNumber = payload.projectNumber;
-                st.input.kvNummer = payload.kv_nummer;
-                st.input.freigabedatum = freigabedatum.value || '';
-                saveState(st);
-            }
-            queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
-            await loadHistory();
-            renderHistory();
-            renderFrameworkContracts();
-        } catch (err) {
-            console.error(err);
-            showToast('Aktualisierung fehlgeschlagen.', 'bad');
-        } finally {
-            hideLoader();
-            btnMetaEditToggle.disabled = false;
-            if (metaSaveSuccess) {
-                setMetaQuickEditActive(false);
-            }
-        }
-    });
+      showToast('Metadaten aktualisiert.', 'ok');
+      metaSaveSuccess = true;
+      if (st.input) {
+        st.input.projectNumber = payload.projectNumber;
+        st.input.kvNummer = payload.kv_nummer;
+        st.input.freigabedatum = freigabedatum.value || '';
+        saveState(st);
+      }
+      queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
+      await loadHistory();
+      renderHistory();
+      renderFrameworkContracts();
+    } catch (err) {
+      console.error(err);
+      showToast('Aktualisierung fehlgeschlagen.', 'bad');
+    } finally {
+      hideLoader();
+      btnMetaEditToggle.disabled = false;
+      if (metaSaveSuccess) {
+        setMetaQuickEditActive(false);
+      }
+    }
+  });
 }
 
 async function saveNewEntry(st) {
   const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
   const resultData = compute(st.input.rows, st.input.weights, finalAmount);
-  const isComplete=!!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r=>r.cs+r.konzept+r.pitch>0));
+  const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r => r.cs + r.konzept + r.pitch > 0));
   const date = st.input.freigabedatum ? Date.parse(st.input.freigabedatum) : null;
   const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
 
-  const payload={
-    source:st.source||'manuell', complete:isComplete, client:st.input.client||'',
-    title:st.input.title||'', amount:finalAmount,
+  const payload = {
+    source: st.source || 'manuell', complete: isComplete, client: st.input.client || '',
+    title: st.input.title || '', amount: finalAmount,
     projectType: st.input.projectType || 'fix',
     rows: st.input.rows || [],
-    list:resultData.list||[],
-    totals:resultData.totals||{}, weights:resultData.effectiveWeights||[], submittedBy:st.input.submittedBy||'',
-    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer, 
+    list: resultData.list || [],
+    totals: resultData.totals || {}, weights: resultData.effectiveWeights || [], submittedBy: st.input.submittedBy || '',
+    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer,
     freigabedatum: Number.isFinite(date) ? date : null,
     ts: ts,
     modified: st.editingId ? Date.now() : undefined, // Only set modified on update
-    id:st.editingId||undefined,
+    id: st.editingId || undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
   if (!st.editingId && payload.kv_nummer) {
@@ -2470,18 +2470,18 @@ async function saveNewEntry(st) {
     }
   }
   showLoader();
-  try{
+  try {
     const method = st.editingId ? 'PUT' : 'POST';
     const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
-    const r = await fetchWithRetry(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-    if(!r.ok) throw new Error(await r.text());
+    const r = await fetchWithRetry(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error(await r.text());
     let savedEntry = null;
     try {
       savedEntry = await r.json();
     } catch (err) {
       console.warn('Antwort konnte nicht gelesen werden:', err);
     }
-    showToast(`Eintrag ${st.editingId?'aktualisiert':'gespeichert'}.`, 'ok');
+    showToast(`Eintrag ${st.editingId ? 'aktualisiert' : 'gespeichert'}.`, 'ok');
     hideManualPanel();
     if (savedEntry && savedEntry.id) {
       queueDockAutoCheck(savedEntry.id, {
@@ -2492,173 +2492,173 @@ async function saveNewEntry(st) {
     }
     await loadHistory(true);
     if (payload.projectType === 'rahmen') {
-        renderFrameworkContracts();
+      renderFrameworkContracts();
     }
-  }catch(e){ showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
-  finally{ hideLoader(); }
+  } catch (e) { showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
+  finally { hideLoader(); }
 }
 
 
 function loadInputForm(inputData, isEditing = false) {
-    const st = loadState() || {};
-    const abrufInfo = document.getElementById('abrufInfo');
-    const projectTypeWrapper = document.getElementById('projectTypeWrapper');
-    
-    // Reset all fields first
-    auftraggeber.disabled = false;
-    const baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false };
-    let defaultDate = '';
-    if (inputData.freigabedatum) {
-        defaultDate = formatDateForInput(inputData.freigabedatum);
-    } else if (isEditing && inputData.ts) {
-        defaultDate = formatDateForInput(inputData.ts);
+  const st = loadState() || {};
+  const abrufInfo = document.getElementById('abrufInfo');
+  const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+
+  // Reset all fields first
+  auftraggeber.disabled = false;
+  const baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false };
+  let defaultDate = '';
+  if (inputData.freigabedatum) {
+    defaultDate = formatDateForInput(inputData.freigabedatum);
+  } else if (isEditing && inputData.ts) {
+    defaultDate = formatDateForInput(inputData.ts);
+  }
+  if (!defaultDate && !isEditing) {
+    defaultDate = getTodayDate();
+  }
+  freigabedatum.value = defaultDate;
+
+  if (st.isAbrufMode && st.parentEntry) {
+    // Hunter Abruf
+    if (dockIntroEl) {
+      dockIntroEl.textContent = 'Neuen aktiven Abruf erfassen.';
     }
-    if (!defaultDate && !isEditing) {
-        defaultDate = getTodayDate();
+    projectTypeWrapper.classList.add('hide');
+    auftraggeber.value = st.parentEntry.client;
+    auftraggeber.disabled = true;
+    projekttitel.value = inputData.title || '';
+    projectNumber.value = inputData.projectNumber || '';
+    kvNummer.value = inputData.kvNummer || '';
+    kvNummer.placeholder = 'KV-Nummer des Abrufs';
+    freigabedatum.value = freigabedatum.value || getTodayDate();
+    baseDisabled.projectNumber = true;
+    baseDisabled.kvNummer = false;
+    baseDisabled.freigabedatum = false;
+    configureMetaQuickEdit(false, baseDisabled);
+
+  } else {
+    // Neue Erfassung oder Bearbeitung
+    if (dockIntroEl) {
+      dockIntroEl.textContent = dockIntroDefaultText;
     }
-    freigabedatum.value = defaultDate;
+    projectTypeWrapper.classList.remove('hide');
+    auftraggeber.value = inputData.client || '';
+    projekttitel.value = inputData.title || '';
+    projectNumber.value = inputData.projectNumber || '';
+    kvNummer.value = inputData.kvNummer || '';
 
-    if (st.isAbrufMode && st.parentEntry) {
-        // Hunter Abruf
-        if (dockIntroEl) {
-            dockIntroEl.textContent = 'Neuen aktiven Abruf erfassen.';
-        }
-        projectTypeWrapper.classList.add('hide');
-        auftraggeber.value = st.parentEntry.client;
-        auftraggeber.disabled = true;
-        projekttitel.value = inputData.title || '';
-        projectNumber.value = inputData.projectNumber || '';
-        kvNummer.value = inputData.kvNummer || '';
-        kvNummer.placeholder = 'KV-Nummer des Abrufs';
-        freigabedatum.value = freigabedatum.value || getTodayDate();
-        baseDisabled.projectNumber = true;
-        baseDisabled.kvNummer = false;
-        baseDisabled.freigabedatum = false;
-        configureMetaQuickEdit(false, baseDisabled);
-
-    } else {
-        // Neue Erfassung oder Bearbeitung
-        if (dockIntroEl) {
-            dockIntroEl.textContent = dockIntroDefaultText;
-        }
-        projectTypeWrapper.classList.remove('hide');
-        auftraggeber.value = inputData.client || '';
-        projekttitel.value = inputData.title || '';
-        projectNumber.value = inputData.projectNumber || '';
-        kvNummer.value = inputData.kvNummer || '';
-
-        baseDisabled.projectNumber = !isEditing;
-        baseDisabled.kvNummer = !isEditing;
-        baseDisabled.freigabedatum = (!isEditing && inputData.projectType === 'rahmen');
-        const showQuickEdit = Boolean(isEditing);
-        if (!freigabedatum.value && !isEditing) {
-            freigabedatum.value = getTodayDate();
-        }
-        configureMetaQuickEdit(showQuickEdit, baseDisabled);
-
-        projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
-        kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
+    baseDisabled.projectNumber = !isEditing;
+    baseDisabled.kvNummer = !isEditing;
+    baseDisabled.freigabedatum = (!isEditing && inputData.projectType === 'rahmen');
+    const showQuickEdit = Boolean(isEditing);
+    if (!freigabedatum.value && !isEditing) {
+      freigabedatum.value = getTodayDate();
     }
+    configureMetaQuickEdit(showQuickEdit, baseDisabled);
 
-    auftragswertBekannt.checked = inputData.amountKnown !== false;
-    auftragswert.disabled = !auftragswertBekannt.checked;
-    auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
-    submittedBy.value = inputData.submittedBy || '';
-    document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
+    projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
+    kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
+  }
 
-    const weights = inputData.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
-    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
-    w_cs.value = String(clamp01(toInt0(m.cs??DEFAULT_WEIGHTS.cs)));
-    w_konzept.value = String(clamp01(toInt0(m.konzept??DEFAULT_WEIGHTS.konzept)));
-    w_pitch.value = String(clamp01(toInt0(m.pitch??DEFAULT_WEIGHTS.pitch)));
-    tbody.innerHTML = '';
-    const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
-    if(rows.length > 0){
-      rows.forEach(r=>{
-        const tr = createRowTemplate();
-        tbody.appendChild(tr);
-        setupRow(tr, { saveCurrentInputState, recalc, findPersonByName });
-        const nm=r.name||''; tr.querySelector('.name').value=nm;
-        const person=findPersonByName(nm); if(person) tr.querySelector('.name').dataset.personId=person.id;
-        tr.querySelector('.cs').value=String(clamp01(toInt0(r.cs||0)));
-        tr.querySelector('.konzept').value=String(clamp01(toInt0(r.konzept||0)));
-        tr.querySelector('.pitch').value=String(clamp01(toInt0(r.pitch||0)));
-      });
-    } else { addRow(true); addRow(false); }
-    setHasUnsavedChanges(false);
-    recalc();
-    updateMetaSummary();
+  auftragswertBekannt.checked = inputData.amountKnown !== false;
+  auftragswert.disabled = !auftragswertBekannt.checked;
+  auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
+  submittedBy.value = inputData.submittedBy || '';
+  document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
+
+  const weights = inputData.weights || [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }];
+  const m = Object.fromEntries(weights.map(w => [w.key, w.weight]));
+  w_cs.value = String(clamp01(toInt0(m.cs ?? DEFAULT_WEIGHTS.cs)));
+  w_konzept.value = String(clamp01(toInt0(m.konzept ?? DEFAULT_WEIGHTS.konzept)));
+  w_pitch.value = String(clamp01(toInt0(m.pitch ?? DEFAULT_WEIGHTS.pitch)));
+  tbody.innerHTML = '';
+  const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
+  if (rows.length > 0) {
+    rows.forEach(r => {
+      const tr = createRowTemplate();
+      tbody.appendChild(tr);
+      setupRow(tr, { saveCurrentInputState, recalc, findPersonByName });
+      const nm = r.name || ''; tr.querySelector('.name').value = nm;
+      const person = findPersonByName(nm); if (person) tr.querySelector('.name').dataset.personId = person.id;
+      tr.querySelector('.cs').value = String(clamp01(toInt0(r.cs || 0)));
+      tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept || 0)));
+      tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch || 0)));
+    });
+  } else { addRow(true); addRow(false); }
+  setHasUnsavedChanges(false);
+  recalc();
+  updateMetaSummary();
 }
 
 function clearInputFields() {
-    saveState({ source: 'manuell' });
-    loadInputForm({}, false);
+  saveState({ source: 'manuell' });
+  loadInputForm({}, false);
 }
 
 /* ---------- Berechnungslogik ---------- */
-function compute(rows, weights, amount, forLive=false){
-  const t = totals(rows); 
-  const usedKeys = Object.entries(t).filter(([k,v])=>v>0).map(([k])=>k);
-  const effWeights = (weights&&weights.length?weights:[{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}]);
-  
+function compute(rows, weights, amount, forLive = false) {
+  const t = totals(rows);
+  const usedKeys = Object.entries(t).filter(([k, v]) => v > 0).map(([k]) => k);
+  const effWeights = (weights && weights.length ? weights : [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }]);
+
   const calcWeights = forLive ? effWeights : normalizeWeightsForUsed(effWeights, usedKeys);
-  
-  const map=new Map();
-  rows.forEach((r, index)=>{
-    const act=r.cs+r.konzept+r.pitch>0;
+
+  const map = new Map();
+  rows.forEach((r, index) => {
+    const act = r.cs + r.konzept + r.pitch > 0;
     const key = r.name.trim() || `_temp_${index}`;
     if (!r.name.trim() && !act) return;
 
-    const cur=map.get(key) || { name: r.name, cs:0, konzept:0, pitch:0 };
-    cur.cs+=r.cs; cur.konzept+=r.konzept; cur.pitch+=r.pitch;
-    map.set(key,cur);
+    const cur = map.get(key) || { name: r.name, cs: 0, konzept: 0, pitch: 0 };
+    cur.cs += r.cs; cur.konzept += r.konzept; cur.pitch += r.pitch;
+    map.set(key, cur);
   });
-  
-  const wIdx = Object.fromEntries(calcWeights.map(w=>[w.key, w.weight / 100])); 
-  const list=[];
 
-  for(const [key, p] of map.entries()){
-    let pct=0;
+  const wIdx = Object.fromEntries(calcWeights.map(w => [w.key, w.weight / 100]));
+  const list = [];
+
+  for (const [key, p] of map.entries()) {
+    let pct = 0;
     const divCS = forLive ? 100 : (t.cs || 1);
     const divKonzept = forLive ? 100 : (t.konzept || 1);
     const divPitch = forLive ? 100 : (t.pitch || 1);
 
-    if(usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
-    if(usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
-    if(usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
+    if (usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
+    if (usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
+    if (usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
     list.push({ key, name: p.name, pct: pct * 100 });
   }
-  
-  list.sort((a,b)=>b.pct-a.pct); 
-  if(!forLive) {
-      const sum=list.reduce((a,x)=>a+x.pct,0),resid=100-sum; 
-      if(list.length&&Math.abs(resid)>1e-9) list[0].pct+=resid;
+
+  list.sort((a, b) => b.pct - a.pct);
+  if (!forLive) {
+    const sum = list.reduce((a, x) => a + x.pct, 0), resid = 100 - sum;
+    if (list.length && Math.abs(resid) > 1e-9) list[0].pct += resid;
   }
-  
-  list.forEach(x=>{if(x.pct<0)x.pct=0;});
-  const withMoney=list.map(x=>({ ...x, money: Math.round((amount>0?amount:0)*x.pct/100) }));
-  return { totals:t, usedKeys, effectiveWeights: calcWeights, list:withMoney };
+
+  list.forEach(x => { if (x.pct < 0) x.pct = 0; });
+  const withMoney = list.map(x => ({ ...x, money: Math.round((amount > 0 ? amount : 0) * x.pct / 100) }));
+  return { totals: t, usedKeys, effectiveWeights: calcWeights, list: withMoney };
 }
 
-function normalizeWeightsForUsed(allWeights, usedKeys){
-  const used=allWeights.filter(w=>usedKeys.includes(w.key)); const sum=used.reduce((a,w)=>a+w.weight,0);
-  if(sum<=0) return allWeights.map(w=>({key:w.key,weight:w.weight}));
-  const factor=100/sum;
-  const out=allWeights.map(w=> usedKeys.includes(w.key)?{key:w.key,weight:w.weight*factor}:{key:w.key,weight:0});
-  const rem=100-out.reduce((a,w)=>a+Math.round(w.weight),0); if(rem!==0){const ix=out.findIndex(x=>usedKeys.includes(x.key)); if(ix>=0) out[ix].weight+=rem;}
-  return out.map(w=>({key:w.key,weight:Math.round(w.weight)}));
+function normalizeWeightsForUsed(allWeights, usedKeys) {
+  const used = allWeights.filter(w => usedKeys.includes(w.key)); const sum = used.reduce((a, w) => a + w.weight, 0);
+  if (sum <= 0) return allWeights.map(w => ({ key: w.key, weight: w.weight }));
+  const factor = 100 / sum;
+  const out = allWeights.map(w => usedKeys.includes(w.key) ? { key: w.key, weight: w.weight * factor } : { key: w.key, weight: 0 });
+  const rem = 100 - out.reduce((a, w) => a + Math.round(w.weight), 0); if (rem !== 0) { const ix = out.findIndex(x => usedKeys.includes(x.key)); if (ix >= 0) out[ix].weight += rem; }
+  return out.map(w => ({ key: w.key, weight: Math.round(w.weight) }));
 }
 
 
 /* ---------- Übersicht & Rahmenverträge ---------- */
-const historyBody=document.getElementById('historyBody');
+const historyBody = document.getElementById('historyBody');
 const omniSearch = document.getElementById('omniSearch');
 const personFilter = document.getElementById('personFilter');
 const rahmenSearch = document.getElementById('rahmenSearch');
-const btnXlsx=document.getElementById('btnXlsx');
-const btnBatchDelete=document.getElementById('btnBatchDelete');
-const btnMoveToFramework=document.getElementById('btnMoveToFramework');
-const checkAllFix=document.getElementById('checkAllFix');
+const btnXlsx = document.getElementById('btnXlsx');
+const btnBatchDelete = document.getElementById('btnBatchDelete');
+const btnMoveToFramework = document.getElementById('btnMoveToFramework');
+const checkAllFix = document.getElementById('checkAllFix');
 const fixPaginationInfo = document.getElementById('fixPaginationInfo');
 const fixPageIndicator = document.getElementById('fixPageIndicator');
 const fixPrevPage = document.getElementById('fixPrevPage');
@@ -2670,11 +2670,11 @@ let currentSort = { key: 'freigabedatum', direction: 'desc' };
 let fixCurrentPage = 1;
 let fixPageSize = fixPageSizeSelect ? Number(fixPageSizeSelect.value) || 25 : 25;
 
-async function loadHistory(silent = false){
+async function loadHistory(silent = false) {
   if (!silent) {
     showLoader();
   }
-  try{
+  try {
     // ##### KORREKTUR 3/3 #####
     const r = await fetchWithRetry(`${WORKER_BASE}/entries`, { cache: 'no-store' });
     const fetchedEntries = r.ok ? await r.json() : []; // Lade in eine temporäre Variable
@@ -2684,7 +2684,7 @@ async function loadHistory(silent = false){
     console.error("Fehler in loadHistory:", err); // Logge den Fehler
     setEntries([]);
     showToast('Daten konnten nicht geladen werden.', 'bad');
-  } finally{
+  } finally {
     if (!silent) {
       hideLoader();
     }
@@ -2695,16 +2695,16 @@ async function loadHistory(silent = false){
   renderHistory();
   renderDockBoard();
 }
-  
-function hasPositiveDistribution(list = [], amount = 0){
+
+function hasPositiveDistribution(list = [], amount = 0) {
   if (!Array.isArray(list) || list.length === 0) return { sum: 0, hasPositive: false };
   const amt = Number(amount) || 0;
   let sum = 0;
   let hasPositive = false;
-  for (const item of list){
+  for (const item of list) {
     if (!item || typeof item !== 'object') continue;
     let pct = Number(item.pct);
-    if (!Number.isFinite(pct) && amt > 0){
+    if (!Number.isFinite(pct) && amt > 0) {
       const money = Number(item.money);
       if (Number.isFinite(money)) pct = (money / amt) * 100;
     }
@@ -2716,12 +2716,12 @@ function hasPositiveDistribution(list = [], amount = 0){
   return { sum, hasPositive };
 }
 
-function hasAnyTotals(totals){
+function hasAnyTotals(totals) {
   if (!totals || typeof totals !== 'object') return false;
-  return ['cs','konzept','pitch'].some(key => (Number(totals[key]) || 0) > 0);
+  return ['cs', 'konzept', 'pitch'].some(key => (Number(totals[key]) || 0) > 0);
 }
 
-function autoComplete(e){
+function autoComplete(e) {
   if (!(e && e.client && e.title && (e.amount > 0))) return false;
   const list = Array.isArray(e.list) ? e.list : [];
   if (!list.length) return false;
@@ -2731,7 +2731,7 @@ function autoComplete(e){
   if (!hasAnyTotals(e.totals)) return false;
   return true;
 }
-function filtered(type = 'fix'){
+function filtered(type = 'fix') {
   const currentEntries = getEntries();
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift auf den zentralen Eintrags-Store zu
   const query = omniSearch.value.trim().toLowerCase();
@@ -2747,60 +2747,60 @@ function filtered(type = 'fix'){
   }
 
   if (query) {
-      const terms = query.split(/\s+/);
-      const filters = [];
-      const searchTerms = [];
+    const terms = query.split(/\s+/);
+    const filters = [];
+    const searchTerms = [];
 
-      terms.forEach(term => {
-        if (term.includes(':')) {
-          const [key, ...value] = term.split(':');
-          if (value.length > 0) {
-            filters.push({ key, value: value.join(':') });
-          }
-        } else {
-          searchTerms.push(term);
+    terms.forEach(term => {
+      if (term.includes(':')) {
+        const [key, ...value] = term.split(':');
+        if (value.length > 0) {
+          filters.push({ key, value: value.join(':') });
         }
-      });
-
-      const searchText = searchTerms.join(' ');
-      if (searchText) {
-        arr = arr.filter(e => 
-          String(e.title || '').toLowerCase().includes(searchText) || 
-          String(e.client || '').toLowerCase().includes(searchText)
-        );
+      } else {
+        searchTerms.push(term);
       }
+    });
 
-      filters.forEach(({ key, value }) => {
-        if (key === 'status') {
-          const wantOk = value.startsWith('v') || value.startsWith('o');
-          arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+    const searchText = searchTerms.join(' ');
+    if (searchText) {
+      arr = arr.filter(e =>
+        String(e.title || '').toLowerCase().includes(searchText) ||
+        String(e.client || '').toLowerCase().includes(searchText)
+      );
+    }
+
+    filters.forEach(({ key, value }) => {
+      if (key === 'status') {
+        const wantOk = value.startsWith('v') || value.startsWith('o');
+        arr = arr.filter(e => wantOk ? autoComplete(e) : !autoComplete(e));
+      }
+      if (key === 'quelle' || key === 'source') {
+        arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
+      }
+      if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
+        const num = parseFloat(value.substring(1));
+        if (!isNaN(num)) {
+          if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
+          if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
         }
-        if (key === 'quelle' || key === 'source') {
-          arr = arr.filter(e => (e.source || '').toLowerCase().startsWith(value));
-        }
-        if ((key === 'wert' || key === 'amount') && (value.startsWith('>') || value.startsWith('<'))) {
-          const num = parseFloat(value.substring(1));
-          if (!isNaN(num)) {
-            if (value.startsWith('>')) arr = arr.filter(e => (e.amount || 0) > num);
-            if (value.startsWith('<')) arr = arr.filter(e => (e.amount || 0) < num);
-          }
-        }
-      });
+      }
+    });
   }
 
-  arr.sort((a,b) => {
+  arr.sort((a, b) => {
     let valA, valB;
-    if (currentSort.key === 'ts') { 
-        valA = a.modified || a.ts || 0; 
-        valB = b.modified || b.ts || 0; 
+    if (currentSort.key === 'ts') {
+      valA = a.modified || a.ts || 0;
+      valB = b.modified || b.ts || 0;
     } else if (currentSort.key === 'freigabedatum') {
-        valA = a.freigabedatum || a.ts || 0;
-        valB = b.freigabedatum || b.ts || 0;
+      valA = a.freigabedatum || a.ts || 0;
+      valB = b.freigabedatum || b.ts || 0;
     } else {
-        valA = a[currentSort.key] || '';
-        valB = b[currentSort.key] || '';
+      valA = a[currentSort.key] || '';
+      valB = b[currentSort.key] || '';
     }
-    
+
     let comparison = 0;
     if (typeof valA === 'string' && typeof valB === 'string') {
       comparison = valA.localeCompare(valB, 'de');
@@ -2900,8 +2900,8 @@ function updateFixPaginationUI(totalItems, totalPages) {
   if (fixNextPage) fixNextPage.disabled = totalItems === 0 || fixCurrentPage >= totalPages;
 }
 
-function renderHistory(){
-  historyBody.innerHTML='';
+function renderHistory() {
+  historyBody.innerHTML = '';
   updateSortIcons();
   updatePersonFilterOptions();
   const arr = filtered('fix');
@@ -2933,8 +2933,8 @@ function renderHistory(){
     const safeClient = escapeHtml(entry.client || '–');
     const safeSource = escapeHtml(entry.source || '–');
     const safeSubmitted = escapeHtml(entry.submittedBy || '–');
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
       <td class="col-check"><input type="checkbox" class="row-check" data-id="${entry.id}"></td>
       <td>${safeProjectNumber}</td>
       <td><div class="status-wrapper">${statusIndicator}<span>${safeTitle}</span></div></td>
@@ -3031,34 +3031,34 @@ if (fixNextPage) {
 }
 
 function getSelectedFixIds() {
-    return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
+  return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
 }
 
 function updateBatchButtons() {
-    const selectedIds = getSelectedFixIds();
-    if (selectedIds.length > 0) {
-        btnBatchDelete.classList.remove('hide');
-        btnMoveToFramework.classList.remove('hide');
-        btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
-        btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
-    } else {
-        btnBatchDelete.classList.add('hide');
-        btnMoveToFramework.classList.add('hide');
-    }
-    checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
+  const selectedIds = getSelectedFixIds();
+  if (selectedIds.length > 0) {
+    btnBatchDelete.classList.remove('hide');
+    btnMoveToFramework.classList.remove('hide');
+    btnBatchDelete.textContent = `Markierte Löschen (${selectedIds.length})`;
+    btnMoveToFramework.textContent = `Zuweisen... (${selectedIds.length})`;
+  } else {
+    btnBatchDelete.classList.add('hide');
+    btnMoveToFramework.classList.add('hide');
+  }
+  checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
 
 checkAllFix.addEventListener('change', () => {
-    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
-        cb.checked = checkAllFix.checked;
-    });
-    updateBatchButtons();
+  document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+    cb.checked = checkAllFix.checked;
+  });
+  updateBatchButtons();
 });
 
 historyBody.addEventListener('change', (ev) => {
-    if (ev.target.classList.contains('row-check')) {
-        updateBatchButtons();
-    }
+  if (ev.target.classList.contains('row-check')) {
+    updateBatchButtons();
+  }
 });
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
@@ -3077,7 +3077,7 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
 });
 
 function updateSortIcons() {
-  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => {icon.textContent = ''; icon.style.opacity=0.5;});
+  document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => { icon.textContent = ''; icon.style.opacity = 0.5; });
   const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${currentSort.key}"] .sort-icon`);
   if (activeTh) {
     activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
@@ -3109,114 +3109,118 @@ btnBatchDelete.addEventListener('click', () => {
 });
 
 
-historyBody.addEventListener('click', async(ev)=>{
-  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
-  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act');
-  if(act==='edit'){
+historyBody.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button[data-act]'); if (!btn) return;
+  const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
+  if (act === 'edit') {
     editEntry(id);
-  } else if(act==='del'){ 
-    handleDeleteClick(id, 'entry'); 
+  } else if (act === 'del') {
+    handleDeleteClick(id, 'entry');
   }
 });
 
 function editEntry(id) {
-  const e=entries.find(x=>x.id===id); if(!e) return;
-  const st={ source:e.source||'manuell', editingId:e.id,
-    input:{ client:e.client||'', title:e.title||'', amount:e.amount||0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy:e.submittedBy||'', projectNumber:e.projectNumber||'', kvNummer: e.kv_nummer || '',
-            freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
-            rows:Array.isArray(e.rows)&&e.rows.length? e.rows : (Array.isArray(e.list)? e.list.map(x=>({name:x.name, cs:0, konzept:0, pitch:0})):[]),
-            weights:Array.isArray(e.weights)? e.weights : [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}] }};
+  const e = entries.find(x => x.id === id); if (!e) return;
+  const st = {
+    source: e.source || 'manuell', editingId: e.id,
+    input: {
+      client: e.client || '', title: e.title || '', amount: e.amount || 0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy: e.submittedBy || '', projectNumber: e.projectNumber || '', kvNummer: e.kv_nummer || '',
+      freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
+      rows: Array.isArray(e.rows) && e.rows.length ? e.rows : (Array.isArray(e.list) ? e.list.map(x => ({ name: x.name, cs: 0, konzept: 0, pitch: 0 })) : []),
+      weights: Array.isArray(e.weights) ? e.weights : [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }]
+    }
+  };
   saveState(st); initFromState(true);
   showManualPanel(true);
   showView('erfassung');
   showManualPanel();
 }
 
-document.getElementById('btnNo').addEventListener('click',()=>document.getElementById('confirmDlg').close());
+document.getElementById('btnNo').addEventListener('click', () => document.getElementById('confirmDlg').close());
 // *** NEU: btnYes click handler (mit bulk-delete) ***
-document.getElementById('btnYes').addEventListener('click',async()=>{
-    const { id, ids, type, parentId, fromDock } = pendingDelete;
-    document.getElementById('confirmDlg').close();
-    
-    showLoader();
-    try {
-        if (type === 'entry') {
-            // Einzelnes Löschen (bleibt gleich)
-            if (!id) return;
-            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
-            if (!r.ok) throw new Error(await r.text());
-            showToast('Eintrag gelöscht.', 'ok');
-            removeEntryById(id);
-            renderHistory();
-            renderFrameworkContracts();
+document.getElementById('btnYes').addEventListener('click', async () => {
+  const { id, ids, type, parentId, fromDock } = pendingDelete;
+  document.getElementById('confirmDlg').close();
 
-        } else if (type === 'batch-entry') {
-            // *** NEU: BULK DELETE LOGIK ***
-            if (!ids || ids.length === 0) return;
-            hideLoader(); // Hide small loader, show batch progress
-            showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
+  showLoader();
+  try {
+    if (type === 'entry') {
+      // Einzelnes Löschen (bleibt gleich)
+      if (!id) return;
+      const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error(await r.text());
+      showToast('Eintrag gelöscht.', 'ok');
+      removeEntryById(id);
+      renderHistory();
+      renderFrameworkContracts();
 
-            const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids: ids })
-            });
-            updateBatchProgress(1, 1); // Schritt 1 von 1 erledigt
-            
-            if (!r.ok) {
-               const errData = await r.json().catch(() => ({ error: "Unbekannter Fehler beim Löschen" }));
-               throw new Error(errData.error || `Serverfehler ${r.status}`);
-            }
-            
-            const result = await r.json();
-            showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
-            await loadHistory(); // Lade alle Daten neu
-            renderHistory();
-            if (fromDock) {
-              dockSelection.clear();
-              updateDockSelectionUi();
-            }
-            // *** ENDE NEUE LOGIK ***
+    } else if (type === 'batch-entry') {
+      // *** NEU: BULK DELETE LOGIK ***
+      if (!ids || ids.length === 0) return;
+      hideLoader(); // Hide small loader, show batch progress
+      showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
 
-        } else if (type === 'transaction') {
-            // Transaktion löschen (bleibt gleich)
-            if (!id || !parentId) return;
-            const entry = findEntryById(parentId);
-            if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
-            const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
-            entry.transactions = entry.transactions.filter(t => t.id !== id);
-            entry.modified = Date.now();
-            const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-            });
-            if (!r.ok) {
-              entry.transactions = originalTransactions; // rollback on fail
-              throw new Error(await r.text());
-            }
-            showToast('Abruf gelöscht.', 'ok');
-            upsertEntry(entry);
-            renderRahmenDetails(parentId);
-        }
-    } catch (e) {
-        showToast('Aktion fehlgeschlagen.', 'bad');
-        console.error(e);
-    } finally {
-        hideLoader();
-        hideBatchProgress();
-        pendingDelete = { id: null, type: 'entry' };
+      const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: ids })
+      });
+      updateBatchProgress(1, 1); // Schritt 1 von 1 erledigt
+
+      if (!r.ok) {
+        const errData = await r.json().catch(() => ({ error: "Unbekannter Fehler beim Löschen" }));
+        throw new Error(errData.error || `Serverfehler ${r.status}`);
+      }
+
+      const result = await r.json();
+      showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
+      await loadHistory(); // Lade alle Daten neu
+      renderHistory();
+      if (fromDock) {
+        dockSelection.clear();
+        updateDockSelectionUi();
+      }
+      // *** ENDE NEUE LOGIK ***
+
+    } else if (type === 'transaction') {
+      // Transaktion löschen (bleibt gleich)
+      if (!id || !parentId) return;
+      const entry = findEntryById(parentId);
+      if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+      const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
+      entry.transactions = entry.transactions.filter(t => t.id !== id);
+      entry.modified = Date.now();
+      const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+      });
+      if (!r.ok) {
+        entry.transactions = originalTransactions; // rollback on fail
+        throw new Error(await r.text());
+      }
+      showToast('Abruf gelöscht.', 'ok');
+      upsertEntry(entry);
+      renderRahmenDetails(parentId);
     }
+  } catch (e) {
+    showToast('Aktion fehlgeschlagen.', 'bad');
+    console.error(e);
+  } finally {
+    hideLoader();
+    hideBatchProgress();
+    pendingDelete = { id: null, type: 'entry' };
+  }
 });
 
 
 /* Export XLSX */
-btnXlsx.addEventListener('click',()=>{
-  const arr=filtered('fix').map(e=>({
-    Projektnummer: e.projectNumber||'', Titel: e.title||'', Auftraggeber: e.client||'', Quelle: e.source||'',
-    Status: autoComplete(e)?'vollständig':'unvollständig', Wert_EUR: e.amount||0,
-    Abschlussdatum: e.freigabedatum? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts? new Date(e.ts).toISOString().split('T')[0]:'')
+btnXlsx.addEventListener('click', () => {
+  const arr = filtered('fix').map(e => ({
+    Projektnummer: e.projectNumber || '', Titel: e.title || '', Auftraggeber: e.client || '', Quelle: e.source || '',
+    Status: autoComplete(e) ? 'vollständig' : 'unvollständig', Wert_EUR: e.amount || 0,
+    Abschlussdatum: e.freigabedatum ? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts ? new Date(e.ts).toISOString().split('T')[0] : '')
   }));
-  const ws=XLSX.utils.json_to_sheet(arr);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
+  const ws = XLSX.utils.json_to_sheet(arr);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
   XLSX.writeFile(wb, "fixauftraege_export.xlsx");
 });
 
@@ -3226,25 +3230,25 @@ let currentFrameworkEntryId = null;
 let editingTransactionId = null;
 
 function filteredFrameworks() {
-    let arr = entries.filter(e => e.projectType === 'rahmen');
-    const query = rahmenSearch.value.trim().toLowerCase();
-    if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+  let arr = entries.filter(e => e.projectType === 'rahmen');
+  const query = rahmenSearch.value.trim().toLowerCase();
+  if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 
-    return arr.filter(e => {
-      if (String(e.title || '').toLowerCase().includes(query)) return true;
-      if (String(e.client || '').toLowerCase().includes(query)) return true;
-      if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
+  return arr.filter(e => {
+    if (String(e.title || '').toLowerCase().includes(query)) return true;
+    if (String(e.client || '').toLowerCase().includes(query)) return true;
+    if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
 
-      if (Array.isArray(e.transactions)) {
-        for (const trans of e.transactions) {
-          if (trans.type === 'hunter') {
-            if (String(trans.title || '').toLowerCase().includes(query)) return true;
-            if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
-          }
+    if (Array.isArray(e.transactions)) {
+      for (const trans of e.transactions) {
+        if (trans.type === 'hunter') {
+          if (String(trans.title || '').toLowerCase().includes(query)) return true;
+          if ((trans.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
         }
       }
-      return false;
-    }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
+    }
+    return false;
+  }).sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 }
 
 function renderFrameworkContracts() {
@@ -3282,11 +3286,11 @@ rahmenBody.addEventListener('click', (e) => {
     const id = btn.dataset.id;
     const entry = entries.find(en => en.id === id);
     if (!entry) return;
-    
+
     if (act === 'founder-plus') {
-      openEditTransactionModal({type:'founder'}, entry);
+      openEditTransactionModal({ type: 'founder' }, entry);
     } else if (act === 'hunter-plus') {
-      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input:{ projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
+      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input: { projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
       initFromState();
       showView('erfassung');
     } else if (act === 'details') {
@@ -3308,44 +3312,44 @@ rahmenBody.addEventListener('click', (e) => {
 
 
 async function saveHunterAbruf(st) {
-    const parentEntry = entries.find(e => e.id === st.parentEntry.id);
-    if (!parentEntry) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
-    
-    const abrufAmount = auftragswertBekannt.checked ? st.input.amount : 0;
-    const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
+  const parentEntry = entries.find(e => e.id === st.parentEntry.id);
+  if (!parentEntry) { return showToast('Rahmenvertrag nicht gefunden.', 'bad'); }
 
-    if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
-    let date = null;
-    const rawDate = st.input.freigabedatum;
-    if (rawDate) {
-        const parsed = Date.parse(rawDate);
-        if (Number.isFinite(parsed)) {
-            date = parsed;
-        }
+  const abrufAmount = auftragswertBekannt.checked ? st.input.amount : 0;
+  const resultData = compute(st.input.rows, st.input.weights, abrufAmount * (1 - (FOUNDER_SHARE_PCT / 100)));
+
+  if (!Array.isArray(parentEntry.transactions)) { parentEntry.transactions = []; }
+  let date = null;
+  const rawDate = st.input.freigabedatum;
+  if (rawDate) {
+    const parsed = Date.parse(rawDate);
+    if (Number.isFinite(parsed)) {
+      date = parsed;
     }
+  }
 
-    const newTransaction = {
-        id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g,'')}`,
-        kv_nummer: st.input.kvNummer,
-        type: 'hunter',
-        title: st.input.title, 
-        amount: abrufAmount, 
-        ts: Date.now(),
-        freigabedatum: date,
-        submittedBy: st.input.submittedBy, 
-        rows: st.input.rows, 
-        list: resultData.list, 
-        weights: resultData.effectiveWeights
-    };
-    
-    parentEntry.transactions.push(newTransaction);
-    parentEntry.modified = Date.now();
+  const newTransaction = {
+    id: `trans_${Date.now()}_${st.input.kvNummer.replace(/\s/g, '')}`,
+    kv_nummer: st.input.kvNummer,
+    type: 'hunter',
+    title: st.input.title,
+    amount: abrufAmount,
+    ts: Date.now(),
+    freigabedatum: date,
+    submittedBy: st.input.submittedBy,
+    rows: st.input.rows,
+    list: resultData.list,
+    weights: resultData.effectiveWeights
+  };
 
-    showLoader();
-    try {
-        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
-        });
+  parentEntry.transactions.push(newTransaction);
+  parentEntry.modified = Date.now();
+
+  showLoader();
+  try {
+    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+    });
     if (!r.ok) throw new Error(await r.text());
     showToast(`Aktiver Abruf hinzugefügt`, 'ok');
     clearInputFields();
@@ -3356,12 +3360,12 @@ async function saveHunterAbruf(st) {
       await finalizeDockAbruf(assignmentId);
     }
     showView('rahmen');
-    } catch (e) {
-        showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
-        console.error(e);
-    } finally {
-        hideLoader();
-    }
+  } catch (e) {
+    showToast('Speichern des Abrufs fehlgeschlagen.', 'bad');
+    console.error(e);
+  } finally {
+    hideLoader();
+  }
 }
 
 /* Rahmenvertrag Details */
@@ -3370,78 +3374,78 @@ const rahmenActualBody = document.getElementById('rahmenActualBody');
 document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
 
 function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
-    const personTotals = new Map();
-    const transactions = (entry.transactions || []).filter(t => {
-        const d = t.freigabedatum || t.ts || 0;
-        // Make sure start and end are valid numbers
-        const validStart = Number.isFinite(startDate) ? startDate : 0;
-        const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
-        return d >= validStart && d <= validEnd;
-    });
-    let totalVolume = 0;
+  const personTotals = new Map();
+  const transactions = (entry.transactions || []).filter(t => {
+    const d = t.freigabedatum || t.ts || 0;
+    // Make sure start and end are valid numbers
+    const validStart = Number.isFinite(startDate) ? startDate : 0;
+    const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
+    return d >= validStart && d <= validEnd;
+  });
+  let totalVolume = 0;
 
-    transactions.forEach(trans => {
-        totalVolume += trans.amount;
-        if (trans.type === 'founder') {
-            (entry.list || []).forEach(founder => {
-                const money = trans.amount * (founder.pct / 100);
-                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
-            });
-        } else if (trans.type === 'hunter') {
-            const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
-            (entry.list || []).forEach(founder => {
-                const money = founderShareAmount * (founder.pct / 100);
-                personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
-            });
-            (trans.list || []).forEach(hunter => {
-                personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
-            });
-        }
-    });
-    
-    if (totalVolume === 0) return { list: [], total: 0 };
-    
-    const list = Array.from(personTotals, ([name, money]) => ({
-        name,
-        money,
-        pct: (money / totalVolume) * 100
-    })).sort((a, b) => b.money - a.money);
-    
-    return { list, total: totalVolume };
+  transactions.forEach(trans => {
+    totalVolume += trans.amount;
+    if (trans.type === 'founder') {
+      (entry.list || []).forEach(founder => {
+        const money = trans.amount * (founder.pct / 100);
+        personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+      });
+    } else if (trans.type === 'hunter') {
+      const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
+      (entry.list || []).forEach(founder => {
+        const money = founderShareAmount * (founder.pct / 100);
+        personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
+      });
+      (trans.list || []).forEach(hunter => {
+        personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
+      });
+    }
+  });
+
+  if (totalVolume === 0) return { list: [], total: 0 };
+
+  const list = Array.from(personTotals, ([name, money]) => ({
+    name,
+    money,
+    pct: (money / totalVolume) * 100
+  })).sort((a, b) => b.money - a.money);
+
+  return { list, total: totalVolume };
 }
 
 function renderRahmenDetails(id) {
-    const entry = entries.find(e => e.id === id);
-    if (!entry) return;
-    currentFrameworkEntryId = id;
+  const entry = entries.find(e => e.id === id);
+  if (!entry) return;
+  currentFrameworkEntryId = id;
 
-    document.getElementById('rahmenDetailsTitle').textContent = entry.title;
-    
-    const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry); // Calculate total based on ALL transactions
-    document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''} | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
-    
-    const foundersBody = document.getElementById('rahmenFoundersBody');
-    foundersBody.innerHTML = '';
-    (entry.list || []).forEach(founder => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
-        foundersBody.appendChild(tr);
-    });
-    
-    rahmenActualBody.innerHTML = '';
-    actualDistribution.forEach(person => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct)} %</td><td>${fmtCurr0.format(person.money)}</td>`;
-        rahmenActualBody.appendChild(tr);
-    });
+  document.getElementById('rahmenDetailsTitle').textContent = entry.title;
 
-    rahmenTransaktionenBody.innerHTML = '';
-    (entry.transactions || []).sort((a,b) => (b.freigabedatum || b.ts) - (a.freigabedatum || a.ts)).forEach(trans => {
-        const tr = document.createElement('tr');
-        tr.classList.add('clickable');
-        tr.dataset.transId = trans.id;
-        const datum = trans.freigabedatum ? new Date(trans.freigabedatum).toLocaleDateString('de-DE') : (trans.ts ? new Date(trans.ts).toLocaleDateString('de-DE') : '–');
-        tr.innerHTML = `
+  const { list: actualDistribution, total: totalValue } = calculateActualDistribution(entry); // Calculate total based on ALL transactions
+  document.getElementById('rahmenDetailsSub').textContent = `${entry.client} | ${entry.projectNumber || ''} | Gesamtwert: ${fmtCurr0.format(totalValue)}`;
+
+  const foundersBody = document.getElementById('rahmenFoundersBody');
+  foundersBody.innerHTML = '';
+  (entry.list || []).forEach(founder => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${founder.name}</td><td>${fmtPct.format(founder.pct)} %</td>`;
+    foundersBody.appendChild(tr);
+  });
+
+  rahmenActualBody.innerHTML = '';
+  actualDistribution.forEach(person => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${person.name}</td><td>${fmtPct.format(person.pct)} %</td><td>${fmtCurr0.format(person.money)}</td>`;
+    rahmenActualBody.appendChild(tr);
+  });
+
+  rahmenTransaktionenBody.innerHTML = '';
+  (entry.transactions || []).sort((a, b) => (b.freigabedatum || b.ts) - (a.freigabedatum || a.ts)).forEach(trans => {
+    const tr = document.createElement('tr');
+    tr.classList.add('clickable');
+    tr.dataset.transId = trans.id;
+    const datum = trans.freigabedatum ? new Date(trans.freigabedatum).toLocaleDateString('de-DE') : (trans.ts ? new Date(trans.ts).toLocaleDateString('de-DE') : '–');
+    tr.innerHTML = `
             <td>${trans.kv_nummer || '–'}</td>
             <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
             <td>${trans.title || '–'}</td>
@@ -3451,29 +3455,29 @@ function renderRahmenDetails(id) {
                 <button class="iconbtn" data-act="del-trans" data-id="${trans.id}" title="Löschen"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
             </td>
         `;
-        rahmenTransaktionenBody.appendChild(tr);
-    });
+    rahmenTransaktionenBody.appendChild(tr);
+  });
 }
 
 rahmenTransaktionenBody.addEventListener('click', (ev) => {
-    const row = ev.target.closest('tr.clickable');
-    const delBtn = ev.target.closest('button[data-act="del-trans"]');
-    
-    if (delBtn) {
-        ev.stopPropagation();
-        const transId = delBtn.dataset.id;
-        handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
-        return;
-    }
+  const row = ev.target.closest('tr.clickable');
+  const delBtn = ev.target.closest('button[data-act="del-trans"]');
 
-    if (row) {
-        const transId = row.dataset.transId;
-        const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
-        if (!parentEntry) return;
-        const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
-        if (!transaction) return;
-        openEditTransactionModal(transaction, parentEntry);
-    }
+  if (delBtn) {
+    ev.stopPropagation();
+    const transId = delBtn.dataset.id;
+    handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+    return;
+  }
+
+  if (row) {
+    const transId = row.dataset.transId;
+    const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+    if (!parentEntry) return;
+    const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
+    if (!transaction) return;
+    openEditTransactionModal(transaction, parentEntry);
+  }
 });
 
 /* ---------- Move Fix-Order Modal ---------- */
@@ -3482,114 +3486,114 @@ const moveValidationSummary = document.getElementById('moveValidationSummary');
 const moveTargetFramework = document.getElementById('moveTargetFramework');
 
 btnMoveToFramework.addEventListener('click', () => {
-    const selectedIds = getSelectedFixIds();
-    if (selectedIds.length === 0) return;
+  const selectedIds = getSelectedFixIds();
+  if (selectedIds.length === 0) return;
 
-    moveValidationSummary.textContent = '';
-    document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
-    
-    const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a,b) => a.title.localeCompare(b.title));
-    moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
-    rahmenEntries.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e.id;
-        opt.textContent = `${e.title} (${e.client})`;
-        moveTargetFramework.appendChild(opt);
-    });
-    
-    moveToFrameworkDlg.showModal();
+  moveValidationSummary.textContent = '';
+  document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
+
+  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => a.title.localeCompare(b.title));
+  moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+  rahmenEntries.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = `${e.title} (${e.client})`;
+    moveTargetFramework.appendChild(opt);
+  });
+
+  moveToFrameworkDlg.showModal();
 });
 
 document.getElementById('btnConfirmMove').addEventListener('click', async () => {
-    const selectedIds = getSelectedFixIds();
-    const targetFrameworkId = moveTargetFramework.value;
-    const moveType = document.querySelector('input[name="moveType"]:checked').value;
-    
-    moveValidationSummary.textContent = '';
-    if (!targetFrameworkId) {
-        moveValidationSummary.textContent = 'Bitte einen Ziel-Rahmenvertrag auswählen.';
-        return;
+  const selectedIds = getSelectedFixIds();
+  const targetFrameworkId = moveTargetFramework.value;
+  const moveType = document.querySelector('input[name="moveType"]:checked').value;
+
+  moveValidationSummary.textContent = '';
+  if (!targetFrameworkId) {
+    moveValidationSummary.textContent = 'Bitte einen Ziel-Rahmenvertrag auswählen.';
+    return;
+  }
+
+  const targetFramework = entries.find(e => e.id === targetFrameworkId);
+  if (!targetFramework) {
+    moveValidationSummary.textContent = 'Ziel-Rahmenvertrag nicht gefunden.';
+    return;
+  }
+
+  const fixEntriesToMove = entries.filter(e => selectedIds.includes(e.id));
+
+  // Pre-check for Hunter type
+  if (moveType === 'hunter') {
+    const incompleteEntries = fixEntriesToMove.filter(e => !autoComplete(e));
+    if (incompleteEntries.length > 0) {
+      moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => e.title).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
+      return;
     }
-    
-    const targetFramework = entries.find(e => e.id === targetFrameworkId);
-    if (!targetFramework) {
-        moveValidationSummary.textContent = 'Ziel-Rahmenvertrag nicht gefunden.';
-        return;
+  }
+
+  moveToFrameworkDlg.close();
+  showBatchProgress(`Verschiebe Aufträge...`, selectedIds.length);
+
+  let count = 0;
+  try {
+    for (const entry of fixEntriesToMove) {
+      count++;
+      updateBatchProgress(count, selectedIds.length);
+
+      // 1. Create new transaction
+      let newTransaction;
+      if (moveType === 'founder') {
+        newTransaction = {
+          id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
+          kv_nummer: entry.kv_nummer,
+          type: 'founder',
+          amount: entry.amount,
+          ts: Date.now(),
+          freigabedatum: entry.freigabedatum || entry.ts
+        };
+      } else { // hunter
+        // Create a clean copy for the transaction, removing framework-specific fields if they exist
+        const { id, projectType, transactions, ...restOfEntry } = entry;
+        newTransaction = {
+          ...restOfEntry, // copy relevant data
+          id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
+          type: 'hunter',
+          ts: Date.now() // new internal timestamp
+          // freigabedatum is already part of 'restOfEntry'
+        };
+      }
+
+      // Ensure targetFramework.transactions exists and is an array
+      if (!Array.isArray(targetFramework.transactions)) {
+        targetFramework.transactions = [];
+      }
+      targetFramework.transactions.push(newTransaction);
+      targetFramework.modified = Date.now();
+
+      // 2. Save target framework
+      const rPut = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(targetFramework.id)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(targetFramework)
+      });
+      if (!rPut.ok) throw new Error(`Fehler beim Speichern von Rahmenvertrag ${targetFramework.id}: ${await rPut.text()}`);
+
+      // 3. Delete original fix order
+      const rDel = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+      if (!rDel.ok) throw new Error(`Fehler beim Löschen von Fixauftrag ${entry.id}: ${await rDel.text()}`);
+
+      await throttle();
     }
 
-    const fixEntriesToMove = entries.filter(e => selectedIds.includes(e.id));
-    
-    // Pre-check for Hunter type
-    if (moveType === 'hunter') {
-        const incompleteEntries = fixEntriesToMove.filter(e => !autoComplete(e));
-        if (incompleteEntries.length > 0) {
-            moveValidationSummary.innerHTML = `<b>Fehler:</b> Für "Aktive Abrufe" müssen alle Einträge vollständig sein (Status "ok").<br>Folgende Einträge sind unvollständig: ${incompleteEntries.map(e => e.title).join(', ')}. <br>Bitte bearbeiten Sie diese Einträge zuerst.`;
-            return;
-        }
-    }
-    
-    moveToFrameworkDlg.close();
-    showBatchProgress(`Verschiebe Aufträge...`, selectedIds.length);
-    
-    let count = 0;
-    try {
-        for (const entry of fixEntriesToMove) {
-            count++;
-            updateBatchProgress(count, selectedIds.length);
-            
-            // 1. Create new transaction
-            let newTransaction;
-            if (moveType === 'founder') {
-                newTransaction = {
-                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
-                    kv_nummer: entry.kv_nummer,
-                    type: 'founder',
-                    amount: entry.amount,
-                    ts: Date.now(),
-                    freigabedatum: entry.freigabedatum || entry.ts
-                };
-            } else { // hunter
-                // Create a clean copy for the transaction, removing framework-specific fields if they exist
-                const { id, projectType, transactions, ...restOfEntry } = entry;
-                newTransaction = {
-                    ...restOfEntry, // copy relevant data
-                    id: `trans_${Date.now()}_${entry.kv_nummer.replace(/\W/g, '')}`,
-                    type: 'hunter',
-                    ts: Date.now() // new internal timestamp
-                    // freigabedatum is already part of 'restOfEntry'
-                };
-            }
-            
-             // Ensure targetFramework.transactions exists and is an array
-            if (!Array.isArray(targetFramework.transactions)) {
-                targetFramework.transactions = [];
-            }
-            targetFramework.transactions.push(newTransaction);
-            targetFramework.modified = Date.now();
-            
-            // 2. Save target framework
-            const rPut = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(targetFramework.id)}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(targetFramework)
-            });
-            if (!rPut.ok) throw new Error(`Fehler beim Speichern von Rahmenvertrag ${targetFramework.id}: ${await rPut.text()}`);
-            
-            // 3. Delete original fix order
-            const rDel = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
-            if (!rDel.ok) throw new Error(`Fehler beim Löschen von Fixauftrag ${entry.id}: ${await rDel.text()}`);
-
-            await throttle();
-        }
-        
-        showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
-    } catch (e) {
-        showToast(`Fehler nach ${count} Einträgen: ${e.message}`, 'bad');
-        console.error(e);
-    } finally {
-        hideBatchProgress();
-        await loadHistory(); // Reload all data
-        renderHistory();
-        renderFrameworkContracts();
-    }
+    showToast(`${count} Einträge erfolgreich verschoben.`, 'ok');
+  } catch (e) {
+    showToast(`Fehler nach ${count} Einträgen: ${e.message}`, 'bad');
+    console.error(e);
+  } finally {
+    hideBatchProgress();
+    await loadHistory(); // Reload all data
+    renderHistory();
+    renderFrameworkContracts();
+  }
 });
 
 
@@ -3612,140 +3616,140 @@ const editTbody = document.getElementById('editTbody');
 const editFrameworkContractDlg = document.getElementById('editFrameworkContractDlg');
 
 function openEditTransactionModal(transaction, parentEntry) {
-    currentFrameworkEntryId = parentEntry.id;
-    editingTransactionId = transaction.id || null; // null for new founder transaction
-    
-    document.getElementById('editTransValidationSummary').textContent = '';
-    
-    if (transaction.type === 'founder') {
-        editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
-        editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
-        editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
-        const founderDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
-        editFounderFreigabedatum.value = founderDateSource ? formatDateForInput(founderDateSource) : '';
-        editFounderTransView.classList.remove('hide');
-        editHunterTransView.classList.add('hide');
-    } else { // hunter
-        editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
-        editHunterTitle.value = transaction.title || '';
-        editHunterAmount.value = formatAmountInput(transaction.amount);
-        editHunterKvNummer.value = transaction.kv_nummer || '';
-        const hunterDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
-        editHunterFreigabedatum.value = hunterDateSource ? formatDateForInput(hunterDateSource) : '';
-        
-        const weights = transaction.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
-        const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
-        editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
-        editW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
-        editW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
-        
-        editTbody.innerHTML = '';
-        (transaction.rows || []).forEach(r => addEditRow(r, '#editTbody'));
+  currentFrameworkEntryId = parentEntry.id;
+  editingTransactionId = transaction.id || null; // null for new founder transaction
 
-        editHunterTransView.classList.remove('hide');
-        editFounderTransView.classList.add('hide');
-    }
-    editTransactionDlg.showModal();
+  document.getElementById('editTransValidationSummary').textContent = '';
+
+  if (transaction.type === 'founder') {
+    editTransDlgTitle.textContent = editingTransactionId ? "Passiven Abruf bearbeiten" : "Passiven Abruf hinzufügen";
+    editFounderValueInput.value = editingTransactionId ? formatAmountInput(transaction.amount) : '';
+    editFounderKvNummer.value = editingTransactionId ? transaction.kv_nummer : '';
+    const founderDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
+    editFounderFreigabedatum.value = founderDateSource ? formatDateForInput(founderDateSource) : '';
+    editFounderTransView.classList.remove('hide');
+    editHunterTransView.classList.add('hide');
+  } else { // hunter
+    editTransDlgTitle.textContent = "Aktiven Abruf bearbeiten";
+    editHunterTitle.value = transaction.title || '';
+    editHunterAmount.value = formatAmountInput(transaction.amount);
+    editHunterKvNummer.value = transaction.kv_nummer || '';
+    const hunterDateSource = transaction.freigabedatum ?? (editingTransactionId ? null : (transaction.ts || Date.now()));
+    editHunterFreigabedatum.value = hunterDateSource ? formatDateForInput(hunterDateSource) : '';
+
+    const weights = transaction.weights || [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }];
+    const m = Object.fromEntries(weights.map(w => [w.key, w.weight]));
+    editW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+    editW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+    editW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+
+    editTbody.innerHTML = '';
+    (transaction.rows || []).forEach(r => addEditRow(r, '#editTbody'));
+
+    editHunterTransView.classList.remove('hide');
+    editFounderTransView.classList.add('hide');
+  }
+  editTransactionDlg.showModal();
 }
 
 function addEditRow(rowData = {}, tbodySelector) {
-    const tbodyEl = document.querySelector(tbodySelector);
-    if (!tbodyEl) return;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+  const tbodyEl = document.querySelector(tbodySelector);
+  if (!tbodyEl) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
         <td><input type="text" class="name" value="${rowData.name || ''}" list="peopleList"></td>
         <td><input type="number" class="cs" value="${rowData.cs || 0}"></td>
         <td><input type="number" class="konzept" value="${rowData.konzept || 0}"></td>
         <td><input type="number" class="pitch" value="${rowData.pitch || 0}"></td>
         <td><button class="delrow">X</button></td>
     `;
-    tr.querySelector('.delrow').addEventListener('click', () => tr.remove());
-    tbodyEl.appendChild(tr);
+  tr.querySelector('.delrow').addEventListener('click', () => tr.remove());
+  tbodyEl.appendChild(tr);
 }
 document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow({}, '#editTbody'));
 
 document.getElementById('btnSaveTransaction').addEventListener('click', async () => {
-    const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
-    if (!parentEntry) return;
+  const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+  if (!parentEntry) return;
 
-    const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
-    
-    let transaction = (transIndex > -1) ? JSON.parse(JSON.stringify(parentEntry.transactions[transIndex])) : {}; // Deep copy to avoid modifying original on error
-    let validationError = '';
+  const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
 
-    if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
-        const rows = readRows('#editTbody');
-        const weights = [
-            {key:'cs', weight: toInt0(editW_cs.value)},
-            {key:'konzept', weight: toInt0(editW_konzept.value)},
-            {key:'pitch', weight: toInt0(editW_pitch.value)}
-        ];
-        
-        const errors = validateModalInput(rows, weights);
-        if (Object.keys(errors).length > 0) {
-            document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
-            return;
-        }
-        const amount = parseAmountInput(editHunterAmount.value);
-        const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
-        const resultData = compute(rows, weights, hunterShareAmount);
-        const hunterDate = editHunterFreigabedatum.value ? Date.parse(editHunterFreigabedatum.value) : null;
+  let transaction = (transIndex > -1) ? JSON.parse(JSON.stringify(parentEntry.transactions[transIndex])) : {}; // Deep copy to avoid modifying original on error
+  let validationError = '';
 
-        transaction = {
-            ...transaction,
-            title: editHunterTitle.value.trim(),
-            amount,
-            rows,
-            weights,
-            list: resultData.list,
-            kv_nummer: editHunterKvNummer.value.trim(),
-            freigabedatum: Number.isFinite(hunterDate) ? hunterDate : null
-        };
+  if (!editHunterTransView.classList.contains('hide')) { // Saving a Hunter transaction
+    const rows = readRows('#editTbody');
+    const weights = [
+      { key: 'cs', weight: toInt0(editW_cs.value) },
+      { key: 'konzept', weight: toInt0(editW_konzept.value) },
+      { key: 'pitch', weight: toInt0(editW_pitch.value) }
+    ];
 
-    } else { // Saving a Founder transaction
-        if(!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
-        const founderDate = editFounderFreigabedatum.value ? Date.parse(editFounderFreigabedatum.value) : null;
-
-        transaction.amount = parseAmountInput(editFounderValueInput.value);
-        transaction.kv_nummer = editFounderKvNummer.value.trim();
-        transaction.freigabedatum = Number.isFinite(founderDate) ? founderDate : null;
+    const errors = validateModalInput(rows, weights);
+    if (Object.keys(errors).length > 0) {
+      document.getElementById('editTransValidationSummary').innerHTML = Object.values(errors).join('<br>');
+      return;
     }
-    
-    if (validationError) {
-        document.getElementById('editTransValidationSummary').innerHTML = validationError;
-        return;
+    const amount = parseAmountInput(editHunterAmount.value);
+    const hunterShareAmount = amount * (1 - (FOUNDER_SHARE_PCT / 100));
+    const resultData = compute(rows, weights, hunterShareAmount);
+    const hunterDate = editHunterFreigabedatum.value ? Date.parse(editHunterFreigabedatum.value) : null;
+
+    transaction = {
+      ...transaction,
+      title: editHunterTitle.value.trim(),
+      amount,
+      rows,
+      weights,
+      list: resultData.list,
+      kv_nummer: editHunterKvNummer.value.trim(),
+      freigabedatum: Number.isFinite(hunterDate) ? hunterDate : null
+    };
+
+  } else { // Saving a Founder transaction
+    if (!editFounderKvNummer.value) validationError = 'KV-Nummer ist erforderlich.';
+    const founderDate = editFounderFreigabedatum.value ? Date.parse(editFounderFreigabedatum.value) : null;
+
+    transaction.amount = parseAmountInput(editFounderValueInput.value);
+    transaction.kv_nummer = editFounderKvNummer.value.trim();
+    transaction.freigabedatum = Number.isFinite(founderDate) ? founderDate : null;
+  }
+
+  if (validationError) {
+    document.getElementById('editTransValidationSummary').innerHTML = validationError;
+    return;
+  }
+
+  if (transIndex === -1) { // New founder transaction
+    transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g, '')}`;
+    transaction.ts = Date.now();
+    transaction.type = 'founder';
+    if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = []; // Ensure array exists
+    parentEntry.transactions.push(transaction);
+  } else {
+    parentEntry.transactions[transIndex] = transaction;
+  }
+
+  parentEntry.modified = Date.now();
+  showLoader();
+  try {
+    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    showToast('Abruf aktualisiert', 'ok');
+    editTransactionDlg.close();
+    await loadHistory();
+    renderRahmenDetails(currentFrameworkEntryId);
+    renderFrameworkContracts(); // Update list view sum
+    if (pendingDockAbrufAssignment?.mode === 'founder' && pendingDockAbrufAssignment.entry?.id) {
+      await finalizeDockAbruf(pendingDockAbrufAssignment.entry.id);
     }
-    
-    if (transIndex === -1) { // New founder transaction
-        transaction.id = `trans_${Date.now()}_${transaction.kv_nummer.replace(/\s/g,'')}`;
-        transaction.ts = Date.now();
-        transaction.type = 'founder';
-        if (!Array.isArray(parentEntry.transactions)) parentEntry.transactions = []; // Ensure array exists
-        parentEntry.transactions.push(transaction);
-    } else {
-        parentEntry.transactions[transIndex] = transaction;
-    }
-    
-    parentEntry.modified = Date.now();
-    showLoader();
-    try {
-        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentEntry.id)}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parentEntry)
-        });
-        if (!r.ok) throw new Error(await r.text());
-        showToast('Abruf aktualisiert', 'ok');
-        editTransactionDlg.close();
-        await loadHistory();
-        renderRahmenDetails(currentFrameworkEntryId);
-        renderFrameworkContracts(); // Update list view sum
-        if (pendingDockAbrufAssignment?.mode === 'founder' && pendingDockAbrufAssignment.entry?.id) {
-          await finalizeDockAbruf(pendingDockAbrufAssignment.entry.id);
-        }
-    } catch (e) {
-        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
-    } finally {
-        hideLoader();
-    }
+  } catch (e) {
+    showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+  } finally {
+    hideLoader();
+  }
 });
 
 const editFwClient = document.getElementById('editFwClient');
@@ -3758,97 +3762,97 @@ const editFwW_pitch = document.getElementById('editFwW_pitch');
 document.getElementById('editFwBtnAddRow').addEventListener('click', () => addEditRow({}, '#editFwTbody'));
 
 function openEditFrameworkContractModal(entry) {
-    currentFrameworkEntryId = entry.id;
-    document.getElementById('editFwValidationSummary').textContent = '';
-    editFwClient.value = entry.client || '';
-    editFwTitle.value = entry.title || '';
-    editFwProjectNumber.value = entry.projectNumber || '';
+  currentFrameworkEntryId = entry.id;
+  document.getElementById('editFwValidationSummary').textContent = '';
+  editFwClient.value = entry.client || '';
+  editFwTitle.value = entry.title || '';
+  editFwProjectNumber.value = entry.projectNumber || '';
 
-    const weights = entry.weights || [{key:'cs',weight:DEFAULT_WEIGHTS.cs},{key:'konzept',weight:DEFAULT_WEIGHTS.konzept},{key:'pitch',weight:DEFAULT_WEIGHTS.pitch}];
-    const m = Object.fromEntries(weights.map(w=>[w.key,w.weight]));
-    editFwW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
-    editFwW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
-    editFwW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
+  const weights = entry.weights || [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }];
+  const m = Object.fromEntries(weights.map(w => [w.key, w.weight]));
+  editFwW_cs.value = m.cs ?? DEFAULT_WEIGHTS.cs;
+  editFwW_konzept.value = m.konzept ?? DEFAULT_WEIGHTS.konzept;
+  editFwW_pitch.value = m.pitch ?? DEFAULT_WEIGHTS.pitch;
 
-    editFwTbody.innerHTML = '';
-    (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
-    editFrameworkContractDlg.showModal();
+  editFwTbody.innerHTML = '';
+  (entry.rows || []).forEach(r => addEditRow(r, '#editFwTbody'));
+  editFrameworkContractDlg.showModal();
 }
 
 document.getElementById('btnSaveFrameworkContract').addEventListener('click', async () => {
-    const entry = entries.find(e => e.id === currentFrameworkEntryId);
-    if (!entry) return;
+  const entry = entries.find(e => e.id === currentFrameworkEntryId);
+  if (!entry) return;
 
-    const rows = readRows('#editFwTbody');
-    const weights = [
-        {key:'cs', weight: toInt0(editFwW_cs.value)},
-        {key:'konzept', weight: toInt0(editFwW_konzept.value)},
-        {key:'pitch', weight: toInt0(editFwW_pitch.value)}
-    ];
+  const rows = readRows('#editFwTbody');
+  const weights = [
+    { key: 'cs', weight: toInt0(editFwW_cs.value) },
+    { key: 'konzept', weight: toInt0(editFwW_konzept.value) },
+    { key: 'pitch', weight: toInt0(editFwW_pitch.value) }
+  ];
 
-    const errors = validateModalInput(rows, weights);
-     if (rows.length === 0 || rows.every(r => r.name === '' && r.cs === 0 && r.konzept === 0 && r.pitch === 0)) {
-        errors.rows = 'Mindestens eine Person muss dem Gründer-Team zugewiesen sein.';
-    }
-    if (Object.keys(errors).length > 0) {
-        document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
-        return;
-    }
-    
-    // Recalculate founder list based on new rows/weights (amount doesn't matter here)
-    const resultData = compute(rows, weights, 100); // Amount 100 to get percentages
+  const errors = validateModalInput(rows, weights);
+  if (rows.length === 0 || rows.every(r => r.name === '' && r.cs === 0 && r.konzept === 0 && r.pitch === 0)) {
+    errors.rows = 'Mindestens eine Person muss dem Gründer-Team zugewiesen sein.';
+  }
+  if (Object.keys(errors).length > 0) {
+    document.getElementById('editFwValidationSummary').innerHTML = Object.values(errors).join('<br>');
+    return;
+  }
 
-    entry.client = editFwClient.value.trim();
-    entry.title = editFwTitle.value.trim();
-    entry.projectNumber = editFwProjectNumber.value.trim();
-    entry.rows = rows; // Save the raw input rows
-    entry.weights = resultData.effectiveWeights; // Save the potentially normalized weights
-    entry.list = resultData.list.map(({key, name, pct}) => ({key, name, pct})); // Save only pct, not money
-    entry.modified = Date.now();
+  // Recalculate founder list based on new rows/weights (amount doesn't matter here)
+  const resultData = compute(rows, weights, 100); // Amount 100 to get percentages
 
-    showLoader();
-    try {
-        const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
-        });
-        if (!r.ok) throw new Error(await r.text());
-        showToast('Rahmenvertrag aktualisiert', 'ok');
-        editFrameworkContractDlg.close();
-        loadHistory().then(() => { // Reload data
-            renderFrameworkContracts();
-            if(document.getElementById('viewRahmenDetails').classList.contains('hide') === false) {
-                 renderRahmenDetails(currentFrameworkEntryId); // Update details if visible
-            }
-        });
-    } catch (e) {
-        showToast('Update fehlgeschlagen', 'bad'); console.error(e);
-    } finally {
-        hideLoader();
-    }
+  entry.client = editFwClient.value.trim();
+  entry.title = editFwTitle.value.trim();
+  entry.projectNumber = editFwProjectNumber.value.trim();
+  entry.rows = rows; // Save the raw input rows
+  entry.weights = resultData.effectiveWeights; // Save the potentially normalized weights
+  entry.list = resultData.list.map(({ key, name, pct }) => ({ key, name, pct })); // Save only pct, not money
+  entry.modified = Date.now();
+
+  showLoader();
+  try {
+    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    showToast('Rahmenvertrag aktualisiert', 'ok');
+    editFrameworkContractDlg.close();
+    loadHistory().then(() => { // Reload data
+      renderFrameworkContracts();
+      if (document.getElementById('viewRahmenDetails').classList.contains('hide') === false) {
+        renderRahmenDetails(currentFrameworkEntryId); // Update details if visible
+      }
+    });
+  } catch (e) {
+    showToast('Update fehlgeschlagen', 'bad'); console.error(e);
+  } finally {
+    hideLoader();
+  }
 });
 
 function validateModalInput(rows, weights) {
-    const errors = {};
-    const t = totals(rows);
-    let categoryErrors = [];
-    weights.forEach(w => {
-        if (w.weight > 0 && t[w.key] !== 100) {
-            categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
-        }
-         if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
-             categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
-        }
-    });
-    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+  const errors = {};
+  const t = totals(rows);
+  let categoryErrors = [];
+  weights.forEach(w => {
+    if (w.weight > 0 && t[w.key] !== 100) {
+      categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+    }
+    if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+      categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+    }
+  });
+  if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
 
-    const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
-    if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
-    
-    return errors;
+  const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
+  if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+
+  return errors;
 }
 
 /* ---------- Admin ---------- */
-const admName=document.getElementById('adm_name'), admTeam=document.getElementById('adm_team'), admBody=document.getElementById('adm_body'), adminSearch=document.getElementById('adminSearch');
+const admName = document.getElementById('adm_name'), admTeam = document.getElementById('adm_team'), admBody = document.getElementById('adm_body'), adminSearch = document.getElementById('adminSearch');
 
 function populateAdminTeamOptions() {
   if (!admTeam) return;
@@ -3879,11 +3883,11 @@ function populateAdminTeamOptions() {
 }
 
 document.getElementById('adm_add').onclick = () => adminCreate();
-admName.addEventListener('keydown',(e)=>{ if(e.key==='Enter') adminCreate(); });
+admName.addEventListener('keydown', (e) => { if (e.key === 'Enter') adminCreate(); });
 adminSearch.addEventListener('input', renderPeopleAdmin);
 
-function renderPeopleAdmin(){
-  admBody.innerHTML='';
+function renderPeopleAdmin() {
+  admBody.innerHTML = '';
   const query = adminSearch.value.toLowerCase();
   const filteredPeople = people.filter(p => {
     const nameMatch = (p.name || '').toLowerCase().includes(query);
@@ -3891,12 +3895,12 @@ function renderPeopleAdmin(){
     return nameMatch || teamMatch;
   });
 
-  filteredPeople.forEach(p=>{
-    const tr=document.createElement('tr');
+  filteredPeople.forEach(p => {
+    const tr = document.createElement('tr');
     const safeName = escapeHtml(p.name || '');
-    tr.innerHTML=`
+    tr.innerHTML = `
       <td><input type="text" value="${safeName}"></td>
-      <td><select>${TEAMS.map(t=>`<option value="${escapeHtml(t)}" ${p.team===t?'selected':''}>${escapeHtml(t)}</option>`).join('')}</select></td>
+      <td><select>${TEAMS.map(t => `<option value="${escapeHtml(t)}" ${p.team === t ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('')}</select></td>
       <td style="display:flex;gap:8px">
         <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
         <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -3904,39 +3908,39 @@ function renderPeopleAdmin(){
     admBody.appendChild(tr);
   });
 }
-admBody.addEventListener('click',async(ev)=>{
-  const btn=ev.target.closest('button[data-act]'); if(!btn) return;
-  const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const tr=btn.closest('tr');
+admBody.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button[data-act]'); if (!btn) return;
+  const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act'); const tr = btn.closest('tr');
   showLoader();
-  try{
-    if(act==='save'){
-      const name=tr.querySelector('td:nth-child(1) input').value.trim();
-      const team=tr.querySelector('td:nth-child(2) select').value;
-      if(!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
+  try {
+    if (act === 'save') {
+      const name = tr.querySelector('td:nth-child(1) input').value.trim();
+      const team = tr.querySelector('td:nth-child(2) select').value;
+      if (!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
       const payload = { id, name, team };
-      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-      if(!r.ok) throw new Error(await r.text());
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error(await r.text());
       showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
-    } else if(act==='del'){
-      const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, _delete:true})});
-      if(!r.ok) throw new Error(await r.text());
+    } else if (act === 'del') {
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, _delete: true }) });
+      if (!r.ok) throw new Error(await r.text());
       showToast('Person gelöscht.', 'ok'); await loadPeople(); renderPeopleAdmin();
     }
-  } catch(e){ showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
+  } catch (e) { showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
 });
-async function adminCreate(){
-  const name=admName.value.trim(); const team=admTeam.value;
-  if(!name || !team){ showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
+async function adminCreate() {
+  const name = admName.value.trim(); const team = admTeam.value;
+  if (!name || !team) { showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
   showLoader();
-  try{
-    const payload = {id:`p_${Date.now()}`,name,team};
-    const r = await fetchWithRetry(`${WORKER_BASE}/people`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-    if(!r.ok) throw new Error(await r.text());
+  try {
+    const payload = { id: `p_${Date.now()}`, name, team };
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error(await r.text());
     showToast('Person angelegt.', 'ok');
-    admName.value='';
-    admTeam.value='';
+    admName.value = '';
+    admTeam.value = '';
     await loadPeople(); renderPeopleAdmin();
-  }catch(err){ showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error',err); } finally { hideLoader(); }
+  } catch (err) { showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error', err); } finally { hideLoader(); }
 }
 
 /* ---------- ERP Import ---------- */
@@ -3944,438 +3948,438 @@ const btnErpImport = document.getElementById('btnErpImport');
 btnErpImport.addEventListener('click', handleErpImport);
 
 function getVal(row, keyName) {
-    const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const keys = Object.keys(row);
-    // Finde den Schlüssel, der am besten passt (enthält statt exakt)
-    const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
-    return foundKey ? row[foundKey] : undefined;
+  const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const keys = Object.keys(row);
+  // Finde den Schlüssel, der am besten passt (enthält statt exakt)
+  const foundKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
+  return foundKey ? row[foundKey] : undefined;
 }
 
 // Hilfsfunktion zum Parsen von Excel-Datumsangaben
 function parseExcelDate(excelDate) {
-    if (typeof excelDate === 'number') {
-        // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
-        // Fängt auch ungültige Excel-Daten ab (z.B. 0)
-        if (excelDate > 0) {
-            return new Date((excelDate - 25569) * 86400 * 1000);
-        }
+  if (typeof excelDate === 'number') {
+    // (excelDate - 25569) * 86400 * 1000 = Konvertierung von Excel-Datum (Zahl) zu JS-Timestamp
+    // Fängt auch ungültige Excel-Daten ab (z.B. 0)
+    if (excelDate > 0) {
+      return new Date((excelDate - 25569) * 86400 * 1000);
     }
-    if (typeof excelDate === 'string') {
-        // Versucht, ein Standard-Datumsformat zu parsen (ISO, locale etc.)
-        const d = new Date(excelDate);
-        if (!isNaN(d.getTime())) {
-            return d;
-        }
-        // Versuch, DD.MM.YYYY oder MM/DD/YYYY zu parsen
-        const parts = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
-        if (parts) {
-            // Annahme: DD.MM.YYYY zuerst (europäisch)
-            let d = new Date(parts[3], parts[2] - 1, parts[1]);
-            if (!isNaN(d.getTime())) return d;
-            // Annahme: MM/DD/YYYY (amerikanisch)
-            d = new Date(parts[3], parts[1] - 1, parts[2]);
-            if (!isNaN(d.getTime())) return d;
-        }
+  }
+  if (typeof excelDate === 'string') {
+    // Versucht, ein Standard-Datumsformat zu parsen (ISO, locale etc.)
+    const d = new Date(excelDate);
+    if (!isNaN(d.getTime())) {
+      return d;
     }
-    return null; // Ungültiges Format oder Wert
+    // Versuch, DD.MM.YYYY oder MM/DD/YYYY zu parsen
+    const parts = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+    if (parts) {
+      // Annahme: DD.MM.YYYY zuerst (europäisch)
+      let d = new Date(parts[3], parts[2] - 1, parts[1]);
+      if (!isNaN(d.getTime())) return d;
+      // Annahme: MM/DD/YYYY (amerikanisch)
+      d = new Date(parts[3], parts[1] - 1, parts[2]);
+      if (!isNaN(d.getTime())) return d;
+    }
+  }
+  return null; // Ungültiges Format oder Wert
 }
 
 
 async function handleErpImport() {
-    const fileInput = document.getElementById('erpFile');
-    const importResult = document.getElementById('importResult');
-    if (fileInput.files.length === 0) {
-        showToast('Bitte eine Datei auswählen.', 'bad');
-        return;
-    }
-    const file = fileInput.files[0];
-    showLoader();
-    importResult.classList.add('hide');
-    
-    try {
-        await loadHistory(); // Ensure we have the latest data
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const sheetName = workbook.SheetNames[0];
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  const fileInput = document.getElementById('erpFile');
+  const importResult = document.getElementById('importResult');
+  if (fileInput.files.length === 0) {
+    showToast('Bitte eine Datei auswählen.', 'bad');
+    return;
+  }
+  const file = fileInput.files[0];
+  showLoader();
+  importResult.classList.add('hide');
 
-        let updatedCount = 0;
-        let addedToFrameworkCount = 0;
-        let newFixCount = 0;
-        let skippedCount = 0;
+  try {
+    await loadHistory(); // Ensure we have the latest data
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheetName = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-        // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
-        const allEntriesCopy = JSON.parse(JSON.stringify(entries));
-        const changesToPush = [];
-        
-        // Erstelle einen schnellen Index für KV-Nummern aus der Kopie
-        const kvIndex = new Map();
-        allEntriesCopy.forEach(entry => {
-            if (entry.kv_nummer) {
-                kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
-            }
-            if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-                entry.transactions.forEach(trans => {
-                    if (trans.kv_nummer) {
-                        kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
-                    }
-                });
-            }
+    let updatedCount = 0;
+    let addedToFrameworkCount = 0;
+    let newFixCount = 0;
+    let skippedCount = 0;
+
+    // Erstelle eine tiefe Kopie, um Seiteneffekte während der Schleife zu managen
+    const allEntriesCopy = JSON.parse(JSON.stringify(entries));
+    const changesToPush = [];
+
+    // Erstelle einen schnellen Index für KV-Nummern aus der Kopie
+    const kvIndex = new Map();
+    allEntriesCopy.forEach(entry => {
+      if (entry.kv_nummer) {
+        kvIndex.set(entry.kv_nummer, { type: 'fix', entry: entry });
+      }
+      if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
+        entry.transactions.forEach(trans => {
+          if (trans.kv_nummer) {
+            kvIndex.set(trans.kv_nummer, { type: 'transaction', entry: entry, transaction: trans });
+          }
         });
-        
-        // Erstelle einen Index für Projektnummern von Rahmenverträgen aus der Kopie
-        const frameworkProjectIndex = new Map();
-        allEntriesCopy.forEach(entry => {
-            if (entry.projectType === 'rahmen' && entry.projectNumber) {
-                frameworkProjectIndex.set(entry.projectNumber, entry);
-            }
-        });
+      }
+    });
 
-        for (const row of rows) {
-            const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
-            if (!kvNummer) {
-                skippedCount++;
-                continue;
-            }
+    // Erstelle einen Index für Projektnummern von Rahmenverträgen aus der Kopie
+    const frameworkProjectIndex = new Map();
+    allEntriesCopy.forEach(entry => {
+      if (entry.projectType === 'rahmen' && entry.projectNumber) {
+        frameworkProjectIndex.set(entry.projectNumber, entry);
+      }
+    });
 
-            const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-            // Versucht, verschiedene Formate zu parsen (mit Komma als Dezimaltrenner)
-            const amountRaw = getVal(row, 'Agenturleistung netto');
-            const amount = parseAmountInput(amountRaw); 
-            
-            const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
-            const title = getVal(row, 'Titel') || '';
-            
-            let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
-            const excelDate = getVal(row, 'Abschlussdatum') || getVal(row, 'Freigabedatum'); // Suche nach Abschluss-/Freigabedatum
-            if (excelDate) {
-                const parsedDate = parseExcelDate(excelDate);
-                if (parsedDate) {
-                    freigabeTimestamp = parsedDate.getTime();
-                } else {
-                     console.warn(`Ungültiges Abschlussdatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
-                }
-            } else {
-                 console.warn(`Kein Abschlussdatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
-            }
+    for (const row of rows) {
+      const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
+      if (!kvNummer) {
+        skippedCount++;
+        continue;
+      }
 
-            const existing = kvIndex.get(kvNummer);
+      const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
+      // Versucht, verschiedene Formate zu parsen (mit Komma als Dezimaltrenner)
+      const amountRaw = getVal(row, 'Agenturleistung netto');
+      const amount = parseAmountInput(amountRaw);
 
-            if (existing) { // Fall A: KV-Nummer wurde gefunden
-                let currentAmount;
-                if (existing.type === 'transaction') {
-                    currentAmount = existing.transaction.amount;
-                } else {
-                    currentAmount = existing.entry.amount;
-                }
+      const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
+      const title = getVal(row, 'Titel') || '';
 
-                // Vergleiche Beträge mit kleiner Toleranz für Fließkomma-Ungenauigkeiten
-                if (Math.abs(currentAmount - amount) > 0.001) {
-                    if (existing.type === 'transaction') {
-                        existing.transaction.amount = amount;
-                        // Optional: Abschlussdatum aktualisieren, falls es sich geändert hat?
-                        // existing.transaction.freigabedatum = freigabeTimestamp; 
-                    } else {
-                        existing.entry.amount = amount;
-                        // Optional: Abschlussdatum aktualisieren?
-                        // existing.entry.freigabedatum = freigabeTimestamp;
-                    }
-                    existing.entry.modified = Date.now();
-                    // Stelle sicher, dass der Eintrag nur einmal in changesToPush landet
-                    if (!changesToPush.some(item => item.id === existing.entry.id)) {
-                        changesToPush.push(existing.entry);
-                    }
-                    updatedCount++;
-                } else {
-                    skippedCount++;
-                }
-            } else { // Fall B: KV-Nummer ist neu
-                const parentFramework = frameworkProjectIndex.get(projektNummer);
-                
-                if (parentFramework) { // Fall B1: Rahmenvertrag gefunden
-                    if (!Array.isArray(parentFramework.transactions)) {
-                        parentFramework.transactions = [];
-                    }
-                     // Prüfen ob die Transaktion (KV) nicht doch schon da ist (Sicherheitsnetz)
-                    if (!parentFramework.transactions.some(t => t.kv_nummer === kvNummer)) {
-                        parentFramework.transactions.push({
-                            id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                            kv_nummer: kvNummer,
-                            type: 'founder', // Standard auf 'founder' (passiv)
-                            amount: amount,
-                            ts: Date.now(),
-                            freigabedatum: freigabeTimestamp
-                        });
-                        parentFramework.modified = Date.now();
-                         if (!changesToPush.some(item => item.id === parentFramework.id)) {
-                            changesToPush.push(parentFramework);
-                        }
-                        addedToFrameworkCount++;
-                    } else {
-                         skippedCount++; // KV schon im RV vorhanden, aber nicht im Index (sollte nicht passieren)
-                         console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFramework.id} gefunden, obwohl nicht im Index.`);
-                    }
-                } else { // Fall B2: Neuer Fixauftrag
-                    const newFixEntry = {
-                        id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-                        source: 'erp-import',
-                        projectType: 'fix',
-                        client: clientName,
-                        title: title,
-                        projectNumber: projektNummer,
-                        kv_nummer: kvNummer,
-                        amount: amount,
-                        list: [],
-                        rows: [],
-                        weights: [],
-                        ts: Date.now(),
-                        freigabedatum: freigabeTimestamp,
-                        complete: false // Ist unvollständig, da Verteilung fehlt
-                    };
-                    allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu für spätere Index-Checks
-                    kvIndex.set(kvNummer, {type: 'fix', entry: newFixEntry}); // Füge zum Index hinzu
-                    changesToPush.push(newFixEntry);
-                    newFixCount++;
-                }
-            }
+      let freigabeTimestamp = Date.now(); // Fallback auf Import-Datum
+      const excelDate = getVal(row, 'Abschlussdatum') || getVal(row, 'Freigabedatum'); // Suche nach Abschluss-/Freigabedatum
+      if (excelDate) {
+        const parsedDate = parseExcelDate(excelDate);
+        if (parsedDate) {
+          freigabeTimestamp = parsedDate.getTime();
+        } else {
+          console.warn(`Ungültiges Abschlussdatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
+        }
+      } else {
+        console.warn(`Kein Abschlussdatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
+      }
+
+      const existing = kvIndex.get(kvNummer);
+
+      if (existing) { // Fall A: KV-Nummer wurde gefunden
+        let currentAmount;
+        if (existing.type === 'transaction') {
+          currentAmount = existing.transaction.amount;
+        } else {
+          currentAmount = existing.entry.amount;
         }
 
-        // Keine Notwendigkeit mehr für uniqueChanges, da wir es jetzt direkt beim Pushen prüfen
-        
-        hideLoader();
-        if (changesToPush.length > 0) {
-            showBatchProgress('Speichere Import-Änderungen...', changesToPush.length);
-            let count = 0;
-            for (const entry of changesToPush) {
-                count++;
-                updateBatchProgress(count, changesToPush.length);
-                
-// *** KORREKTUR HIER: Prüfe gegen den *ursprünglichen* entries-Array ***
-                const originalEntryExists = entries.some(originalEntry => originalEntry.id === entry.id);
-                const url = !originalEntryExists ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
-                const method = !originalEntryExists ? 'POST' : 'PUT';
+        // Vergleiche Beträge mit kleiner Toleranz für Fließkomma-Ungenauigkeiten
+        if (Math.abs(currentAmount - amount) > 0.001) {
+          if (existing.type === 'transaction') {
+            existing.transaction.amount = amount;
+            // Optional: Abschlussdatum aktualisieren, falls es sich geändert hat?
+            // existing.transaction.freigabedatum = freigabeTimestamp; 
+          } else {
+            existing.entry.amount = amount;
+            // Optional: Abschlussdatum aktualisieren?
+            // existing.entry.freigabedatum = freigabeTimestamp;
+          }
+          existing.entry.modified = Date.now();
+          // Stelle sicher, dass der Eintrag nur einmal in changesToPush landet
+          if (!changesToPush.some(item => item.id === existing.entry.id)) {
+            changesToPush.push(existing.entry);
+          }
+          updatedCount++;
+        } else {
+          skippedCount++;
+        }
+      } else { // Fall B: KV-Nummer ist neu
+        const parentFramework = frameworkProjectIndex.get(projektNummer);
 
-                // Stelle sicher, dass für PUT eine ID vorhanden ist
-                if(method === 'PUT' && !entry.id) {
-                     throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
-                }
-
-                console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`); // Debugging-Ausgabe
-
-                const r = await fetchWithRetry(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(entry)
-                });
-                if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV '+entry.kv_nummer+')')}: ${await r.text()}`);
-                await throttle();
+        if (parentFramework) { // Fall B1: Rahmenvertrag gefunden
+          if (!Array.isArray(parentFramework.transactions)) {
+            parentFramework.transactions = [];
+          }
+          // Prüfen ob die Transaktion (KV) nicht doch schon da ist (Sicherheitsnetz)
+          if (!parentFramework.transactions.some(t => t.kv_nummer === kvNummer)) {
+            parentFramework.transactions.push({
+              id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+              kv_nummer: kvNummer,
+              type: 'founder', // Standard auf 'founder' (passiv)
+              amount: amount,
+              ts: Date.now(),
+              freigabedatum: freigabeTimestamp
+            });
+            parentFramework.modified = Date.now();
+            if (!changesToPush.some(item => item.id === parentFramework.id)) {
+              changesToPush.push(parentFramework);
             }
+            addedToFrameworkCount++;
+          } else {
+            skippedCount++; // KV schon im RV vorhanden, aber nicht im Index (sollte nicht passieren)
+            console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFramework.id} gefunden, obwohl nicht im Index.`);
+          }
+        } else { // Fall B2: Neuer Fixauftrag
+          const newFixEntry = {
+            id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
+            source: 'erp-import',
+            projectType: 'fix',
+            client: clientName,
+            title: title,
+            projectNumber: projektNummer,
+            kv_nummer: kvNummer,
+            amount: amount,
+            list: [],
+            rows: [],
+            weights: [],
+            ts: Date.now(),
+            freigabedatum: freigabeTimestamp,
+            complete: false // Ist unvollständig, da Verteilung fehlt
+          };
+          allEntriesCopy.push(newFixEntry); // Füge zur lokalen Kopie hinzu für spätere Index-Checks
+          kvIndex.set(kvNummer, { type: 'fix', entry: newFixEntry }); // Füge zum Index hinzu
+          changesToPush.push(newFixEntry);
+          newFixCount++;
+        }
+      }
+    }
+
+    // Keine Notwendigkeit mehr für uniqueChanges, da wir es jetzt direkt beim Pushen prüfen
+
+    hideLoader();
+    if (changesToPush.length > 0) {
+      showBatchProgress('Speichere Import-Änderungen...', changesToPush.length);
+      let count = 0;
+      for (const entry of changesToPush) {
+        count++;
+        updateBatchProgress(count, changesToPush.length);
+
+        // *** KORREKTUR HIER: Prüfe gegen den *ursprünglichen* entries-Array ***
+        const originalEntryExists = entries.some(originalEntry => originalEntry.id === entry.id);
+        const url = !originalEntryExists ? `${WORKER_BASE}/entries` : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
+        const method = !originalEntryExists ? 'POST' : 'PUT';
+
+        // Stelle sicher, dass für PUT eine ID vorhanden ist
+        if (method === 'PUT' && !entry.id) {
+          throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
         }
 
-        const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (keine Änderungen oder fehlende KV-Nummer).`;
-        importResult.innerHTML = resultMsg;
-        importResult.classList.remove('hide');
-        showToast('ERP-Daten erfolgreich importiert', 'ok');
-        await loadHistory(); // Lade die finale Version vom Server
+        console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`); // Debugging-Ausgabe
 
-    } catch (e) {
-        showToast('Fehler beim Importieren der Datei.', 'bad');
-        console.error(e);
-        importResult.textContent = 'Fehler: ' + e.message;
-        importResult.classList.remove('hide');
-    } finally {
-        hideLoader();
-        hideBatchProgress();
+        const r = await fetchWithRetry(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+        if (!r.ok) throw new Error(`Fehler (${method} ${url}) für Eintrag ${entry.id || ('(neu mit KV ' + entry.kv_nummer + ')')}: ${await r.text()}`);
+        await throttle();
+      }
     }
+
+    const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (keine Änderungen oder fehlende KV-Nummer).`;
+    importResult.innerHTML = resultMsg;
+    importResult.classList.remove('hide');
+    showToast('ERP-Daten erfolgreich importiert', 'ok');
+    await loadHistory(); // Lade die finale Version vom Server
+
+  } catch (e) {
+    showToast('Fehler beim Importieren der Datei.', 'bad');
+    console.error(e);
+    importResult.textContent = 'Fehler: ' + e.message;
+    importResult.classList.remove('hide');
+  } finally {
+    hideLoader();
+    hideBatchProgress();
+  }
 }
 
 // *** NEU: handleLegacySalesImport (mit bulk-v2) ***
 async function handleLegacySalesImport() {
-    const fileInput = document.getElementById('legacySalesFile');
-    const importResult = document.getElementById('legacyImportResult');
-    if (fileInput.files.length === 0) {
-        showToast('Bitte eine Datei für den Legacy-Import auswählen.', 'bad');
-        return;
+  const fileInput = document.getElementById('legacySalesFile');
+  const importResult = document.getElementById('legacyImportResult');
+  if (fileInput.files.length === 0) {
+    showToast('Bitte eine Datei für den Legacy-Import auswählen.', 'bad');
+    return;
+  }
+  const file = fileInput.files[0];
+  showLoader();
+  importResult.classList.add('hide');
+
+  // Spaltenzuordnung
+  const columnToPersonMap = {
+    "% Evaluation und Beteiligung": "Evaluation und Beteiligung Mitarbeiter:in",
+    "% Vielfalt+": "Vielfalt+ Mitarbeiter:in",
+    "% Nachhaltigkeit": "Nachhaltigkeit Mitarbeiter:in",
+    "% Sozial- und Krankenversicherungen": "Sozial- und Krankenversicherungen Mitarbeiter:in",
+    "% ChangePartner": "ChangePartner Mitarbeiter:in",
+    "% Bundes- & Landesbehörden": "Bundes- und Landesbehörden Mitarbeiter:in",
+    "% Kommunalverwaltungen": "Kommunalverwaltungen Mitarbeiter:in",
+    "% Internationale Zusammenarbeit": "Internationale Zusammenarbeit Mitarbeiter:in",
+    "% BU OE": "BU Lead OE",
+    "% BU PI": "BU Lead PI"
+  };
+  const percentageColumns = Object.keys(columnToPersonMap);
+  const legacyWeights = [{ key: 'cs', weight: 100 }, { key: 'konzept', weight: 0 }, { key: 'pitch', weight: 0 }];
+
+  try {
+    await loadHistory(); // Aktuelle Daten laden (setzt window.entries)
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheetName = workbook.SheetNames[0];
+    const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    let skippedCount = 0;
+
+    // Verwende eine Kopie des globalen Zustands für die Vorbereitung
+    const allEntriesCopy = JSON.parse(JSON.stringify(getEntries()));
+    const changesToPush = []; // Hier sammeln wir die vollen, geänderten Objekte
+
+    const kvIndex = new Map();
+    allEntriesCopy.forEach(entry => {
+      // Nur Fixaufträge indexieren
+      if (entry.kv_nummer && entry.projectType !== 'rahmen') {
+        kvIndex.set(entry.kv_nummer.trim(), { type: 'fix', entry: entry });
+      }
+      if (entry.kv && entry.projectType !== 'rahmen') {
+        kvIndex.set(entry.kv.trim(), { type: 'fix', entry: entry });
+      }
+    });
+
+    // 1. Daten vorbereiten (synchron)
+    for (const row of excelRows) {
+      const newSalesRows = [];
+      let totalPoints = 0;
+      for (const colName of percentageColumns) {
+        const percentageValue = parseFloat(getVal(row, colName) || 0); // getVal aus index.html
+        if (percentageValue > 0) {
+          const personName = columnToPersonMap[colName];
+          const points = percentageValue * 100;
+          newSalesRows.push({ name: personName, cs: points, konzept: 0, pitch: 0 });
+          totalPoints += points;
+        }
+      }
+
+      if (newSalesRows.length === 0) continue;
+
+      if (Math.abs(totalPoints - 100) > 0.1) {
+        console.warn(`Übersprungen (Vorb.): Zeile mit KV ${getVal(row, 'KV-Nummer')} hat Summe ${totalPoints}.`);
+        skippedCount++;
+        continue;
+      }
+
+      const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
+      if (!kvString) continue;
+
+      const kvList = kvString.split(',').map(kv => kv.trim()).filter(kv => kv.length > 0);
+
+      let firstFullKv = kvList.find(k => k.toLowerCase().startsWith('kv-')) || kvList[0];
+      let kvPrefix = '';
+      if (firstFullKv && firstFullKv.includes('-')) {
+        kvPrefix = firstFullKv.substring(0, firstFullKv.lastIndexOf('-') + 1); // z.B. "KV-2025-"
+      }
+
+      for (const kv of kvList) {
+        let kvToUpdate = kv;
+        if (!kvToUpdate.toLowerCase().startsWith('kv-') && kvPrefix) {
+          kvToUpdate = kvPrefix + kvToUpdate;
+        } else if (!kvToUpdate.toLowerCase().startsWith('kv-') && !kvPrefix) {
+          console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe.`);
+          skippedCount++;
+          continue;
+        }
+
+        const existing = kvIndex.get(kvToUpdate); // Suche im Index
+
+        if (existing && existing.type === 'fix') { // Nur Fixaufträge bearbeiten
+          const entryToUpdate = existing.entry;
+
+          if (changesToPush.some(item => item.id === entryToUpdate.id)) {
+            console.log(`Eintrag ${entryToUpdate.id} bereits für Update vorgemerkt.`);
+            continue;
+          }
+
+          // Änderungen anwenden (auf die Kopie)
+          entryToUpdate.rows = newSalesRows;
+          entryToUpdate.weights = legacyWeights;
+          entryToUpdate.totals = { cs: 100, konzept: 0, pitch: 0 };
+          const resultData = compute(newSalesRows, legacyWeights, (entryToUpdate.amount || 0)); // 'compute' ist in index.html
+          entryToUpdate.list = resultData.list; // Liste mit money-Werten
+          entryToUpdate.complete = autoComplete(entryToUpdate); // 'autoComplete' ist in index.html
+          entryToUpdate.modified = Date.now();
+
+          changesToPush.push(entryToUpdate); // Zum Speichern vormerken
+        } else if (!existing) {
+          console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} nicht gefunden.`);
+          skippedCount++;
+        } else {
+          console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} ist Transaktion, kein Fixauftrag.`);
+          skippedCount++;
+        }
+      }
     }
-    const file = fileInput.files[0];
-    showLoader();
-    importResult.classList.add('hide');
-    
-    // Spaltenzuordnung
-    const columnToPersonMap = {
-        "% Evaluation und Beteiligung": "Evaluation und Beteiligung Mitarbeiter:in",
-        "% Vielfalt+": "Vielfalt+ Mitarbeiter:in",
-        "% Nachhaltigkeit": "Nachhaltigkeit Mitarbeiter:in",
-        "% Sozial- und Krankenversicherungen": "Sozial- und Krankenversicherungen Mitarbeiter:in",
-        "% ChangePartner": "ChangePartner Mitarbeiter:in",
-        "% Bundes- & Landesbehörden": "Bundes- und Landesbehörden Mitarbeiter:in",
-        "% Kommunalverwaltungen": "Kommunalverwaltungen Mitarbeiter:in",
-        "% Internationale Zusammenarbeit": "Internationale Zusammenarbeit Mitarbeiter:in",
-        "% BU OE": "BU Lead OE",
-        "% BU PI": "BU Lead PI"
-    };
-    const percentageColumns = Object.keys(columnToPersonMap);
-    const legacyWeights = [{key: 'cs', weight: 100}, {key: 'konzept', weight: 0}, {key: 'pitch', weight: 0}];
+
+    hideLoader(); // Vorbereitungs-Loader ausblenden
+
+    if (changesToPush.length === 0) {
+      importResult.innerHTML = `Legacy-Import: Keine Einträge gefunden oder alle übersprungen. ${skippedCount} Zeilen/KVs übersprungen.`;
+      importResult.classList.remove('hide');
+      showToast('Legacy-Import: Nichts zu aktualisieren.', 'warn');
+      fileInput.value = '';
+      return;
+    }
+
+    // *** NEU: Bulk-Upload Logik ***
+    showBatchProgress(`Speichere ${changesToPush.length} Legacy-Änderungen...`, 1); // Nur 1 Schritt
 
     try {
-        await loadHistory(); // Aktuelle Daten laden (setzt window.entries)
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const sheetName = workbook.SheetNames[0];
-        const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      const bulkPayload = { rows: changesToPush }; // Sende die vollen, geänderten Objekte
+      const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, { // Verwende den v2-Endpunkt
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bulkPayload)
+      });
 
-        let skippedCount = 0;
-        
-        // Verwende eine Kopie des globalen Zustands für die Vorbereitung
-        const allEntriesCopy = JSON.parse(JSON.stringify(getEntries()));
-        const changesToPush = []; // Hier sammeln wir die vollen, geänderten Objekte
-        
-        const kvIndex = new Map();
-        allEntriesCopy.forEach(entry => {
-            // Nur Fixaufträge indexieren
-            if (entry.kv_nummer && entry.projectType !== 'rahmen') {
-                kvIndex.set(entry.kv_nummer.trim(), { type: 'fix', entry: entry });
-            }
-             if (entry.kv && entry.projectType !== 'rahmen') {
-                kvIndex.set(entry.kv.trim(), { type: 'fix', entry: entry });
-            }
-        });
+      updateBatchProgress(1, 1);
+      const result = await r.json(); // Erwarte { ok: true/false, created, updated, skipped, errors, saved }
 
-        // 1. Daten vorbereiten (synchron)
-        for (const row of excelRows) {
-            const newSalesRows = []; 
-            let totalPoints = 0;
-            for (const colName of percentageColumns) {
-                const percentageValue = parseFloat(getVal(row, colName) || 0); // getVal aus index.html
-                if (percentageValue > 0) {
-                    const personName = columnToPersonMap[colName];
-                    const points = percentageValue * 100;
-                    newSalesRows.push({ name: personName, cs: points, konzept: 0, pitch: 0 });
-                    totalPoints += points;
-                }
-            }
+      if (!r.ok || !result.ok) {
+        const errorMsg = result.message || result.error || `Serverfehler ${r.status}`;
+        throw new Error(`Bulk save failed: ${errorMsg} (Details: ${result.details || 'N/A'})`);
+      }
 
-            if (newSalesRows.length === 0) continue;
-            
-            if (Math.abs(totalPoints - 100) > 0.1) {
-                console.warn(`Übersprungen (Vorb.): Zeile mit KV ${getVal(row, 'KV-Nummer')} hat Summe ${totalPoints}.`);
-                skippedCount++;
-                continue;
-            }
-            
-            const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
-            if (!kvString) continue;
+      const resultMsg = `Legacy-Import abgeschlossen: ${result.updated} Einträge erfolgreich aktualisiert. ${skippedCount} Zeilen/KVs in Vorbereitung übersprungen, ${result.skipped} beim Speichern übersprungen. ${result.errors} Fehler beim Speichern.`;
+      importResult.innerHTML = resultMsg;
+      importResult.classList.remove('hide');
+      showToast('Sales-Daten (Altdaten) Import beendet.', result.errors > 0 ? 'warn' : 'ok');
+      await loadHistory(); // Lade die finale Version vom Server
 
-            const kvList = kvString.split(',').map(kv => kv.trim()).filter(kv => kv.length > 0);
-            
-            let firstFullKv = kvList.find(k => k.toLowerCase().startsWith('kv-')) || kvList[0];
-            let kvPrefix = '';
-            if (firstFullKv && firstFullKv.includes('-')) {
-                 kvPrefix = firstFullKv.substring(0, firstFullKv.lastIndexOf('-') + 1); // z.B. "KV-2025-"
-            }
-
-            for (const kv of kvList) {
-                let kvToUpdate = kv;
-                if (!kvToUpdate.toLowerCase().startsWith('kv-') && kvPrefix) {
-                    kvToUpdate = kvPrefix + kvToUpdate;
-                } else if (!kvToUpdate.toLowerCase().startsWith('kv-') && !kvPrefix) {
-                     console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe.`);
-                     skippedCount++;
-                     continue;
-                }
-
-                const existing = kvIndex.get(kvToUpdate); // Suche im Index
-                
-                if (existing && existing.type === 'fix') { // Nur Fixaufträge bearbeiten
-                    const entryToUpdate = existing.entry; 
-                    
-                    if (changesToPush.some(item => item.id === entryToUpdate.id)) {
-                        console.log(`Eintrag ${entryToUpdate.id} bereits für Update vorgemerkt.`);
-                        continue;
-                    }
-
-                    // Änderungen anwenden (auf die Kopie)
-                    entryToUpdate.rows = newSalesRows;
-                    entryToUpdate.weights = legacyWeights;
-                    entryToUpdate.totals = {cs: 100, konzept: 0, pitch: 0}; 
-                    const resultData = compute(newSalesRows, legacyWeights, (entryToUpdate.amount || 0)); // 'compute' ist in index.html
-                    entryToUpdate.list = resultData.list; // Liste mit money-Werten
-                    entryToUpdate.complete = autoComplete(entryToUpdate); // 'autoComplete' ist in index.html
-                    entryToUpdate.modified = Date.now();
-                    
-                    changesToPush.push(entryToUpdate); // Zum Speichern vormerken
-                } else if (!existing) {
-                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} nicht gefunden.`);
-                    skippedCount++;
-                } else {
-                    console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} ist Transaktion, kein Fixauftrag.`);
-                     skippedCount++;
-                }
-            }
-        }
-        
-        hideLoader(); // Vorbereitungs-Loader ausblenden
-
-        if (changesToPush.length === 0) {
-            importResult.innerHTML = `Legacy-Import: Keine Einträge gefunden oder alle übersprungen. ${skippedCount} Zeilen/KVs übersprungen.`;
-            importResult.classList.remove('hide');
-            showToast('Legacy-Import: Nichts zu aktualisieren.', 'warn');
-            fileInput.value = '';
-            return;
-        }
-
-        // *** NEU: Bulk-Upload Logik ***
-        showBatchProgress(`Speichere ${changesToPush.length} Legacy-Änderungen...`, 1); // Nur 1 Schritt
-        
-        try {
-            const bulkPayload = { rows: changesToPush }; // Sende die vollen, geänderten Objekte
-            const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, { // Verwende den v2-Endpunkt
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bulkPayload)
-            });
-            
-            updateBatchProgress(1, 1);
-            const result = await r.json(); // Erwarte { ok: true/false, created, updated, skipped, errors, saved }
-
-            if (!r.ok || !result.ok) {
-                 const errorMsg = result.message || result.error || `Serverfehler ${r.status}`;
-                 throw new Error(`Bulk save failed: ${errorMsg} (Details: ${result.details || 'N/A'})`);
-            }
-
-            const resultMsg = `Legacy-Import abgeschlossen: ${result.updated} Einträge erfolgreich aktualisiert. ${skippedCount} Zeilen/KVs in Vorbereitung übersprungen, ${result.skipped} beim Speichern übersprungen. ${result.errors} Fehler beim Speichern.`;
-            importResult.innerHTML = resultMsg;
-            importResult.classList.remove('hide');
-            showToast('Sales-Daten (Altdaten) Import beendet.', result.errors > 0 ? 'warn' : 'ok');
-            await loadHistory(); // Lade die finale Version vom Server
-
-        } catch (e) {
-            hideLoader();
-            hideBatchProgress();
-            showToast('Fehler beim Speichern der Legacy-Daten.', 'bad');
-            console.error(e);
-            importResult.textContent = 'Fehler beim Speichern: ' + e.message;
-            importResult.classList.remove('hide');
-        } finally {
-            hideLoader();
-            hideBatchProgress();
-            fileInput.value = '';
-        }
-        // *** ENDE Bulk-Upload Logik ***
-        
     } catch (e) {
-        // Fehler beim Dateiverarbeiten (vor dem Speichern)
-        hideLoader();
-        hideBatchProgress();
-        showToast('Fehler beim Verarbeiten der Datei.', 'bad');
-        console.error(e);
-        importResult.textContent = 'Fehler bei Dateiverarbeitung: ' + e.message;
-        importResult.classList.remove('hide');
+      hideLoader();
+      hideBatchProgress();
+      showToast('Fehler beim Speichern der Legacy-Daten.', 'bad');
+      console.error(e);
+      importResult.textContent = 'Fehler beim Speichern: ' + e.message;
+      importResult.classList.remove('hide');
     } finally {
-        hideLoader();
-        hideBatchProgress();
-        fileInput.value = '';
+      hideLoader();
+      hideBatchProgress();
+      fileInput.value = '';
     }
+    // *** ENDE Bulk-Upload Logik ***
+
+  } catch (e) {
+    // Fehler beim Dateiverarbeiten (vor dem Speichern)
+    hideLoader();
+    hideBatchProgress();
+    showToast('Fehler beim Verarbeiten der Datei.', 'bad');
+    console.error(e);
+    importResult.textContent = 'Fehler bei Dateiverarbeitung: ' + e.message;
+    importResult.classList.remove('hide');
+  } finally {
+    hideLoader();
+    hideBatchProgress();
+    fileInput.value = '';
+  }
 }
 
 /* ---------- Auswertung ---------- */
@@ -4397,46 +4401,46 @@ const trendRevenueChart = document.getElementById('trendRevenueChart');
 const trendCumulativeChart = document.getElementById('trendCumulativeChart');
 
 function initAnalytics() {
-    // Fülle Jahres-Dropdown (für Top-Listen)
-    const currentYear = new Date().getFullYear();
-    anaYear.innerHTML = '';
-    for (let y = 2022; y <= currentYear + 1; y++) {
-      const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
-    }
-    anaYear.value = String(currentYear);
-    
-    // Setze Standard-Datum (für Aktivitäts-Chart)
-    setAnaDateRange('thisYear');
+  // Fülle Jahres-Dropdown (für Top-Listen)
+  const currentYear = new Date().getFullYear();
+  anaYear.innerHTML = '';
+  for (let y = 2022; y <= currentYear + 1; y++) {
+    const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
+  }
+  anaYear.value = String(currentYear);
 
-    // Führe beide Render-Funktionen aus
-    renderAnalytics(); // Jährliche Auswertung
-    renderActivityAnalytics(); // Zeitintervall-Auswertung
-    initTrendControls();
-    renderTrendInsights();
+  // Setze Standard-Datum (für Aktivitäts-Chart)
+  setAnaDateRange('thisYear');
+
+  // Führe beide Render-Funktionen aus
+  renderAnalytics(); // Jährliche Auswertung
+  renderActivityAnalytics(); // Zeitintervall-Auswertung
+  initTrendControls();
+  renderTrendInsights();
 }
 
 function setAnaDateRange(rangeType) {
-    const now = new Date();
-    let start, end;
-    if (rangeType === 'thisYear') {
-        start = new Date(now.getFullYear(), 0, 1); // 1. Jan
-        end = now; // Heute
-    } else { // lastYear
-        const lastYear = now.getFullYear() - 1;
-        start = new Date(lastYear, 0, 1); // 1. Jan letztes Jahr
-        end = new Date(lastYear, 11, 31); // 31. Dez letztes Jahr
-    }
-    anaStartDate.value = formatDateForInput(start.getTime());
-    anaEndDate.value = formatDateForInput(end.getTime());
+  const now = new Date();
+  let start, end;
+  if (rangeType === 'thisYear') {
+    start = new Date(now.getFullYear(), 0, 1); // 1. Jan
+    end = now; // Heute
+  } else { // lastYear
+    const lastYear = now.getFullYear() - 1;
+    start = new Date(lastYear, 0, 1); // 1. Jan letztes Jahr
+    end = new Date(lastYear, 11, 31); // 31. Dez letztes Jahr
+  }
+  anaStartDate.value = formatDateForInput(start.getTime());
+  anaEndDate.value = formatDateForInput(end.getTime());
 }
 
 btnAnaThisYear.addEventListener('click', () => {
-    setAnaDateRange('thisYear');
-    renderActivityAnalytics();
+  setAnaDateRange('thisYear');
+  renderActivityAnalytics();
 });
 btnAnaLastYear.addEventListener('click', () => {
-    setAnaDateRange('lastYear');
-    renderActivityAnalytics();
+  setAnaDateRange('lastYear');
+  renderActivityAnalytics();
 });
 btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
 
@@ -4448,10 +4452,10 @@ let trendData = null;
 
 // Helper to get timestamp, ensuring it's a valid number or 0
 function getTimestamp(dateStr) {
-    try {
-        const d = new Date(dateStr);
-        return isNaN(d.getTime()) ? 0 : d.getTime();
-    } catch { return 0; }
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  } catch { return 0; }
 }
 
 // Jährliche Top-Listen und Gesamtübersicht
@@ -4460,7 +4464,7 @@ function renderAnalytics() {
   // Definiere Start- und End-Timestamp für das gewählte Jahr (UTC oder lokale Zeitzone beachten?)
   // Annahme: Lokale Zeitzone basierend auf formatDateForInput
   const startOfYear = getTimestamp(`${year}-01-01`);
-  const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`);
+  const endOfYear = getTimestamp(`${year}-12-31T23:59:59.999`);
 
   const byNameTeam = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p.team || '']));
   const personStats = new Map();
@@ -5293,15 +5297,15 @@ function collectTrendItems(entry) {
 
   const transactionItems = Array.isArray(entry.transactions)
     ? entry.transactions
-        .map((tx) => {
-          const ts = normalizeTrendTimestamp(tx?.freigabedatum ?? tx?.ts ?? tx?.date);
-          const amount = normalizeTrendAmount(tx?.amount ?? tx?.value);
-          if (!Number.isFinite(ts) || !(amount > 0)) {
-            return null;
-          }
-          return { timestamp: ts, amount };
-        })
-        .filter(Boolean)
+      .map((tx) => {
+        const ts = normalizeTrendTimestamp(tx?.freigabedatum ?? tx?.ts ?? tx?.date);
+        const amount = normalizeTrendAmount(tx?.amount ?? tx?.value);
+        if (!Number.isFinite(ts) || !(amount > 0)) {
+          return null;
+        }
+        return { timestamp: ts, amount };
+      })
+      .filter(Boolean)
     : [];
 
   if (transactionItems.length) {
@@ -5621,74 +5625,74 @@ function exportTrendXlsx() {
 }
 
 btnAnaXlsx.addEventListener('click', () => {
-    const year = anaYear.value;
-    const wb = XLSX.utils.book_new();
+  const year = anaYear.value;
+  const wb = XLSX.utils.book_new();
 
-    // Ensure data exists before creating sheets
-    if (analyticsData.persons && analyticsData.persons.length > 0) {
-        const ws1Arr = analyticsData.persons.map(p => ({
-          Name: p.name,
-          Beitrag_Ist_EUR: Number((p.actual || 0).toFixed(2)),
-          Beitrag_Gewichtet_EUR: Number((p.weighted || 0).toFixed(2)),
-          Faktor: p.actual > 0 ? Number((p.weighted / p.actual).toFixed(2)) : '',
-          Delta_EUR: Number(((p.weighted || 0) - (p.actual || 0)).toFixed(2)),
-        }));
-        const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
-        XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
-    }
-    if (analyticsData.teams && analyticsData.teams.length > 0) {
-        const ws2Arr = analyticsData.teams.map(t => ({
-          Team: t.name,
-          Beitrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
-          Beitrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
-          Faktor: t.actual > 0 ? Number((t.weighted / t.actual).toFixed(2)) : '',
-          Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
-        }));
-        const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
-        XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
-    }
-     if (analyticsData.totals && analyticsData.totals.length > 0) {
-        const ws3Arr = analyticsData.totals.map(t => ({
-          Typ: t.name,
-          Betrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
-          Betrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
-          Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
-        }));
-        const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
-        XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
-    }
-    
-    // Add activity data if available (simple export of the current view)
-    const activityChart = document.getElementById('chartActivity');
-    if(activityChart && activityChart.innerHTML !== '') {
-         const start = anaStartDate.value;
-         const end = anaEndDate.value;
-         const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
-             const name = g.querySelector('text[x="10"]').textContent;
-             const valueText = g.querySelector('text[font-weight="700"]').textContent;
-             const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
-             const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
-             const countMatch = valueText.match(/\((\d+)\)/); // Extract count
-             const count = countMatch ? parseInt(countMatch[1]) : null;
-             return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
-         });
-         if(activityItems.length > 0) {
-             const ws4 = XLSX.utils.json_to_sheet(activityItems);
-             XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
-         }
-    }
+  // Ensure data exists before creating sheets
+  if (analyticsData.persons && analyticsData.persons.length > 0) {
+    const ws1Arr = analyticsData.persons.map(p => ({
+      Name: p.name,
+      Beitrag_Ist_EUR: Number((p.actual || 0).toFixed(2)),
+      Beitrag_Gewichtet_EUR: Number((p.weighted || 0).toFixed(2)),
+      Faktor: p.actual > 0 ? Number((p.weighted / p.actual).toFixed(2)) : '',
+      Delta_EUR: Number(((p.weighted || 0) - (p.actual || 0)).toFixed(2)),
+    }));
+    const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
+    XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
+  }
+  if (analyticsData.teams && analyticsData.teams.length > 0) {
+    const ws2Arr = analyticsData.teams.map(t => ({
+      Team: t.name,
+      Beitrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
+      Beitrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
+      Faktor: t.actual > 0 ? Number((t.weighted / t.actual).toFixed(2)) : '',
+      Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
+    }));
+    const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
+    XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
+  }
+  if (analyticsData.totals && analyticsData.totals.length > 0) {
+    const ws3Arr = analyticsData.totals.map(t => ({
+      Typ: t.name,
+      Betrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
+      Betrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
+      Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
+    }));
+    const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
+    XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
+  }
 
-    if(wb.SheetNames.length > 0) {
-      XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
-    } else {
-        showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+  // Add activity data if available (simple export of the current view)
+  const activityChart = document.getElementById('chartActivity');
+  if (activityChart && activityChart.innerHTML !== '') {
+    const start = anaStartDate.value;
+    const end = anaEndDate.value;
+    const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
+      const name = g.querySelector('text[x="10"]').textContent;
+      const valueText = g.querySelector('text[font-weight="700"]').textContent;
+      const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
+      const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
+      const countMatch = valueText.match(/\((\d+)\)/); // Extract count
+      const count = countMatch ? parseInt(countMatch[1]) : null;
+      return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
+    });
+    if (activityItems.length > 0) {
+      const ws4 = XLSX.utils.json_to_sheet(activityItems);
+      XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
     }
+  }
+
+  if (wb.SheetNames.length > 0) {
+    XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+  } else {
+    showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+  }
 });
 
 /* ---------- Init & Window Events ---------- */
-function initFromState(isEditing = false){
-  const st=loadState();
-  if(st?.input){
+function initFromState(isEditing = false) {
+  const st = loadState();
+  if (st?.input) {
     const isEditFromHistory = !!st.editingId;
     loadInputForm(st.input, isEditFromHistory);
   } else {
@@ -5720,7 +5724,7 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-async function initializeApp(){
+async function initializeApp() {
   try {
     await loadSession();
     await loadPeople();
@@ -5751,14 +5755,160 @@ async function initializeApp(){
 initializeApp();
 
 // Deep Link zu Admin (optional)
-if (location.hash === '#admin') { 
-    // Warte kurz, damit die UI bereit ist
-    setTimeout(handleAdminClick, 100); 
+
+// Add activity data if available (simple export of the current view)
+const activityChart = document.getElementById('chartActivity');
+if (activityChart && activityChart.innerHTML !== '') {
+  const start = anaStartDate.value;
+  const end = anaEndDate.value;
+  const activityItems = Array.from(document.querySelectorAll('#chartActivity g')).map(g => {
+    const name = g.querySelector('text[x="10"]').textContent;
+    const valueText = g.querySelector('text[font-weight="700"]').textContent;
+    const amountMatch = valueText.match(/([\d.]+,\d+)\s€/); // Extract amount
+    const amount = amountMatch ? parseAmountInput(amountMatch[1]) : 0;
+    const countMatch = valueText.match(/\((\d+)\)/); // Extract count
+    const count = countMatch ? parseInt(countMatch[1]) : null;
+    return { Rahmenvertrag: name, Betrag_EUR: amount, Abrufe: count };
+  });
+  if (activityItems.length > 0) {
+    const ws4 = XLSX.utils.json_to_sheet(activityItems);
+    XLSX.utils.book_append_sheet(wb, ws4, `Aktivität ${start}-${end}`);
+  }
 }
 
+if (wb.SheetNames.length > 0) {
+  XLSX.writeFile(wb, `auswertung_${year}_export.xlsx`);
+} else {
+  showToast('Keine Daten zum Exportieren vorhanden.', 'warn');
+}
+});
+
+/* ---------- Init & Window Events ---------- */
+function initFromState(isEditing = false) {
+  const st = loadState();
+  if (st?.input) {
+    const isEditFromHistory = !!st.editingId;
+    loadInputForm(st.input, isEditFromHistory);
+  } else {
+    loadInputForm({}, false); // Ensure default freigabedatum is set
+  }
+  updateWeightNote();
+}
+
+Object.assign(window, {
+  showToast,
+  showLoader,
+  hideLoader,
+  showBatchProgress,
+  updateBatchProgress,
+  hideBatchProgress,
+  fetchWithRetry,
+  throttle,
+  loadHistory,
+  populateAdminTeamOptions,
+});
+
+// Warnung bei ungespeicherten Änderungen oder laufendem Batch
+window.addEventListener('beforeunload', (e) => {
+  if (getHasUnsavedChanges() || getIsBatchRunning()) {
+    const msg = getIsBatchRunning() ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
+    e.preventDefault(); // Standard für die meisten Browser
+    e.returnValue = msg; // Für ältere Browser / Electron
+    return msg; // Für manche Browser
+  }
+});
+
+async function initializeApp() {
+  try {
+    await loadSession();
+    await loadPeople();
+  } catch (err) {
+    console.error('Initialisierung von Session/Personen fehlgeschlagen:', err);
+    showToast('Cloudflare-Session oder Personenliste konnten nicht geladen werden.', 'bad');
+  }
+
+  populateAdminTeamOptions();
+  initFromState();
+
+  try {
+    await loadHistory();
+  } catch (err) {
+    console.error('Initiales Laden der Historie fehlgeschlagen:', err);
+  }
+  renderDockBoard();
+  showView('erfassung');
+
+  const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
+  if (btnLegacySalesImport) {
+    btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
+  } else {
+    console.error('Button #btnLegacySalesImport nicht gefunden!');
+  }
+}
+
+initializeApp();
+
+// Deep Link zu Admin (optional)
+if (location.hash === '#admin') {
+  // Warte kurz, damit die UI bereit ist
+  setTimeout(handleAdminClick, 100);
+}
+
+
 // Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
-document.addEventListener('keydown',(e)=>{ 
-    if(e.key==='Enter' && e.target?.tagName==='INPUT' && !e.target.closest('#viewAdmin')) {
-        e.preventDefault(); 
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target?.tagName === 'INPUT' && !e.target.closest('#viewAdmin')) {
+    e.preventDefault();
+  }
+});
+
+// --- Weighting Feature Event Listeners ---
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-dock-act]');
+  if (!btn) return;
+
+  const act = btn.dataset.dockAct;
+  const id = btn.dataset.id;
+  if (!act || !id) return;
+
+  const entry = getEntries().find((e) => e.id === id);
+  if (!entry) return;
+
+  if (act === 'weight-save') {
+    persistDockWeight(entry, btn);
+  } else if (act === 'weight-note') {
+    const state = getDockWeightUiState(entry);
+    const newComment = prompt('Notiz zur Gewichtung:', state.comment || '');
+    if (newComment !== null) {
+      let draft = dockWeightDrafts.get(entry.id);
+      if (!draft) {
+        draft = { value: state.value };
+        dockWeightDrafts.set(entry.id, draft);
+      }
+      draft.comment = newComment;
+      updateDockWeightUi(entry.id);
     }
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.matches('[data-dock-weight-slider]')) {
+    const id = e.target.dataset.dockWeightSlider;
+    const entry = getEntries().find((e) => e.id === id);
+    if (!entry) return;
+
+    const index = parseInt(e.target.value, 10);
+    const value = getDockWeightValueForIndex(index);
+
+    let draft = dockWeightDrafts.get(entry.id);
+    if (!draft) {
+      // Preserve existing comment if starting a new draft
+      const currentState = getDockWeightUiState(entry);
+      draft = { comment: currentState.comment };
+      dockWeightDrafts.set(entry.id, draft);
+    }
+    draft.value = value;
+    updateDockWeightUi(entry.id);
+  }
 });
