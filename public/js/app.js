@@ -122,7 +122,7 @@ const DOCK_ASSIGNMENT_LABELS = {
 
 const DOCK_WEIGHTING_STEPS = [
   { value: 0.5, short: '0.5×', label: '0.5× Basic', description: 'Geringere Priorität oder kleineren Hebel' },
-  { value: 1, short: '1.0×', label: '1.0× Standard', description: 'Normalfall ohne strategische Gewichtung' },
+  { value: 1, short: '1.0×', label: '1.0×', description: 'Normalfall ohne strategische Gewichtung' },
   { value: 1.5, short: '1.5×', label: '1.5× Fokus', description: 'Hohe Relevanz für BU oder Portfolio' },
   { value: 2, short: '2.0×', label: '2.0× Strategic', description: 'Flagship-Deal mit maximaler Hebelwirkung' },
 ];
@@ -1304,17 +1304,7 @@ function buildDockCard(item) {
   if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
     badgeItems.push({ className: 'dock-pill warn', text: 'Manuell' });
   }
-  if (phase >= 2) {
-    const weightClasses = ['dock-pill'];
-    if (weightState.value > 1) {
-      weightClasses.push('accent');
-    }
-    badgeItems.push({
-      className: weightClasses.join(' '),
-      text: formatDockWeightLabel(weightState.value, { short: true }),
-      dataset: { dockWeightPill: entry.id },
-    });
-  }
+  // Weight pill removed as per user request
   if (badgeItems.length) {
     const badgeRow = createDockElement('div', { className: 'dock-badge-row' });
     badgeItems.forEach((badge) => {
@@ -1447,7 +1437,7 @@ function buildDockWeightPanel(entry, options = {}) {
   );
 
   if (editable) {
-    const sliderWrap = createDockElement('div', { className: 'dock-weight-slider-wrap' });
+    const sliderWrap = createDockElement('div', { className: 'dock-weight-slider-wrap compact' });
     const slider = createDockElement('input', {
       className: 'dock-weight-slider',
       attrs: {
@@ -1470,14 +1460,6 @@ function buildDockWeightPanel(entry, options = {}) {
     panel.appendChild(sliderWrap);
   }
 
-  panel.appendChild(
-    createDockElement('div', {
-      className: 'dock-weight-preview',
-      text: formatDockWeightSummary(entry, state.value),
-      dataset: { dockWeightPreview: entry.id },
-    })
-  );
-
   const commentRow = createDockElement('div', { className: 'dock-weight-comment-row' });
   commentRow.appendChild(
     createDockElement('span', {
@@ -1486,30 +1468,25 @@ function buildDockWeightPanel(entry, options = {}) {
       dataset: { dockWeightComment: entry.id },
     })
   );
+  panel.appendChild(commentRow);
+
   if (editable) {
-    commentRow.appendChild(
+    const actions = createDockElement('div', { className: 'dock-weight-actions compact' });
+
+    // Note button
+    actions.appendChild(
       createDockElement('button', {
         className: 'btn tight',
-        text: state.comment ? 'Notiz bearbeiten' : 'Notiz hinzuf\u00fcgen',
+        text: state.comment ? 'Notiz bearbeiten' : 'Notiz',
         attrs: { type: 'button' },
         dataset: { dockAct: 'weight-note', id: entry.id, dockWeightNoteBtn: entry.id },
       })
     );
-  }
-  panel.appendChild(commentRow);
 
-  if (editable) {
-    const actions = createDockElement('div', { className: 'dock-weight-actions' });
-    actions.appendChild(
-      createDockElement('span', {
-        className: 'dock-weight-status',
-        text: state.dirty ? 'Nicht gespeichert' : 'Gespeichert',
-        dataset: { dockWeightStatus: entry.id },
-      })
-    );
+    // Save button
     const saveBtn = createDockElement('button', {
       className: 'btn ok tight',
-      text: 'Gewichtung speichern',
+      text: 'Speichern',
       attrs: { type: 'button' },
       dataset: { dockAct: 'weight-save', id: entry.id },
     });
