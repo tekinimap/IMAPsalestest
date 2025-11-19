@@ -2155,6 +2155,7 @@ function updateLiveResults(resultList) {
 
 function saveCurrentInputState() {
   const stPrev = loadState() || {};
+  const weightingFactorSelect = document.getElementById('weightingFactor');
   const currentInput = {
     client: auftraggeber.value.trim(),
     title: projekttitel.value.trim(),
@@ -2166,7 +2167,8 @@ function saveCurrentInputState() {
     submittedBy: submittedBy.value,
     projectNumber: projectNumber.value.trim(),
     kvNummer: kvNummer.value.trim(),
-    freigabedatum: freigabedatum.value || ''
+    freigabedatum: freigabedatum.value || '',
+    dockRewardFactor: weightingFactorSelect ? parseFloat(weightingFactorSelect.value) : 1.0
   };
   saveState({ ...stPrev, input: currentInput });
 }
@@ -2562,6 +2564,14 @@ function loadInputForm(inputData, isEditing = false) {
       tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch || 0)));
     });
   } else { addRow(true); addRow(false); }
+
+  // Load weighting factor
+  const weightingFactorSelect = document.getElementById('weightingFactor');
+  if (weightingFactorSelect) {
+    const factor = inputData.dockRewardFactor || 1.0;
+    weightingFactorSelect.value = String(factor);
+  }
+
   setHasUnsavedChanges(false);
   recalc();
   updateMetaSummary();
