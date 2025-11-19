@@ -1,0 +1,1 @@
+{"ts":1763556685186,"event":"update","kv":"test","kvList":["test"],"projectNumber":"test","title":"FKE","client":"IMAP GmbH","amount":500000,"source":"hubspot","freigabedatum":1763510400000,"before":{"amount":500000,"projectNumber":"","kv_nummer":""},"after":{"projectNumber":"test","kv_nummer":"test","freigabedatum":1763510400000}}
