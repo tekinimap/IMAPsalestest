@@ -11476,16 +11476,16 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "hubspot_user_Merlin Klein",
+        "key": "Merlin Klein",
         "name": "Merlin Klein",
-        "money": 0,
-        "pct": 0
+        "pct": 100,
+        "money": 500000
       },
       {
-        "key": "hubspot_user_Jens Maaßen",
+        "key": "Jens Maaßen",
         "name": "Jens Maaßen",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763557561400,
@@ -11510,6 +11510,43 @@
       "1": 1763557561400
     },
     "freigabedatum": 1759536000000,
-    "modified": 1763557588658
+    "modified": 1763557593673,
+    "complete": true,
+    "rows": [
+      {
+        "personId": "p_oe_head_02",
+        "name": "Merlin Klein",
+        "cs": 100,
+        "konzept": 100,
+        "pitch": 100
+      },
+      {
+        "personId": "p_pi_head_01",
+        "name": "Jens Maaßen",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "ts": 1763557592706
   }
 ]
