@@ -120,6 +120,15 @@ const DOCK_ASSIGNMENT_LABELS = {
   abruf: 'Abruf aus Rahmenvertrag',
 };
 
+const DOCK_WEIGHTING_STEPS = [
+  { value: 0.5, short: '0.5×', label: '0.5× Basic', description: 'Geringere Priorität oder kleineren Hebel' },
+  { value: 1, short: '1.0×', label: '1.0× Standard', description: 'Normalfall ohne strategische Gewichtung' },
+  { value: 1.5, short: '1.5×', label: '1.5× Fokus', description: 'Hohe Relevanz für BU oder Portfolio' },
+  { value: 2, short: '2.0×', label: '2.0× Strategic', description: 'Flagship-Deal mit maximaler Hebelwirkung' },
+];
+const DOCK_WEIGHTING_DEFAULT = 1;
+const DOCK_WEIGHTING_COMMENT_LIMIT = 280;
+
 function debounce(fn, wait = 300) {
   let timeoutId;
   return (...args) => {
@@ -186,6 +195,7 @@ let dockAutoAdvanceRunning = false;
 const dockAutoCheckQueue = new Map();
 const dockAutoCheckHistory = new Map();
 const dockConflictHints = new Map();
+const dockWeightDrafts = new Map();
 let dockBoardRerenderScheduled = false;
 let pendingDockAbrufAssignment = null;
 
@@ -229,6 +239,169 @@ function deriveBusinessUnitFromTeam(team) {
     if (key.toLowerCase() === lower) return value;
   }
   return '';
+}
+
+function clampDockRewardFactor(value) {
+  const min = DOCK_WEIGHTING_STEPS[0].value;
+  const max = DOCK_WEIGHTING_STEPS[DOCK_WEIGHTING_STEPS.length - 1].value;
+  const numeric = Number(value);
+  const base = Number.isFinite(numeric) ? numeric : DOCK_WEIGHTING_DEFAULT;
+  const clamped = Math.min(max, Math.max(min, base));
+  let nearest = DOCK_WEIGHTING_STEPS[0].value;
+  let smallestDiff = Math.abs(clamped - nearest);
+  DOCK_WEIGHTING_STEPS.forEach((step) => {
+    const diff = Math.abs(step.value - clamped);
+    if (diff < smallestDiff) {
+      nearest = step.value;
+      smallestDiff = diff;
+    }
+  });
+  return Number(nearest);
+}
+
+function getDockWeightStepInfo(value) {
+  const snapped = clampDockRewardFactor(value);
+  return (
+    DOCK_WEIGHTING_STEPS.find((step) => Math.abs(step.value - snapped) < 0.001) || DOCK_WEIGHTING_STEPS[0]
+  );
+}
+
+function getDockWeightIndexForValue(value) {
+  const snapped = clampDockRewardFactor(value);
+  const index = DOCK_WEIGHTING_STEPS.findIndex((step) => Math.abs(step.value - snapped) < 0.001);
+  return index >= 0 ? index : 0;
+}
+
+function getDockWeightValueForIndex(index) {
+  const idx = Math.max(0, Math.min(DOCK_WEIGHTING_STEPS.length - 1, Number(index) || 0));
+  return DOCK_WEIGHTING_STEPS[idx].value;
+}
+
+function formatDockWeightLabel(value, options = {}) {
+  const info = getDockWeightStepInfo(value);
+  if (options.short) {
+    return info.short;
+  }
+  return info.label;
+}
+
+function formatDockWeightSummary(entry, factor) {
+  const amount = Number(entry?.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return 'Gewichtung wirkt sich nur auf die Auswertung aus.';
+  }
+  const weighted = amount * factor;
+  return `${fmtCurr0.format(amount)} \u2192 ${fmtCurr0.format(weighted)}`;
+}
+
+function getEntryRewardFactor(entry) {
+  if (!entry || typeof entry !== 'object') return DOCK_WEIGHTING_DEFAULT;
+  return clampDockRewardFactor(entry.dockRewardFactor);
+}
+
+function getDockWeightUiState(entry, draftOverride) {
+  if (!entry) {
+    return {
+      value: DOCK_WEIGHTING_DEFAULT,
+      baseValue: DOCK_WEIGHTING_DEFAULT,
+      comment: '',
+      baseComment: '',
+      dirty: false,
+    };
+  }
+  const baseValue = getEntryRewardFactor(entry);
+  const baseComment = typeof entry.dockRewardComment === 'string' ? entry.dockRewardComment.trim() : '';
+  const draft = draftOverride ?? dockWeightDrafts.get(entry.id);
+  let value = baseValue;
+  if (draft && Object.prototype.hasOwnProperty.call(draft, 'value')) {
+    value = clampDockRewardFactor(draft.value);
+  }
+  let comment = baseComment;
+  if (draft && Object.prototype.hasOwnProperty.call(draft, 'comment')) {
+    comment = String(draft.comment ?? '').trim();
+  }
+  if (comment.length > DOCK_WEIGHTING_COMMENT_LIMIT) {
+    comment = comment.slice(0, DOCK_WEIGHTING_COMMENT_LIMIT);
+  }
+  const dirty = Math.abs(value - baseValue) > 0.001 || comment !== baseComment;
+  return { value, comment, baseValue, baseComment, dirty };
+}
+
+function applyDockWeightDraft(entry, changes = {}) {
+  if (!entry) return;
+  const currentDraft = dockWeightDrafts.get(entry.id) || {};
+  const nextDraft = { ...currentDraft };
+  if (Object.prototype.hasOwnProperty.call(changes, 'value')) {
+    nextDraft.value = clampDockRewardFactor(changes.value);
+  }
+  if (Object.prototype.hasOwnProperty.call(changes, 'comment')) {
+    const comment = String(changes.comment ?? '').trim();
+    nextDraft.comment = comment.slice(0, DOCK_WEIGHTING_COMMENT_LIMIT);
+  }
+  const state = getDockWeightUiState(entry, nextDraft);
+  if (state.dirty) {
+    dockWeightDrafts.set(entry.id, { value: state.value, comment: state.comment });
+  } else {
+    dockWeightDrafts.delete(entry.id);
+  }
+  updateDockWeightUi(entry.id);
+}
+
+function updateDockWeightUi(entryId) {
+  if (!dockBoardEl || !entryId) return;
+  const entry = findEntryById(entryId);
+  if (!entry) {
+    dockWeightDrafts.delete(entryId);
+    return;
+  }
+  const state = getDockWeightUiState(entry);
+  const scope = dockBoardEl;
+  const valueEl = scope.querySelector(`[data-dock-weight-display="${entryId}"]`);
+  if (valueEl) {
+    valueEl.textContent = formatDockWeightLabel(state.value);
+  }
+  const descEl = scope.querySelector(`[data-dock-weight-description="${entryId}"]`);
+  if (descEl) {
+    descEl.textContent = getDockWeightStepInfo(state.value).description;
+  }
+  const previewEl = scope.querySelector(`[data-dock-weight-preview="${entryId}"]`);
+  if (previewEl) {
+    previewEl.textContent = formatDockWeightSummary(entry, state.value);
+  }
+  const commentEl = scope.querySelector(`[data-dock-weight-comment="${entryId}"]`);
+  if (commentEl) {
+    commentEl.textContent = state.comment || 'Keine Notiz hinterlegt';
+    commentEl.classList.toggle('empty', !state.comment);
+  }
+  const statusEl = scope.querySelector(`[data-dock-weight-status="${entryId}"]`);
+  if (statusEl) {
+    statusEl.textContent = state.dirty ? 'Nicht gespeichert' : 'Gespeichert';
+  }
+  const noteBtn = scope.querySelector(`[data-dock-weight-note-btn="${entryId}"]`);
+  if (noteBtn) {
+    noteBtn.textContent = state.comment ? 'Notiz bearbeiten' : 'Notiz hinzuf\u00fcgen';
+  }
+  const saveBtn = scope.querySelector(`button[data-dock-act="weight-save"][data-id="${entryId}"]`);
+  if (saveBtn) {
+    saveBtn.disabled = !state.dirty;
+  }
+  const slider = scope.querySelector(`input[data-dock-weight-slider][data-id="${entryId}"]`);
+  if (slider) {
+    slider.value = String(getDockWeightIndexForValue(state.value));
+  }
+  const panel = scope.querySelector(`.dock-weight-panel[data-entry-id="${entryId}"]`);
+  if (panel) {
+    panel.classList.toggle('is-dirty', state.dirty);
+  }
+  const pill = scope.querySelector(`[data-dock-weight-pill="${entryId}"]`);
+  if (pill) {
+    pill.textContent = formatDockWeightLabel(state.value, { short: true });
+    pill.setAttribute('title', formatDockWeightLabel(state.value));
+  }
+  const summaryEl = scope.querySelector(`[data-dock-weight-summary="${entryId}"]`);
+  if (summaryEl) {
+    summaryEl.textContent = formatDockWeightSummary(entry, state.value);
+  }
 }
 
 function ensureDockBoard() {
@@ -1098,6 +1271,7 @@ function buildDockCard(item) {
   const { entry, checklist, marketTeam, businessUnit, assessmentOwner, kvList, phase, conflictHint, isFlagship } = item;
   const card = createDockElement('article', { className: 'dock-card' });
   card.dataset.entryId = entry.id;
+  const weightState = getDockWeightUiState(entry);
 
   const header = createDockElement('div', { className: 'dock-card-header' });
   const headline = createDockElement('div', { className: 'dock-card-headline' });
@@ -1130,10 +1304,27 @@ function buildDockCard(item) {
   if (normalizeDockString(entry.source).toLowerCase() !== 'hubspot') {
     badgeItems.push({ className: 'dock-pill warn', text: 'Manuell' });
   }
+  if (phase >= 2) {
+    const weightClasses = ['dock-pill'];
+    if (weightState.value > 1) {
+      weightClasses.push('accent');
+    }
+    badgeItems.push({
+      className: weightClasses.join(' '),
+      text: formatDockWeightLabel(weightState.value, { short: true }),
+      dataset: { dockWeightPill: entry.id },
+    });
+  }
   if (badgeItems.length) {
     const badgeRow = createDockElement('div', { className: 'dock-badge-row' });
     badgeItems.forEach((badge) => {
-      badgeRow.appendChild(createDockElement('span', { className: badge.className, text: badge.text }));
+      badgeRow.appendChild(
+        createDockElement('span', {
+          className: badge.className,
+          text: badge.text,
+          dataset: badge.dataset || {},
+        })
+      );
     });
     card.appendChild(badgeRow);
   }
@@ -1161,6 +1352,10 @@ function buildDockCard(item) {
   const hintEl = buildDockHint(entry.id, conflictHint);
   if (hintEl) {
     card.appendChild(hintEl);
+  }
+
+  if (phase >= 2) {
+    card.appendChild(buildDockWeightPanel(entry, { editable: phase === 2 }));
   }
 
   const footer = createDockElement('div', { className: 'dock-card-footer' });
@@ -1216,6 +1411,126 @@ function buildDockCard(item) {
   return card;
 }
 
+function buildDockWeightPanel(entry, options = {}) {
+  const { editable = false } = options;
+  const state = getDockWeightUiState(entry);
+  const info = getDockWeightStepInfo(state.value);
+  const panelClasses = ['dock-weight-panel'];
+  if (state.dirty) {
+    panelClasses.push('is-dirty');
+  }
+  if (!editable) {
+    panelClasses.push('is-readonly');
+  }
+  const panel = createDockElement('section', {
+    className: panelClasses.join(' '),
+    dataset: { entryId: entry.id },
+  });
+
+  const header = createDockElement('div', { className: 'dock-weight-header' });
+  header.appendChild(createDockElement('span', { className: 'dock-weight-title', text: 'Strategische Gewichtung' }));
+  header.appendChild(
+    createDockElement('span', {
+      className: 'dock-weight-value',
+      text: formatDockWeightLabel(state.value),
+      dataset: { dockWeightDisplay: entry.id },
+    })
+  );
+  panel.appendChild(header);
+
+  panel.appendChild(
+    createDockElement('p', {
+      className: 'dock-weight-description',
+      text: info.description,
+      dataset: { dockWeightDescription: entry.id },
+    })
+  );
+
+  if (editable) {
+    const sliderWrap = createDockElement('div', { className: 'dock-weight-slider-wrap' });
+    const slider = createDockElement('input', {
+      className: 'dock-weight-slider',
+      attrs: {
+        type: 'range',
+        min: '0',
+        max: String(DOCK_WEIGHTING_STEPS.length - 1),
+        step: '1',
+        'aria-label': 'Strategische Gewichtung',
+      },
+      dataset: { dockWeightSlider: entry.id },
+    });
+    slider.value = String(getDockWeightIndexForValue(state.value));
+    sliderWrap.appendChild(slider);
+
+    const scale = createDockElement('div', { className: 'dock-weight-scale' });
+    DOCK_WEIGHTING_STEPS.forEach((step) => {
+      scale.appendChild(createDockElement('span', { className: 'dock-weight-scale-label', text: step.short }));
+    });
+    sliderWrap.appendChild(scale);
+    panel.appendChild(sliderWrap);
+  }
+
+  panel.appendChild(
+    createDockElement('div', {
+      className: 'dock-weight-preview',
+      text: formatDockWeightSummary(entry, state.value),
+      dataset: { dockWeightPreview: entry.id },
+    })
+  );
+
+  const commentRow = createDockElement('div', { className: 'dock-weight-comment-row' });
+  commentRow.appendChild(
+    createDockElement('span', {
+      className: `dock-weight-comment${state.comment ? '' : ' empty'}`,
+      text: state.comment || 'Keine Notiz hinterlegt',
+      dataset: { dockWeightComment: entry.id },
+    })
+  );
+  if (editable) {
+    commentRow.appendChild(
+      createDockElement('button', {
+        className: 'btn tight',
+        text: state.comment ? 'Notiz bearbeiten' : 'Notiz hinzuf\u00fcgen',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'weight-note', id: entry.id, dockWeightNoteBtn: entry.id },
+      })
+    );
+  }
+  panel.appendChild(commentRow);
+
+  if (editable) {
+    const actions = createDockElement('div', { className: 'dock-weight-actions' });
+    actions.appendChild(
+      createDockElement('span', {
+        className: 'dock-weight-status',
+        text: state.dirty ? 'Nicht gespeichert' : 'Gespeichert',
+        dataset: { dockWeightStatus: entry.id },
+      })
+    );
+    const saveBtn = createDockElement('button', {
+      className: 'btn ok tight',
+      text: 'Gewichtung speichern',
+      attrs: { type: 'button' },
+      dataset: { dockAct: 'weight-save', id: entry.id },
+    });
+    if (!state.dirty) {
+      saveBtn.disabled = true;
+    }
+    actions.appendChild(saveBtn);
+    panel.appendChild(actions);
+  } else {
+    panel.appendChild(
+      createDockElement('div', {
+        className: 'dock-weight-summary',
+        text: formatDockWeightSummary(entry, state.value),
+        dataset: { dockWeightSummary: entry.id },
+      })
+    );
+  }
+
+  return panel;
+}
+
 async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.', options = {}) {
   const { silent = false } = options;
   const updates = { ...extra };
@@ -1242,6 +1557,54 @@ async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 
     showToast(successMessage, 'ok');
   }
   await loadHistory(silent);
+}
+
+async function persistDockWeight(entry, triggerButton) {
+  if (!entry) return;
+  const state = getDockWeightUiState(entry);
+  if (!state.dirty) {
+    showToast('Keine Änderungen zum Speichern.', 'warn');
+    return;
+  }
+  const payload = {
+    dockRewardFactor: state.value,
+    dockRewardComment: state.comment,
+  };
+  try {
+    if (triggerButton) {
+      triggerButton.disabled = true;
+      triggerButton.classList.add('disabled');
+    }
+    showLoader();
+    const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Unbekannter Fehler');
+    }
+    const updatedEntry = await response.json().catch(() => null);
+    if (updatedEntry && updatedEntry.id) {
+      upsertEntry(updatedEntry);
+      requestDockBoardRerender();
+    } else {
+      await loadHistory(true);
+    }
+    dockWeightDrafts.delete(entry.id);
+    showToast('Gewichtung gespeichert.', 'ok');
+  } catch (err) {
+    console.error('Gewichtung konnte nicht gespeichert werden', err);
+    showToast('Gewichtung konnte nicht gespeichert werden.', 'bad');
+  } finally {
+    hideLoader();
+    if (triggerButton) {
+      triggerButton.disabled = false;
+      triggerButton.classList.remove('disabled');
+    }
+    updateDockWeightUi(entry.id);
+  }
 }
 
 function handleDockBoardClick(event) {
@@ -1284,23 +1647,48 @@ function handleDockBoardClick(event) {
       return;
     }
 
+    if (action === 'weight-note') {
+      const next = prompt('Strategische Notiz (optional)', weightState.comment || '');
+      if (next === null) return;
+      applyDockWeightDraft(entry, { comment: next });
+      return;
+    }
+
+    if (action === 'weight-save') {
+      persistDockWeight(entry, button);
+      return;
+    }
+
     const runUpdate = async (targetPhase, extra, message) => {
+      let success = false;
       try {
         button.disabled = true;
         button.classList.add('disabled');
         showLoader();
         await updateDockPhase(entry, targetPhase, extra, message);
+        success = true;
       } catch (err) {
         console.error('Dock-Update fehlgeschlagen', err);
         showToast('Dock-Status konnte nicht aktualisiert werden.', 'bad');
       } finally {
         hideLoader();
       }
+      return success;
     };
 
     if (action === 'bu-approve') {
       if (!confirm('BU-Freigabe bestätigen?')) return;
-      runUpdate(3, { dockBuApproved: true, dockBuApprovedAt: Date.now() }, 'Freigabe erfasst.');
+      const payload = {
+        dockBuApproved: true,
+        dockBuApprovedAt: Date.now(),
+        dockRewardFactor: weightState.value,
+        dockRewardComment: weightState.comment,
+      };
+      runUpdate(3, payload, 'Freigabe erfasst.').then((ok) => {
+        if (ok) {
+          dockWeightDrafts.delete(entry.id);
+        }
+      });
     } else if (action === 'assign') {
       const target = button.dataset.targetAssignment;
       if (!target) return;
@@ -1311,18 +1699,25 @@ function handleDockBoardClick(event) {
       }
       const label = DOCK_ASSIGNMENT_LABELS[target] || target;
       if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
-      const message = target === 'rahmen'
-        ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
-        : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
+      const message =
+        target === 'rahmen'
+          ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
+          : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
       const payload = {
         dockFinalAssignment: target,
         dockFinalAssignmentAt: Date.now(),
+        dockRewardFactor: weightState.value,
+        dockRewardComment: weightState.comment,
       };
       if (target === 'rahmen') {
         payload.projectType = 'rahmen';
       }
       queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
-      runUpdate(3, payload, message);
+      runUpdate(3, payload, message).then((ok) => {
+        if (ok) {
+          dockWeightDrafts.delete(entry.id);
+        }
+      });
     }
     return;
   }
@@ -1330,6 +1725,9 @@ function handleDockBoardClick(event) {
   const card = event.target.closest('.dock-card');
   if (!card) return;
   if (event.target.closest('.dock-card-select')) {
+    return;
+  }
+  if (event.target.closest('.dock-weight-panel')) {
     return;
   }
 
@@ -1341,6 +1739,18 @@ function handleDockBoardClick(event) {
 ensureDockBoard();
 if (dockBoardEl) {
   dockBoardEl.addEventListener('click', handleDockBoardClick);
+  dockBoardEl.addEventListener('input', (event) => {
+    const slider = event.target.closest('input[data-dock-weight-slider]');
+    if (!slider) return;
+    event.stopPropagation();
+    const { id } = slider.dataset;
+    if (!id) return;
+    const entry = findEntryById(id);
+    if (!entry) return;
+    const weightState = getDockWeightUiState(entry);
+    const nextValue = getDockWeightValueForIndex(Number(slider.value));
+    applyDockWeightDraft(entry, { value: nextValue });
+  });
   dockBoardEl.addEventListener('change', (event) => {
     const checkbox = event.target.closest('input[data-dock-select]');
     if (!checkbox) return;
@@ -4052,53 +4462,84 @@ function renderAnalytics() {
   const startOfYear = getTimestamp(`${year}-01-01`);
   const endOfYear   = getTimestamp(`${year}-12-31T23:59:59.999`);
 
-  const per = new Map();
+  const byNameTeam = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p.team || '']));
+  const personStats = new Map();
+  const teamStats = new Map();
   let fixTotal = 0;
+  let fixWeightedTotal = 0;
   let rahmenTotal = 0;
-  
-getEntries().forEach(e => {
-    const datum = e.freigabedatum || e.ts || 0; // Verwende Abschlussdatum primär
-    
-    if(e.projectType === 'fix') {
-        // Prüfe, ob das Datum im gewählten Jahr liegt
-        if (!(datum >= startOfYear && datum <= endOfYear)) return;
-        
-        const amount = e.amount || 0; if (amount <= 0) return;
-        fixTotal += amount;
-        // Zähle Personenbeiträge nur, wenn der Auftrag in diesem Jahr freigegeben wurde
-        if (Array.isArray(e.list)) {
-          e.list.forEach(x => { const key = x.name || 'Unbekannt'; per.set(key, (per.get(key) || 0) + (x.money || 0)); });
-        }
-    } else if (e.projectType === 'rahmen') {
-        // Berechne die Verteilung basierend auf Abrufen *innerhalb* des Jahres
-        const { list: actualDistribution, total: totalValueInYear } = calculateActualDistribution(e, startOfYear, endOfYear);
-        rahmenTotal += totalValueInYear;
-        actualDistribution.forEach(p => {
-            per.set(p.name, (per.get(p.name) || 0) + p.money);
+  let rahmenWeightedTotal = 0;
+
+  const addPersonStat = (rawName, amount, factor) => {
+    const money = Number(amount) || 0;
+    if (money <= 0) return;
+    const ratio = clampDockRewardFactor(factor);
+    const name = rawName || 'Unbekannt';
+    const weighted = money * ratio;
+    const person = personStats.get(name) || { name, actual: 0, weighted: 0 };
+    person.actual += money;
+    person.weighted += weighted;
+    personStats.set(name, person);
+    const teamName = byNameTeam.get(name) || 'Ohne Team';
+    const team = teamStats.get(teamName) || { name: teamName, actual: 0, weighted: 0 };
+    team.actual += money;
+    team.weighted += weighted;
+    teamStats.set(teamName, team);
+  };
+
+  getEntries().forEach((entry) => {
+    const datum = entry.freigabedatum || entry.ts || 0;
+    const factor = getEntryRewardFactor(entry);
+    if (entry.projectType === 'fix') {
+      if (!(datum >= startOfYear && datum <= endOfYear)) return;
+      const amount = Number(entry.amount) || 0;
+      if (amount <= 0) return;
+      fixTotal += amount;
+      fixWeightedTotal += amount * factor;
+      if (Array.isArray(entry.list)) {
+        entry.list.forEach((contributor) => {
+          addPersonStat(contributor?.name || 'Unbekannt', contributor?.money || 0, factor);
         });
+      }
+    } else if (entry.projectType === 'rahmen') {
+      const { list: actualDistribution, total: totalValueInYear } = calculateActualDistribution(entry, startOfYear, endOfYear);
+      if (totalValueInYear > 0) {
+        rahmenTotal += totalValueInYear;
+        rahmenWeightedTotal += totalValueInYear * factor;
+      }
+      actualDistribution.forEach((person) => {
+        addPersonStat(person?.name || 'Unbekannt', person?.money || 0, factor);
+      });
     }
   });
-  
-  const perArr = Array.from(per, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val).slice(0, 20);
-  drawBars('chartPersons', perArr);
-  analyticsData.persons = perArr;
 
-  const byNameTeam = new Map(people.map(p => [p.name, p.team || '']));
-  const teamMap = new Map();
-  per.forEach((val, name) => {
-    const team = byNameTeam.get(name) || 'Ohne Team';
-    teamMap.set(team, (teamMap.get(team) || 0) + val);
-  });
-  const teamArr = Array.from(teamMap, ([name, val]) => ({ name, val })).filter(x => x.val > 0).sort((a, b) => b.val - a.val);
-  drawBars('chartTeams', teamArr);
-  analyticsData.teams = teamArr;
-  
+  const personList = Array.from(personStats.values())
+    .map((item) => ({
+      ...item,
+      factor: item.actual > 0 ? item.weighted / item.actual : 0,
+    }))
+    .filter((item) => item.actual > 0)
+    .sort((a, b) => b.weighted - a.weighted)
+    .slice(0, 20);
+  drawComparisonBars('chartPersons', personList);
+  analyticsData.persons = personList;
+
+  const teamList = Array.from(teamStats.values())
+    .filter((item) => item.actual > 0)
+    .map((item) => ({
+      ...item,
+      factor: item.actual > 0 ? item.weighted / item.actual : 0,
+    }))
+    .sort((a, b) => b.weighted - a.weighted);
+  drawComparisonBars('chartTeams', teamList);
+  analyticsData.teams = teamList;
+
   const totalArr = [
-    { name: 'Fixaufträge', val: fixTotal },
-    { name: 'Rahmenverträge', val: rahmenTotal },
-    { name: 'Gesamt', val: fixTotal + rahmenTotal }
-  ];
-  drawBars('chartTotals', totalArr);
+    { name: 'Fixaufträge', actual: fixTotal, weighted: fixWeightedTotal },
+    { name: 'Rahmenverträge', actual: rahmenTotal, weighted: rahmenWeightedTotal },
+    { name: 'Gesamt', actual: fixTotal + rahmenTotal, weighted: fixWeightedTotal + rahmenWeightedTotal },
+  ].filter((item) => item.actual > 0 || item.weighted > 0);
+  drawComparisonBars('chartTotals', totalArr);
   analyticsData.totals = totalArr;
 }
 
@@ -4335,6 +4776,117 @@ function drawLineChart(hostOrId, points, options = {}) {
   minLabel.setAttribute('text-anchor', 'end');
   minLabel.textContent = formatter(minVal, { label: 'min' });
   svg.appendChild(minLabel);
+
+  host.appendChild(svg);
+}
+
+function drawComparisonBars(hostOrId, items, options = {}) {
+  const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
+  if (!host) return;
+  host.innerHTML = '';
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'log-metrics-empty';
+    empty.textContent = options.emptyMessage || 'Keine Daten verfügbar.';
+    host.appendChild(empty);
+    return;
+  }
+
+  const formatter = options.formatter || fmtCurr0;
+  const max = list.reduce(
+    (m, item) => Math.max(m, Number(item.actual) || 0, Number(item.weighted) || 0),
+    0
+  );
+  const barH = 30;
+  const gap = 8;
+  const w = 1060;
+  const h = list.length > 0 ? list.length * (barH + gap) + 10 : 50;
+  const textWidth = 240;
+  const barStartX = textWidth;
+  const valueOffset = 120;
+  const availableWidth = w - barStartX - valueOffset;
+
+  const legend = document.createElement('div');
+  legend.className = 'compare-bar-legend';
+  legend.innerHTML = `
+    <span><span class="legend-dot legend-actual"></span>Ist</span>
+    <span><span class="legend-dot legend-weighted"></span>Gewichtet</span>
+  `;
+  host.appendChild(legend);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+
+  let y = 10;
+  list.forEach((item) => {
+    const actual = Math.max(0, Number(item.actual) || 0);
+    const weighted = Math.max(0, Number(item.weighted) || 0);
+    const actualLen = max > 0 ? Math.round((actual / max) * availableWidth) : 0;
+    const weightedLen = max > 0 ? Math.round((weighted / max) * availableWidth) : 0;
+    const g = document.createElementNS(svgNS, 'g');
+
+    const title = document.createElementNS(svgNS, 'title');
+    const delta = weighted - actual;
+    const deltaText = delta ? ` (${delta > 0 ? '+' : ''}${formatter.format(delta)})` : '';
+    title.textContent = `${item.name}: ${formatter.format(actual)} → ${formatter.format(weighted)}${deltaText}`;
+    g.appendChild(title);
+
+    if (actualLen > 0) {
+      const actualRect = document.createElementNS(svgNS, 'rect');
+      actualRect.setAttribute('x', String(barStartX));
+      actualRect.setAttribute('y', String(y));
+      actualRect.setAttribute('rx', '6');
+      actualRect.setAttribute('ry', '6');
+      actualRect.setAttribute('width', String(actualLen));
+      actualRect.setAttribute('height', String(barH));
+      actualRect.setAttribute('fill', '#1f2937');
+      actualRect.setAttribute('opacity', '0.65');
+      g.appendChild(actualRect);
+    }
+
+    if (weightedLen > 0) {
+      const weightedRect = document.createElementNS(svgNS, 'rect');
+      weightedRect.setAttribute('x', String(barStartX));
+      weightedRect.setAttribute('y', String(y));
+      weightedRect.setAttribute('rx', '6');
+      weightedRect.setAttribute('ry', '6');
+      weightedRect.setAttribute('width', String(Math.max(weightedLen, 4)));
+      weightedRect.setAttribute('height', String(barH));
+      weightedRect.setAttribute('fill', '#3b82f6');
+      g.appendChild(weightedRect);
+    }
+
+    const labelL = document.createElementNS(svgNS, 'text');
+    labelL.setAttribute('x', '10');
+    labelL.setAttribute('y', String(y + barH * 0.68));
+    labelL.setAttribute('fill', '#cbd5e1');
+    labelL.setAttribute('font-size', '14');
+    labelL.textContent =
+      item.name && item.name.length > 30 ? `${item.name.substring(0, 28)}.` : item.name || '-';
+    g.appendChild(labelL);
+
+    const valueText = `${formatter.format(actual)} → ${formatter.format(weighted)}`;
+    const labelV = document.createElementNS(svgNS, 'text');
+    labelV.setAttribute('y', String(y + barH * 0.68));
+    labelV.setAttribute('font-weight', '700');
+    labelV.setAttribute('font-size', '14');
+    labelV.textContent = valueText;
+    const textWidthEstimate = valueText.length * 8;
+    if (weightedLen < textWidthEstimate + 10) {
+      labelV.setAttribute('x', String(barStartX + weightedLen + 8));
+      labelV.setAttribute('fill', '#cbd5e1');
+    } else {
+      labelV.setAttribute('x', String(barStartX + 10));
+      labelV.setAttribute('fill', '#0a0f16');
+    }
+    g.appendChild(labelV);
+
+    y += barH + gap;
+    svg.appendChild(g);
+  });
 
   host.appendChild(svg);
 }
@@ -5074,17 +5626,34 @@ btnAnaXlsx.addEventListener('click', () => {
 
     // Ensure data exists before creating sheets
     if (analyticsData.persons && analyticsData.persons.length > 0) {
-        const ws1Arr = analyticsData.persons.map(p => ({ Name: p.name, Betrag_EUR: p.val }));
+        const ws1Arr = analyticsData.persons.map(p => ({
+          Name: p.name,
+          Beitrag_Ist_EUR: Number((p.actual || 0).toFixed(2)),
+          Beitrag_Gewichtet_EUR: Number((p.weighted || 0).toFixed(2)),
+          Faktor: p.actual > 0 ? Number((p.weighted / p.actual).toFixed(2)) : '',
+          Delta_EUR: Number(((p.weighted || 0) - (p.actual || 0)).toFixed(2)),
+        }));
         const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
         XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
     }
     if (analyticsData.teams && analyticsData.teams.length > 0) {
-        const ws2Arr = analyticsData.teams.map(t => ({ Team: t.name, Betrag_EUR: t.val }));
+        const ws2Arr = analyticsData.teams.map(t => ({
+          Team: t.name,
+          Beitrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
+          Beitrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
+          Faktor: t.actual > 0 ? Number((t.weighted / t.actual).toFixed(2)) : '',
+          Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
+        }));
         const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
         XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
     }
      if (analyticsData.totals && analyticsData.totals.length > 0) {
-        const ws3Arr = analyticsData.totals.map(t => ({ Typ: t.name, Betrag_EUR: t.val }));
+        const ws3Arr = analyticsData.totals.map(t => ({
+          Typ: t.name,
+          Betrag_Ist_EUR: Number((t.actual || 0).toFixed(2)),
+          Betrag_Gewichtet_EUR: Number((t.weighted || 0).toFixed(2)),
+          Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
+        }));
         const ws3 = XLSX.utils.json_to_sheet(ws3Arr);
         XLSX.utils.book_append_sheet(wb, ws3, "Gesamt");
     }

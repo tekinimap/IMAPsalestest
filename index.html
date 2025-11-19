@@ -112,6 +112,27 @@
   .dock-card-hint strong{color:var(--text);}
   .dock-card-hint-actions{display:flex;flex-wrap:wrap;gap:6px;}
   .dock-card-hint-actions .btn.tight{padding:6px 10px;font-size:12px;}
+  .dock-weight-panel{border:1px solid rgba(59,130,246,.3);border-radius:12px;padding:10px 12px;background:rgba(10,15,22,.7);display:flex;flex-direction:column;gap:8px;}
+  .dock-weight-panel.is-readonly{background:rgba(15,23,42,.55);}
+  .dock-weight-panel.is-dirty{border-color:rgba(245,158,11,.6);box-shadow:0 0 0 1px rgba(245,158,11,.35);}
+  .dock-weight-header{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+  .dock-weight-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .dock-weight-value{font-size:14px;font-weight:700;color:#f8fafc;}
+  .dock-weight-description{margin:0;font-size:12px;color:var(--muted);}
+  .dock-weight-slider-wrap{display:flex;flex-direction:column;gap:6px;}
+  .dock-weight-slider{width:100%;accent-color:var(--accent);}
+  .dock-weight-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+  .dock-weight-preview{font-size:13px;color:#e2e8f0;font-weight:600;}
+  .dock-weight-comment-row{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;}
+  .dock-weight-comment{font-size:13px;color:var(--text);flex:1;}
+  .dock-weight-comment.empty{color:var(--muted);font-style:italic;}
+  .dock-weight-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;}
+  .dock-weight-status{font-size:12px;color:var(--muted);}
+  .dock-weight-summary{font-size:12px;color:var(--muted);}
+  .compare-bar-legend{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap;}
+  .legend-dot{display:inline-flex;width:10px;height:10px;border-radius:99px;margin-right:4px;}
+  .legend-dot.legend-actual{background:#1f2937;}
+  .legend-dot.legend-weighted{background:#3b82f6;}
   .dock-empty{background:var(--panel2);border:1px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;color:var(--muted);margin-bottom:24px}
   .dock-empty-note{margin-top:6px;}
   .dock-manual{border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);background:rgba(11,17,26,.65);backdrop-filter:blur(6px);padding:20px;margin-top:12px;box-shadow:0 12px 24px rgba(8,15,28,.35)}

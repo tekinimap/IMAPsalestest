@@ -253,6 +253,38 @@ const MARKET_TEAM_TO_BU = new Map([
   ['changepartner', 'Organisational Excellence'],
 ]);
 
+const DOCK_REWARD_STEPS = [0.5, 1, 1.5, 2];
+const DOCK_REWARD_DEFAULT = 1;
+const DOCK_REWARD_COMMENT_LIMIT = 280;
+
+function normalizeDockRewardFactor(value) {
+  const min = DOCK_REWARD_STEPS[0];
+  const max = DOCK_REWARD_STEPS[DOCK_REWARD_STEPS.length - 1];
+  const numeric = Number(value);
+  const base = Number.isFinite(numeric) ? numeric : DOCK_REWARD_DEFAULT;
+  const clamped = Math.min(max, Math.max(min, base));
+  let nearest = DOCK_REWARD_STEPS[0];
+  let diff = Math.abs(clamped - nearest);
+  for (const step of DOCK_REWARD_STEPS) {
+    const currentDiff = Math.abs(step - clamped);
+    if (currentDiff < diff) {
+      nearest = step;
+      diff = currentDiff;
+    }
+  }
+  return nearest;
+}
+
+function normalizeDockRewardComment(value) {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (trimmed.length > DOCK_REWARD_COMMENT_LIMIT) {
+    return trimmed.slice(0, DOCK_REWARD_COMMENT_LIMIT);
+  }
+  return trimmed;
+}
+
 function deriveBusinessUnitFromTeamName(team) {
   const normalized = normalizeString(team).toLowerCase();
   if (!normalized) return '';
@@ -267,6 +299,8 @@ function ensureDockMetadata(entry, options = {}) {
   const source = normalizeString(entry.source).toLowerCase();
   const hasPhase = entry.dockPhase != null;
   const defaultPhase = options.defaultPhase;
+  entry.dockRewardFactor = normalizeDockRewardFactor(entry.dockRewardFactor);
+  entry.dockRewardComment = normalizeDockRewardComment(entry.dockRewardComment);
   if (!hasPhase && defaultPhase == null && source !== 'hubspot') {
     return entry;
   }
