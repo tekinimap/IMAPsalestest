@@ -10944,13 +10944,37 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Merlin Klein",
+        "key": "hubspot_user_Merlin Klein",
         "name": "Merlin Klein",
-        "pct": 100,
-        "money": 100000
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Jens Maaßen",
+        "name": "Jens Maaßen",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Sarah Perry",
+        "name": "Sarah Perry",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Bülent Arslan",
+        "name": "Bülent Arslan",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Charlotte Hartig",
+        "name": "Charlotte Hartig",
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1763393304329,
+    "updatedAt": 1763556514208,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
