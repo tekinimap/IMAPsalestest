@@ -11462,34 +11462,10 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "hubspot_user_Merlin Klein",
-        "name": "Merlin Klein",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Jens Maaßen",
-        "name": "Jens Maaßen",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Sarah Perry",
-        "name": "Sarah Perry",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Bülent Arslan",
+        "key": "Bülent Arslan",
         "name": "Bülent Arslan",
-        "money": 0,
-        "pct": 0
-      },
-      {
-        "key": "hubspot_user_Charlotte Hartig",
-        "name": "Charlotte Hartig",
-        "money": 0,
-        "pct": 0
+        "pct": 100,
+        "money": 100000
       }
     ],
     "updatedAt": 1763633855222,
@@ -11503,7 +11479,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1763633854382,
+    "freigabedatum": 1763596800000,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
@@ -11511,6 +11487,37 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763633855222
-    }
+    },
+    "complete": true,
+    "rows": [
+      {
+        "personId": null,
+        "name": "Bülent Arslan",
+        "cs": 100,
+        "konzept": 100,
+        "pitch": 100
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "ts": 1763634148043,
+    "modified": 1763634148790
   }
 ]
