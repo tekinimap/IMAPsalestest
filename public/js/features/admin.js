@@ -1,0 +1,171 @@
+import { WORKER_BASE, TEAMS } from '../config.js';
+import { fetchWithRetry } from '../api.js';
+import { showLoader, hideLoader, showToast } from '../ui/feedback.js';
+import { escapeHtml } from '../utils/format.js';
+import { people, loadPeople } from './people.js';
+
+let admName;
+let admTeam;
+let admBody;
+let adminSearch;
+
+function getElements() {
+  admName = document.getElementById('adm_name');
+  admTeam = document.getElementById('adm_team');
+  admBody = document.getElementById('adm_body');
+  adminSearch = document.getElementById('adminSearch');
+  return Boolean(admName && admTeam && admBody && adminSearch);
+}
+
+export function populateAdminTeamOptions() {
+  if (!admTeam) return;
+  const previousValue = admTeam.value;
+  const placeholderText = admTeam.getAttribute('data-placeholder') || '— bitte wählen —';
+  const fragment = document.createDocumentFragment();
+
+  const placeholderOption = document.createElement('option');
+  placeholderOption.value = '';
+  placeholderOption.textContent = placeholderText;
+  fragment.appendChild(placeholderOption);
+
+  (TEAMS || []).forEach((teamName) => {
+    const option = document.createElement('option');
+    option.value = teamName;
+    option.textContent = teamName;
+    fragment.appendChild(option);
+  });
+
+  admTeam.innerHTML = '';
+  admTeam.appendChild(fragment);
+
+  if (previousValue && (TEAMS || []).includes(previousValue)) {
+    admTeam.value = previousValue;
+  } else {
+    admTeam.value = '';
+  }
+}
+
+export function renderPeopleAdmin() {
+  if (!admBody || !adminSearch) return;
+  admBody.innerHTML = '';
+  const query = adminSearch.value.toLowerCase();
+  const filteredPeople = people.filter((p) => {
+    const nameMatch = (p.name || '').toLowerCase().includes(query);
+    const teamMatch = (p.team || '').toLowerCase().includes(query);
+    return nameMatch || teamMatch;
+  });
+
+  filteredPeople.forEach((p) => {
+    const tr = document.createElement('tr');
+    const safeName = escapeHtml(p.name || '');
+    tr.innerHTML = `
+      <td><input type="text" value="${safeName}"></td>
+      <td><select>${TEAMS.map((t) => `<option value="${escapeHtml(t)}" ${p.team === t ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('')}</select></td>
+      <td style="display:flex;gap:8px">
+        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
+        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d=\"M3 6h18\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/></svg></button>
+      </td>`;
+    admBody.appendChild(tr);
+  });
+}
+
+async function adminCreate() {
+  if (!admName || !admTeam) return;
+  const name = admName.value.trim();
+  const team = admTeam.value;
+  if (!name || !team) {
+    showToast('Bitte Name und Team ausfüllen.', 'bad');
+    return;
+  }
+  showLoader();
+  try {
+    const payload = { id: `p_${Date.now()}`, name, team };
+    const r = await fetchWithRetry(`${WORKER_BASE}/people`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    showToast('Person angelegt.', 'ok');
+    admName.value = '';
+    admTeam.value = '';
+    await loadPeople();
+    renderPeopleAdmin();
+  } catch (err) {
+    showToast('Anlegen fehlgeschlagen.', 'bad');
+    console.error('Network error', err);
+  } finally {
+    hideLoader();
+  }
+}
+
+async function handleAdminAction(ev) {
+  const btn = ev.target.closest('button[data-act]');
+  if (!btn || !admBody) return;
+  const id = btn.getAttribute('data-id');
+  const act = btn.getAttribute('data-act');
+  const tr = btn.closest('tr');
+  showLoader();
+  try {
+    if (act === 'save') {
+      const name = tr.querySelector('td:nth-child(1) input').value.trim();
+      const team = tr.querySelector('td:nth-child(2) select').value;
+      if (!name) {
+        showToast('Name darf nicht leer sein.', 'bad');
+        return;
+      }
+      const payload = { id, name, team };
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      showToast('Person gespeichert.', 'ok');
+      await loadPeople();
+      renderPeopleAdmin();
+    } else if (act === 'del') {
+      const r = await fetchWithRetry(`${WORKER_BASE}/people`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, _delete: true }),
+      });
+      if (!r.ok) throw new Error(await r.text());
+      showToast('Person gelöscht.', 'ok');
+      await loadPeople();
+      renderPeopleAdmin();
+    }
+  } catch (e) {
+    showToast('Aktion fehlgeschlagen.', 'bad');
+    console.error(e);
+  } finally {
+    hideLoader();
+  }
+}
+
+export function initAdminModule() {
+  if (!getElements()) return;
+
+  const addButton = document.getElementById('adm_add');
+  addButton?.addEventListener('click', () => adminCreate());
+  admName?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') adminCreate();
+  });
+  adminSearch?.addEventListener('input', renderPeopleAdmin);
+  admBody?.addEventListener('click', handleAdminAction);
+  populateAdminTeamOptions();
+}
+
+export async function handleAdminClick() {
+  try {
+    showLoader();
+    await loadPeople();
+    populateAdminTeamOptions();
+    renderPeopleAdmin();
+  } catch (e) {
+    console.error('Admin init failed', e);
+    showToast('Konnte Admin-Daten nicht laden.', 'bad');
+  } finally {
+    hideLoader();
+  }
+}
