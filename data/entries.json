@@ -11493,11 +11493,11 @@
     "market_team": "",
     "businessUnit": "",
     "assessmentOwner": "Merlin Klein",
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null,
+    "dockBuApproved": true,
+    "dockBuApprovedAt": 1763632938154,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 3,
     "flagship_projekt": true,
     "kvNummern": [
       "test"
@@ -11508,10 +11508,11 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763557561400,
-      "2": 1763557595245
+      "2": 1763557595245,
+      "3": 1763632938155
     },
     "freigabedatum": 1759536000000,
-    "modified": 1763632923129,
+    "modified": 1763632938537,
     "complete": true,
     "rows": [
       {
