@@ -49,6 +49,7 @@ import {
   DOCK_WEIGHTING_DEFAULT,
   getEntryRewardFactor,
 } from './features/calculations.js';
+import { initNavigation, isViewVisible, showView } from './features/navigation.js';
 
 export async function handleAdminClick() {
   await handleAdminDataLoad();
@@ -87,10 +88,6 @@ if (hasConfigErrors) {
       : `Konfiguration geladen mit ${CONFIG_WARNINGS.length} Hinweis(en). Siehe Konsole für Details.`;
   showToast(summary, 'warn', 7000);
 }
-/* ---------- Navigation ---------- */
-const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
-const navLinks = document.querySelectorAll('.nav-link');
-
 const DOCK_PHASES = [
   {
     id: 1,
@@ -1435,68 +1432,62 @@ document.addEventListener('click', (event) => {
   }
 });
 
-function showView(viewName) {
-  if (getIsBatchRunning()) {
-    showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-    return;
-  }
-  Object.values(views).forEach(v => v.classList.add('hide'));
-  navLinks.forEach(l => l.classList.remove('active'));
-  hideBatchProgress();
-
-  if (views[viewName]) {
-    views[viewName].classList.remove('hide');
-    const activeLink = document.querySelector(`.nav-link[data-view="${viewName}"]`);
-    if (activeLink) activeLink.classList.add('active');
-  }
-  window.scrollTo(0, 0);
+function handleFixauftraegeNavigation() {
+  loadHistory().then(() => showView('fixauftraege'));
 }
 
-navLinks.forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (getIsBatchRunning()) {
-      showToast('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
-      return;
-    }
-    const viewName = e.target.getAttribute('data-view');
-
-    if (viewName === 'fixauftraege') {
-      loadHistory().then(() => showView('fixauftraege'));
-    } else if (viewName === 'rahmen') {
-      loadHistory().then(() => { renderFrameworkContracts(); showView('rahmen'); });
-    } else if (viewName === 'analytics') {
-      loadHistory().then(() => { initAnalytics(); showView('analytics'); });
-    } else if (viewName === 'admin') {
-      handleAdminClick();
-    } else if (viewName === 'erfassung') {
-      const dockView = views.erfassung;
-      const dockVisible = dockView && !dockView.classList.contains('hide');
-      const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
-      if (getHasUnsavedChanges() && dockVisible && manualVisible) {
-        const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
-        if (!confirmed) return;
-      }
-
-      const state = loadState();
-      const isEditing = !!state?.editingId;
-
-      if (!isEditing) {
-        hideManualPanel();
-        clearInputFields();
-        initFromState();
-      } else {
-        showManualPanel();
-        initFromState(true);
-      }
-
-      loadHistory().then(() => {
-        renderDockBoard();
-        showView('erfassung');
-      });
-    }
+function handleRahmenNavigation() {
+  loadHistory().then(() => {
+    renderFrameworkContracts();
+    showView('rahmen');
   });
-});
+}
+
+function handleAnalyticsNavigation() {
+  loadHistory().then(() => {
+    initAnalytics();
+    showView('analytics');
+  });
+}
+
+function handleErfassungNavigation() {
+  const dockVisible = isViewVisible('erfassung');
+  const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
+  if (getHasUnsavedChanges() && dockVisible && manualVisible) {
+    const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
+    if (!confirmed) return;
+  }
+
+  const state = loadState();
+  const isEditing = !!state?.editingId;
+
+  if (!isEditing) {
+    hideManualPanel();
+    clearInputFields();
+    initFromState();
+  } else {
+    showManualPanel();
+    initFromState(true);
+  }
+
+  loadHistory().then(() => {
+    renderDockBoard();
+    showView('erfassung');
+  });
+}
+
+export function setupNavigation() {
+  initNavigation({
+    getIsBatchRunning,
+    showToast,
+    hideBatchProgress,
+    onShowFixauftraege: handleFixauftraegeNavigation,
+    onShowRahmen: handleRahmenNavigation,
+    onShowAnalytics: handleAnalyticsNavigation,
+    onShowAdmin: handleAdminClick,
+    onShowErfassung: handleErfassungNavigation,
+  });
+}
 
 /* ---------- Erfassung ---------- */
 // Ausgelagert nach public/js/features/erfassung.js
