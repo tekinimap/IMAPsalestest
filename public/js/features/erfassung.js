@@ -348,11 +348,21 @@ function applyMetaDisabledState(forceDisabled = false) {
   }
 }
 
+function applyWeightingDisabledState(forceDisabled = false) {
+  if (weightingFactorInput) {
+    weightingFactorInput.disabled = forceDisabled;
+  }
+  if (weightingSlider) {
+    weightingSlider.classList.toggle('is-disabled', !!forceDisabled);
+  }
+}
+
 function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false }) {
   metaBaseDisabledState = { ...baseDisabled };
   metaQuickEditEnabled = false;
   if (!btnMetaEditToggle || !metaEditSection) {
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
     return;
   }
   btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
@@ -363,9 +373,11 @@ function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: t
   if (showQuickEdit) {
     metaEditSection.classList.add('meta-edit-available');
     applyMetaDisabledState(true);
+    applyWeightingDisabledState(true);
   } else {
     metaEditSection.classList.remove('meta-edit-available');
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
   }
   updateMetaSummary();
 }
@@ -380,11 +392,13 @@ function setMetaQuickEditActive(active) {
     metaEditSection.classList.add('is-editing');
     btnMetaEditToggle.textContent = 'Speichern';
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
   } else {
     metaEditSection.classList.remove('is-editing');
     btnMetaEditToggle.textContent = 'Bearbeiten';
     const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
     applyMetaDisabledState(quickEditAvailable);
+    applyWeightingDisabledState(quickEditAvailable);
   }
   updateMetaSummary();
 }
