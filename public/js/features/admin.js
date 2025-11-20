@@ -8,6 +8,7 @@ let admName;
 let admTeam;
 let admBody;
 let adminSearch;
+let adminInitialized = false;
 
 function getElements() {
   admName = document.getElementById('adm_name');
@@ -144,6 +145,7 @@ async function handleAdminAction(ev) {
 }
 
 export function initAdminModule() {
+  if (adminInitialized) return;
   if (!getElements()) return;
 
   const addButton = document.getElementById('adm_add');
@@ -154,9 +156,17 @@ export function initAdminModule() {
   adminSearch?.addEventListener('input', renderPeopleAdmin);
   admBody?.addEventListener('click', handleAdminAction);
   populateAdminTeamOptions();
+  adminInitialized = true;
 }
 
 export async function handleAdminClick() {
+  if (!adminInitialized) {
+    initAdminModule();
+  }
+  if (!adminInitialized) {
+    console.warn('Admin-Module konnte nicht initialisiert werden – fehlen DOM-Elemente?');
+    return;
+  }
   try {
     showLoader();
     await loadPeople();
