@@ -2348,8 +2348,8 @@
       border-radius: 8px;
       font-size: 12px;
     }
-    /* =========================================
-       NEU: Styles für Kompaktes Meta-Layout & Snappy Slider
+/* =========================================
+       NEU: Styles für Kompaktes Meta-Layout & Snappy Slider (V2 Korrigiert)
        ========================================= */
     .meta-section-container {
       margin-top: 20px;
@@ -2396,7 +2396,8 @@
 
     .meta-compact-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      /* ÄNDERUNG: Slider bekommt fast doppelt so viel Platz wie Metadaten */
+      grid-template-columns: 0.7fr 1.3fr; 
       gap: 12px;
       align-items: stretch;
     }
@@ -2433,10 +2434,10 @@
       margin-bottom: 0;
     }
 
-    .meta-label { color: var(--muted); }
-    .meta-value { color: var(--text); font-weight: 600; text-align: right; }
+    .meta-label { color: var(--muted); white-space: nowrap; }
+    .meta-value { color: var(--text); font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Inputs for edit mode (hidden by default) */
+    /* Inputs for edit mode */
     .meta-edit-section.is-editing .meta-edit-summary { display: none; }
     .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; gap: 6px; }
     .meta-edit-section.is-editing .meta-edit-fields { display: flex; }
@@ -2447,30 +2448,38 @@
       height: 30px;
     }
 
-    /* --- Snappy Slider Styles --- */
+    /* --- Snappy Slider Styles (Optimiert V2) --- */
     .slider-container {
       position: relative;
-      padding: 0 8px;
+      /* ÄNDERUNG: Weniger Padding seitlich, damit Linie länger wird */
+      padding: 0 2px; 
       height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0; /* Wichtig für Grid Overflow Prevention */
     }
 
     .slider-track-labels {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       font-size: 18px; 
-      padding: 0 2px;
+      width: 100%;
     }
     
     .slider-track-labels span {
-      width: 20px;
+      /* ÄNDERUNG: Flexible Breite, Text zentriert */
+      flex: 1;
       text-align: center;
-      cursor: default;
+      cursor: pointer;
       opacity: 0.4;
-      transition: opacity 0.2s;
+      transition: all 0.2s ease;
+      /* ÄNDERUNG: Verhindert Umbruch */
+      white-space: nowrap; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     
     /* Highlight active icons */
@@ -2478,7 +2487,9 @@
     .weighting-slider[data-active-value="1.0"] span[data-val="1.0"],
     .weighting-slider[data-active-value="1.5"] span[data-val="1.5"],
     .weighting-slider[data-active-value="2.0"] span[data-val="2.0"] {
-      opacity: 1; transform: scale(1.15); text-shadow: 0 0 10px var(--accent);
+      opacity: 1; 
+      transform: scale(1.2) translateY(-2px); 
+      text-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
     }
 
     .range-wrapper {
@@ -2486,126 +2497,143 @@
       height: 24px;
       display: flex;
       align-items: center;
+      width: 100%;
     }
 
-    /* Custom Range Input Reset */
+    /* Input Slider Reset */
     input[type=range].snappy-range {
       -webkit-appearance: none;
+      appearance: none;
       width: 100%;
       background: transparent;
       margin: 0;
-      z-index: 2;
+      z-index: 5;
       position: relative;
       cursor: pointer;
+      height: 24px;
     }
     input[type=range].snappy-range:focus { outline: none; }
 
     /* Track Styling */
     input[type=range].snappy-range::-webkit-slider-runnable-track {
       width: 100%;
-      height: 4px;
+      height: 6px;
       cursor: pointer;
       background: linear-gradient(to right, var(--accent), #22c55e);
       border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.3);
     }
     input[type=range].snappy-range::-moz-range-track {
       width: 100%;
-      height: 4px;
+      height: 6px;
       cursor: pointer;
       background: linear-gradient(to right, var(--accent), #22c55e);
       border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.3);
     }
 
-    /* Thumb Styling (Der Kreis) */
+    /* Thumb Styling */
     input[type=range].snappy-range::-webkit-slider-thumb {
-      height: 18px;
-      width: 18px;
+      height: 20px;
+      width: 20px;
       border-radius: 50%;
       background: #fff;
       border: 2px solid var(--accent);
       cursor: pointer;
       -webkit-appearance: none;
-      margin-top: -7px; 
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      margin-top: -8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
       transition: transform 0.1s;
+      position: relative;
+      z-index: 10;
     }
     input[type=range].snappy-range::-moz-range-thumb {
-      height: 18px;
-      width: 18px;
+      height: 20px;
+      width: 20px;
+      border: 2px solid var(--accent);
       border-radius: 50%;
       background: #fff;
-      border: 2px solid var(--accent);
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
 
-    /* Ticks (Die weißen Striche) */
+    /* Ticks */
     .slider-ticks {
       display: flex;
       justify-content: space-between;
       position: absolute;
       width: 100%;
-      top: 10px; 
+      top: 50%;
+      transform: translateY(-50%);
       pointer-events: none;
-      z-index: 1;
-      padding: 0 9px; /* WICHTIG: Halbe Thumb-Breite für exaktes Alignment */
+      z-index: 2;
+      /* Alignment Korrektur: Halbe Thumb Breite (10px) - Halbe Tick Breite (1px) = 9px */
+      padding: 0 9px; 
       box-sizing: border-box;
     }
+    
     .tick-mark {
       width: 2px;
-      height: 4px;
-      background: rgba(255,255,255,0.4);
+      height: 8px;
+      background: rgba(255,255,255,0.6);
       border-radius: 1px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 
     .slider-values-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 4px;
+      margin-top: 6px;
       font-size: 11px;
       color: var(--muted);
       font-family: monospace;
       padding: 0 2px;
+      width: 100%;
+    }
+    
+    /* Labels zentrieren unter den Ticks */
+    .slider-values-row span {
+      flex: 1;
+      text-align: center;
     }
 
     /* Info Button */
     .slider-info-btn {
       position: absolute;
-      top: 6px;
-      right: 6px;
+      top: 4px;
+      right: 4px;
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--border);
       color: var(--muted);
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 11px;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: help;
-      z-index: 5;
+      z-index: 15; /* Über allem */
       padding: 0;
     }
     .slider-info-btn:hover { color: var(--text); border-color: var(--accent); background: rgba(59, 130, 246, 0.2); }
 
-    /* Hover Tooltip Logic */
     .slider-info-btn:hover::after {
       content: "Deals werden strategisch gewichtet:\A Kalte Ausschreibung = 0,5\A Standard / Consultative = 1,0\A KI / Privatwirtschaft = 2,0";
       white-space: pre;
       position: absolute;
-      bottom: 26px;
-      right: -10px;
-      width: 240px;
+      bottom: 24px;
+      right: -6px;
+      width: 220px;
       background: #0f172a;
       border: 1px solid var(--accent);
       padding: 10px 12px;
       border-radius: 8px;
       font-size: 12px;
       color: #e2e8f0;
-      line-height: 1.5;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      line-height: 1.4;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
       z-index: 100;
       text-align: left;
       font-weight: normal;
