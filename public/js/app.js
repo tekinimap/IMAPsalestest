@@ -4544,6 +4544,3 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
   }
 });
-
-// --- Weighting Feature Event Listeners ---
-
