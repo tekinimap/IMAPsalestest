@@ -1174,6 +1174,15 @@
       gap: 10px;
     }
 
+    .meta-weighting-layout {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      flex: 1 1 auto;
+      min-width: 0;
+      margin-right: auto;
+    }
+
     .meta-edit-section {
       position: relative;
       margin-right: auto;
@@ -1189,6 +1198,39 @@
       border: 1px solid rgba(148, 163, 184, .18);
       box-shadow: 0 8px 18px rgba(8, 15, 28, .3);
       backdrop-filter: blur(6px);
+      flex: 1 1 480px;
+      min-width: 260px;
+    }
+
+    .weighting-card {
+      flex: 0 1 320px;
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(59, 130, 246, .25);
+      background: rgba(10, 15, 26, .75);
+      box-shadow: 0 8px 18px rgba(8, 15, 28, .3);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 220px;
+    }
+
+    .weighting-card h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #dbe4f3;
+    }
+
+    .weighting-card-note {
+      margin: 0;
+      font-size: 12px;
+      color: rgba(203, 213, 225, .7);
+      line-height: 1.4;
+    }
+
+    .weighting-card .weighting-options {
+      margin-top: 4px;
     }
 
     .meta-edit-section .meta-edit-header {
@@ -1275,15 +1317,6 @@
       min-width: 150px;
     }
 
-    .meta-edit-section .meta-edit-fields .meta-field.weighting-field {
-      flex: 1 1 320px;
-      min-width: 220px;
-      border: 1px solid rgba(59, 130, 246, .25);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: rgba(10, 15, 26, .75);
-    }
-
     .weighting-options {
       display: flex;
       flex-wrap: wrap;
@@ -1292,8 +1325,8 @@
     }
 
     .weighting-option {
-      flex: 1 1 150px;
-      min-width: 140px;
+      flex: 1 1 140px;
+      min-width: 130px;
       background: rgba(11, 18, 32, .85);
       border: 1px solid rgba(59, 130, 246, .2);
       border-radius: 10px;
@@ -1368,10 +1401,24 @@
       display: flex;
     }
 
+    @media (max-width:1024px) {
+      .meta-weighting-layout {
+        flex-direction: column;
+      }
+
+      .weighting-card {
+        width: 100%;
+      }
+    }
+
     @media (max-width:768px) {
       .meta-edit-section {
         width: 100%;
         margin-right: 0;
+      }
+
+      .meta-weighting-layout {
+        width: 100%;
       }
 
       .form-bottom-actions {
@@ -1738,38 +1785,49 @@
     .sales-summary {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       margin-top: 12px;
     }
 
     .sales-summary-row {
       display: flex;
-      align-items: center;
-      gap: 16px;
+      align-items: flex-start;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .sales-summary-label {
-      flex: 0 0 220px;
+      flex: 0 0 200px;
       font-size: 13px;
+      font-weight: 600;
       color: var(--muted);
     }
 
     .sales-summary-track {
       flex: 1;
-      position: relative;
-      height: 30px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, .75);
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 6px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, .65);
+      border: 1px solid rgba(59, 130, 246, .15);
+      min-width: 240px;
     }
 
     .sales-summary-fill {
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      border-radius: 999px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 16px;
+      border-radius: 8px;
+      padding: 0 10px;
+      min-width: 56px;
+      height: 18px;
+    }
+
+    .sales-summary-track .sales-summary-fill+.sales-summary-fill {
+      margin-top: 1px;
     }
 
     .sales-summary-fill.sales-actual {
@@ -1781,12 +1839,12 @@
     }
 
     .sales-summary-amount {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
+      position: static;
+      left: auto;
+      top: auto;
+      transform: none;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       pointer-events: none;
     }
 
@@ -2388,76 +2446,81 @@
               <div class="hr"></div>
 
               <div class="form-bottom-actions">
-                <div class="meta-edit-section" id="metaEditSection">
-                  <div class="meta-edit-header">
-                    <div class="meta-edit-title">
-                      <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
-                      <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
-                    </div>
-                    <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
-                  </div>
-                  <div class="meta-edit-summary" id="metaSummary">
-                    <div class="meta-summary-row">
-                      <span class="meta-summary-label">Projektnummer</span>
-                      <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
-                    </div>
-                    <div class="meta-summary-row">
-                      <span class="meta-summary-label">KV-Nummer</span>
-                      <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
-                    </div>
-                    <div class="meta-summary-row">
-                      <span class="meta-summary-label">Abschlussdatum</span>
-                      <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
-                    </div>
-                  </div>
-                  <div class="meta-edit-fields">
-                    <div class="meta-field">
-                      <label for="projectNumber">Projektnummer</label>
-                      <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
-                      <div class="field-error" data-validation-for="projectNumber"></div>
-                    </div>
-                    <div class="meta-field">
-                      <label for="kvNummer">KV-Nummer</label>
-                      <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
-                      <div class="field-error" data-validation-for="kvNummer"></div>
-                    </div>
-                    <div class="meta-field">
-                      <label for="freigabedatum">Abschlussdatum</label>
-                      <input id="freigabedatum" type="date">
-                      <div class="field-error" data-validation-for="freigabedatum"></div>
-                    </div>
-                    <div class="meta-field weighting-field">
-                      <label>Strategische Gewichtung</label>
-                      <div class="weighting-options">
-                        <label class="weighting-option">
-                          <span class="weighting-option-label">
-                            <input type="radio" name="weightingFactor" value="0.5">
-                            <span>Kalte Ausschreibung</span>
-                          </span>
-                          <span class="weighting-option-value">0,5×</span>
-                        </label>
-                        <label class="weighting-option">
-                          <span class="weighting-option-label">
-                            <input type="radio" name="weightingFactor" value="1.0" checked>
-                            <span>Standard</span>
-                          </span>
-                          <span class="weighting-option-value">1,0×</span>
-                        </label>
-                        <label class="weighting-option">
-                          <span class="weighting-option-label">
-                            <input type="radio" name="weightingFactor" value="1.5" aria-label="1,5-fach" />
-                            <span></span>
-                          </span>
-                          <span class="weighting-option-value">1,5×</span>
-                        </label>
-                        <label class="weighting-option">
-                          <span class="weighting-option-label">
-                            <input type="radio" name="weightingFactor" value="2.0">
-                            <span>KI Projekte, Privatwirtschaft</span>
-                          </span>
-                          <span class="weighting-option-value">2,0×</span>
-                        </label>
+                <div class="meta-weighting-layout">
+                  <div class="meta-edit-section" id="metaEditSection">
+                    <div class="meta-edit-header">
+                      <div class="meta-edit-title">
+                        <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
+                        <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
                       </div>
+                      <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
+                    </div>
+                    <div class="meta-edit-summary" id="metaSummary">
+                      <div class="meta-summary-row">
+                        <span class="meta-summary-label">Projektnummer</span>
+                        <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
+                      </div>
+                      <div class="meta-summary-row">
+                        <span class="meta-summary-label">KV-Nummer</span>
+                        <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
+                      </div>
+                      <div class="meta-summary-row">
+                        <span class="meta-summary-label">Abschlussdatum</span>
+                        <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
+                      </div>
+                    </div>
+                    <div class="meta-edit-fields">
+                      <div class="meta-field">
+                        <label for="projectNumber">Projektnummer</label>
+                        <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
+                        <div class="field-error" data-validation-for="projectNumber"></div>
+                      </div>
+                      <div class="meta-field">
+                        <label for="kvNummer">KV-Nummer</label>
+                        <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
+                        <div class="field-error" data-validation-for="kvNummer"></div>
+                      </div>
+                      <div class="meta-field">
+                        <label for="freigabedatum">Abschlussdatum</label>
+                        <input id="freigabedatum" type="date">
+                        <div class="field-error" data-validation-for="freigabedatum"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="weighting-card">
+                    <span class="meta-edit-eyebrow">Multiplikator</span>
+                    <h3>Strategische Gewichtung</h3>
+                    <p class="weighting-card-note">Bestimme hier den Faktor, mit dem der Salesbeitrag aller Beteiligten gewichtet
+                      wird.</p>
+                    <div class="weighting-options">
+                      <label class="weighting-option">
+                        <span class="weighting-option-label">
+                          <input type="radio" name="weightingFactor" value="0.5">
+                          <span>Kalte Ausschreibung</span>
+                        </span>
+                        <span class="weighting-option-value">0,5×</span>
+                      </label>
+                      <label class="weighting-option">
+                        <span class="weighting-option-label">
+                          <input type="radio" name="weightingFactor" value="1.0" checked>
+                          <span>Standard</span>
+                        </span>
+                        <span class="weighting-option-value">1,0×</span>
+                      </label>
+                      <label class="weighting-option">
+                        <span class="weighting-option-label">
+                          <input type="radio" name="weightingFactor" value="1.5" />
+                          <span>keine Beschriftung</span>
+                        </span>
+                        <span class="weighting-option-value">1,5×</span>
+                      </label>
+                      <label class="weighting-option">
+                        <span class="weighting-option-label">
+                          <input type="radio" name="weightingFactor" value="2.0">
+                          <span>KI Projekte, Privatwirtschaft</span>
+                        </span>
+                        <span class="weighting-option-value">2,0×</span>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -2692,7 +2755,7 @@
         </div>
         <div class="grid-3">
           <div class="chart sales-summary-card" style="grid-column:1/-1">
-            <h3>Salesbeiträge (Ist vs. gewichtet)</h3>
+            <h3>Salesbeiträge pro Person (Ist vs. gewichtet)</h3>
             <div id="salesContributionSummary" class="sales-summary"></div>
           </div>
           <div class="chart" style="grid-column:1/-1">
