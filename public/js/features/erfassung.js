@@ -90,7 +90,10 @@ const w_pitch = document.getElementById('w_pitch');
 const w_note = document.getElementById('w_note');
 const btnAddRow = document.getElementById('btnAddRow');
 const btnSave = document.getElementById('btnSave');
-const weightingFactorInputs = document.querySelectorAll('input[name="weightingFactor"]');
+const weightingFactorInput = document.querySelector('input[name="weightingFactor"]');
+const weightingSlider = document.querySelector('.weighting-slider');
+const weightingActiveValue = document.getElementById('weightingActiveValue');
+let currentProjectType = 'fix';
 
 function debounce(fn, wait = 300) {
   let timeoutId;
@@ -100,26 +103,29 @@ function debounce(fn, wait = 300) {
   };
 }
 
+function updateWeightingSliderDisplay(value) {
+  if (weightingSlider) {
+    weightingSlider.dataset.activeValue = value.toFixed(1);
+  }
+  if (weightingActiveValue) {
+    const normalized = value.toFixed(1).replace('.', ',');
+    weightingActiveValue.textContent = `${normalized}×`;
+  }
+}
+
 function getSelectedWeightingFactor() {
-  const selected = document.querySelector('input[name="weightingFactor"]:checked');
-  const numeric = selected ? parseFloat(selected.value) : NaN;
-  return Number.isFinite(numeric) ? deps.clampDockRewardFactor(numeric) : deps.dockWeightingDefault;
+  const numeric = weightingFactorInput ? parseFloat(weightingFactorInput.value) : NaN;
+  const clamped = Number.isFinite(numeric) ? deps.clampDockRewardFactor(numeric) : deps.dockWeightingDefault;
+  updateWeightingSliderDisplay(clamped);
+  return clamped;
 }
 
 function setSelectedWeightingFactor(value) {
   const targetValue = deps.clampDockRewardFactor(value);
-  let applied = false;
-  weightingFactorInputs.forEach((input) => {
-    const numeric = parseFloat(input.value);
-    if (!applied && Math.abs(numeric - targetValue) < 0.001) {
-      input.checked = true;
-      applied = true;
-    }
-  });
-  if (!applied) {
-    const fallback = document.querySelector('input[name="weightingFactor"][value="1.0"]') || weightingFactorInputs[0];
-    if (fallback) fallback.checked = true;
+  if (weightingFactorInput) {
+    weightingFactorInput.value = targetValue.toFixed(1);
   }
+  updateWeightingSliderDisplay(targetValue);
 }
 
 function renderInlineHint(el, message, severity = 'info') {
@@ -178,7 +184,11 @@ function validateInput(forLive = false) {
     if (forLive) {
       if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
     } else {
-      if (t[w.key] !== 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} = 100`);
+      if (t[w.key] !== 100) {
+        if (w.key === 'cs') categoryErrors.push('Consultative Selling < 100');
+        else if (w.key === 'konzept') categoryErrors.push('Konzepterstellung < 100');
+        else if (w.key === 'pitch') categoryErrors.push('Pitch < 100');
+      }
     }
   });
   if (categoryErrors.length) errors.weights = categoryErrors.join(', ');
@@ -303,7 +313,7 @@ function saveCurrentInputState() {
     title: projekttitel.value.trim(),
     amount: parseAmountInput(auftragswert.value),
     amountKnown: auftragswertBekannt.checked,
-    projectType: document.querySelector('input[name="projectType"]:checked').value,
+    projectType: currentProjectType,
     rows: readRows(),
     weights: currentWeights(),
     submittedBy: submittedBy.value,
@@ -338,11 +348,21 @@ function applyMetaDisabledState(forceDisabled = false) {
   }
 }
 
+function applyWeightingDisabledState(forceDisabled = false) {
+  if (weightingFactorInput) {
+    weightingFactorInput.disabled = forceDisabled;
+  }
+  if (weightingSlider) {
+    weightingSlider.classList.toggle('is-disabled', !!forceDisabled);
+  }
+}
+
 function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false }) {
   metaBaseDisabledState = { ...baseDisabled };
   metaQuickEditEnabled = false;
   if (!btnMetaEditToggle || !metaEditSection) {
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
     return;
   }
   btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
@@ -353,9 +373,11 @@ function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: t
   if (showQuickEdit) {
     metaEditSection.classList.add('meta-edit-available');
     applyMetaDisabledState(true);
+    applyWeightingDisabledState(true);
   } else {
     metaEditSection.classList.remove('meta-edit-available');
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
   }
   updateMetaSummary();
 }
@@ -370,11 +392,13 @@ function setMetaQuickEditActive(active) {
     metaEditSection.classList.add('is-editing');
     btnMetaEditToggle.textContent = 'Speichern';
     applyMetaDisabledState(false);
+    applyWeightingDisabledState(false);
   } else {
     metaEditSection.classList.remove('is-editing');
     btnMetaEditToggle.textContent = 'Bearbeiten';
     const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
     applyMetaDisabledState(quickEditAvailable);
+    applyWeightingDisabledState(quickEditAvailable);
   }
   updateMetaSummary();
 }
@@ -452,14 +476,15 @@ function wireInlineValidation() {
     freigabedatum.addEventListener('input', updateMetaSummary);
     freigabedatum.addEventListener('change', updateMetaSummary);
   }
-  document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
-  if (weightingFactorInputs.length) {
-    weightingFactorInputs.forEach((input) => {
-      input.addEventListener('change', () => {
-        setHasUnsavedChanges(true);
-        saveCurrentInputState();
-      });
-    });
+  if (weightingFactorInput) {
+    const handleWeightingChange = () => {
+      const value = getSelectedWeightingFactor();
+      setSelectedWeightingFactor(value);
+      setHasUnsavedChanges(true);
+      saveCurrentInputState();
+    };
+    weightingFactorInput.addEventListener('input', handleWeightingChange);
+    weightingFactorInput.addEventListener('change', handleWeightingChange);
   }
   auftragswertBekannt.addEventListener('change', () => {
     auftragswert.disabled = !auftragswertBekannt.checked;
@@ -599,7 +624,7 @@ async function saveHunterAbruf(st) {
 export function loadInputForm(inputData, isEditing = false) {
   const st = loadState() || {};
   const abrufInfo = document.getElementById('abrufInfo');
-  const projectTypeWrapper = document.getElementById('projectTypeWrapper');
+  currentProjectType = inputData.projectType || st.parentEntry?.projectType || 'fix';
 
   auftraggeber.disabled = false;
   const baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false };
@@ -640,7 +665,6 @@ export function loadInputForm(inputData, isEditing = false) {
       kvNummer.placeholder = 'KV-Nummer des Abrufs';
       kvNummer.disabled = false;
     }
-    if (projectTypeWrapper) projectTypeWrapper.classList.add('hide');
     auftraggeber.value = st.parentEntry.client;
     auftraggeber.disabled = true;
     projekttitel.value = inputData.title || '';
@@ -651,7 +675,6 @@ export function loadInputForm(inputData, isEditing = false) {
     configureMetaQuickEdit(false, baseDisabled);
   } else {
     if (abrufInfo) abrufInfo.innerHTML = '';
-    if (projectTypeWrapper) projectTypeWrapper.classList.remove('hide');
     auftraggeber.value = inputData.client || '';
     projekttitel.value = inputData.title || '';
     projectNumber.value = inputData.projectNumber || '';
@@ -659,7 +682,7 @@ export function loadInputForm(inputData, isEditing = false) {
 
     baseDisabled.projectNumber = !isEditing;
     baseDisabled.kvNummer = !isEditing;
-    baseDisabled.freigabedatum = (!isEditing && inputData.projectType === 'rahmen');
+    baseDisabled.freigabedatum = (!isEditing && currentProjectType === 'rahmen');
     const showQuickEdit = Boolean(isEditing);
     if (!freigabedatum.value && !isEditing) {
       freigabedatum.value = getTodayDate();
@@ -674,7 +697,6 @@ export function loadInputForm(inputData, isEditing = false) {
   auftragswert.disabled = !auftragswertBekannt.checked;
   auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
   submittedBy.value = inputData.submittedBy || '';
-  document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
 
   const weights = inputData.weights || [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }];
   const m = Object.fromEntries(weights.map(w => [w.key, w.weight]));
