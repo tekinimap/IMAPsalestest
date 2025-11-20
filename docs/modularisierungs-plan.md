@@ -21,27 +21,26 @@ Die Datei `public/js/app.js` (ca. 4.000+ Zeilen) bündelt aktuell sehr unterschi
 - `public/js/features/analytics.js` – Auswertungs-Tab, Charts/Tabellen, Filter.
 - `public/js/features/common-events.js` – Globale Listener wie `window`-Events, Dialog-Schließen, `beforeunload`-Warnungen (optional – falls diese aktuell über alle Abschnitte verteilt sind).
 
-## Umsetzungsreihenfolge
-1. **Einstiegspunkt aufbrechen:**
-   - Lege `public/js/main.js` an, verschiebe nur Navigation + Basis-Initialisierung (`DOMContentLoaded`, Loader/Toast-Hooks).
-   - Passe `index.html` an, um statt `app.js` vorerst `main.js` zu laden.
-2. **People & Session isolieren:**
-   - Verschiebe `loadSession`, `loadPeople`, `findPersonByName/Email`, `updateRecognizedPersonFromPeople` nach `features/people.js`.
-   - Exportiere `currentSession` (oder Getter), damit andere Module darauf zugreifen können.
-3. **Erfassung modularisieren:**
-   - Verlege die Formular-spezifischen DOM-Referenzen und Handler (`btnAddRow`, `btnSave`, Validierungen) nach `features/erfassung.js`.
-   - Halte Abhängigkeiten zu `entries-state.js` und `ui/forms.js` über klar benannte Imports.
-4. **Dock-Board & Berechnungen trennen:**
-   - Verschiebe Filter-, Selektion- und Auto-Advance-Logik in `features/dock-board.js`.
-   - Lagere reine Berechnungsfunktionen (Gewichtungs-Clamps, Reward-Factor, Summen) nach `features/calculations.js`.
-5. **Spezialbereiche ausgliedern:**
+## Umsetzungsreihenfolge und Status
+1. **Einstiegspunkt aufbrechen:** ✅ erledigt
+   - `public/js/main.js` lädt die App, `index.html` bindet es als neues Entry-Module ein.
+2. **People & Session isolieren:** ✅ erledigt
+   - `loadSession`, `loadPeople`, `findPersonByName/Email` und Abgleiche leben in `features/people.js`.
+3. **Erfassung modularisieren:** ⏳ als Nächstes
+   - Formular-spezifische DOM-Referenzen und Handler (`btnAddRow`, `btnSave`, Validierungen, Autosave) nach `features/erfassung.js` verlagern.
+   - Abhängigkeiten zu `entries-state.js` und `ui/forms.js` klar importieren.
+   - `initializeApp` soll nur noch in `main.js` verdrahtet werden, während `erfassung.js` ein eigenes `initErfassung()` bereitstellt.
+4. **Dock-Board & Berechnungen trennen:** ⏳ geplant
+   - Filter-, Selektion- und Auto-Advance-Logik nach `features/dock-board.js`.
+   - Reine Berechnungsfunktionen (Gewichtungs-Clamps, Reward-Factor, Summen) nach `features/calculations.js`.
+5. **Spezialbereiche ausgliedern:** ⏳ geplant
    - `overview-rahmen.js` für Rahmenvertrags-Ansicht und Abrufe.
    - `modals.js` für Move-Fix-Order-Modal + generische Dialogsteuerung.
    - `admin.js` für Admin-View-Laden/Rendern.
    - `erp-import.js` und `analytics.js` analog zu den Abschnittskommentaren.
-6. **Gemeinsame Hilfen konsolidieren:**
+6. **Gemeinsame Hilfen konsolidieren:** ⏳ geplant
    - Prüfe, welche globale Variablen nur innerhalb eines Features benötigt werden und kapsle sie. Nur notwendige APIs exportieren.
-   - Vereinheitliche Event-Registration (z. B. alle `addEventListener`-Aufrufe pro Modul in einer `init()`-Funktion).
+   - Event-Registration pro Modul in einer `init()`-Funktion bündeln.
 
 ## Zusätzliche Quick-Wins
 - **Dateigröße senken:** Schon das Verschieben der People- und Dock-Logik reduziert `app.js` um ~1.000+ Zeilen.
