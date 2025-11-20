@@ -33,9 +33,9 @@ Die Datei `public/js/app.js` (ca. 4.000+ Zeilen) bündelt aktuell sehr unterschi
 4. **Admin isolieren:** ✅ erledigt
    - Admin-spezifische DOM-Elemente, Team-Auswahllogik und Klick-Handler wohnen in `features/admin.js`.
    - `app.js` importiert nur noch `handleAdminClick` und initialisiert das Modul.
-5. **Dock-Board & Berechnungen trennen:** ⏳ geplant
-   - Filter-, Selektion- und Auto-Advance-Logik nach `features/dock-board.js`.
-   - Reine Berechnungsfunktionen (Gewichtungs-Clamps, Reward-Factor, Summen) nach `features/calculations.js`.
+5. **Dock-Board & Berechnungen trennen:** ⚙️ teilweise
+   - ✅ Reine Berechnungsfunktionen (Gewichtungs-Clamps, Reward-Factor, Summen) liegen jetzt in `features/calculations.js`.
+   - ⏳ Filter-, Selektion- und Auto-Advance-Logik folgen in `features/dock-board.js`.
 6. **Spezialbereiche ausgliedern:** ⏳ geplant
    - `overview-rahmen.js` für Rahmenvertrags-Ansicht und Abrufe.
    - `modals.js` für Move-Fix-Order-Modal + generische Dialogsteuerung.
