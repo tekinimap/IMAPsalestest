@@ -4030,44 +4030,60 @@ const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 let analyticsData = { persons: [], teams: [], totals: [] };
 let trendData = null;
 
-function renderSalesContributionSummary(hostOrId, actualValue, weightedValue) {
+function renderSalesContributionSummary(hostOrId, persons = []) {
   const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
   if (!host) return;
-  const actual = Math.max(0, Number(actualValue) || 0);
-  const weighted = Math.max(0, Number(weightedValue) || 0);
+  const list = Array.isArray(persons)
+    ? persons.filter((item) => (item.actual || 0) > 0 || (item.weighted || 0) > 0)
+    : [];
   host.innerHTML = '';
-  if (actual === 0 && weighted === 0) {
+  if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'log-metrics-empty';
     empty.textContent = 'Keine Daten verfügbar.';
     host.appendChild(empty);
     return;
   }
-  const maxValue = Math.max(actual, weighted) || 1;
+
+  const maxValue = list.reduce(
+    (max, person) => Math.max(max, Number(person.actual) || 0, Number(person.weighted) || 0),
+    0
+  ) || 1;
   const fragment = document.createDocumentFragment();
-  const bars = [
-    { key: 'actual', label: 'Tatsächlicher Salesbeitrag', value: actual },
-    { key: 'weighted', label: 'Gewichteter Salesbeitrag', value: weighted },
-  ];
-  bars.forEach((bar) => {
+  list.forEach((person) => {
+    const actual = Math.max(0, Number(person.actual) || 0);
+    const weighted = Math.max(0, Number(person.weighted) || 0);
     const row = document.createElement('div');
     row.className = 'sales-summary-row';
     const label = document.createElement('span');
     label.className = 'sales-summary-label';
-    label.textContent = bar.label;
+    label.textContent = person.name || 'Unbekannt';
     const track = document.createElement('div');
     track.className = 'sales-summary-track';
-    const fill = document.createElement('div');
-    fill.className = `sales-summary-fill sales-${bar.key}`;
-    const widthPct = (bar.value / maxValue) * 100;
-    fill.style.width = `${widthPct}%`;
-    const amount = document.createElement('span');
-    amount.className = `sales-summary-amount sales-${bar.key}`;
-    amount.textContent = fmtCurr0.format(bar.value);
-    track.append(fill, amount);
+
+    const actualFill = document.createElement('div');
+    actualFill.className = 'sales-summary-fill sales-actual';
+    const actualWidth = Math.max(4, (actual / maxValue) * 100);
+    actualFill.style.width = `${Math.min(100, actualWidth)}%`;
+    const actualAmount = document.createElement('span');
+    actualAmount.className = 'sales-summary-amount sales-actual';
+    actualAmount.textContent = fmtCurr0.format(actual);
+    actualFill.appendChild(actualAmount);
+
+    const weightedFill = document.createElement('div');
+    weightedFill.className = 'sales-summary-fill sales-weighted';
+    const weightedWidth = Math.max(4, (weighted / maxValue) * 100);
+    weightedFill.style.width = `${Math.min(100, weightedWidth)}%`;
+    const weightedAmount = document.createElement('span');
+    weightedAmount.className = 'sales-summary-amount sales-weighted';
+    weightedAmount.textContent = fmtCurr0.format(weighted);
+    weightedFill.appendChild(weightedAmount);
+
+    track.append(actualFill, weightedFill);
     row.append(label, track);
     fragment.appendChild(row);
   });
+
   const legend = document.createElement('div');
   legend.className = 'sales-summary-legend';
   legend.innerHTML = `
@@ -4171,12 +4187,15 @@ function renderAnalytics() {
     { name: 'Rahmenverträge', actual: rahmenTotal, weighted: rahmenWeightedTotal },
     { name: 'Gesamt', actual: fixTotal + rahmenTotal, weighted: fixWeightedTotal + rahmenWeightedTotal },
   ].filter((item) => item.actual > 0 || item.weighted > 0);
-  renderSalesContributionSummary('salesContributionSummary', fixTotal + rahmenTotal, fixWeightedTotal + rahmenWeightedTotal);
+  renderSalesContributionSummary('salesContributionSummary', personList);
   drawComparisonBars('chartTotals', totalArr);
   analyticsData.totals = totalArr;
   analyticsData.salesSummary = {
-    actual: fixTotal + rahmenTotal,
-    weighted: fixWeightedTotal + rahmenWeightedTotal,
+    persons: personList,
+    totals: {
+      actual: fixTotal + rahmenTotal,
+      weighted: fixWeightedTotal + rahmenWeightedTotal,
+    },
   };
 }
 
