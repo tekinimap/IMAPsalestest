@@ -2348,6 +2348,281 @@
       border-radius: 8px;
       font-size: 12px;
     }
+    /* =========================================
+       NEU: Styles für Kompaktes Meta-Layout & Snappy Slider
+       ========================================= */
+    .meta-section-container {
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .meta-header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .meta-header-row h3 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-header-row .edit-btn-link {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .meta-header-row .edit-btn-link:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    
+    .meta-header-row .edit-btn-link:not(:empty) {
+      min-width: 80px;
+    }
+
+    .meta-compact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .meta-box {
+      background: rgba(11, 17, 26, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Metadata List Content */
+    .meta-data-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .meta-data-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      border-bottom: 1px dashed rgba(33, 48, 68, 0.5);
+      padding-bottom: 2px;
+      margin-bottom: 2px;
+    }
+    .meta-data-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .meta-label { color: var(--muted); }
+    .meta-value { color: var(--text); font-weight: 600; text-align: right; }
+
+    /* Inputs for edit mode (hidden by default) */
+    .meta-edit-section.is-editing .meta-edit-summary { display: none; }
+    .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; gap: 6px; }
+    .meta-edit-section.is-editing .meta-edit-fields { display: flex; }
+    
+    .meta-edit-fields input {
+      padding: 6px 8px;
+      font-size: 12px;
+      height: 30px;
+    }
+
+    /* --- Snappy Slider Styles --- */
+    .slider-container {
+      position: relative;
+      padding: 0 8px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slider-track-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 18px; 
+      padding: 0 2px;
+    }
+    
+    .slider-track-labels span {
+      width: 20px;
+      text-align: center;
+      cursor: default;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    
+    /* Highlight active icons */
+    .weighting-slider[data-active-value="0.5"] span[data-val="0.5"],
+    .weighting-slider[data-active-value="1.0"] span[data-val="1.0"],
+    .weighting-slider[data-active-value="1.5"] span[data-val="1.5"],
+    .weighting-slider[data-active-value="2.0"] span[data-val="2.0"] {
+      opacity: 1; transform: scale(1.15); text-shadow: 0 0 10px var(--accent);
+    }
+
+    .range-wrapper {
+      position: relative;
+      height: 24px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Custom Range Input Reset */
+    input[type=range].snappy-range {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+      margin: 0;
+      z-index: 2;
+      position: relative;
+      cursor: pointer;
+    }
+    input[type=range].snappy-range:focus { outline: none; }
+
+    /* Track Styling */
+    input[type=range].snappy-range::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--accent), #22c55e);
+      border-radius: 4px;
+    }
+    input[type=range].snappy-range::-moz-range-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--accent), #22c55e);
+      border-radius: 4px;
+    }
+
+    /* Thumb Styling (Der Kreis) */
+    input[type=range].snappy-range::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -7px; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transition: transform 0.1s;
+    }
+    input[type=range].snappy-range::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    /* Ticks (Die weißen Striche) */
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      position: absolute;
+      width: 100%;
+      top: 10px; 
+      pointer-events: none;
+      z-index: 1;
+      padding: 0 9px; /* WICHTIG: Halbe Thumb-Breite für exaktes Alignment */
+      box-sizing: border-box;
+    }
+    .tick-mark {
+      width: 2px;
+      height: 4px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 1px;
+    }
+
+    .slider-values-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      padding: 0 2px;
+    }
+
+    /* Info Button */
+    .slider-info-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      z-index: 5;
+      padding: 0;
+    }
+    .slider-info-btn:hover { color: var(--text); border-color: var(--accent); background: rgba(59, 130, 246, 0.2); }
+
+    /* Hover Tooltip Logic */
+    .slider-info-btn:hover::after {
+      content: "Deals werden strategisch gewichtet:\A Kalte Ausschreibung = 0,5\A Standard / Consultative = 1,0\A KI / Privatwirtschaft = 2,0";
+      white-space: pre;
+      position: absolute;
+      bottom: 26px;
+      right: -10px;
+      width: 240px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index: 100;
+      text-align: left;
+      font-weight: normal;
+      pointer-events: none;
+    }
+    
+    .weighting-slider.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    @media(max-width: 600px) {
+      .meta-compact-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-bottom-actions { flex-direction: column; align-items: stretch; }
+    }
   </style>
 
 </head>
@@ -2430,7 +2705,7 @@
             wieder.</div>
         </div>
 
-        <dialog id="dockEntryDialog">
+       <dialog id="dockEntryDialog">
           <button class="dialog-close" id="btnCloseManualDeal" type="button" aria-label="Modal schließen">×</button>
           <div class="dock-modal-layout">
             <div id="dockManualPanel" class="dock-manual">
@@ -2441,6 +2716,7 @@
                 </div>
               </div>
               <div id="abrufInfo" class="info-box hide"></div>
+              
               <div class="grid-3">
                 <div>
                   <label for="auftraggeber">Auftraggeber *</label>
@@ -2462,6 +2738,7 @@
                   <div class="field-error" data-validation-for="auftragswert"></div>
                 </div>
               </div>
+              
               <div class="grid-3 dock-compact-row">
                 <div>
                   <label for="submittedBy">Einschätzung abgegeben von *</label>
@@ -2516,80 +2793,74 @@
               <div class="sumchips" id="sumchips"></div>
               <div class="field-error" data-validation-for="categories"></div>
 
-              <div class="hr"></div>
+              <div class="meta-section-container">
+                  <div class="meta-header-row">
+                    <h3>Metadaten & Gewichtung</h3>
+                    <button id="btnMetaEditToggle" class="edit-btn-link" type="button">Bearbeiten</button>
+                  </div>
 
-              <div class="form-bottom-actions">
-                <div class="meta-weighting-note">Auszufüllen von Corporate Functions und Team Sales &amp; Marketing</div>
-                <div class="meta-weighting-layout">
-                  <div class="meta-edit-section" id="metaEditSection">
-                    <div class="meta-edit-header">
-                      <div class="meta-edit-title" aria-hidden="true"></div>
-                      <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
+                  <div class="meta-compact-grid">
+                    
+                    <div id="metaEditSection" class="meta-box meta-edit-section">
+                       <div id="metaSummary" class="meta-data-list meta-edit-summary">
+                          <div class="meta-data-item">
+                            <span class="meta-label">Projekt-Nr.</span>
+                            <span class="meta-value" data-meta-field="projectNumber">–</span>
+                          </div>
+                          <div class="meta-data-item">
+                            <span class="meta-label">KV-Nr.</span>
+                            <span class="meta-value" data-meta-field="kvNummer">–</span>
+                          </div>
+                          <div class="meta-data-item">
+                            <span class="meta-label">Abschluss</span>
+                            <span class="meta-value" data-meta-field="freigabedatum">–</span>
+                          </div>
+                       </div>
+
+                       <div class="meta-edit-fields"> 
+                          <input id="projectNumber" type="text" placeholder="Projektnummer">
+                          <div class="field-error" data-validation-for="projectNumber"></div>
+                          <input id="kvNummer" type="text" placeholder="KV-Nummer">
+                          <div class="field-error" data-validation-for="kvNummer"></div>
+                          <input id="freigabedatum" type="date">
+                          <div class="field-error" data-validation-for="freigabedatum"></div>
+                       </div>
                     </div>
-                    <div class="meta-edit-summary" id="metaSummary">
-                      <div class="meta-summary-row">
-                        <span class="meta-summary-label">Projektnummer</span>
-                        <span class="meta-summary-value" data-meta-field="projectNumber">–</span>
-                      </div>
-                      <div class="meta-summary-row">
-                        <span class="meta-summary-label">KV-Nummer</span>
-                        <span class="meta-summary-value" data-meta-field="kvNummer">–</span>
-                      </div>
-                      <div class="meta-summary-row">
-                        <span class="meta-summary-label">Abschlussdatum</span>
-                        <span class="meta-summary-value" data-meta-field="freigabedatum">–</span>
-                      </div>
+
+                    <div class="meta-box weighting-box">
+                       <div class="slider-container weighting-slider">
+                          <button class="slider-info-btn" type="button">i</button>
+                          
+                          <div class="slider-track-labels">
+                            <span data-val="0.5">❄️</span>
+                            <span data-val="1.0">⭐</span>
+                            <span data-val="1.5"></span>
+                            <span data-val="2.0">🤖🚀</span>
+                          </div>
+                          
+                          <div class="range-wrapper">
+                             <div class="slider-ticks">
+                               <div class="tick-mark"></div><div class="tick-mark"></div><div class="tick-mark"></div><div class="tick-mark"></div>
+                             </div>
+                             <input type="range" class="snappy-range" name="weightingFactor" id="weightingFactor" min="0.5" max="2.0" step="0.5" value="1.0" aria-label="Gewichtung auswählen">
+                          </div>
+                          
+                          <div class="slider-values-row">
+                            <span>0,5</span><span>1,0</span><span>1,5</span><span>2,0</span>
+                          </div>
+                          <span id="weightingActiveValue" style="display:none">1,0×</span>
+                       </div>
                     </div>
-                  <div class="meta-edit-fields">
-                    <div class="meta-field">
-                      <label for="projectNumber">Projektnummer</label>
-                      <input id="projectNumber" type="text" placeholder="Projektnummer eintragen">
-                      <div class="field-error" data-validation-for="projectNumber"></div>
-                      </div>
-                      <div class="meta-field">
-                        <label for="kvNummer">KV-Nummer</label>
-                        <input id="kvNummer" type="text" placeholder="KV-Nummer eintragen">
-                        <div class="field-error" data-validation-for="kvNummer"></div>
-                      </div>
-                      <div class="meta-field">
-                        <label for="freigabedatum">Abschlussdatum</label>
-                        <input id="freigabedatum" type="date">
-                        <div class="field-error" data-validation-for="freigabedatum"></div>
-                      </div>
-                    </div>
+
                   </div>
-                  <div class="weighting-card">
-                    <div class="weighting-card-header">
-                      <h3>Strategische Gewichtung</h3>
-                      <button class="weighting-info" type="button" aria-label="Hinweis zur Gewichtung"
-                        title="Post-it: Multiplikator für die Vertriebsgewichtung">i</button>
-                    </div>
-                    <div class="weighting-slider" data-active-value="1.0">
-                      <div class="weighting-scale">
-                        <span class="weighting-mark" data-value="0.5">❄️<small>0,5×</small></span>
-                        <span class="weighting-mark" data-value="1.0">⭐<small>1,0×</small></span>
-                        <span class="weighting-mark" data-value="1.5"><small>1,5×</small></span>
-                        <span class="weighting-mark" data-value="2.0">🤖🚀<small>2,0×</small></span>
-                      </div>
-                      <input type="range" name="weightingFactor" id="weightingFactor" min="0.5" max="2.0" step="0.5"
-                        value="1.0" list="weightingMarks" aria-label="Multiplikator auswählen">
-                      <datalist id="weightingMarks">
-                        <option value="0.5"></option>
-                        <option value="1.0"></option>
-                        <option value="1.5"></option>
-                        <option value="2.0"></option>
-                      </datalist>
-                      <div class="weighting-value">Faktor <span id="weightingActiveValue">1,0×</span></div>
-                    </div>
+                  
+                  <div class="form-bottom-actions" style="margin-top:20px; justify-content:flex-end; display:flex;">
+                    <button class="btn primary disabled" id="btnSave" style="width:100%; max-width:200px;">Speichern</button>
                   </div>
-                </div>
-                <div class="form-bottom-buttons">
-                  <button class="btn primary disabled" id="btnSave">Speichern</button>
-                </div>
               </div>
-            </div>
+              </div>
           </div>
-        </dialog>
+        </dialog>     
       </div>
     </div>
 
