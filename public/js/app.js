@@ -40,6 +40,7 @@ import {
   updateBatchProgress,
   hideBatchProgress,
 } from './ui/feedback.js';
+import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
 
 const hasConfigWarnings = CONFIG_WARNINGS.length > 0;
 const hasConfigErrors = CONFIG_ERRORS.length > 0;
@@ -141,34 +142,6 @@ const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 const dockEntryDialog = document.getElementById('dockEntryDialog');
 const dockManualPanel = document.getElementById('dockManualPanel');
-
-let currentSession = { email: '', name: '', rawName: '', person: null };
-
-function updateRecognizedPersonFromPeople() {
-  if (!Array.isArray(people) || people.length === 0) {
-    if (currentSession.person) {
-      currentSession.person = null;
-    }
-    return;
-  }
-  const emailLower = String(currentSession.email || '').toLowerCase();
-  if (emailLower) {
-    const matchedByEmail = people.find((person) => String(person?.email || '').toLowerCase() === emailLower);
-    if (matchedByEmail) {
-      currentSession.person = matchedByEmail;
-      currentSession.name = matchedByEmail.name || currentSession.name || '';
-      return;
-    }
-  }
-  const nameLower = String(currentSession.name || '').trim().toLowerCase();
-  if (nameLower) {
-    const matchedByName = people.find((person) => String(person?.name || '').trim().toLowerCase() === nameLower);
-    if (matchedByName) {
-      currentSession.person = matchedByName;
-      currentSession.name = matchedByName.name || currentSession.name || '';
-    }
-  }
-}
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
 const dockFilterBu = document.getElementById('dockFilterBu');
@@ -181,8 +154,6 @@ const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
 if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
   btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
 }
-
-let people = [];
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
@@ -1561,7 +1532,7 @@ navLinks.forEach(link => {
   });
 });
 
-async function handleAdminClick() {
+export async function handleAdminClick() {
   try {
     showLoader();
     await loadPeople();
@@ -1574,76 +1545,6 @@ async function handleAdminClick() {
   } finally {
     hideLoader();
   }
-}
-
-/* ---------- People ---------- */
-const peopleList = document.getElementById('peopleList');
-async function loadSession() {
-  try {
-    // ##### KORREKTUR 1/3 #####
-    const response = await fetchWithRetry(`${WORKER_BASE}/session`, { cache: 'no-store' });
-    if (!response.ok) {
-      if (response.status !== 404) {
-        console.warn('Session konnte nicht geladen werden (Status):', response.status);
-      }
-      currentSession.email = '';
-      currentSession.rawName = '';
-      currentSession.person = null;
-      currentSession.name = '';
-      return;
-    }
-    const data = await response.json();
-    currentSession.email = String(data?.email || '').trim();
-    currentSession.rawName = String(data?.name || '').trim();
-    currentSession.person = data?.person && typeof data.person === 'object' ? data.person : null;
-
-    if (currentSession.person) {
-      currentSession.name = String(currentSession.person.name || '').trim() || currentSession.rawName;
-    } else {
-      currentSession.name = String(data?.displayName || '').trim() || currentSession.rawName;
-    }
-  } catch (err) {
-    console.warn('Session konnte nicht geladen werden:', err);
-    currentSession.email = '';
-    currentSession.rawName = '';
-    currentSession.person = null;
-    currentSession.name = '';
-  }
-  updateRecognizedPersonFromPeople();
-}
-async function loadPeople() {
-  showLoader();
-  try {
-    // ##### KORREKTUR 2/3 #####
-    const r = await fetchWithRetry(`${WORKER_BASE}/people`, { cache: 'no-store' });
-    people = r.ok ? await r.json() : [];
-  }
-  catch { people = []; showToast('Personenliste konnte nicht geladen werden.', 'bad'); }
-  finally { hideLoader(); }
-  people = Array.isArray(people) ? people.map((person) => {
-    const normalized = { ...person };
-    if (normalized.email && typeof normalized.email === 'string') {
-      normalized.email = normalized.email.trim();
-    }
-    return normalized;
-  }) : [];
-  people.sort((a, b) => { const lastA = (a.name || '').split(' ').pop(); const lastB = (b.name || '').split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
-
-  if (peopleList) {
-    peopleList.innerHTML = '';
-    people.forEach(p => {
-      const o = document.createElement('option');
-      o.value = p.name;
-      peopleList.appendChild(o);
-    });
-  }
-  updateRecognizedPersonFromPeople();
-}
-function findPersonByName(name) { return people.find(p => p.name && p.name.toLowerCase() === String(name || '').toLowerCase()); }
-function findPersonByEmail(email) {
-  const target = String(email || '').trim().toLowerCase();
-  if (!target) return undefined;
-  return people.find((person) => String(person?.email || '').trim().toLowerCase() === target);
 }
 
 /* ---------- Erfassung ---------- */
@@ -5456,7 +5357,7 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-async function initializeApp() {
+export async function initializeApp() {
   try {
     await loadSession();
     await loadPeople();
@@ -5483,16 +5384,6 @@ async function initializeApp() {
     console.error('Button #btnLegacySalesImport nicht gefunden!');
   }
 }
-
-initializeApp();
-
-
-// Deep Link zu Admin (optional)
-if (location.hash === '#admin') {
-  // Warte kurz, damit die UI bereit ist
-  setTimeout(handleAdminClick, 100);
-}
-
 
 // Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
 document.addEventListener('keydown', (e) => {
