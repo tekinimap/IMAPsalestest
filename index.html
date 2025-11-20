@@ -2349,7 +2349,7 @@
       font-size: 12px;
     }
 /* =========================================
-       FINAL: Ultra-Kompaktes Layout & Perfekter Slider
+       FINAL V3: 50/50 Split & Korrigierte Ausrichtung
        ========================================= */
     .meta-section-container {
       margin-top: 16px;
@@ -2382,7 +2382,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
-      height: 22px; /* Fixe Höhe für Kompaktheit */
+      height: 22px;
       display: inline-flex;
       align-items: center;
     }
@@ -2395,20 +2395,18 @@
     
     .meta-compact-grid {
       display: grid;
-      /* Slider bekommt mehr Platz, Verhältnis angepasst */
-      grid-template-columns: 0.6fr 1.4fr; 
+      /* ÄNDERUNG: 50/50 Split wie gewünscht */
+      grid-template-columns: 1fr 1fr; 
       gap: 10px;
       align-items: stretch;
     }
 
-    /* --- Metadaten Box: Ultra Kompakt --- */
+    /* --- Metadaten Box --- */
     .meta-box {
       background: rgba(11, 17, 26, 0.4);
       border: 1px solid var(--border);
       border-radius: 10px;
-      /* Sehr wenig Padding innen */
-      padding: 6px 10px; 
-      min-height: auto; /* Höhe passt sich Inhalt an */
+      padding: 6px 12px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -2418,105 +2416,95 @@
     .meta-data-list {
       display: flex;
       flex-direction: column;
-      gap: 2px; /* Minimaler Abstand zwischen Zeilen */
+      gap: 3px;
     }
 
     .meta-data-item {
       display: flex;
       justify-content: space-between;
-      font-size: 12px; /* Schrift kleiner */
+      font-size: 12px;
       border-bottom: 1px dashed rgba(33, 48, 68, 0.5);
-      padding-bottom: 1px;
+      padding-bottom: 2px;
       margin-bottom: 1px;
-      line-height: 1.3;
     }
     .meta-data-item:last-child {
       border-bottom: none;
       margin-bottom: 0;
-      padding-bottom: 0;
     }
 
     .meta-label { color: var(--muted); white-space: nowrap; }
-    .meta-value { color: var(--text); font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta-value { color: var(--text); font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
 
-    /* Eingabefelder im Edit-Modus extrem kompakt */
     .meta-edit-fields input {
       padding: 0 6px;
       font-size: 12px;
-      height: 22px; /* Sehr flache Inputs */
+      height: 22px;
       margin-bottom: 2px;
+      width: 100%;
     }
     
     .meta-edit-section.is-editing .meta-edit-summary { display: none; }
     .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; gap: 2px; }
     .meta-edit-section.is-editing .meta-edit-fields { display: flex; }
 
-    /* --- Snappy Slider: Perfektes Alignment --- */
+    /* --- Snappy Slider --- */
     .slider-container {
       position: relative;
-      padding: 4px 0; /* Vertikales Padding reduziert */
+      /* ÄNDERUNG: Mehr Padding seitlich, damit der Thumb Platz hat */
+      padding: 4px 12px; 
       height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      /* Wichtig: Kein seitliches Padding hier, das regelt der margin-fix im Input */
     }
 
-    /* Reihe für Icons */
+    /* Wrapper für Icons */
     .slider-track-labels {
       display: flex;
-      justify-content: space-between; /* Verteilt Elemente gleichmäßig */
-      margin-bottom: 4px; /* Näher ran */
+      justify-content: space-between;
+      margin-bottom: 2px;
       font-size: 16px; 
-      width: 100%;
-      padding: 0 2px; /* Minimaler Sicherheitsabstand */
+      /* ÄNDERUNG: Negative Margin zieht die Icons nach außen über den Slider-Rand */
+      width: calc(100% + 20px);
+      margin-left: -10px;
+      margin-right: -10px;
     }
     
     .slider-track-labels span {
-      /* Wichtig: Breite festlegen, damit 'center' wirklich mittig ist */
-      flex: 1; 
-      text-align: center; 
+      width: 30px; /* Feste Breite für Zentrierung */
+      display: flex;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
       opacity: 0.3;
       transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 20px;
     }
     
-    /* Ausrichtung korrigieren: Erstes ganz links, Letztes ganz rechts */
-    .slider-track-labels span:first-child { justify-content: flex-start; text-align: left; }
-    .slider-track-labels span:last-child { justify-content: flex-end; text-align: right; }
-    
-    /* Aktives Icon Highlight */
+    /* Aktives Icon */
     .weighting-slider[data-active-value="0.5"] span[data-val="0.5"],
     .weighting-slider[data-active-value="1.0"] span[data-val="1.0"],
     .weighting-slider[data-active-value="1.5"] span[data-val="1.5"],
     .weighting-slider[data-active-value="2.0"] span[data-val="2.0"] {
       opacity: 1; 
-      transform: scale(1.15); 
+      transform: scale(1.2); 
       text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
     }
 
     .range-wrapper {
       position: relative;
-      height: 20px; /* Kompakter */
+      height: 20px;
       display: flex;
       align-items: center;
       width: 100%;
     }
 
-    /* TRICK FÜR PERFEKTES ALIGNMENT */
-    /* Der Input wird links und rechts 'überstehen' gelassen (negative margin),
-       damit die Mitte des Kreises (Thumb) exakt auf 0% und 100% des Containers trifft. */
+    /* Input Slider */
     input[type=range].snappy-range {
       -webkit-appearance: none;
       appearance: none;
-      /* Breite = 100% + ThumbWidth (ca 18px). Damit sitzt die Mitte des Thumbs am Rand. */
-      width: calc(100% + 14px); 
-      margin-left: -7px; /* Hälfte des Überstands nach links ziehen */
+      width: 100%; /* Füllt exakt den Container (minus Padding) */
       background: transparent;
+      margin: 0;
       z-index: 5;
       position: relative;
       cursor: pointer;
@@ -2524,10 +2512,10 @@
     }
     input[type=range].snappy-range:focus { outline: none; }
 
-    /* Track Styling */
+    /* Track */
     input[type=range].snappy-range::-webkit-slider-runnable-track {
       width: 100%;
-      height: 4px; /* Dünner und feiner */
+      height: 4px;
       cursor: pointer;
       background: linear-gradient(to right, var(--accent), #22c55e);
       border-radius: 4px;
@@ -2540,24 +2528,23 @@
       border-radius: 4px;
     }
 
-    /* Thumb Styling (Kreis) */
+    /* Thumb (Kreis) */
     input[type=range].snappy-range::-webkit-slider-thumb {
-      height: 16px; /* Etwas kleinerer Kreis für Eleganz */
-      width: 16px;
+      height: 18px;
+      width: 18px;
       border-radius: 50%;
       background: #fff;
       border: 2px solid var(--accent);
       cursor: pointer;
       -webkit-appearance: none;
-      /* (TrackHeight 4px / 2) - (ThumbHeight 16px / 2) = 2 - 8 = -6px */
-      margin-top: -6px; 
+      margin-top: -7px; 
       box-shadow: 0 1px 4px rgba(0,0,0,0.5);
       position: relative;
       z-index: 10;
     }
     input[type=range].snappy-range::-moz-range-thumb {
-      height: 16px;
-      width: 16px;
+      height: 18px;
+      width: 18px;
       border: 2px solid var(--accent);
       border-radius: 50%;
       background: #fff;
@@ -2575,41 +2562,41 @@
       transform: translateY(-50%);
       pointer-events: none;
       z-index: 2;
-      /* Kein Padding mehr nötig dank Input-Trick */
-      padding: 0 1px; 
+      /* Padding korrigiert: ThumbWidth (18)/2 - TickWidth(2)/2 = 9-1 = 8px */
+      padding: 0 8px; 
     }
     
     .tick-mark {
-      width: 1px; /* Sehr fein */
-      height: 6px;
+      width: 2px;
+      height: 8px;
       background: rgba(255,255,255,0.8);
+      border-radius: 1px;
     }
 
     /* Zahlen unter dem Slider */
     .slider-values-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 2px;
-      font-size: 10px; /* Kleiner */
+      margin-top: 4px;
+      font-size: 10px;
       color: var(--muted);
       font-family: monospace;
-      width: 100%;
-      padding: 0 2px;
+      /* ÄNDERUNG: Gleiche negative Margin wie Icons für perfekte Flucht */
+      width: calc(100% + 20px);
+      margin-left: -10px;
+      margin-right: -10px;
     }
     
     .slider-values-row span {
-      flex: 1;
+      width: 30px; /* Feste Breite */
       text-align: center;
     }
-    /* Auch hier Zahlen außen bündig machen */
-    .slider-values-row span:first-child { text-align: left; }
-    .slider-values-row span:last-child { text-align: right; }
 
     /* Info Button */
     .slider-info-btn {
       position: absolute;
-      top: 0;
-      right: 0;
+      top: -2px;
+      right: -2px;
       background: transparent;
       border: 1px solid var(--border);
       color: var(--muted);
@@ -2622,18 +2609,17 @@
       justify-content: center;
       cursor: help;
       z-index: 15;
-      padding: 0;
-      opacity: 0.7;
+      opacity: 0.6;
     }
     .slider-info-btn:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
 
     .slider-info-btn:hover::after {
-      content: "Deals werden strategisch gewichtet:\A Kalte Ausschreibung = 0,5\A Standard / Consultative = 1,0\A KI / Privatwirtschaft = 2,0";
+      content: "Strategische Gewichtung:\A ❄️ = 0,5 (Kalt)\A ⭐ = 1,0 (Standard)\A 🚀 = 2,0 (KI / Prio)";
       white-space: pre;
       position: absolute;
       bottom: 20px;
       right: -4px;
-      width: 210px;
+      width: 180px;
       background: #0f172a;
       border: 1px solid var(--accent);
       padding: 8px 10px;
