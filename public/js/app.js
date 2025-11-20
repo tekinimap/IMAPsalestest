@@ -50,6 +50,46 @@ import {
   getEntryRewardFactor,
 } from './features/calculations.js';
 import { initNavigation, isViewVisible, showView } from './features/navigation.js';
+import { initCommonEvents } from './features/common-events.js';
+import {
+  getDockFilterState,
+  updateDockFilterState,
+  getDockSelection,
+  toggleDockSelection,
+  clearDockSelection,
+  isDockBoardInitialized,
+  markDockBoardInitialized,
+  getDockAutoAdvanceQueue,
+  addDockAutoAdvanceEntry,
+  shiftDockAutoAdvanceEntry,
+  getDockAutoAdvanceProcessed,
+  isDockAutoAdvanceRunning,
+  setDockAutoAdvanceRunning,
+  getDockAutoCheckQueue,
+  getDockAutoCheckHistory,
+  getDockConflictHints,
+  isDockBoardRerenderScheduled,
+  setDockBoardRerenderScheduled,
+  getPendingDockAbrufAssignment,
+  setPendingDockAbrufAssignment,
+} from './state/dock-state.js';
+import {
+  getPendingDelete,
+  setPendingDelete,
+  resetPendingDelete,
+  getCurrentSort,
+  setCurrentSort,
+  getFixPagination,
+  setFixPagination,
+  initializeFixPageSize,
+} from './state/history-state.js';
+import { getAnalyticsData, setAnalyticsData, getTrendData, setTrendData } from './state/analytics-state.js';
+import {
+  getCurrentFrameworkEntryId,
+  setCurrentFrameworkEntryId,
+  getEditingTransactionId,
+  setEditingTransactionId,
+} from './state/framework-state.js';
 
 export async function handleAdminClick() {
   await handleAdminDataLoad();
@@ -143,17 +183,13 @@ if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
-const dockFilterState = { bu: '', marketTeam: '', assessment: '', search: '' };
-const dockSelection = new Set();
-let dockBoardInitialized = false;
-const dockAutoAdvanceQueue = [];
-const dockAutoAdvanceProcessed = new Set();
-let dockAutoAdvanceRunning = false;
-const dockAutoCheckQueue = new Map();
-const dockAutoCheckHistory = new Map();
-const dockConflictHints = new Map();
-let dockBoardRerenderScheduled = false;
-let pendingDockAbrufAssignment = null;
+const dockFilterState = getDockFilterState();
+const dockSelection = getDockSelection();
+const dockAutoAdvanceQueue = getDockAutoAdvanceQueue();
+const dockAutoAdvanceProcessed = getDockAutoAdvanceProcessed();
+const dockAutoCheckQueue = getDockAutoCheckQueue();
+const dockAutoCheckHistory = getDockAutoCheckHistory();
+const dockConflictHints = getDockConflictHints();
 
 function normalizeProjectNumber(value) {
   return normalizeDockString(value).toLowerCase();
@@ -165,13 +201,13 @@ function normalizeDockString(value) {
 }
 
 function requestDockBoardRerender() {
-  if (dockBoardRerenderScheduled) return;
+  if (isDockBoardRerenderScheduled()) return;
   const scheduler = typeof window !== 'undefined' && window.requestAnimationFrame
     ? window.requestAnimationFrame.bind(window)
     : (cb) => setTimeout(cb, 0);
-  dockBoardRerenderScheduled = true;
+  setDockBoardRerenderScheduled(true);
   scheduler(() => {
-    dockBoardRerenderScheduled = false;
+    setDockBoardRerenderScheduled(false);
     renderDockBoard();
   });
 }
@@ -198,8 +234,8 @@ function deriveBusinessUnitFromTeam(team) {
 }
 
 function ensureDockBoard() {
-  if (!dockBoardEl || dockBoardInitialized) return;
-  dockBoardInitialized = true;
+  if (!dockBoardEl || isDockBoardInitialized()) return;
+  markDockBoardInitialized();
   dockBoardEl.innerHTML = '';
   DOCK_PHASES.forEach((phase) => {
     const column = document.createElement('section');
@@ -255,7 +291,7 @@ function ensureAbrufAssignmentDialog() {
   dialog.addEventListener('click', (ev) => {
     if (ev.target.matches('.dialog-close') || ev.target.dataset.abort !== undefined) {
       dialog.close();
-      pendingDockAbrufAssignment = null;
+      setPendingDockAbrufAssignment(null);
     }
   });
 
@@ -296,7 +332,7 @@ function populateAbrufAssignmentDialog(frameworks, preselectId) {
 async function finalizeDockAbruf(entryId) {
   const entry = findEntryById(entryId);
   if (!entry) {
-    pendingDockAbrufAssignment = null;
+    setPendingDockAbrufAssignment(null);
     return;
   }
   try {
@@ -312,7 +348,7 @@ async function finalizeDockAbruf(entryId) {
     console.error('Abruf-Markierung fehlgeschlagen', err);
     showToast('Dock-Status konnte nach dem Abruf nicht aktualisiert werden.', 'bad');
   } finally {
-    pendingDockAbrufAssignment = null;
+    setPendingDockAbrufAssignment(null);
   }
 }
 
@@ -372,7 +408,7 @@ function startDockAbrufAssignment(entry) {
     }
   }
 
-  pendingDockAbrufAssignment = { entry };
+  setPendingDockAbrufAssignment({ entry });
   populateAbrufAssignmentDialog(frameworks, preselectId);
 
   const dialog = ensureAbrufAssignmentDialog();
@@ -381,7 +417,7 @@ function startDockAbrufAssignment(entry) {
   } catch (err) {
     console.error('Abruf-Dialog konnte nicht geöffnet werden.', err);
     showToast('Abruf-Auswahl konnte nicht geöffnet werden.', 'bad');
-    pendingDockAbrufAssignment = null;
+    setPendingDockAbrufAssignment(null);
   }
 }
 
@@ -392,9 +428,10 @@ async function handleAbrufAssignConfirm(ev) {
   const confirmBtn = ev?.currentTarget || dialog.querySelector('[data-confirm]');
   const type = dialog.querySelector('input[name="abrufAssignType"]:checked')?.value || 'hunter';
 
-  if (!pendingDockAbrufAssignment || !select || !validation) {
+  const pendingAssignment = getPendingDockAbrufAssignment();
+  if (!pendingAssignment || !select || !validation) {
     dialog.close();
-    pendingDockAbrufAssignment = null;
+    setPendingDockAbrufAssignment(null);
     return;
   }
 
@@ -418,7 +455,7 @@ async function handleAbrufAssignConfirm(ev) {
     return;
   }
 
-  const entryProject = normalizeProjectNumber(pendingDockAbrufAssignment.entry?.projectNumber);
+  const entryProject = normalizeProjectNumber(pendingAssignment.entry?.projectNumber);
   const frameworkProject = normalizeProjectNumber(framework.projectNumber);
   if (entryProject && frameworkProject && entryProject !== frameworkProject) {
     validation.textContent = 'Warnung: Die Projektnummer des Abrufs stimmt nicht mit der Projektnummer des Rahmenvertrags überein. Bitte überprüfen Sie die Eingabe.';
@@ -427,8 +464,8 @@ async function handleAbrufAssignConfirm(ev) {
     return;
   }
 
-  pendingDockAbrufAssignment.frameworkId = frameworkId;
-  pendingDockAbrufAssignment.mode = type;
+  pendingAssignment.frameworkId = frameworkId;
+  pendingAssignment.mode = type;
   dialog.close();
 
   try {
@@ -438,9 +475,9 @@ async function handleAbrufAssignConfirm(ev) {
         confirmBtn && (confirmBtn.disabled = false);
         return;
       }
-      await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'founder');
+      await createDockAbrufTransaction(pendingAssignment.entry, framework, 'founder');
     } else {
-      await createDockAbrufTransaction(pendingDockAbrufAssignment.entry, framework, 'hunter');
+      await createDockAbrufTransaction(pendingAssignment.entry, framework, 'hunter');
     }
   } catch (err) {
     console.error('Fehler bei der Zuweisung:', err);
@@ -513,10 +550,10 @@ async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
     showToast(successMessage, 'ok');
     await loadHistory();
     renderFrameworkContracts();
-    if (currentFrameworkEntryId === framework.id) {
+    if (getCurrentFrameworkEntryId() === framework.id) {
       renderRahmenDetails(framework.id);
     }
-    const assignmentId = entry.id || pendingDockAbrufAssignment?.entry?.id;
+    const assignmentId = entry.id || getPendingDockAbrufAssignment()?.entry?.id;
     if (assignmentId) {
       await finalizeDockAbruf(assignmentId);
     }
@@ -524,7 +561,7 @@ async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
     console.error('Abruf konnte nicht gespeichert werden.', err);
     showToast('Abruf konnte nicht gespeichert werden.', 'bad');
   } finally {
-    pendingDockAbrufAssignment = null;
+    setPendingDockAbrufAssignment(null);
     hideLoader();
   }
 }
@@ -1333,22 +1370,19 @@ if (dockBoardEl) {
     if (!checkbox) return;
     const { id } = checkbox.dataset;
     if (!id) return;
-    if (checkbox.checked) {
-      dockSelection.add(id);
-    } else {
-      dockSelection.delete(id);
-    }
+    toggleDockSelection(id, checkbox.checked);
     updateDockSelectionUi();
   });
 }
 
 if (dockFilterBu) {
   dockFilterBu.addEventListener('change', () => {
-    dockFilterState.bu = dockFilterBu.value;
-    if (dockFilterState.bu && dockFilterState.marketTeam) {
-      const buForTeam = deriveBusinessUnitFromTeam(dockFilterState.marketTeam);
-      if (buForTeam && buForTeam !== dockFilterState.bu) {
-        dockFilterState.marketTeam = '';
+    updateDockFilterState({ bu: dockFilterBu.value });
+    const filterState = getDockFilterState();
+    if (filterState.bu && filterState.marketTeam) {
+      const buForTeam = deriveBusinessUnitFromTeam(filterState.marketTeam);
+      if (buForTeam && buForTeam !== filterState.bu) {
+        updateDockFilterState({ marketTeam: '' });
       }
     }
     renderDockBoard();
@@ -1357,21 +1391,21 @@ if (dockFilterBu) {
 
 if (dockFilterMarketTeam) {
   dockFilterMarketTeam.addEventListener('change', () => {
-    dockFilterState.marketTeam = dockFilterMarketTeam.value;
+    updateDockFilterState({ marketTeam: dockFilterMarketTeam.value });
     renderDockBoard();
   });
 }
 
 if (dockFilterAssessment) {
   dockFilterAssessment.addEventListener('change', () => {
-    dockFilterState.assessment = dockFilterAssessment.value;
+    updateDockFilterState({ assessment: dockFilterAssessment.value });
     renderDockBoard();
   });
 }
 
 if (dockSearchInput) {
   dockSearchInput.addEventListener('input', () => {
-    dockFilterState.search = dockSearchInput.value.trim().toLowerCase();
+    updateDockFilterState({ search: dockSearchInput.value.trim().toLowerCase() });
     renderDockBoard();
   });
 }
@@ -1397,40 +1431,12 @@ if (btnDockBatchDelete) {
   btnDockBatchDelete.addEventListener('click', () => {
     const ids = Array.from(dockSelection);
     if (!ids.length) return;
-    pendingDelete = { ids, type: 'batch-entry', fromDock: true };
+    setPendingDelete({ ids, type: 'batch-entry', fromDock: true });
     document.getElementById('confirmDlgTitle').textContent = 'Deals löschen';
     document.getElementById('confirmDlgText').textContent = `Wollen Sie die ${ids.length} ausgewählten Deals wirklich löschen?`;
     document.getElementById('confirmDlg').showModal();
   });
 }
-
-if (dockEntryDialog) {
-  dockEntryDialog.addEventListener('cancel', (event) => {
-    if (getHasUnsavedChanges()) {
-      const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
-      if (!confirmed) {
-        event.preventDefault();
-      }
-    }
-  });
-  dockEntryDialog.addEventListener('close', () => {
-    clearInputFields();
-    setHasUnsavedChanges(false);
-  });
-}
-
-document.addEventListener('click', (event) => {
-  const target = event.target;
-  if (!target || !(target instanceof HTMLElement)) return;
-  if (target.tagName !== 'DIALOG') return;
-  const dialogEl = target;
-  if (!dialogEl.open) return;
-  if (dialogEl.id === 'dockEntryDialog') {
-    requestDockEntryDialogClose();
-  } else {
-    dialogEl.close();
-  }
-});
 
 function handleFixauftraegeNavigation() {
   showView('fixauftraege');
@@ -1504,10 +1510,8 @@ const fixPrevPage = document.getElementById('fixPrevPage');
 const fixNextPage = document.getElementById('fixNextPage');
 const fixPageSizeSelect = document.getElementById('fixPageSize');
 const entries = getEntries();
-let pendingDelete = { id: null, type: 'entry' }; // { id, ids?, type: 'entry'|'transaction'|'batch-entry', parentId? }
-let currentSort = { key: 'freigabedatum', direction: 'desc' };
-let fixCurrentPage = 1;
-let fixPageSize = fixPageSizeSelect ? Number(fixPageSizeSelect.value) || 25 : 25;
+const defaultFixPageSize = fixPageSizeSelect ? Number(fixPageSizeSelect.value) || 25 : 25;
+initializeFixPageSize(defaultFixPageSize);
 
 async function loadHistory(silent = false) {
   if (!silent) {
@@ -1627,17 +1631,18 @@ function filtered(type = 'fix') {
     });
   }
 
+  const activeSort = getCurrentSort();
   arr.sort((a, b) => {
     let valA, valB;
-    if (currentSort.key === 'ts') {
+    if (activeSort.key === 'ts') {
       valA = a.modified || a.ts || 0;
       valB = b.modified || b.ts || 0;
-    } else if (currentSort.key === 'freigabedatum') {
+    } else if (activeSort.key === 'freigabedatum') {
       valA = a.freigabedatum || a.ts || 0;
       valB = b.freigabedatum || b.ts || 0;
     } else {
-      valA = a[currentSort.key] || '';
-      valB = b[currentSort.key] || '';
+      valA = a[activeSort.key] || '';
+      valB = b[activeSort.key] || '';
     }
 
     let comparison = 0;
@@ -1646,7 +1651,7 @@ function filtered(type = 'fix') {
     } else {
       comparison = (valA || 0) - (valB || 0);
     }
-    return currentSort.direction === 'asc' ? comparison : -comparison;
+    return activeSort.direction === 'asc' ? comparison : -comparison;
   });
 
   return arr;
@@ -1698,30 +1703,31 @@ function updatePersonFilterOptions() {
 }
 
 function resetFixPagination() {
-  fixCurrentPage = 1;
+  const { pageSize } = getFixPagination();
+  setFixPagination({ page: 1, pageSize });
 }
 
 function getFixPaginationMeta(totalItems) {
-  const totalPages = totalItems > 0 ? Math.ceil(totalItems / fixPageSize) : 0;
-  if (totalPages > 0) {
-    fixCurrentPage = Math.min(Math.max(fixCurrentPage, 1), totalPages);
-  } else {
-    fixCurrentPage = 1;
-  }
+  const pagination = getFixPagination();
+  const totalPages = totalItems > 0 ? Math.ceil(totalItems / pagination.pageSize) : 0;
+  const nextPage = totalPages > 0 ? Math.min(Math.max(pagination.page, 1), totalPages) : 1;
+  setFixPagination({ page: nextPage });
 
-  const startIndex = totalItems === 0 ? 0 : (fixCurrentPage - 1) * fixPageSize;
-  const endIndex = totalItems === 0 ? 0 : Math.min(totalItems, startIndex + fixPageSize);
+  const startIndex = totalItems === 0 ? 0 : (nextPage - 1) * pagination.pageSize;
+  const endIndex = totalItems === 0 ? 0 : Math.min(totalItems, startIndex + pagination.pageSize);
 
   return { totalPages, startIndex, endIndex };
 }
 
 function updateFixPaginationUI(totalItems, totalPages) {
   if (typeof totalPages !== 'number') {
-    totalPages = totalItems > 0 ? Math.ceil(totalItems / fixPageSize) : 0;
+    const { pageSize } = getFixPagination();
+    totalPages = totalItems > 0 ? Math.ceil(totalItems / pageSize) : 0;
   }
 
-  const start = totalItems === 0 ? 0 : (fixCurrentPage - 1) * fixPageSize + 1;
-  const end = totalItems === 0 ? 0 : Math.min(totalItems, fixCurrentPage * fixPageSize);
+  const { page, pageSize } = getFixPagination();
+  const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = totalItems === 0 ? 0 : Math.min(totalItems, page * pageSize);
 
   if (fixPaginationInfo) {
     fixPaginationInfo.textContent = totalItems === 0
@@ -1732,11 +1738,11 @@ function updateFixPaginationUI(totalItems, totalPages) {
   if (fixPageIndicator) {
     fixPageIndicator.textContent = totalPages === 0
       ? 'Seite 0 / 0'
-      : `Seite ${fixCurrentPage} / ${totalPages}`;
+      : `Seite ${page} / ${totalPages}`;
   }
 
-  if (fixPrevPage) fixPrevPage.disabled = totalItems === 0 || fixCurrentPage <= 1;
-  if (fixNextPage) fixNextPage.disabled = totalItems === 0 || fixCurrentPage >= totalPages;
+  if (fixPrevPage) fixPrevPage.disabled = totalItems === 0 || page <= 1;
+  if (fixNextPage) fixNextPage.disabled = totalItems === 0 || page >= totalPages;
 }
 
 function renderHistory() {
@@ -1838,12 +1844,12 @@ rahmenSearch.addEventListener('input', renderFrameworkContracts);
 if (fixPageSizeSelect) {
   fixPageSizeSelect.addEventListener('change', () => {
     const parsed = Number(fixPageSizeSelect.value);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      fixPageSize = parsed;
-    } else {
-      fixPageSize = 25;
+    const nextPageSize = Number.isFinite(parsed) && parsed > 0 ? parsed : 25;
+    if (!Number.isFinite(parsed) || parsed <= 0) {
       fixPageSizeSelect.value = '25';
     }
+    const { page } = getFixPagination();
+    setFixPagination({ page, pageSize: nextPageSize });
     resetFixPagination();
     renderHistory();
   });
@@ -1851,8 +1857,9 @@ if (fixPageSizeSelect) {
 
 if (fixPrevPage) {
   fixPrevPage.addEventListener('click', () => {
-    if (fixCurrentPage > 1) {
-      fixCurrentPage -= 1;
+    const pagination = getFixPagination();
+    if (pagination.page > 1) {
+      setFixPagination({ page: pagination.page - 1 });
       renderHistory();
     }
   });
@@ -1862,8 +1869,9 @@ if (fixNextPage) {
   fixNextPage.addEventListener('click', () => {
     const totalItems = filtered('fix').length;
     const { totalPages } = getFixPaginationMeta(totalItems);
-    if (fixCurrentPage < totalPages) {
-      fixCurrentPage += 1;
+    const pagination = getFixPagination();
+    if (pagination.page < totalPages) {
+      setFixPagination({ page: pagination.page + 1 });
       renderHistory();
     }
   });
@@ -1903,13 +1911,18 @@ historyBody.addEventListener('change', (ev) => {
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
     const key = th.dataset.sort;
-    if (currentSort.key === key) {
-      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    const sortState = getCurrentSort();
+    let nextSort;
+    if (sortState.key === key) {
+      nextSort = { ...sortState, direction: sortState.direction === 'asc' ? 'desc' : 'asc' };
     } else {
-      currentSort.key = key;
-      // Default sort direction based on column type
-      currentSort.direction = (key === 'title' || key === 'client' || key === 'source' || key === 'projectNumber' || key === 'submittedBy') ? 'asc' : 'desc';
+      const defaultDirection =
+        key === 'title' || key === 'client' || key === 'source' || key === 'projectNumber' || key === 'submittedBy'
+          ? 'asc'
+          : 'desc';
+      nextSort = { key, direction: defaultDirection };
     }
+    setCurrentSort(nextSort);
     resetFixPagination();
     renderHistory();
   });
@@ -1917,9 +1930,10 @@ document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
 
 function updateSortIcons() {
   document.querySelectorAll('#viewFixauftraege th.sortable .sort-icon').forEach(icon => { icon.textContent = ''; icon.style.opacity = 0.5; });
-  const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${currentSort.key}"] .sort-icon`);
+  const activeSort = getCurrentSort();
+  const activeTh = document.querySelector(`#viewFixauftraege th[data-sort="${activeSort.key}"] .sort-icon`);
   if (activeTh) {
-    activeTh.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+    activeTh.textContent = activeSort.direction === 'asc' ? '▲' : '▼';
     activeTh.style.opacity = 1;
   }
 }
@@ -1927,7 +1941,7 @@ function updateSortIcons() {
 // PASSWORTFREI: Einzel-Löschung
 function handleDeleteClick(id, type = 'entry', parentId = null) {
   // Passwortabfrage entfernt
-  pendingDelete = { id, type, parentId };
+  setPendingDelete({ id, type, parentId });
   document.getElementById('confirmDlgTitle').textContent = `Eintrag löschen`;
   document.getElementById('confirmDlgText').textContent =
     `Wollen Sie den ${type === 'transaction' ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
@@ -1940,7 +1954,7 @@ btnBatchDelete.addEventListener('click', () => {
   if (selectedIds.length === 0) return;
 
   // Passwortabfrage entfernt
-  pendingDelete = { ids: selectedIds, type: 'batch-entry' };
+  setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
   document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
   document.getElementById('confirmDlgText').textContent =
     `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
@@ -1978,7 +1992,7 @@ function editEntry(id) {
 document.getElementById('btnNo').addEventListener('click', () => document.getElementById('confirmDlg').close());
 // *** NEU: btnYes click handler (mit bulk-delete) ***
 document.getElementById('btnYes').addEventListener('click', async () => {
-  const { id, ids, type, parentId, fromDock } = pendingDelete;
+  const { id, ids, type, parentId, fromDock } = getPendingDelete();
   document.getElementById('confirmDlg').close();
 
   showLoader();
@@ -2016,7 +2030,7 @@ document.getElementById('btnYes').addEventListener('click', async () => {
       await loadHistory(); // Lade alle Daten neu
       renderHistory();
       if (fromDock) {
-        dockSelection.clear();
+        clearDockSelection();
         updateDockSelectionUi();
       }
       // *** ENDE NEUE LOGIK ***
@@ -2046,7 +2060,7 @@ document.getElementById('btnYes').addEventListener('click', async () => {
   } finally {
     hideLoader();
     hideBatchProgress();
-    pendingDelete = { id: null, type: 'entry' };
+    resetPendingDelete();
   }
 });
 
@@ -2065,8 +2079,6 @@ btnXlsx.addEventListener('click', () => {
 
 /* Rahmenverträge */
 const rahmenBody = document.getElementById('rahmenBody');
-let currentFrameworkEntryId = null;
-let editingTransactionId = null;
 
 function filteredFrameworks() {
   let arr = entries.filter(e => e.projectType === 'rahmen');
@@ -2194,7 +2206,7 @@ async function saveHunterAbruf(st) {
     clearInputFields();
     await loadHistory();
     renderFrameworkContracts();
-    const assignmentId = st.dockAssignmentId || pendingDockAbrufAssignment?.entry?.id;
+    const assignmentId = st.dockAssignmentId || getPendingDockAbrufAssignment()?.entry?.id;
     if (assignmentId) {
       await finalizeDockAbruf(assignmentId);
     }
@@ -2215,7 +2227,7 @@ document.getElementById('backToRahmen').addEventListener('click', () => showView
 function renderRahmenDetails(id) {
   const entry = entries.find(e => e.id === id);
   if (!entry) return;
-  currentFrameworkEntryId = id;
+  setCurrentFrameworkEntryId(id);
 
   document.getElementById('rahmenDetailsTitle').textContent = entry.title;
 
@@ -2264,13 +2276,13 @@ rahmenTransaktionenBody.addEventListener('click', (ev) => {
   if (delBtn) {
     ev.stopPropagation();
     const transId = delBtn.dataset.id;
-    handleDeleteClick(transId, 'transaction', currentFrameworkEntryId);
+    handleDeleteClick(transId, 'transaction', getCurrentFrameworkEntryId());
     return;
   }
 
   if (row) {
     const transId = row.dataset.transId;
-    const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+    const parentEntry = entries.find(e => e.id === getCurrentFrameworkEntryId());
     if (!parentEntry) return;
     const transaction = (parentEntry.transactions || []).find(t => t.id === transId);
     if (!transaction) return;
@@ -2414,8 +2426,9 @@ const editTbody = document.getElementById('editTbody');
 const editFrameworkContractDlg = document.getElementById('editFrameworkContractDlg');
 
 function openEditTransactionModal(transaction, parentEntry) {
-  currentFrameworkEntryId = parentEntry.id;
-  editingTransactionId = transaction.id || null; // null for new founder transaction
+  setCurrentFrameworkEntryId(parentEntry.id);
+  setEditingTransactionId(transaction.id || null); // null for new founder transaction
+  const editingTransactionId = getEditingTransactionId();
 
   document.getElementById('editTransValidationSummary').textContent = '';
 
@@ -2467,9 +2480,10 @@ function addEditRow(rowData = {}, tbodySelector) {
 document.getElementById('editBtnAddRow').addEventListener('click', () => addEditRow({}, '#editTbody'));
 
 document.getElementById('btnSaveTransaction').addEventListener('click', async () => {
-  const parentEntry = entries.find(e => e.id === currentFrameworkEntryId);
+  const parentEntry = entries.find(e => e.id === getCurrentFrameworkEntryId());
   if (!parentEntry) return;
 
+  const editingTransactionId = getEditingTransactionId();
   const transIndex = editingTransactionId ? parentEntry.transactions.findIndex(t => t.id === editingTransactionId) : -1;
 
   let transaction = (transIndex > -1) ? JSON.parse(JSON.stringify(parentEntry.transactions[transIndex])) : {}; // Deep copy to avoid modifying original on error
@@ -2538,10 +2552,11 @@ document.getElementById('btnSaveTransaction').addEventListener('click', async ()
     showToast('Abruf aktualisiert', 'ok');
     editTransactionDlg.close();
     await loadHistory();
-    renderRahmenDetails(currentFrameworkEntryId);
+    renderRahmenDetails(getCurrentFrameworkEntryId());
     renderFrameworkContracts(); // Update list view sum
-    if (pendingDockAbrufAssignment?.mode === 'founder' && pendingDockAbrufAssignment.entry?.id) {
-      await finalizeDockAbruf(pendingDockAbrufAssignment.entry.id);
+    const pendingAssignment = getPendingDockAbrufAssignment();
+    if (pendingAssignment?.mode === 'founder' && pendingAssignment.entry?.id) {
+      await finalizeDockAbruf(pendingAssignment.entry.id);
     }
   } catch (e) {
     showToast('Update fehlgeschlagen', 'bad'); console.error(e);
@@ -2560,7 +2575,7 @@ const editFwW_pitch = document.getElementById('editFwW_pitch');
 document.getElementById('editFwBtnAddRow').addEventListener('click', () => addEditRow({}, '#editFwTbody'));
 
 function openEditFrameworkContractModal(entry) {
-  currentFrameworkEntryId = entry.id;
+  setCurrentFrameworkEntryId(entry.id);
   document.getElementById('editFwValidationSummary').textContent = '';
   editFwClient.value = entry.client || '';
   editFwTitle.value = entry.title || '';
@@ -2578,7 +2593,7 @@ function openEditFrameworkContractModal(entry) {
 }
 
 document.getElementById('btnSaveFrameworkContract').addEventListener('click', async () => {
-  const entry = entries.find(e => e.id === currentFrameworkEntryId);
+  const entry = entries.find(e => e.id === getCurrentFrameworkEntryId());
   if (!entry) return;
 
   const rows = readRows('#editFwTbody');
@@ -2619,7 +2634,7 @@ document.getElementById('btnSaveFrameworkContract').addEventListener('click', as
     loadHistory().then(() => { // Reload data
       renderFrameworkContracts();
       if (document.getElementById('viewRahmenDetails').classList.contains('hide') === false) {
-        renderRahmenDetails(currentFrameworkEntryId); // Update details if visible
+        renderRahmenDetails(getCurrentFrameworkEntryId()); // Update details if visible
       }
     });
   } catch (e) {
@@ -3153,9 +3168,6 @@ btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
 document.getElementById('anaRefresh').addEventListener('click', renderAnalytics); // Jährliche Auswertung
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
-let analyticsData = { persons: [], teams: [], totals: [] };
-let trendData = null;
-
 function renderSalesContributionSummary(hostOrId, persons = []) {
   const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
   if (!host) return;
@@ -3296,7 +3308,6 @@ function renderAnalytics() {
     .sort((a, b) => b.weighted - a.weighted)
     .slice(0, 20);
   drawComparisonBars('chartPersons', personList);
-  analyticsData.persons = personList;
 
   const teamList = Array.from(teamStats.values())
     .filter((item) => item.actual > 0)
@@ -3306,7 +3317,6 @@ function renderAnalytics() {
     }))
     .sort((a, b) => b.weighted - a.weighted);
   drawComparisonBars('chartTeams', teamList);
-  analyticsData.teams = teamList;
 
   const totalArr = [
     { name: 'Fixaufträge', actual: fixTotal, weighted: fixWeightedTotal },
@@ -3315,14 +3325,18 @@ function renderAnalytics() {
   ].filter((item) => item.actual > 0 || item.weighted > 0);
   renderSalesContributionSummary('salesContributionSummary', personList);
   drawComparisonBars('chartTotals', totalArr);
-  analyticsData.totals = totalArr;
-  analyticsData.salesSummary = {
+  setAnalyticsData({
     persons: personList,
-    totals: {
-      actual: fixTotal + rahmenTotal,
-      weighted: fixWeightedTotal + rahmenWeightedTotal,
+    teams: teamList,
+    totals: totalArr,
+    salesSummary: {
+      persons: personList,
+      totals: {
+        actual: fixTotal + rahmenTotal,
+        weighted: fixWeightedTotal + rahmenWeightedTotal,
+      },
     },
-  };
+  });
 }
 
 // Zeitintervall-basierte Aktivität der Rahmenverträge
@@ -4259,11 +4273,12 @@ function renderTrendInsights() {
     return;
   }
 
-  trendData = computeTrendData(from, to);
-  renderTrendSummary(trendData);
+  const computedTrend = computeTrendData(from, to);
+  setTrendData(computedTrend);
+  renderTrendSummary(computedTrend);
 
-  const revenueSeries = trendData.series?.revenue || [];
-  const cumulativeSeries = trendData.series?.cumulative || [];
+  const revenueSeries = computedTrend.series?.revenue || [];
+  const cumulativeSeries = computedTrend.series?.cumulative || [];
 
   drawLineChart(trendRevenueChart, revenueSeries, {
     formatter: (value) => fmtCurr2.format(value),
@@ -4279,6 +4294,7 @@ function renderTrendInsights() {
 }
 
 function buildTrendExportFilename(extension) {
+  const trendData = getTrendData();
   const from = trendData?.period?.from || 'start';
   const to = trendData?.period?.to || 'ende';
   const suffix = `${from}_${to}`.replace(/[^0-9A-Za-z_-]+/g, '_');
@@ -4305,6 +4321,7 @@ function downloadBlob(content, mimeType, filename) {
 }
 
 function exportTrendCsv() {
+  const trendData = getTrendData();
   if (!trendData) {
     showToast('Keine Trenddaten zum Exportieren vorhanden.', 'warn');
     return;
@@ -4361,6 +4378,7 @@ function exportTrendCsv() {
 }
 
 function exportTrendXlsx() {
+  const trendData = getTrendData();
   if (!trendData) {
     showToast('Keine Trenddaten zum Exportieren vorhanden.', 'warn');
     return;
@@ -4405,6 +4423,7 @@ function exportTrendXlsx() {
 btnAnaXlsx.addEventListener('click', () => {
   const year = anaYear.value;
   const wb = XLSX.utils.book_new();
+  const analyticsData = getAnalyticsData();
 
   // Ensure data exists before creating sheets
   if (analyticsData.persons && analyticsData.persons.length > 0) {
@@ -4478,10 +4497,18 @@ const erfassungDeps = {
   finalizeDockAbruf,
   hideManualPanel,
   showView,
-  getPendingDockAbrufAssignment: () => pendingDockAbrufAssignment,
+  getPendingDockAbrufAssignment,
 };
 
 initErfassung(erfassungDeps);
+
+export function initializeCommonEvents() {
+  initCommonEvents({
+    dockEntryDialog,
+    onDockDialogCloseRequest: requestDockEntryDialogClose,
+    onDockDialogClosed: () => clearInputFields(),
+  });
+}
 
 /* ---------- Init & Window Events ---------- */
 Object.assign(window, {
@@ -4497,15 +4524,6 @@ Object.assign(window, {
   populateAdminTeamOptions,
 });
 
-// Warnung bei ungespeicherten Änderungen oder laufendem Batch
-window.addEventListener('beforeunload', (e) => {
-  if (getHasUnsavedChanges() || getIsBatchRunning()) {
-    const msg = getIsBatchRunning() ? 'Eine Batch-Verarbeitung läuft noch. Sind Sie sicher, dass Sie die Seite verlassen wollen?' : 'Ungespeicherte Änderungen gehen verloren. Sind Sie sicher?';
-    e.preventDefault(); // Standard für die meisten Browser
-    e.returnValue = msg; // Für ältere Browser / Electron
-    return msg; // Für manche Browser
-  }
-});
 
 export async function initializeApp() {
   try {
@@ -4535,9 +4553,3 @@ export async function initializeApp() {
   }
 }
 
-// Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.target?.tagName === 'INPUT' && !e.target.closest('#viewAdmin')) {
-    e.preventDefault();
-  }
-});

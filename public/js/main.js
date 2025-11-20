@@ -1,6 +1,7 @@
-import { initializeApp, handleAdminClick, setupNavigation } from './app.js';
+import { initializeApp, handleAdminClick, setupNavigation, initializeCommonEvents } from './app.js';
 
 function bootstrap() {
+  initializeCommonEvents();
   setupNavigation();
   initializeApp();
 
