@@ -10,6 +10,23 @@ const navigationViews = {
 let navLinks = [];
 let deps = {};
 
+function isNavigationBlockedByBatch() {
+  const running = deps.getIsBatchRunning?.();
+  if (!running) return false;
+
+  const batchProgress = document.getElementById('batchProgress');
+  const batchHidden = batchProgress?.classList.contains('hide');
+
+  // Falls der Zustand hängengeblieben ist (kein sichtbarer Fortschrittsbalken),
+  // räumen wir auf und blockieren die Navigation nicht weiter.
+  if (batchHidden) {
+    deps.hideBatchProgress?.();
+    return false;
+  }
+
+  return true;
+}
+
 function ensureViewsInitialized() {
   if (navigationViews.erfassung) return;
   navigationViews.erfassung = document.getElementById('viewErfassung');
@@ -39,7 +56,7 @@ export function initNavigation(navigationDeps) {
 
 function handleNavigation(viewName) {
   if (!viewName) return;
-  if (deps.getIsBatchRunning?.()) {
+  if (isNavigationBlockedByBatch()) {
     deps.showToast?.('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
     return;
   }
@@ -63,7 +80,7 @@ function handleNavigation(viewName) {
 export function showView(viewName) {
   ensureViewsInitialized();
 
-  if (deps.getIsBatchRunning?.()) {
+  if (isNavigationBlockedByBatch()) {
     deps.showToast?.('Bitte warten Sie, bis die aktuelle Verarbeitung abgeschlossen ist.', 'bad');
     return;
   }
