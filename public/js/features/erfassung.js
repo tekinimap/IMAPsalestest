@@ -179,21 +179,52 @@ function validateInput(forLive = false) {
 
   const t = totals(readRows());
   const weights = currentWeights();
+  
+  // --- Geänderte Validierungslogik für Kategorien ---
   let categoryErrors = [];
-  weights.forEach(w => {
-    if (forLive) {
+  
+  if (forLive) {
+    // Für Live-Berechnung nur prüfen, ob > 100 (Überbuchung)
+    weights.forEach(w => {
       if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
-    } else {
+    });
+  } else {
+    // Für Speichern: Granulare Prüfung
+    let invalidCategories = [];
+    
+    // Check each category
+    weights.forEach(w => {
       if (t[w.key] !== 100) {
-        if (w.key === 'cs') categoryErrors.push('Consultative Selling < 100');
-        else if (w.key === 'konzept') categoryErrors.push('Konzepterstellung < 100');
-        else if (w.key === 'pitch') categoryErrors.push('Pitch < 100');
+        // Explizite Labels verwenden für schönere Fehlermeldung
+        let label = CATEGORY_NAMES[w.key];
+        if (w.key === 'cs') label = 'Consultative Selling';
+        else if (w.key === 'konzept') label = 'Konzepterstellung';
+        else if (w.key === 'pitch') label = 'Pitch';
+        invalidCategories.push(label);
+      }
+    });
+
+    if (invalidCategories.length > 0) {
+      if (invalidCategories.length === 1) {
+        categoryErrors.push(`${invalidCategories[0]} muss genau 100 sein.`);
+      } else {
+        // Letztes Element für "und" abtrennen
+        const last = invalidCategories.pop();
+        const joined = invalidCategories.join(', ');
+        categoryErrors.push(`${joined} und ${last} müssen jeweils genau 100 sein.`);
       }
     }
-  });
-  if (categoryErrors.length) errors.weights = categoryErrors.join(', ');
+  }
+
+  if (categoryErrors.length) errors.weights = categoryErrors.join(' '); // Leerzeichen als Trenner, da Sätze
+
   const sumW = weights.reduce((a, w) => a + Number(w.weight || 0), 0);
-  if (!forLive && sumW !== 100) errors.weights = 'Gewichte müssen 100% ergeben.';
+  if (!forLive && sumW !== 100) {
+    // Wenn genereller Fehler bei Gewichtung, diesen anfügen
+    if (errors.weights) errors.weights += ' Gewichte müssen 100% ergeben.';
+    else errors.weights = 'Gewichte müssen 100% ergeben.';
+  }
+  
   if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
 
   return errors;
