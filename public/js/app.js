@@ -40,6 +40,20 @@ import {
   updateBatchProgress,
   hideBatchProgress,
 } from './ui/feedback.js';
+import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
+import { initErfassung, initFromState, clearInputFields, loadInputForm, compute } from './features/erfassung.js';
+import { initAdminModule, handleAdminClick as handleAdminDataLoad, populateAdminTeamOptions } from './features/admin.js';
+import {
+  calculateActualDistribution,
+  clampDockRewardFactor,
+  DOCK_WEIGHTING_DEFAULT,
+  getEntryRewardFactor,
+} from './features/calculations.js';
+
+export async function handleAdminClick() {
+  await handleAdminDataLoad();
+  showView('admin');
+}
 
 const hasConfigWarnings = CONFIG_WARNINGS.length > 0;
 const hasConfigErrors = CONFIG_ERRORS.length > 0;
@@ -73,13 +87,6 @@ if (hasConfigErrors) {
       : `Konfiguration geladen mit ${CONFIG_WARNINGS.length} Hinweis(en). Siehe Konsole für Details.`;
   showToast(summary, 'warn', 7000);
 }
-import {
-  appendRow as appendFormRow,
-  readRows,
-  createRowTemplate,
-  setupRow,
-} from './ui/forms.js';
-
 /* ---------- Navigation ---------- */
 const views = { erfassung: document.getElementById('viewErfassung'), fixauftraege: document.getElementById('viewFixauftraege'), rahmen: document.getElementById('viewRahmen'), rahmenDetails: document.getElementById('viewRahmenDetails'), admin: document.getElementById('viewAdmin'), analytics: document.getElementById('viewAnalytics') };
 const navLinks = document.querySelectorAll('.nav-link');
@@ -120,55 +127,10 @@ const DOCK_ASSIGNMENT_LABELS = {
   abruf: 'Abruf aus Rahmenvertrag',
 };
 
-const DOCK_WEIGHTING_STEPS = [
-  { value: 0.5, short: '0,5×', label: 'Kalte Ausschreibung' },
-  { value: 1, short: '1,0×', label: 'Standard' },
-  { value: 1.5, short: '1,5×', label: '' },
-  { value: 2, short: '2,0×', label: 'KI Projekte, Privatwirtschaft' },
-];
-const DOCK_WEIGHTING_DEFAULT = 1;
-const DOCK_WEIGHTING_COMMENT_LIMIT = 280;
-
-function debounce(fn, wait = 300) {
-  let timeoutId;
-  return (...args) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), wait);
-  };
-}
-
 const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 const dockEntryDialog = document.getElementById('dockEntryDialog');
 const dockManualPanel = document.getElementById('dockManualPanel');
-
-let currentSession = { email: '', name: '', rawName: '', person: null };
-
-function updateRecognizedPersonFromPeople() {
-  if (!Array.isArray(people) || people.length === 0) {
-    if (currentSession.person) {
-      currentSession.person = null;
-    }
-    return;
-  }
-  const emailLower = String(currentSession.email || '').toLowerCase();
-  if (emailLower) {
-    const matchedByEmail = people.find((person) => String(person?.email || '').toLowerCase() === emailLower);
-    if (matchedByEmail) {
-      currentSession.person = matchedByEmail;
-      currentSession.name = matchedByEmail.name || currentSession.name || '';
-      return;
-    }
-  }
-  const nameLower = String(currentSession.name || '').trim().toLowerCase();
-  if (nameLower) {
-    const matchedByName = people.find((person) => String(person?.name || '').trim().toLowerCase() === nameLower);
-    if (matchedByName) {
-      currentSession.person = matchedByName;
-      currentSession.name = matchedByName.name || currentSession.name || '';
-    }
-  }
-}
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
 const dockFilterBu = document.getElementById('dockFilterBu');
@@ -181,8 +143,6 @@ const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
 if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
   btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
 }
-
-let people = [];
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
@@ -238,29 +198,6 @@ function deriveBusinessUnitFromTeam(team) {
     if (key.toLowerCase() === lower) return value;
   }
   return '';
-}
-
-function clampDockRewardFactor(value) {
-  const min = DOCK_WEIGHTING_STEPS[0].value;
-  const max = DOCK_WEIGHTING_STEPS[DOCK_WEIGHTING_STEPS.length - 1].value;
-  const numeric = Number(value);
-  const base = Number.isFinite(numeric) ? numeric : DOCK_WEIGHTING_DEFAULT;
-  const clamped = Math.min(max, Math.max(min, base));
-  let nearest = DOCK_WEIGHTING_STEPS[0].value;
-  let smallestDiff = Math.abs(clamped - nearest);
-  DOCK_WEIGHTING_STEPS.forEach((step) => {
-    const diff = Math.abs(step.value - clamped);
-    if (diff < smallestDiff) {
-      nearest = step.value;
-      smallestDiff = diff;
-    }
-  });
-  return Number(nearest);
-}
-
-function getEntryRewardFactor(entry) {
-  if (!entry || typeof entry !== 'object') return DOCK_WEIGHTING_DEFAULT;
-  return clampDockRewardFactor(entry.dockRewardFactor);
 }
 
 function ensureDockBoard() {
@@ -1561,773 +1498,8 @@ navLinks.forEach(link => {
   });
 });
 
-async function handleAdminClick() {
-  try {
-    showLoader();
-    await loadPeople();
-    populateAdminTeamOptions();
-    renderPeopleAdmin();
-    showView('admin');
-  } catch (e) {
-    console.error('Admin init failed', e);
-    showToast('Konnte Admin-Daten nicht laden.', 'bad');
-  } finally {
-    hideLoader();
-  }
-}
-
-/* ---------- People ---------- */
-const peopleList = document.getElementById('peopleList');
-async function loadSession() {
-  try {
-    // ##### KORREKTUR 1/3 #####
-    const response = await fetchWithRetry(`${WORKER_BASE}/session`, { cache: 'no-store' });
-    if (!response.ok) {
-      if (response.status !== 404) {
-        console.warn('Session konnte nicht geladen werden (Status):', response.status);
-      }
-      currentSession.email = '';
-      currentSession.rawName = '';
-      currentSession.person = null;
-      currentSession.name = '';
-      return;
-    }
-    const data = await response.json();
-    currentSession.email = String(data?.email || '').trim();
-    currentSession.rawName = String(data?.name || '').trim();
-    currentSession.person = data?.person && typeof data.person === 'object' ? data.person : null;
-
-    if (currentSession.person) {
-      currentSession.name = String(currentSession.person.name || '').trim() || currentSession.rawName;
-    } else {
-      currentSession.name = String(data?.displayName || '').trim() || currentSession.rawName;
-    }
-  } catch (err) {
-    console.warn('Session konnte nicht geladen werden:', err);
-    currentSession.email = '';
-    currentSession.rawName = '';
-    currentSession.person = null;
-    currentSession.name = '';
-  }
-  updateRecognizedPersonFromPeople();
-}
-async function loadPeople() {
-  showLoader();
-  try {
-    // ##### KORREKTUR 2/3 #####
-    const r = await fetchWithRetry(`${WORKER_BASE}/people`, { cache: 'no-store' });
-    people = r.ok ? await r.json() : [];
-  }
-  catch { people = []; showToast('Personenliste konnte nicht geladen werden.', 'bad'); }
-  finally { hideLoader(); }
-  people = Array.isArray(people) ? people.map((person) => {
-    const normalized = { ...person };
-    if (normalized.email && typeof normalized.email === 'string') {
-      normalized.email = normalized.email.trim();
-    }
-    return normalized;
-  }) : [];
-  people.sort((a, b) => { const lastA = (a.name || '').split(' ').pop(); const lastB = (b.name || '').split(' ').pop(); return lastA.localeCompare(lastB, 'de'); });
-
-  if (peopleList) {
-    peopleList.innerHTML = '';
-    people.forEach(p => {
-      const o = document.createElement('option');
-      o.value = p.name;
-      peopleList.appendChild(o);
-    });
-  }
-  updateRecognizedPersonFromPeople();
-}
-function findPersonByName(name) { return people.find(p => p.name && p.name.toLowerCase() === String(name || '').toLowerCase()); }
-function findPersonByEmail(email) {
-  const target = String(email || '').trim().toLowerCase();
-  if (!target) return undefined;
-  return people.find((person) => String(person?.email || '').trim().toLowerCase() === target);
-}
-
 /* ---------- Erfassung ---------- */
-const tbody = document.getElementById('tbody');
-const sumchips = document.getElementById('sumchips');
-const auftraggeber = document.getElementById('auftraggeber');
-const projekttitel = document.getElementById('projekttitel');
-const auftragswert = document.getElementById('auftragswert');
-const auftragswertBekannt = document.getElementById('auftragswertBekannt');
-const submittedBy = document.getElementById('submittedBy');
-const projectNumber = document.getElementById('projectNumber');
-const kvNummer = document.getElementById('kvNummer');
-const freigabedatum = document.getElementById('freigabedatum');
-const kvValidationHint = document.createElement('div');
-kvValidationHint.className = 'inline-hint';
-kvValidationHint.dataset.state = 'idle';
-const pnValidationHint = document.createElement('div');
-pnValidationHint.className = 'inline-hint';
-pnValidationHint.dataset.state = 'idle';
-if (kvNummer && kvNummer.parentNode) {
-  kvNummer.parentNode.insertBefore(kvValidationHint, kvNummer.nextSibling);
-}
-if (projectNumber && projectNumber.parentNode) {
-  projectNumber.parentNode.insertBefore(pnValidationHint, projectNumber.nextSibling);
-}
-const metaEditSection = document.getElementById('metaEditSection');
-const btnMetaEditToggle = document.getElementById('btnMetaEditToggle');
-const metaSummary = document.getElementById('metaSummary');
-const metaSummaryFields = metaSummary ? {
-  projectNumber: metaSummary.querySelector('[data-meta-field="projectNumber"]'),
-  kvNummer: metaSummary.querySelector('[data-meta-field="kvNummer"]'),
-  freigabedatum: metaSummary.querySelector('[data-meta-field="freigabedatum"]'),
-} : null;
-let metaQuickEditEnabled = false;
-let metaBaseDisabledState = { projectNumber: false, kvNummer: false, freigabedatum: false };
-const w_cs = document.getElementById('w_cs');
-const w_konzept = document.getElementById('w_konzept');
-const w_pitch = document.getElementById('w_pitch');
-const w_note = document.getElementById('w_note');
-const btnAddRow = document.getElementById('btnAddRow');
-const btnSave = document.getElementById('btnSave');
-const weightingFactorInputs = document.querySelectorAll('input[name="weightingFactor"]');
-
-function getSelectedWeightingFactor() {
-  const selected = document.querySelector('input[name="weightingFactor"]:checked');
-  const numeric = selected ? parseFloat(selected.value) : NaN;
-  return Number.isFinite(numeric) ? clampDockRewardFactor(numeric) : DOCK_WEIGHTING_DEFAULT;
-}
-
-function setSelectedWeightingFactor(value) {
-  const targetValue = clampDockRewardFactor(value);
-  let applied = false;
-  weightingFactorInputs.forEach((input) => {
-    const numeric = parseFloat(input.value);
-    if (!applied && Math.abs(numeric - targetValue) < 0.001) {
-      input.checked = true;
-      applied = true;
-    }
-  });
-  if (!applied) {
-    const fallback = document.querySelector('input[name="weightingFactor"][value="1.0"]') || weightingFactorInputs[0];
-    if (fallback) fallback.checked = true;
-  }
-}
-
-function renderInlineHint(el, message, severity = 'info') {
-  if (!el) return;
-  el.textContent = message || '';
-  el.dataset.state = message ? severity : 'idle';
-  el.style.color = severity === 'bad' ? '#b00020' : severity === 'warn' ? '#b26a00' : '#444';
-  el.style.fontSize = '0.85rem';
-  el.style.marginTop = '4px';
-}
-
-function addRow(focus = false) {
-  appendFormRow({
-    tbody,
-    focus,
-    saveCurrentInputState,
-    recalc,
-    findPersonByName,
-  });
-}
-function totals(rows) { return rows.reduce((a, r) => { a.cs += r.cs; a.konzept += r.konzept; a.pitch += r.pitch; return a; }, { cs: 0, konzept: 0, pitch: 0 }); }
-function renderChips(t) {
-  sumchips.innerHTML = '';
-  [["cs", "Consultative Selling"], ["konzept", "Konzepterstellung"], ["pitch", "Pitch"]].forEach(([k, label]) => {
-    const x = t[k]; const div = document.createElement('div'); div.className = 'chip';
-    const dot = document.createElement('span'); dot.className = 'dot';
-    const txt = document.createElement('span'); txt.innerHTML = `<strong>${label}</strong> &nbsp; ${fmtInt.format(x)} / 100`;
-    if (x === 0 || x === 100) div.classList.add('ok'); else if (x > 100) div.classList.add('bad'); else div.classList.add('warn');
-    div.appendChild(dot); div.appendChild(txt); sumchips.appendChild(div);
-  });
-}
-function currentWeights() { return [{ key: 'cs', weight: clamp01(toInt0(w_cs.value)) }, { key: 'konzept', weight: clamp01(toInt0(w_konzept.value)) }, { key: 'pitch', weight: clamp01(toInt0(w_pitch.value)) }] }
-function updateWeightNote() { const ws = currentWeights(); const sum = ws.reduce((a, c) => a + Number(c.weight || 0), 0); w_note.textContent = `Summe Gewichte: ${sum} %`; }
-
-function validateInput(forLive = false) {
-  const errors = {};
-  const st = loadState() || {};
-  if (!forLive) {
-    if (!auftraggeber.value.trim() && !st.isAbrufMode) errors.auftraggeber = 'Auftraggeber ist erforderlich.';
-    if (!projekttitel.value.trim()) errors.projekttitel = st.isAbrufMode ? 'Titel des Abrufs ist erforderlich' : 'Projekttitel ist erforderlich.';
-    if (!submittedBy.value) errors.submittedBy = 'Einschätzung von ist erforderlich.';
-
-    if (st.isAbrufMode && !kvNummer.value.trim()) {
-      errors.kvNummer = 'KV-Nummer ist für Abrufe erforderlich.';
-    }
-
-    if (!readRows().some(r => r.cs + r.konzept + r.pitch > 0)) errors.rows = 'Mindestens eine Person mit Punkten erfassen.';
-    if (auftragswertBekannt.checked && parseAmountInput(auftragswert.value) <= 0) errors.auftragswert = 'Ein Auftragswert > 0 ist erforderlich.';
-  }
-
-  const t = totals(readRows());
-  const weights = currentWeights();
-  let categoryErrors = [];
-  weights.forEach(w => {
-    if (forLive) {
-      if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
-    } else {
-      if (w.weight > 0 && t[w.key] !== 100) {
-        categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
-      }
-      if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
-        categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
-      }
-    }
-  });
-  if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
-
-  const sumW = weights.reduce((a, c) => a + Number(c.weight || 0), 0);
-  if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
-  if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
-
-  return errors;
-}
-
-function clearValidation() {
-  document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-  document.querySelectorAll('.invalid-field').forEach(el => el.classList.remove('invalid-field'));
-}
-
-function displayValidation(errors) {
-  clearValidation();
-  Object.keys(errors).forEach(key => {
-    const el = document.querySelector(`[data-validation-for="${key}"]`);
-    if (el) el.textContent = errors[key];
-
-    const input = document.getElementById(key);
-    if (input) input.classList.add('invalid-field');
-  });
-}
-
-function recalc() {
-  const liveErrors = validateInput(true);
-  const liveAmount = parseAmountInput(auftragswert.value);
-  if (Object.keys(liveErrors).length === 0) {
-    const result = compute(readRows(), currentWeights(), liveAmount, true);
-    updateLiveResults(result.list);
-  } else {
-    updateLiveResults([]);
-  }
-
-  const finalErrors = validateInput(false);
-  displayValidation(finalErrors);
-  renderChips(totals(readRows()));
-
-  if (Object.keys(finalErrors).length === 0) {
-    btnSave.classList.remove('disabled');
-    btnSave.removeAttribute('aria-disabled');
-  } else {
-    btnSave.classList.add('disabled');
-    btnSave.setAttribute('aria-disabled', 'true');
-  }
-}
-
-function updateLiveResults(resultList) {
-  const resultByKey = new Map(resultList.map(item => [item.key, item]));
-  document.querySelectorAll('#tbody tr').forEach((tr, index) => {
-    const name = tr.querySelector('.name').value.trim();
-    const resultEl = tr.querySelector('.live-result');
-    const key = name || `_temp_${index}`;
-    const resultData = resultByKey.get(key);
-
-    if (resultData && auftragswertBekannt.checked) {
-      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
-      resultEl.querySelector('.money').textContent = `${fmtCurr0.format(resultData.money)}`;
-    } else if (resultData) {
-      resultEl.querySelector('.pct').textContent = `${fmtPct.format(resultData.pct)} %`;
-      resultEl.querySelector('.money').textContent = `- €`;
-    }
-    else {
-      resultEl.querySelector('.pct').textContent = `- %`;
-      resultEl.querySelector('.money').textContent = `- €`;
-    }
-  });
-}
-
-function saveCurrentInputState() {
-  const stPrev = loadState() || {};
-  const currentInput = {
-    client: auftraggeber.value.trim(),
-    title: projekttitel.value.trim(),
-    amount: parseAmountInput(auftragswert.value),
-    amountKnown: auftragswertBekannt.checked,
-    projectType: document.querySelector('input[name="projectType"]:checked').value,
-    rows: readRows(),
-    weights: currentWeights(),
-    submittedBy: submittedBy.value,
-    projectNumber: projectNumber.value.trim(),
-    kvNummer: kvNummer.value.trim(),
-    freigabedatum: freigabedatum.value || '',
-    dockRewardFactor: getSelectedWeightingFactor(),
-  };
-  saveState({ ...stPrev, input: currentInput });
-}
-
-function updateMetaSummary() {
-  if (!metaSummaryFields) return;
-  const pn = projectNumber?.value.trim();
-  const kv = kvNummer?.value.trim();
-  const dateValue = freigabedatum?.value;
-  metaSummaryFields.projectNumber.textContent = pn ? pn : '–';
-  metaSummaryFields.kvNummer.textContent = kv ? kv : '–';
-  metaSummaryFields.freigabedatum.textContent = dateValue ? formatIsoDateDisplay(dateValue) : '–';
-}
-
-function applyMetaDisabledState(forceDisabled = false) {
-  if (!projectNumber || !kvNummer || !freigabedatum) return;
-  if (forceDisabled) {
-    projectNumber.disabled = true;
-    kvNummer.disabled = true;
-    freigabedatum.disabled = true;
-  } else {
-    projectNumber.disabled = !!metaBaseDisabledState.projectNumber;
-    kvNummer.disabled = !!metaBaseDisabledState.kvNummer;
-    freigabedatum.disabled = !!metaBaseDisabledState.freigabedatum;
-  }
-}
-
-function configureMetaQuickEdit(showQuickEdit, baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false }) {
-  metaBaseDisabledState = { ...baseDisabled };
-  metaQuickEditEnabled = false;
-  if (!btnMetaEditToggle || !metaEditSection) {
-    applyMetaDisabledState(false);
-    return;
-  }
-  btnMetaEditToggle.classList.toggle('hide', !showQuickEdit);
-  btnMetaEditToggle.textContent = 'Bearbeiten';
-  btnMetaEditToggle.disabled = false;
-  metaEditSection.classList.remove('is-editing');
-  metaEditSection.classList.toggle('meta-edit-inline', !showQuickEdit);
-  if (showQuickEdit) {
-    metaEditSection.classList.add('meta-edit-available');
-    applyMetaDisabledState(true);
-  } else {
-    metaEditSection.classList.remove('meta-edit-available');
-    applyMetaDisabledState(false);
-  }
-  updateMetaSummary();
-}
-
-function setMetaQuickEditActive(active) {
-  metaQuickEditEnabled = active;
-  if (!btnMetaEditToggle || !metaEditSection) {
-    applyMetaDisabledState(false);
-    return;
-  }
-  if (active) {
-    metaEditSection.classList.add('is-editing');
-    btnMetaEditToggle.textContent = 'Speichern';
-    applyMetaDisabledState(false);
-  } else {
-    metaEditSection.classList.remove('is-editing');
-    btnMetaEditToggle.textContent = 'Bearbeiten';
-    const quickEditAvailable = !btnMetaEditToggle.classList.contains('hide');
-    applyMetaDisabledState(quickEditAvailable);
-  }
-  updateMetaSummary();
-}
-
-[auftraggeber, projekttitel, auftragswert, submittedBy, projectNumber, kvNummer, freigabedatum].forEach(el => { el.addEventListener('input', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }); });
-if (projectNumber) {
-  projectNumber.addEventListener('input', updateMetaSummary);
-  projectNumber.addEventListener('change', updateMetaSummary);
-  const runPnValidation = debounce(async () => {
-    const value = projectNumber.value.trim();
-    if (!value) {
-      renderInlineHint(pnValidationHint, '');
-      return;
-    }
-    try {
-      const body = { projectNumber: value };
-      const currentState = loadState();
-      if (currentState?.editingId) body.id = currentState.editingId;
-      const response = await fetch(`${WORKER_BASE}/api/validation/check_projektnummer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) return;
-      const payload = await response.json();
-      if (payload?.warning?.message) {
-        const severity = payload.warning.reason === 'RAHMENVERTRAG_FOUND' ? 'warn' : 'info';
-        renderInlineHint(pnValidationHint, payload.warning.message, severity);
-      } else {
-        renderInlineHint(pnValidationHint, '');
-      }
-    } catch (err) {
-      console.warn('Projekt-Validierung fehlgeschlagen', err);
-    }
-  }, 350);
-  projectNumber.addEventListener('input', runPnValidation);
-  projectNumber.addEventListener('blur', runPnValidation);
-}
-if (kvNummer) {
-  kvNummer.addEventListener('input', updateMetaSummary);
-  kvNummer.addEventListener('change', updateMetaSummary);
-  const runKvValidation = debounce(async () => {
-    const value = kvNummer.value.trim();
-    if (!value) {
-      renderInlineHint(kvValidationHint, '');
-      return;
-    }
-    try {
-      const body = { kvNummern: [value] };
-      const currentState = loadState();
-      if (currentState?.editingId) body.id = currentState.editingId;
-      const response = await fetch(`${WORKER_BASE}/api/validation/check_kv`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) return;
-      const payload = await response.json();
-      if (payload.valid === false && payload.message) {
-        renderInlineHint(kvValidationHint, payload.message, 'bad');
-      } else if (payload.warning?.message) {
-        renderInlineHint(kvValidationHint, payload.warning.message, 'warn');
-      } else {
-        renderInlineHint(kvValidationHint, '');
-      }
-    } catch (err) {
-      console.warn('KV-Validierung fehlgeschlagen', err);
-    }
-  }, 350);
-  kvNummer.addEventListener('input', runKvValidation);
-  kvNummer.addEventListener('blur', runKvValidation);
-}
-if (freigabedatum) {
-  freigabedatum.addEventListener('input', updateMetaSummary);
-  freigabedatum.addEventListener('change', updateMetaSummary);
-}
-document.querySelectorAll('input[name="projectType"]').forEach(radio => radio.addEventListener('change', () => { setHasUnsavedChanges(true); saveCurrentInputState(); recalc(); }));
-if (weightingFactorInputs.length) {
-  weightingFactorInputs.forEach((input) => {
-    input.addEventListener('change', () => {
-      setHasUnsavedChanges(true);
-      saveCurrentInputState();
-    });
-  });
-}
-auftragswertBekannt.addEventListener('change', () => {
-  auftragswert.disabled = !auftragswertBekannt.checked;
-  if (!auftragswertBekannt.checked) auftragswert.value = '';
-  setHasUnsavedChanges(true);
-  saveCurrentInputState();
-  recalc();
-});
-
-auftragswert.addEventListener('blur', () => {
-  const raw = parseAmountInput(auftragswert.value);
-  auftragswert.value = raw > 0 ? formatAmountInput(raw) : '';
-  saveCurrentInputState(); recalc();
-});
-[w_cs, w_konzept, w_pitch].forEach(el => el.addEventListener('input', () => {
-  el.value = String(clamp01(toInt0(el.value)));
-  setHasUnsavedChanges(true); updateWeightNote(); saveCurrentInputState(); recalc();
-}));
-btnAddRow.addEventListener('click', () => addRow(true));
-
-btnSave.addEventListener('click', async () => {
-  const errors = validateInput();
-  if (Object.keys(errors).length > 0) {
-    displayValidation(errors);
-    return;
-  }
-  setHasUnsavedChanges(false);
-
-  const st = loadState(); if (!st?.input) return;
-
-  if (st.isAbrufMode) {
-    // Save as a "Hunter" transaction on a framework contract
-    await saveHunterAbruf(st);
-  } else {
-    // Save as a new Fixauftrag or Rahmenvertrag
-    await saveNewEntry(st);
-  }
-});
-
-if (btnMetaEditToggle) {
-  btnMetaEditToggle.addEventListener('click', async () => {
-    if (!metaQuickEditEnabled) {
-      setMetaQuickEditActive(true);
-      projectNumber?.focus();
-      return;
-    }
-
-    const st = loadState() || {};
-    const entryId = st.editingId;
-    if (!entryId) {
-      setMetaQuickEditActive(false);
-      return;
-    }
-
-    const conflict = findDockKvConflict(kvNummer.value, entryId);
-    if (conflict) {
-      showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
-      return;
-    }
-
-    btnMetaEditToggle.disabled = true;
-    showLoader();
-    let metaSaveSuccess = false;
-    try {
-      const payload = {
-        projectNumber: projectNumber.value.trim(),
-        kv_nummer: kvNummer.value.trim(),
-      };
-      let dateMs = null;
-      if (freigabedatum.value) {
-        const parsed = Date.parse(freigabedatum.value);
-        if (!Number.isNaN(parsed)) {
-          dateMs = parsed;
-        }
-      }
-      payload.freigabedatum = dateMs != null ? dateMs : null;
-
-      const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
-      showToast('Metadaten aktualisiert.', 'ok');
-      metaSaveSuccess = true;
-      if (st.input) {
-        st.input.projectNumber = payload.projectNumber;
-        st.input.kvNummer = payload.kv_nummer;
-        st.input.freigabedatum = freigabedatum.value || '';
-        saveState(st);
-      }
-      queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
-      await loadHistory();
-      renderHistory();
-      renderFrameworkContracts();
-    } catch (err) {
-      console.error(err);
-      showToast('Aktualisierung fehlgeschlagen.', 'bad');
-    } finally {
-      hideLoader();
-      btnMetaEditToggle.disabled = false;
-      if (metaSaveSuccess) {
-        setMetaQuickEditActive(false);
-      }
-    }
-  });
-}
-
-async function saveNewEntry(st) {
-  const finalAmount = auftragswertBekannt.checked ? st.input.amount : 0;
-  const resultData = compute(st.input.rows, st.input.weights, finalAmount);
-  const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r => r.cs + r.konzept + r.pitch > 0));
-  const date = st.input.freigabedatum ? Date.parse(st.input.freigabedatum) : null;
-  const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now(); // Preserve original ts on edit
-
-  const payload = {
-    source: st.source || 'manuell', complete: isComplete, client: st.input.client || '',
-    title: st.input.title || '', amount: finalAmount,
-    projectType: st.input.projectType || 'fix',
-    rows: st.input.rows || [],
-    list: resultData.list || [],
-    totals: resultData.totals || {}, weights: resultData.effectiveWeights || [], submittedBy: st.input.submittedBy || '',
-    projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer,
-    freigabedatum: Number.isFinite(date) ? date : null,
-    ts: ts,
-    modified: st.editingId ? Date.now() : undefined, // Only set modified on update
-    id: st.editingId || undefined,
-    transactions: st.input.projectType === 'rahmen' ? [] : undefined
-  };
-  if (!st.editingId && payload.kv_nummer) {
-    const conflict = findDockKvConflict(payload.kv_nummer, null);
-    if (conflict) {
-      showToast('Zu dieser KV-Nummer existiert im Dock bereits ein Deal. Bitte prüfen.', 'bad');
-      return;
-    }
-  }
-  showLoader();
-  try {
-    const method = st.editingId ? 'PUT' : 'POST';
-    const url = st.editingId ? `${WORKER_BASE}/entries/${encodeURIComponent(st.editingId)}` : `${WORKER_BASE}/entries`;
-    const r = await fetchWithRetry(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (!r.ok) throw new Error(await r.text());
-    let savedEntry = null;
-    try {
-      savedEntry = await r.json();
-    } catch (err) {
-      console.warn('Antwort konnte nicht gelesen werden:', err);
-    }
-    showToast(`Eintrag ${st.editingId ? 'aktualisiert' : 'gespeichert'}.`, 'ok');
-    hideManualPanel();
-    if (savedEntry && savedEntry.id) {
-      queueDockAutoCheck(savedEntry.id, {
-        entry: savedEntry,
-        projectNumber: savedEntry.projectNumber || '',
-        kvNummer: savedEntry.kv_nummer || '',
-      });
-    }
-    await loadHistory(true);
-    if (payload.projectType === 'rahmen') {
-      renderFrameworkContracts();
-    }
-  } catch (e) { showToast('Speichern fehlgeschlagen.', 'bad'); console.error(e); }
-  finally { hideLoader(); }
-}
-
-
-function loadInputForm(inputData, isEditing = false) {
-  const st = loadState() || {};
-  const abrufInfo = document.getElementById('abrufInfo');
-  const projectTypeWrapper = document.getElementById('projectTypeWrapper');
-
-  // Reset all fields first
-  auftraggeber.disabled = false;
-  const baseDisabled = { projectNumber: true, kvNummer: true, freigabedatum: false };
-  let defaultDate = '';
-  if (inputData.freigabedatum) {
-    defaultDate = formatDateForInput(inputData.freigabedatum);
-  } else if (isEditing && inputData.ts) {
-    defaultDate = formatDateForInput(inputData.ts);
-  }
-  if (!defaultDate && !isEditing) {
-    defaultDate = getTodayDate();
-  }
-  freigabedatum.value = defaultDate;
-
-  if (st.isAbrufMode && st.parentEntry) {
-    // Hunter Abruf
-    if (dockIntroEl) {
-      dockIntroEl.textContent = 'Neuen aktiven Abruf erfassen.';
-    }
-    projectTypeWrapper.classList.add('hide');
-    auftraggeber.value = st.parentEntry.client;
-    auftraggeber.disabled = true;
-    projekttitel.value = inputData.title || '';
-    projectNumber.value = inputData.projectNumber || '';
-    kvNummer.value = inputData.kvNummer || '';
-    kvNummer.placeholder = 'KV-Nummer des Abrufs';
-    freigabedatum.value = freigabedatum.value || getTodayDate();
-    baseDisabled.projectNumber = true;
-    baseDisabled.kvNummer = false;
-    baseDisabled.freigabedatum = false;
-    configureMetaQuickEdit(false, baseDisabled);
-
-  } else {
-    // Neue Erfassung oder Bearbeitung
-    if (dockIntroEl) {
-      dockIntroEl.textContent = dockIntroDefaultText;
-    }
-    projectTypeWrapper.classList.remove('hide');
-    auftraggeber.value = inputData.client || '';
-    projekttitel.value = inputData.title || '';
-    projectNumber.value = inputData.projectNumber || '';
-    kvNummer.value = inputData.kvNummer || '';
-
-    baseDisabled.projectNumber = !isEditing;
-    baseDisabled.kvNummer = !isEditing;
-    baseDisabled.freigabedatum = (!isEditing && inputData.projectType === 'rahmen');
-    const showQuickEdit = Boolean(isEditing);
-    if (!freigabedatum.value && !isEditing) {
-      freigabedatum.value = getTodayDate();
-    }
-    configureMetaQuickEdit(showQuickEdit, baseDisabled);
-
-    projectNumber.placeholder = isEditing ? 'Projektnummer eintragen' : 'Wird später vergeben';
-    kvNummer.placeholder = isEditing ? 'KV-Nummer eintragen' : 'Wird später vergeben';
-  }
-
-  auftragswertBekannt.checked = inputData.amountKnown !== false;
-  auftragswert.disabled = !auftragswertBekannt.checked;
-  auftragswert.value = inputData.amount > 0 ? formatAmountInput(inputData.amount) : '';
-  submittedBy.value = inputData.submittedBy || '';
-  document.querySelector(`input[name="projectType"][value="${inputData.projectType || 'fix'}"]`).checked = true;
-
-  const weights = inputData.weights || [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }];
-  const m = Object.fromEntries(weights.map(w => [w.key, w.weight]));
-  w_cs.value = String(clamp01(toInt0(m.cs ?? DEFAULT_WEIGHTS.cs)));
-  w_konzept.value = String(clamp01(toInt0(m.konzept ?? DEFAULT_WEIGHTS.konzept)));
-  w_pitch.value = String(clamp01(toInt0(m.pitch ?? DEFAULT_WEIGHTS.pitch)));
-  tbody.innerHTML = '';
-  const rows = Array.isArray(inputData.rows) ? inputData.rows : [];
-  if (rows.length > 0) {
-    rows.forEach(r => {
-      const tr = createRowTemplate();
-      tbody.appendChild(tr);
-      setupRow(tr, { saveCurrentInputState, recalc, findPersonByName });
-      const nm = r.name || ''; tr.querySelector('.name').value = nm;
-      const person = findPersonByName(nm); if (person) tr.querySelector('.name').dataset.personId = person.id;
-      tr.querySelector('.cs').value = String(clamp01(toInt0(r.cs || 0)));
-      tr.querySelector('.konzept').value = String(clamp01(toInt0(r.konzept || 0)));
-      tr.querySelector('.pitch').value = String(clamp01(toInt0(r.pitch || 0)));
-    });
-  } else { addRow(true); addRow(false); }
-
-  const factor = inputData.dockRewardFactor || 1.0;
-  setSelectedWeightingFactor(factor);
-
-  setHasUnsavedChanges(false);
-  recalc();
-  updateMetaSummary();
-}
-
-function clearInputFields() {
-  saveState({ source: 'manuell' });
-  loadInputForm({}, false);
-}
-
-/* ---------- Berechnungslogik ---------- */
-function compute(rows, weights, amount, forLive = false) {
-  const t = totals(rows);
-  const usedKeys = Object.entries(t).filter(([k, v]) => v > 0).map(([k]) => k);
-  const effWeights = (weights && weights.length ? weights : [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }]);
-
-  const calcWeights = forLive ? effWeights : normalizeWeightsForUsed(effWeights, usedKeys);
-
-  const map = new Map();
-  rows.forEach((r, index) => {
-    const act = r.cs + r.konzept + r.pitch > 0;
-    const key = r.name.trim() || `_temp_${index}`;
-    if (!r.name.trim() && !act) return;
-
-    const cur = map.get(key) || { name: r.name, cs: 0, konzept: 0, pitch: 0 };
-    cur.cs += r.cs; cur.konzept += r.konzept; cur.pitch += r.pitch;
-    map.set(key, cur);
-  });
-
-  const wIdx = Object.fromEntries(calcWeights.map(w => [w.key, w.weight / 100]));
-  const list = [];
-
-  for (const [key, p] of map.entries()) {
-    let pct = 0;
-    const divCS = forLive ? 100 : (t.cs || 1);
-    const divKonzept = forLive ? 100 : (t.konzept || 1);
-    const divPitch = forLive ? 100 : (t.pitch || 1);
-
-    if (usedKeys.includes('cs') && t.cs > 0) pct += wIdx.cs * (p.cs / divCS);
-    if (usedKeys.includes('konzept') && t.konzept > 0) pct += wIdx.konzept * (p.konzept / divKonzept);
-    if (usedKeys.includes('pitch') && t.pitch > 0) pct += wIdx.pitch * (p.pitch / divPitch);
-    list.push({ key, name: p.name, pct: pct * 100 });
-  }
-
-  list.sort((a, b) => b.pct - a.pct);
-  if (!forLive) {
-    const sum = list.reduce((a, x) => a + x.pct, 0), resid = 100 - sum;
-    if (list.length && Math.abs(resid) > 1e-9) list[0].pct += resid;
-  }
-
-  list.forEach(x => { if (x.pct < 0) x.pct = 0; });
-  const withMoney = list.map(x => ({ ...x, money: Math.round((amount > 0 ? amount : 0) * x.pct / 100) }));
-  return { totals: t, usedKeys, effectiveWeights: calcWeights, list: withMoney };
-}
-
-function normalizeWeightsForUsed(allWeights, usedKeys) {
-  const used = allWeights.filter(w => usedKeys.includes(w.key)); const sum = used.reduce((a, w) => a + w.weight, 0);
-  if (sum <= 0) return allWeights.map(w => ({ key: w.key, weight: w.weight }));
-  const factor = 100 / sum;
-  const out = allWeights.map(w => usedKeys.includes(w.key) ? { key: w.key, weight: w.weight * factor } : { key: w.key, weight: 0 });
-  const rem = 100 - out.reduce((a, w) => a + Math.round(w.weight), 0); if (rem !== 0) { const ix = out.findIndex(x => usedKeys.includes(x.key)); if (ix >= 0) out[ix].weight += rem; }
-  return out.map(w => ({ key: w.key, weight: Math.round(w.weight) }));
-}
-
+// Ausgelagert nach public/js/features/erfassung.js
 
 /* ---------- Übersicht & Rahmenverträge ---------- */
 const historyBody = document.getElementById('historyBody');
@@ -3052,47 +2224,6 @@ const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody
 const rahmenActualBody = document.getElementById('rahmenActualBody');
 document.getElementById('backToRahmen').addEventListener('click', () => showView('rahmen'));
 
-function calculateActualDistribution(entry, startDate = 0, endDate = Infinity) {
-  const personTotals = new Map();
-  const transactions = (entry.transactions || []).filter(t => {
-    const d = t.freigabedatum || t.ts || 0;
-    // Make sure start and end are valid numbers
-    const validStart = Number.isFinite(startDate) ? startDate : 0;
-    const validEnd = Number.isFinite(endDate) ? endDate : Infinity;
-    return d >= validStart && d <= validEnd;
-  });
-  let totalVolume = 0;
-
-  transactions.forEach(trans => {
-    totalVolume += trans.amount;
-    if (trans.type === 'founder') {
-      (entry.list || []).forEach(founder => {
-        const money = trans.amount * (founder.pct / 100);
-        personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
-      });
-    } else if (trans.type === 'hunter') {
-      const founderShareAmount = trans.amount * (FOUNDER_SHARE_PCT / 100);
-      (entry.list || []).forEach(founder => {
-        const money = founderShareAmount * (founder.pct / 100);
-        personTotals.set(founder.name, (personTotals.get(founder.name) || 0) + money);
-      });
-      (trans.list || []).forEach(hunter => {
-        personTotals.set(hunter.name, (personTotals.get(hunter.name) || 0) + hunter.money);
-      });
-    }
-  });
-
-  if (totalVolume === 0) return { list: [], total: 0 };
-
-  const list = Array.from(personTotals, ([name, money]) => ({
-    name,
-    money,
-    pct: (money / totalVolume) * 100
-  })).sort((a, b) => b.money - a.money);
-
-  return { list, total: totalVolume };
-}
-
 function renderRahmenDetails(id) {
   const entry = entries.find(e => e.id === id);
   if (!entry) return;
@@ -3528,98 +2659,6 @@ function validateModalInput(rows, weights) {
   if (sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
 
   return errors;
-}
-
-/* ---------- Admin ---------- */
-const admName = document.getElementById('adm_name'), admTeam = document.getElementById('adm_team'), admBody = document.getElementById('adm_body'), adminSearch = document.getElementById('adminSearch');
-
-function populateAdminTeamOptions() {
-  if (!admTeam) return;
-  const previousValue = admTeam.value;
-  const placeholderText = admTeam.getAttribute('data-placeholder') || '— bitte wählen —';
-  const fragment = document.createDocumentFragment();
-
-  const placeholderOption = document.createElement('option');
-  placeholderOption.value = '';
-  placeholderOption.textContent = placeholderText;
-  fragment.appendChild(placeholderOption);
-
-  (TEAMS || []).forEach((teamName) => {
-    const option = document.createElement('option');
-    option.value = teamName;
-    option.textContent = teamName;
-    fragment.appendChild(option);
-  });
-
-  admTeam.innerHTML = '';
-  admTeam.appendChild(fragment);
-
-  if (previousValue && (TEAMS || []).includes(previousValue)) {
-    admTeam.value = previousValue;
-  } else {
-    admTeam.value = '';
-  }
-}
-
-document.getElementById('adm_add').onclick = () => adminCreate();
-admName.addEventListener('keydown', (e) => { if (e.key === 'Enter') adminCreate(); });
-adminSearch.addEventListener('input', renderPeopleAdmin);
-
-function renderPeopleAdmin() {
-  admBody.innerHTML = '';
-  const query = adminSearch.value.toLowerCase();
-  const filteredPeople = people.filter(p => {
-    const nameMatch = (p.name || '').toLowerCase().includes(query);
-    const teamMatch = (p.team || '').toLowerCase().includes(query);
-    return nameMatch || teamMatch;
-  });
-
-  filteredPeople.forEach(p => {
-    const tr = document.createElement('tr');
-    const safeName = escapeHtml(p.name || '');
-    tr.innerHTML = `
-      <td><input type="text" value="${safeName}"></td>
-      <td><select>${TEAMS.map(t => `<option value="${escapeHtml(t)}" ${p.team === t ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('')}</select></td>
-      <td style="display:flex;gap:8px">
-        <button class="iconbtn" data-act="save" data-id="${p.id}" title="Speichern"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></button>
-        <button class="iconbtn" data-act="del" data-id="${p.id}" title="Löschen"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-      </td>`;
-    admBody.appendChild(tr);
-  });
-}
-admBody.addEventListener('click', async (ev) => {
-  const btn = ev.target.closest('button[data-act]'); if (!btn) return;
-  const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act'); const tr = btn.closest('tr');
-  showLoader();
-  try {
-    if (act === 'save') {
-      const name = tr.querySelector('td:nth-child(1) input').value.trim();
-      const team = tr.querySelector('td:nth-child(2) select').value;
-      if (!name) { showToast('Name darf nicht leer sein.', 'bad'); return; }
-      const payload = { id, name, team };
-      const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!r.ok) throw new Error(await r.text());
-      showToast('Person gespeichert.', 'ok'); await loadPeople(); renderPeopleAdmin();
-    } else if (act === 'del') {
-      const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, _delete: true }) });
-      if (!r.ok) throw new Error(await r.text());
-      showToast('Person gelöscht.', 'ok'); await loadPeople(); renderPeopleAdmin();
-    }
-  } catch (e) { showToast('Aktion fehlgeschlagen.', 'bad'); console.error(e); } finally { hideLoader(); }
-});
-async function adminCreate() {
-  const name = admName.value.trim(); const team = admTeam.value;
-  if (!name || !team) { showToast('Bitte Name und Team ausfüllen.', 'bad'); return; }
-  showLoader();
-  try {
-    const payload = { id: `p_${Date.now()}`, name, team };
-    const r = await fetchWithRetry(`${WORKER_BASE}/people`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (!r.ok) throw new Error(await r.text());
-    showToast('Person angelegt.', 'ok');
-    admName.value = '';
-    admTeam.value = '';
-    await loadPeople(); renderPeopleAdmin();
-  } catch (err) { showToast('Anlegen fehlgeschlagen.', 'bad'); console.error('Network error', err); } finally { hideLoader(); }
 }
 
 /* ---------- ERP Import ---------- */
@@ -5421,18 +4460,23 @@ btnAnaXlsx.addEventListener('click', () => {
   }
 });
 
-/* ---------- Init & Window Events ---------- */
-function initFromState(isEditing = false) {
-  const st = loadState();
-  if (st?.input) {
-    const isEditFromHistory = !!st.editingId;
-    loadInputForm(st.input, isEditFromHistory);
-  } else {
-    loadInputForm({}, false); // Ensure default freigabedatum is set
-  }
-  updateWeightNote();
-}
+const erfassungDeps = {
+  clampDockRewardFactor,
+  dockWeightingDefault: DOCK_WEIGHTING_DEFAULT,
+  findDockKvConflict,
+  queueDockAutoCheck,
+  loadHistory,
+  renderHistory,
+  renderFrameworkContracts,
+  finalizeDockAbruf,
+  hideManualPanel,
+  showView,
+  getPendingDockAbrufAssignment: () => pendingDockAbrufAssignment,
+};
 
+initErfassung(erfassungDeps);
+
+/* ---------- Init & Window Events ---------- */
 Object.assign(window, {
   showToast,
   showLoader,
@@ -5456,7 +4500,7 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-async function initializeApp() {
+export async function initializeApp() {
   try {
     await loadSession();
     await loadPeople();
@@ -5465,7 +4509,7 @@ async function initializeApp() {
     showToast('Cloudflare-Session oder Personenliste konnten nicht geladen werden.', 'bad');
   }
 
-  populateAdminTeamOptions();
+  initAdminModule();
   initFromState();
 
   try {
@@ -5483,16 +4527,6 @@ async function initializeApp() {
     console.error('Button #btnLegacySalesImport nicht gefunden!');
   }
 }
-
-initializeApp();
-
-
-// Deep Link zu Admin (optional)
-if (location.hash === '#admin') {
-  // Warte kurz, damit die UI bereit ist
-  setTimeout(handleAdminClick, 100);
-}
-
 
 // Verhindere Standard-Enter-Verhalten in Inputs außerhalb von Admin
 document.addEventListener('keydown', (e) => {
