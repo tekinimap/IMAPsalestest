@@ -11365,5 +11365,44 @@
     "kv": "KV-2025-0100",
     "dockRewardFactor": 1,
     "dockRewardComment": ""
+  },
+  {
+    "id": "hubspot_a66c0b8a967955a1ab6ff6417e73c618",
+    "hubspotId": "35657892877",
+    "title": "Deutsche Bundesbank",
+    "amount": 12000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "Bülent Arslan",
+    "list": [
+      {
+        "key": "hubspot_user_Bülent Arslan",
+        "name": "Bülent Arslan",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1763633842372,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Bülent Arslan",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1763633841705,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1763633842372
+    }
   }
 ]
