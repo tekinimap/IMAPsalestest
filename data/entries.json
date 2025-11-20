@@ -11374,14 +11374,20 @@
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "hubspot",
-    "client": "",
+    "client": "jn",
     "submittedBy": "Bülent Arslan",
     "list": [
       {
-        "key": "hubspot_user_Bülent Arslan",
+        "key": "Bülent Arslan",
         "name": "Bülent Arslan",
-        "money": 0,
-        "pct": 0
+        "pct": 50,
+        "money": 6000
+      },
+      {
+        "key": "Benedict Bueb",
+        "name": "Benedict Bueb",
+        "pct": 50,
+        "money": 6000
       }
     ],
     "updatedAt": 1763633842372,
@@ -11406,7 +11412,44 @@
     "dockPhaseHistory": {
       "1": 1763633842372
     },
-    "modified": 1763634199543
+    "modified": 1763634378913,
+    "complete": true,
+    "rows": [
+      {
+        "personId": null,
+        "name": "Bülent Arslan",
+        "cs": 100,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "personId": "p_pi_nh_05",
+        "name": "Benedict Bueb",
+        "cs": 0,
+        "konzept": 100,
+        "pitch": 100
+      }
+    ],
+    "totals": {
+      "cs": 100,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "ts": 1763634378458
   },
   {
     "id": "hubspot_58c9e26eec99ba590d7f60961cc82bb7",
