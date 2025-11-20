@@ -1433,21 +1433,18 @@ document.addEventListener('click', (event) => {
 });
 
 function handleFixauftraegeNavigation() {
-  loadHistory().then(() => showView('fixauftraege'));
+  showView('fixauftraege');
+  loadHistory(true);
 }
 
 function handleRahmenNavigation() {
-  loadHistory().then(() => {
-    renderFrameworkContracts();
-    showView('rahmen');
-  });
+  showView('rahmen');
+  loadHistory(true).then(renderFrameworkContracts);
 }
 
 function handleAnalyticsNavigation() {
-  loadHistory().then(() => {
-    initAnalytics();
-    showView('analytics');
-  });
+  showView('analytics');
+  loadHistory(true).then(initAnalytics);
 }
 
 function handleErfassungNavigation() {
