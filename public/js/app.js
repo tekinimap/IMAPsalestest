@@ -42,7 +42,7 @@ import {
 } from './ui/feedback.js';
 import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
 import { initErfassung, initFromState, clearInputFields, loadInputForm, compute } from './features/erfassung.js';
-import { initAdminModule, handleAdminClick, populateAdminTeamOptions } from './features/admin.js';
+import { initAdminModule, handleAdminClick as handleAdminDataLoad, populateAdminTeamOptions } from './features/admin.js';
 import {
   calculateActualDistribution,
   clampDockRewardFactor,
@@ -50,7 +50,10 @@ import {
   getEntryRewardFactor,
 } from './features/calculations.js';
 
-export { handleAdminClick };
+export async function handleAdminClick() {
+  await handleAdminDataLoad();
+  showView('admin');
+}
 
 const hasConfigWarnings = CONFIG_WARNINGS.length > 0;
 const hasConfigErrors = CONFIG_ERRORS.length > 0;
