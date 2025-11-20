@@ -1163,7 +1163,7 @@
     .form-bottom-actions {
       display: flex;
       gap: 16px;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-end;
       flex-wrap: wrap;
       margin-top: 18px;
@@ -1175,7 +1175,8 @@
     }
 
     .meta-weighting-layout {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.95fr);
       gap: 12px;
       align-items: stretch;
       flex: 1 1 auto;
@@ -1183,23 +1184,33 @@
       margin-right: auto;
     }
 
+    .meta-weighting-note {
+      color: rgba(148, 163, 184, .9);
+      font-size: 12px;
+      margin-bottom: 4px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     .meta-edit-section {
       position: relative;
       margin-right: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       min-width: 0;
       width: auto;
-      max-width: 100%;
+      max-width: 620px;
       padding: 12px 14px;
       border-radius: 12px;
       background: rgba(11, 17, 26, .65);
       border: 1px solid rgba(148, 163, 184, .18);
       box-shadow: 0 8px 18px rgba(8, 15, 28, .3);
       backdrop-filter: blur(6px);
-      flex: 1 1 480px;
-      min-width: 260px;
+      flex: 1 1 420px;
+      min-width: 280px;
     }
 
     .weighting-card {
@@ -1211,8 +1222,8 @@
       box-shadow: 0 8px 18px rgba(8, 15, 28, .3);
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      min-width: 220px;
+      gap: 10px;
+      min-width: 260px;
     }
 
     .weighting-card h3 {
@@ -1222,15 +1233,131 @@
       color: #dbe4f3;
     }
 
-    .weighting-card-note {
-      margin: 0;
-      font-size: 12px;
-      color: rgba(203, 213, 225, .7);
-      line-height: 1.4;
+    .weighting-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
-    .weighting-card .weighting-options {
-      margin-top: 4px;
+    .weighting-info {
+      border: 1px solid rgba(148, 163, 184, .4);
+      background: rgba(255, 255, 255, .04);
+      color: #dbe4f3;
+      border-radius: 8px;
+      padding: 2px 6px;
+      cursor: help;
+      font-size: 12px;
+      line-height: 1.1;
+      font-weight: 700;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .weighting-slider {
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .weighting-scale {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      font-size: 12px;
+      color: rgba(203, 213, 225, .8);
+      gap: 6px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .weighting-mark {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
+      text-align: center;
+      flex: 1 1 0;
+      white-space: nowrap;
+    }
+
+    .weighting-mark small {
+      font-size: 11px;
+      color: rgba(203, 213, 225, .75);
+    }
+
+    .weighting-slider input[type="range"] {
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(59, 130, 246, .4), rgba(16, 185, 129, .4));
+      outline: none;
+      margin: 0;
+      padding: 0;
+      justify-self: stretch;
+    }
+
+    .weighting-slider input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f5f7fb;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .35);
+      cursor: pointer;
+    }
+
+    .weighting-slider input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f5f7fb;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .35);
+      cursor: pointer;
+    }
+
+    .weighting-slider input[type="range"]::-moz-range-track {
+      background: transparent;
+    }
+
+    .weighting-slider.is-disabled input[type="range"] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background: rgba(59, 130, 246, .2);
+    }
+
+    .weighting-value {
+      font-size: 12px;
+      color: #dbe4f3;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .weighting-slider[data-active-value] .weighting-mark {
+      opacity: .7;
+    }
+
+    .weighting-slider[data-active-value] .weighting-mark[data-value="0.5"],
+    .weighting-slider[data-active-value] .weighting-mark[data-value="1.0"],
+    .weighting-slider[data-active-value] .weighting-mark[data-value="1.5"],
+    .weighting-slider[data-active-value] .weighting-mark[data-value="2.0"] {
+      transition: color .2s ease, opacity .2s ease;
+    }
+
+    .weighting-slider[data-active-value="0.5"] .weighting-mark[data-value="0.5"],
+    .weighting-slider[data-active-value="1.0"] .weighting-mark[data-value="1.0"],
+    .weighting-slider[data-active-value="1.5"] .weighting-mark[data-value="1.5"],
+    .weighting-slider[data-active-value="2.0"] .weighting-mark[data-value="2.0"] {
+      color: #f5f7fb;
+      opacity: 1;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, .35);
     }
 
     .meta-edit-section .meta-edit-header {
@@ -1242,24 +1369,12 @@
 
     .meta-edit-section .meta-edit-title {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: center;
+      gap: 6px;
       min-width: 0;
-    }
-
-    .meta-edit-section .meta-edit-eyebrow {
-      font-size: 10px;
+      color: rgba(203, 213, 225, .85);
       font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, .75);
-    }
-
-    .meta-edit-section .meta-edit-title h3 {
-      margin: 0;
-      font-size: 13px;
-      font-weight: 600;
-      color: #dbe4f3;
+      font-size: 12px;
     }
 
     .meta-edit-section .meta-edit-header .btn {
@@ -1317,44 +1432,6 @@
       min-width: 150px;
     }
 
-    .weighting-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .weighting-option {
-      flex: 1 1 140px;
-      min-width: 130px;
-      background: rgba(11, 18, 32, .85);
-      border: 1px solid rgba(59, 130, 246, .2);
-      border-radius: 10px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      font-size: 13px;
-      color: #e2e8f0;
-    }
-
-    .weighting-option input {
-      margin-right: 6px;
-      accent-color: var(--accent);
-    }
-
-    .weighting-option-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 600;
-    }
-
-    .weighting-option-value {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
     .meta-edit-section .meta-edit-fields label {
       font-weight: 600;
       font-size: 11px;
@@ -1401,13 +1478,15 @@
       display: flex;
     }
 
-    @media (max-width:1024px) {
+    @media (max-width: 900px) {
       .meta-weighting-layout {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
 
-      .weighting-card {
+      .weighting-card,
+      .meta-edit-section {
         width: 100%;
+        max-width: 100%;
       }
     }
 
@@ -2388,13 +2467,6 @@
                   <input id="submittedBy" type="text" list="peopleList" placeholder="Namen eintippen oder auswählen...">
                   <div class="field-error" data-validation-for="submittedBy"></div>
                 </div>
-                <div id="projectTypeWrapper" style="grid-column: span 2;">
-                  <label>Projekttyp *</label>
-                  <div class="radio-group">
-                    <label><input type="radio" name="projectType" value="fix" checked> Fixauftrag</label>
-                    <label><input type="radio" name="projectType" value="rahmen"> Rahmenvertrag</label>
-                  </div>
-                </div>
               </div>
 
               <div class="hr"></div>
@@ -2446,13 +2518,11 @@
               <div class="hr"></div>
 
               <div class="form-bottom-actions">
+                <div class="meta-weighting-note">Auszufüllen von Corporate Functions und Team Sales &amp; Marketing</div>
                 <div class="meta-weighting-layout">
                   <div class="meta-edit-section" id="metaEditSection">
                     <div class="meta-edit-header">
-                      <div class="meta-edit-title">
-                        <span class="meta-edit-eyebrow">Diese Felder sind auszufüllen von Corporate Functions.</span>
-                        <h3>Projektnummer, KV-Nummer &amp; Abschlussdatum</h3>
-                      </div>
+                      <div class="meta-edit-title" aria-hidden="true"></div>
                       <button class="btn hide" id="btnMetaEditToggle" type="button">Bearbeiten</button>
                     </div>
                     <div class="meta-edit-summary" id="metaSummary">
@@ -2488,39 +2558,27 @@
                     </div>
                   </div>
                   <div class="weighting-card">
-                    <span class="meta-edit-eyebrow">Multiplikator</span>
-                    <h3>Strategische Gewichtung</h3>
-                    <p class="weighting-card-note">Bestimme hier den Faktor, mit dem der Salesbeitrag aller Beteiligten gewichtet
-                      wird.</p>
-                    <div class="weighting-options">
-                      <label class="weighting-option">
-                        <span class="weighting-option-label">
-                          <input type="radio" name="weightingFactor" value="0.5">
-                          <span>Kalte Ausschreibung</span>
-                        </span>
-                        <span class="weighting-option-value">0,5×</span>
-                      </label>
-                      <label class="weighting-option">
-                        <span class="weighting-option-label">
-                          <input type="radio" name="weightingFactor" value="1.0" checked>
-                          <span>Standard</span>
-                        </span>
-                        <span class="weighting-option-value">1,0×</span>
-                      </label>
-                      <label class="weighting-option">
-                        <span class="weighting-option-label">
-                          <input type="radio" name="weightingFactor" value="1.5" />
-                          <span>keine Beschriftung</span>
-                        </span>
-                        <span class="weighting-option-value">1,5×</span>
-                      </label>
-                      <label class="weighting-option">
-                        <span class="weighting-option-label">
-                          <input type="radio" name="weightingFactor" value="2.0">
-                          <span>KI Projekte, Privatwirtschaft</span>
-                        </span>
-                        <span class="weighting-option-value">2,0×</span>
-                      </label>
+                    <div class="weighting-card-header">
+                      <h3>Strategische Gewichtung</h3>
+                      <button class="weighting-info" type="button" aria-label="Hinweis zur Gewichtung"
+                        title="Post-it: Multiplikator für die Vertriebsgewichtung">i</button>
+                    </div>
+                    <div class="weighting-slider" data-active-value="1.0">
+                      <div class="weighting-scale">
+                        <span class="weighting-mark" data-value="0.5">❄️<small>0,5×</small></span>
+                        <span class="weighting-mark" data-value="1.0">⭐<small>1,0×</small></span>
+                        <span class="weighting-mark" data-value="1.5"><small>1,5×</small></span>
+                        <span class="weighting-mark" data-value="2.0">🤖🚀<small>2,0×</small></span>
+                      </div>
+                      <input type="range" name="weightingFactor" id="weightingFactor" min="0.5" max="2.0" step="0.5"
+                        value="1.0" list="weightingMarks" aria-label="Multiplikator auswählen">
+                      <datalist id="weightingMarks">
+                        <option value="0.5"></option>
+                        <option value="1.0"></option>
+                        <option value="1.5"></option>
+                        <option value="2.0"></option>
+                      </datalist>
+                      <div class="weighting-value">Faktor <span id="weightingActiveValue">1,0×</span></div>
                     </div>
                   </div>
                 </div>

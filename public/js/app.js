@@ -3273,7 +3273,17 @@ function renderAnalytics() {
     teamStats.set(teamName, team);
   };
 
-  getEntries().forEach((entry) => {
+  const eligibleEntries = getEntries().filter((entry) => {
+    const finalAssignment = String(entry?.dockFinalAssignment || '').toLowerCase();
+    const hasDockProcess = entry?.dockPhase != null || Boolean(finalAssignment);
+    if (!hasDockProcess) return true;
+
+    const phase = getDockPhase(entry);
+    const isFinal = ['fix', 'rahmen', 'abruf'].includes(finalAssignment);
+    return phase === 3 && isFinal;
+  });
+
+  eligibleEntries.forEach((entry) => {
     const datum = entry.freigabedatum || entry.ts || 0;
     const factor = getEntryRewardFactor(entry);
     if (entry.projectType === 'fix') {
