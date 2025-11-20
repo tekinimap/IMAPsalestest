@@ -174,17 +174,23 @@ function validateInput(forLive = false) {
   const t = totals(readRows());
   const weights = currentWeights();
   let categoryErrors = [];
-  weights.forEach(w => {
-    if (forLive) {
-      if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
-    } else {
-      if (t[w.key] !== 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} = 100`);
-    }
-  });
-  if (categoryErrors.length) errors.weights = categoryErrors.join(', ');
-  const sumW = weights.reduce((a, w) => a + Number(w.weight || 0), 0);
-  if (!forLive && sumW !== 100) errors.weights = 'Gewichte müssen 100% ergeben.';
-  if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
+    weights.forEach(w => {
+      if (forLive) {
+        if (t[w.key] > 100) categoryErrors.push(`${CATEGORY_NAMES[w.key]} > 100`);
+      } else {
+        if (w.weight > 0 && t[w.key] !== 100) {
+          categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (${w.weight}%) müssen 100 Punkte vergeben werden (aktuell ${t[w.key]}).`);
+        }
+        if (w.weight === 0 && t[w.key] > 0 && t[w.key] < 100) {
+          categoryErrors.push(`Für ${CATEGORY_NAMES[w.key]} (0%) müssen die Punkte 0 oder 100 sein.`);
+        }
+      }
+    });
+    if (categoryErrors.length > 0) errors.categories = categoryErrors.join(' | ');
+
+    const sumW = weights.reduce((a, w) => a + Number(w.weight || 0), 0);
+    if (!forLive && sumW !== 100) errors.weights = `Gewichtungs-Summe muss 100 sein (aktuell ${sumW}).`;
+    if (forLive && sumW === 0) errors.weights = 'Gewichte dürfen nicht 0 sein für Live-Berechnung.';
 
   return errors;
 }
