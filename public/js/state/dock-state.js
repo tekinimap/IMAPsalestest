@@ -5,6 +5,9 @@ const dockState = {
   autoAdvanceQueue: [],
   autoAdvanceProcessed: new Set(),
   autoAdvanceRunning: false,
+  autoDowngradeQueue: [],
+  autoDowngradeProcessed: new Set(),
+  autoDowngradeRunning: false,
   autoCheckQueue: new Map(),
   autoCheckHistory: new Map(),
   conflictHints: new Map(),
@@ -71,6 +74,22 @@ export function isDockAutoAdvanceRunning() {
 
 export function setDockAutoAdvanceRunning(value) {
   dockState.autoAdvanceRunning = Boolean(value);
+}
+
+export function getDockAutoDowngradeQueue() {
+  return dockState.autoDowngradeQueue;
+}
+
+export function getDockAutoDowngradeProcessed() {
+  return dockState.autoDowngradeProcessed;
+}
+
+export function isDockAutoDowngradeRunning() {
+  return dockState.autoDowngradeRunning;
+}
+
+export function setDockAutoDowngradeRunning(value) {
+  dockState.autoDowngradeRunning = Boolean(value);
 }
 
 export function getDockAutoCheckQueue() {

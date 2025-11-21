@@ -65,6 +65,10 @@ import {
   getDockAutoAdvanceProcessed,
   isDockAutoAdvanceRunning,
   setDockAutoAdvanceRunning,
+  getDockAutoDowngradeQueue,
+  getDockAutoDowngradeProcessed,
+  isDockAutoDowngradeRunning,
+  setDockAutoDowngradeRunning,
   getDockAutoCheckQueue,
   getDockAutoCheckHistory,
   getDockConflictHints,
@@ -187,9 +191,13 @@ const dockFilterState = getDockFilterState();
 const dockSelection = getDockSelection();
 const dockAutoAdvanceQueue = getDockAutoAdvanceQueue();
 const dockAutoAdvanceProcessed = getDockAutoAdvanceProcessed();
+const dockAutoDowngradeQueue = getDockAutoDowngradeQueue();
+const dockAutoDowngradeProcessed = getDockAutoDowngradeProcessed();
 const dockAutoCheckQueue = getDockAutoCheckQueue();
 const dockAutoCheckHistory = getDockAutoCheckHistory();
 const dockConflictHints = getDockConflictHints();
+let dockAutoAdvanceRunning = isDockAutoAdvanceRunning();
+let dockAutoDowngradeRunning = isDockAutoDowngradeRunning();
 
 function normalizeProjectNumber(value) {
   return normalizeDockString(value).toLowerCase();
@@ -850,6 +858,7 @@ function renderDockBoard() {
   }
   updateDockSelectionUi();
   scheduleDockAutoAdvance(filtered);
+  scheduleDockAutoDowngrade(filtered);
   processDockAutoChecks();
 }
 
@@ -878,6 +887,7 @@ function scheduleDockAutoAdvance(items = []) {
 async function processDockAutoAdvanceQueue() {
   if (dockAutoAdvanceRunning) return;
   dockAutoAdvanceRunning = true;
+  setDockAutoAdvanceRunning(true);
   while (dockAutoAdvanceQueue.length) {
     const entry = dockAutoAdvanceQueue.shift();
     if (!entry || !entry.id) continue;
@@ -889,6 +899,53 @@ async function processDockAutoAdvanceQueue() {
     }
   }
   dockAutoAdvanceRunning = false;
+  setDockAutoAdvanceRunning(false);
+}
+
+function scheduleDockAutoDowngrade(items = []) {
+  let hasNewItems = false;
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const entryId = item?.entry?.id;
+    if (!entryId) return;
+    const missingRequiredFields = item.phase === 2 && !isPhaseTwoReady(item.checklist);
+    if (!missingRequiredFields) {
+      dockAutoDowngradeProcessed.delete(entryId);
+      return;
+    }
+    if (dockAutoDowngradeProcessed.has(entryId)) {
+      return;
+    }
+    dockAutoDowngradeQueue.push(item.entry);
+    dockAutoDowngradeProcessed.add(entryId);
+    hasNewItems = true;
+  });
+  if (hasNewItems) {
+    processDockAutoDowngradeQueue();
+  }
+}
+
+async function processDockAutoDowngradeQueue() {
+  if (dockAutoDowngradeRunning) return;
+  dockAutoDowngradeRunning = true;
+  setDockAutoDowngradeRunning(true);
+  while (dockAutoDowngradeQueue.length) {
+    const entry = dockAutoDowngradeQueue.shift();
+    if (!entry || !entry.id) continue;
+    try {
+      await updateDockPhase(
+        entry,
+        1,
+        {},
+        'Deal automatisch in Phase 1 zurückgestuft (Pflichtfelder fehlen).',
+        { silent: true }
+      );
+    } catch (err) {
+      console.error('Automatische Rückstufung fehlgeschlagen', err);
+      dockAutoDowngradeProcessed.delete(entry.id);
+    }
+  }
+  dockAutoDowngradeRunning = false;
+  setDockAutoDowngradeRunning(false);
 }
 
 function queueDockAutoCheck(id, context = {}) {
