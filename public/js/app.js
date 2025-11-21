@@ -3605,7 +3605,6 @@ function renderContributionCharts() {
   renderWeightedBars('salesContributionSummary', analytics.persons, {
     showWeighting: anaPersonWeightingEnabled,
     filterFn: (p) => !selectedTeams.length || selectedTeams.includes(p.team || ''),
-    getBadge: (p) => p.team,
   });
 
   renderWeightedBars('chartTeams', analytics.teams, {
