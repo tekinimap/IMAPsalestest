@@ -3127,24 +3127,84 @@ const trendCumulativeChart = document.getElementById('trendCumulativeChart');
 
 let anaPersonWeightingEnabled = false;
 let anaTeamWeightingEnabled = false;
+let anaMarketTeamOptions = [];
+
+const closeMarketTeamPanel = () => {
+  const panel = anaMarketTeamFilter?.querySelector('.multi-select-panel');
+  const trigger = anaMarketTeamFilter?.querySelector('.multi-select-trigger');
+  panel?.classList.remove('is-open');
+  trigger?.classList.remove('is-open');
+};
+
+function updateMarketTeamLabel() {
+  if (!anaMarketTeamFilter) return;
+  const labelEl = anaMarketTeamFilter.querySelector('.multi-select-chip');
+  if (!labelEl) return;
+  const selected = getSelectedMarketTeams();
+  if (!selected.length || selected.length === anaMarketTeamOptions.length) {
+    labelEl.textContent = 'Alle Market Teams';
+    return;
+  }
+  if (selected.length <= 2) {
+    labelEl.textContent = selected.join(', ');
+    return;
+  }
+  const head = selected.slice(0, 2).join(', ');
+  labelEl.textContent = `${head} +${selected.length - 2}`;
+}
 
 function populateMarketTeamFilter() {
   if (!anaMarketTeamFilter) return;
   const teams = Array.isArray(TEAMS) ? TEAMS.filter(Boolean) : [];
+  anaMarketTeamOptions = teams;
   anaMarketTeamFilter.innerHTML = '';
+
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'multi-select-trigger';
+  const label = document.createElement('span');
+  label.className = 'multi-select-chip';
+  label.textContent = 'Alle Market Teams';
+  const caret = document.createElement('span');
+  caret.className = 'multi-select-caret';
+  trigger.append(label, caret);
+
+  const panel = document.createElement('div');
+  panel.className = 'multi-select-panel';
+
   teams.forEach((team) => {
-    const opt = document.createElement('option');
-    opt.value = team;
-    opt.textContent = team;
-    opt.selected = true;
-    anaMarketTeamFilter.appendChild(opt);
+    const opt = document.createElement('label');
+    opt.className = 'multi-select-option';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = team;
+    cb.checked = true;
+    const text = document.createElement('span');
+    text.textContent = team;
+    opt.append(cb, text);
+    panel.appendChild(opt);
   });
+
+  trigger.addEventListener('click', () => {
+    const isOpen = panel.classList.toggle('is-open');
+    trigger.classList.toggle('is-open', isOpen);
+  });
+
+  panel.addEventListener('change', (ev) => {
+    if (ev.target && ev.target.matches('input[type="checkbox"]')) {
+      updateMarketTeamLabel();
+      renderContributionCharts();
+    }
+  });
+
+  anaMarketTeamFilter.append(trigger, panel);
+  updateMarketTeamLabel();
 }
 
 function getSelectedMarketTeams() {
   if (!anaMarketTeamFilter) return [];
-  return Array.from(anaMarketTeamFilter.selectedOptions || [])
-    .map((opt) => opt.value)
+  return Array.from(anaMarketTeamFilter.querySelectorAll('input[type="checkbox"]:checked') || [])
+    .map((input) => input.value)
     .filter(Boolean);
 }
 
@@ -3210,9 +3270,11 @@ if (anaToggleTeamWeighting) {
   });
 }
 
-if (anaMarketTeamFilter) {
-  anaMarketTeamFilter.addEventListener('change', renderContributionCharts);
-}
+document.addEventListener('click', (ev) => {
+  if (!anaMarketTeamFilter) return;
+  if (anaMarketTeamFilter.contains(ev.target)) return;
+  closeMarketTeamPanel();
+});
 
 document.getElementById('anaRefresh').addEventListener('click', renderAnalytics); // Jährliche Auswertung
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
@@ -3223,6 +3285,25 @@ function capturePositions(host) {
   host.querySelectorAll('[data-key]').forEach((el) => {
     const rect = el.getBoundingClientRect();
     map.set(el.dataset.key, rect);
+  });
+  return map;
+}
+
+function captureSegmentWidths(host) {
+  const map = new Map();
+  if (!host) return map;
+  host.querySelectorAll('.weighted-row').forEach((row) => {
+    const key = row.dataset.key;
+    if (!key) return;
+    const actual = row.querySelector('.weighted-actual');
+    const delta = row.querySelector('.weighted-delta');
+    const prev = {};
+    if (actual && actual.style.width) prev.actual = parseFloat(actual.style.width) || 0;
+    if (delta && delta.style.width) prev.delta = parseFloat(delta.style.width) || 0;
+    if (delta && delta.style.left) prev.left = parseFloat(delta.style.left) || 0;
+    if (Object.keys(prev).length) {
+      map.set(key, prev);
+    }
   });
   return map;
 }
@@ -3267,6 +3348,7 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
   ) || 1;
 
   const prevRects = capturePositions(host);
+  const prevWidths = captureSegmentWidths(host);
   host.innerHTML = '';
   if (!ranked.length) {
     const empty = document.createElement('div');
@@ -3284,6 +3366,14 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
     const baseWidth = Math.max(6, (baseValue / maxValue) * 100);
     const deltaWidth = showWeighting ? Math.max(0, Math.min(100, (Math.abs(delta) / maxValue) * 100)) : 0;
     const totalValue = showWeighting ? weighted : actual;
+    const targetBaseWidth = Math.min(baseWidth, 100);
+    const targetDeltaLeft = Math.max(0, Math.min(baseWidth, 100));
+    const targetDeltaWidth = showWeighting ? deltaWidth : 0;
+
+    const prev = prevWidths.get(options.getKey ? options.getKey(item) : item.name || String(item.__idx));
+    const initialBaseWidth = typeof prev?.actual === 'number' ? prev.actual : targetBaseWidth;
+    const initialDeltaWidth = typeof prev?.delta === 'number' ? prev.delta : 0;
+    const initialDeltaLeft = typeof prev?.left === 'number' ? prev.left : targetDeltaLeft;
 
     const row = document.createElement('div');
     row.className = 'weighted-row';
@@ -3316,16 +3406,15 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
 
     const actualFill = document.createElement('div');
     actualFill.className = 'weighted-segment weighted-actual';
-    actualFill.style.width = `${Math.min(baseWidth, 100)}%`;
+    actualFill.style.width = `${initialBaseWidth}%`;
     actualFill.textContent = fmtCurr0.format(actual);
 
     const deltaFill = document.createElement('div');
     deltaFill.className = `weighted-segment weighted-delta${delta < 0 ? ' negative' : ''}`;
-    deltaFill.style.width = showWeighting ? `${deltaWidth}%` : '0%';
-    const deltaLeft = delta >= 0 ? baseWidth : Math.min(baseWidth, 100);
-    deltaFill.style.left = `${Math.max(0, Math.min(deltaLeft, 100))}%`;
-    deltaFill.classList.toggle('collapsed', !showWeighting || deltaWidth === 0);
-    deltaFill.textContent = showWeighting && deltaWidth > 0
+    deltaFill.style.width = `${initialDeltaWidth}%`;
+    deltaFill.style.left = `${initialDeltaLeft}%`;
+    deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
+    deltaFill.textContent = showWeighting && targetDeltaWidth > 0
       ? `${delta >= 0 ? '+' : '-'}${fmtCurr0.format(Math.abs(delta))}`
       : '';
 
@@ -3337,6 +3426,14 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
 
     row.append(meta, track, total);
     host.appendChild(row);
+
+    requestAnimationFrame(() => {
+      actualFill.style.width = `${targetBaseWidth}%`;
+      const deltaLeft = Math.max(0, Math.min(targetDeltaLeft, 100));
+      deltaFill.style.left = `${deltaLeft}%`;
+      deltaFill.style.width = `${targetDeltaWidth}%`;
+      deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
+    });
   });
 
   animatePositionChanges(host, prevRects);
