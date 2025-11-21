@@ -2446,16 +2446,29 @@
     }
 
     /* Inputs im Edit-Modus */
-    .meta-edit-fields input { 
-      padding: 2px 6px; 
-      font-size: 12px; 
-      height: 24px; 
-      margin-bottom: 4px; 
-      width: 100%; 
+    .meta-edit-fields {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 6px 8px;
+      align-items: flex-start;
+    }
+
+    .meta-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .meta-edit-fields input {
+      padding: 6px 8px;
+      font-size: 12px;
+      height: 28px;
+      width: 100%;
     }
     .meta-edit-section.is-editing .meta-edit-summary { display: none; }
-    .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; }
-    .meta-edit-section.is-editing .meta-edit-fields { display: flex; }
+    .meta-edit-section .meta-edit-fields { display: none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .meta-edit-section.is-editing .meta-edit-fields { display: grid; }
 
     /* --- Schieberegler Box --- */
     .weighting-box {
@@ -2740,13 +2753,19 @@
                           </div>
                        </div>
 
-                       <div class="meta-edit-fields"> 
-                          <input id="projectNumber" type="text" placeholder="Projekt-Nr.">
-                          <div class="field-error" data-validation-for="projectNumber"></div>
-                          <input id="kvNummer" type="text" placeholder="KV-Nr.">
-                          <div class="field-error" data-validation-for="kvNummer"></div>
-                          <input id="freigabedatum" type="date">
-                          <div class="field-error" data-validation-for="freigabedatum"></div>
+                       <div class="meta-edit-fields">
+                          <div class="meta-field">
+                            <input id="projectNumber" type="text" placeholder="Projekt-Nr.">
+                            <div class="field-error" data-validation-for="projectNumber"></div>
+                          </div>
+                          <div class="meta-field">
+                            <input id="kvNummer" type="text" placeholder="KV-Nr.">
+                            <div class="field-error" data-validation-for="kvNummer"></div>
+                          </div>
+                          <div class="meta-field">
+                            <input id="freigabedatum" type="date">
+                            <div class="field-error" data-validation-for="freigabedatum"></div>
+                          </div>
                        </div>
                     </div>
 
