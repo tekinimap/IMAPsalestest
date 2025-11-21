@@ -7,6 +7,16 @@ const batchTitle = document.getElementById('batchTitle');
 const batchStatusLabel = document.getElementById('batchStatusLabel');
 const batchProgressBar = document.getElementById('batchProgressBar');
 
+function ensureToastHost() {
+  if (!toast) return;
+  const openDialog = document.querySelector('dialog[open]');
+  const targetHost = openDialog ?? document.body;
+
+  if (toast.parentElement !== targetHost) {
+    targetHost.appendChild(toast);
+  }
+}
+
 export function showLoader() {
   loader?.classList.remove('hide');
 }
@@ -17,6 +27,7 @@ export function hideLoader() {
 
 export function showToast(msg, type = 'ok', duration = 3000) {
   if (!toast) return;
+  ensureToastHost();
   toast.textContent = msg;
   toast.className = `toast show ${type}`;
   setTimeout(() => {
