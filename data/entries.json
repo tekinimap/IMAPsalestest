@@ -11374,23 +11374,17 @@
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "hubspot",
-    "client": "jn",
+    "client": "",
     "submittedBy": "Bülent Arslan",
     "list": [
       {
-        "key": "Bülent Arslan",
+        "key": "hubspot_user_Bülent Arslan",
         "name": "Bülent Arslan",
-        "pct": 50,
-        "money": 6000
-      },
-      {
-        "key": "Benedict Bueb",
-        "name": "Benedict Bueb",
-        "pct": 50,
-        "money": 6000
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1763633842372,
+    "updatedAt": 1763721469188,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -11401,7 +11395,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 2,
     "flagship_projekt": false,
-    "freigabedatum": 1763596800000,
+    "freigabedatum": 1763721468339,
     "kvNummern": [
       "hubspot"
     ],
