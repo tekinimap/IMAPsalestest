@@ -4085,12 +4085,12 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1763733646008,
+    "modified": 1763733689028,
     "kvNummern": [
       "KV-2025-0042"
     ],
     "kv": "KV-2025-0042",
-    "dockRewardFactor": 2,
+    "dockRewardFactor": 0.5,
     "dockRewardComment": ""
   },
   {
