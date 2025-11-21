@@ -3407,16 +3407,19 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
     const actualFill = document.createElement('div');
     actualFill.className = 'weighted-segment weighted-actual';
     actualFill.style.width = `${initialBaseWidth}%`;
-    actualFill.textContent = fmtCurr0.format(actual);
+    const actualLabel = document.createElement('span');
+    actualLabel.className = 'weighted-segment-label';
+    actualLabel.textContent = fmtCurr0.format(actual);
+    actualFill.appendChild(actualLabel);
 
     const deltaFill = document.createElement('div');
     deltaFill.className = `weighted-segment weighted-delta${delta < 0 ? ' negative' : ''}`;
     deltaFill.style.width = `${initialDeltaWidth}%`;
     deltaFill.style.left = `${initialDeltaLeft}%`;
     deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
-    deltaFill.textContent = showWeighting && targetDeltaWidth > 0
-      ? `${delta >= 0 ? '+' : '-'}${fmtCurr0.format(Math.abs(delta))}`
-      : '';
+    const deltaLabel = document.createElement('span');
+    deltaLabel.className = 'weighted-segment-label';
+    deltaFill.appendChild(deltaLabel);
 
     track.append(actualFill, deltaFill);
 
@@ -3427,12 +3430,37 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
     row.append(meta, track, total);
     host.appendChild(row);
 
+    const syncDeltaLabel = () => {
+      const labelText = showWeighting && targetDeltaWidth > 0
+        ? `${delta >= 0 ? '+' : '-'}${fmtCurr0.format(Math.abs(delta))}`
+        : '';
+      deltaLabel.textContent = labelText;
+      deltaLabel.style.display = labelText ? 'inline-flex' : 'none';
+      deltaFill.classList.remove('label-outside');
+      deltaLabel.classList.remove('outside-left', 'outside-right');
+      if (!labelText) return;
+
+      const available = deltaFill.getBoundingClientRect().width;
+      const needed = deltaLabel.getBoundingClientRect().width + 12;
+      const useOutside = available < needed;
+      deltaFill.classList.toggle('label-outside', useOutside);
+      if (useOutside) {
+        if (delta >= 0) {
+          deltaLabel.classList.add('outside-right');
+        } else {
+          deltaLabel.classList.add('outside-left');
+        }
+      }
+    };
+
     requestAnimationFrame(() => {
       actualFill.style.width = `${targetBaseWidth}%`;
       const deltaLeft = Math.max(0, Math.min(targetDeltaLeft, 100));
       deltaFill.style.left = `${deltaLeft}%`;
       deltaFill.style.width = `${targetDeltaWidth}%`;
       deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
+      syncDeltaLabel();
+      requestAnimationFrame(syncDeltaLabel);
     });
   });
 

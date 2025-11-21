@@ -2075,7 +2075,7 @@
       border-radius: 10px;
       background: linear-gradient(135deg, rgba(15, 23, 42, .9), rgba(10, 13, 28, .92));
       border: 1px solid rgba(59, 130, 246, .18);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .weighted-segment {
@@ -2084,16 +2084,33 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 0 10px;
+      padding: 0;
       height: 100%;
       min-width: 6px;
       transition: width .4s ease, left .4s ease, opacity .35s ease;
       box-sizing: border-box;
       white-space: nowrap;
+      overflow: visible;
+    }
+
+    .weighted-segment-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 0 10px;
+      white-space: nowrap;
+      font-weight: 700;
+      pointer-events: none;
     }
 
     .weighted-actual {
       background: #1f2937;
+      color: #e2e8f0;
+      z-index: 1;
+    }
+
+    .weighted-actual .weighted-segment-label {
       color: #e2e8f0;
       z-index: 1;
     }
@@ -2105,14 +2122,66 @@
       left: 0;
     }
 
+    .weighted-delta {
+      background: rgba(59, 130, 246, .92);
+      color: #0b1220;
+      z-index: 2;
+      left: 0;
+    }
+
+    .weighted-delta .weighted-segment-label {
+      color: #0b1220;
+    }
+
     .weighted-delta.negative {
       background: rgba(245, 158, 11, .9);
+      color: #0f172a;
+    }
+
+    .weighted-delta.negative .weighted-segment-label {
       color: #0f172a;
     }
 
     .weighted-delta.collapsed {
       width: 0 !important;
       opacity: 0;
+    }
+
+    .weighted-delta.collapsed .weighted-segment-label {
+      display: none;
+    }
+
+    .weighted-delta.label-outside {
+      min-width: 6px;
+    }
+
+    .weighted-delta.label-outside .weighted-segment-label {
+      position: absolute;
+      top: -30px;
+      height: auto;
+      line-height: 1.2;
+      padding: 6px 10px;
+      border-radius: 999px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, .35);
+      background: rgba(59, 130, 246, .14);
+      border: 1px solid rgba(59, 130, 246, .32);
+      color: #bfdbfe;
+    }
+
+    .weighted-delta.label-outside .weighted-segment-label.outside-right {
+      left: 100%;
+      transform: translateX(8px);
+    }
+
+    .weighted-delta.label-outside .weighted-segment-label.outside-left {
+      right: 100%;
+      transform: translateX(-8px);
+    }
+
+    .weighted-delta.label-outside.negative .weighted-segment-label {
+      background: rgba(245, 158, 11, .14);
+      border: 1px solid rgba(245, 158, 11, .35);
+      color: #ffedd5;
     }
 
     .weighted-total {
