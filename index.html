@@ -2349,19 +2349,20 @@
       font-size: 12px;
     }
 /* =========================================
-       FINAL V5: Linksbündig, Kompakt, Feste Breiten
+       FINAL V6: Clean Design (Liste, Linksbündig, No Emojis)
        ========================================= */
     .meta-section-container {
       margin-top: 12px;
       border-top: 1px solid var(--border);
-      padding-top: 12px;
+      padding-top: 16px;
+      display: block;
     }
 
     .meta-header-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 12px;
+      margin-bottom: 10px;
     }
 
     .meta-header-row h3 {
@@ -2393,88 +2394,98 @@
       border-color: var(--accent);
     }
     
-    /* FLEXBOX: Zwingt Elemente nach links */
+    /* FLEXBOX: Linksbündig */
     .meta-compact-grid {
       display: flex; 
-      justify-content: flex-start; /* Linksbündig */
-      align-items: stretch;
-      gap: 6px; /* Minimaler Abstand zwischen den Containern */
+      justify-content: flex-start; /* Alles nach links */
+      align-items: flex-start; /* Oben bündig */
+      gap: 16px; /* Kleiner, sauberer Abstand */
       flex-wrap: wrap;
     }
 
-    /* --- Metadaten Box (Fixe, schmale Breite) --- */
+    /* --- Metadaten Box (Liste untereinander) --- */
     .meta-box {
-      width: 220px; /* Festgelegt: Genauso breit wie Slider */
+      width: 200px; /* Feste, kompakte Breite */
       flex-shrink: 0;
       background: rgba(11, 17, 26, 0.4);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px 10px;
+      border-radius: 8px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      position: relative;
     }
 
-    .meta-data-list { display: flex; flex-direction: column; gap: 2px; }
+    .meta-data-list { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 6px; /* Abstand zwischen den Einträgen */
+    }
+
     .meta-data-item {
-      display: flex; justify-content: space-between; font-size: 11px;
-      border-bottom: 1px dashed rgba(33, 48, 68, 0.5); padding-bottom: 2px; margin-bottom: 1px;
+      display: flex; 
+      flex-direction: column; /* Untereinander */
+      gap: 1px;
     }
-    .meta-data-item:last-child { border-bottom: none; margin-bottom: 0; }
-    .meta-label { color: var(--muted); white-space: nowrap; }
-    .meta-value { color: var(--text); font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
 
-    .meta-edit-fields input { padding: 0 4px; font-size: 11px; height: 20px; margin-bottom: 2px; width: 100%; }
+    .meta-label { 
+      font-size: 11px; 
+      color: var(--muted); 
+      text-transform: uppercase; 
+      letter-spacing: 0.03em;
+    }
+    
+    .meta-value { 
+      font-size: 13px; 
+      color: var(--text); 
+      font-weight: 500; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+
+    /* Inputs im Edit-Modus */
+    .meta-edit-fields input { 
+      padding: 2px 6px; 
+      font-size: 12px; 
+      height: 24px; 
+      margin-bottom: 4px; 
+      width: 100%; 
+    }
     .meta-edit-section.is-editing .meta-edit-summary { display: none; }
-    .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; gap: 2px; }
+    .meta-edit-section .meta-edit-fields { display: none; flex-direction: column; }
     .meta-edit-section.is-editing .meta-edit-fields { display: flex; }
 
-    /* --- Snappy Slider Box (Fixe Breite) --- */
+    /* --- Schieberegler Box --- */
     .weighting-box {
-      width: 220px; /* Festgelegt: Genauso breit wie Meta */
+      width: 240px; /* Etwas breiter für den Slider */
       flex-shrink: 0;
       background: rgba(11, 17, 26, 0.4);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 6px 10px;
+      border-radius: 8px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      position: relative;
+      height: auto; /* Höhe passt sich an */
+      min-height: 84px; /* Gleiche optische Höhe wie Meta-Box */
     }
 
     .slider-container {
       position: relative;
       padding: 4px 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      width: 100%;
     }
 
-    /* Labels (Icons) */
-    .slider-track-labels {
-      display: flex; justify-content: space-between; margin-bottom: 2px; font-size: 16px; 
-      /* Breite etwas größer als Container wg. negativer Margin */
-      width: calc(100% + 10px); margin-left: -5px; margin-right: -5px;
-    }
-    .slider-track-labels span {
-      width: 24px; display: flex; justify-content: center; align-items: center;
-      cursor: pointer; opacity: 0.3; transition: all 0.2s ease;
-    }
-    
-    /* Active State */
-    .weighting-slider[data-active-value="0.5"] span[data-val="0.5"],
-    .weighting-slider[data-active-value="1.0"] span[data-val="1.0"],
-    .weighting-slider[data-active-value="1.5"] span[data-val="1.5"],
-    .weighting-slider[data-active-value="2.0"] span[data-val="2.0"] {
-      opacity: 1; transform: scale(1.2); text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    .range-wrapper { 
+      position: relative; 
+      height: 20px; 
+      display: flex; 
+      align-items: center; 
+      width: 100%; 
+      margin-bottom: 6px; /* Platz zu den Zahlen */
     }
 
-    .range-wrapper { position: relative; height: 20px; display: flex; align-items: center; width: 100%; }
-
-    /* Input Slider */
+    /* Input Slider Reset & Style */
     input[type=range].snappy-range {
       -webkit-appearance: none; appearance: none;
       width: 100%; background: transparent; margin: 0; z-index: 5; position: relative; cursor: pointer; height: 20px;
@@ -2489,7 +2500,7 @@
       width: 100%; height: 4px; cursor: pointer; background: linear-gradient(to right, var(--accent), #22c55e); border-radius: 4px;
     }
 
-    /* Thumb */
+    /* Thumb (Kreis) */
     input[type=range].snappy-range::-webkit-slider-thumb {
       height: 16px; width: 16px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); position: relative; z-index: 10;
     }
@@ -2497,33 +2508,34 @@
       height: 16px; width: 16px; border: 2px solid var(--accent); border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
-    /* Ticks */
+    /* Ticks (Striche) */
     .slider-ticks {
-      display: flex; justify-content: space-between; position: absolute; width: 100%; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 2; padding: 0 7px; /* Padding angepasst an Thumb-Größe */
+      display: flex; justify-content: space-between; position: absolute; width: 100%; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 2; 
+      padding: 0 7px; /* Alignment: (Thumb 16px / 2) - (Tick 2px / 2) = 8 - 1 = 7px */
     }
     .tick-mark { width: 2px; height: 8px; background: rgba(255,255,255,0.8); border-radius: 1px; }
 
-    /* Zahlen */
+    /* Zahlen unter dem Slider */
     .slider-values-row {
-      display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--muted); font-family: monospace;
-      width: calc(100% + 10px); margin-left: -5px; margin-right: -5px;
+      display: flex; justify-content: space-between; margin-top: 0; font-size: 11px; color: var(--muted); font-family: monospace;
+      width: calc(100% + 10px); margin-left: -5px; margin-right: -5px; /* Negative Margin für Alignment */
     }
     .slider-values-row span { width: 24px; text-align: center; }
 
     /* Info Button */
     .slider-info-btn {
-      position: absolute; top: -4px; right: -4px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; width: 14px; height: 14px; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: help; z-index: 15; opacity: 0.6;
+      position: absolute; top: -8px; right: -8px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; width: 14px; height: 14px; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: help; z-index: 15; opacity: 0.6;
     }
     .slider-info-btn:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
     .slider-info-btn:hover::after {
-      content: "Gewichtung:\A ❄️ = 0,5 (Kalt)\A ⭐ = 1,0 (Standard)\A 🚀 = 2,0 (Prio)"; white-space: pre; position: absolute; bottom: 20px; right: -4px; width: 150px; background: #0f172a; border: 1px solid var(--accent); padding: 8px; border-radius: 6px; font-size: 11px; color: #e2e8f0; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,0.9); z-index: 100; text-align: left; font-weight: normal; pointer-events: none;
+      content: "Gewichtung:\A 0,5 = Kalt\A 1,0 = Standard\A 2,0 = Prio / KI"; white-space: pre; position: absolute; bottom: 20px; right: -4px; width: 140px; background: #0f172a; border: 1px solid var(--accent); padding: 8px; border-radius: 6px; font-size: 11px; color: #e2e8f0; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,0.9); z-index: 100; text-align: left; font-weight: normal; pointer-events: none;
     }
     
     .weighting-slider.is-disabled { opacity: 0.5; pointer-events: none; }
 
     @media(max-width: 600px) {
-      .meta-compact-grid { flex-direction: column; width: 100%; }
-      .meta-box, .weighting-box { width: 100%; }
+      .meta-compact-grid { flex-direction: column; width: 100%; gap: 12px; }
+      .meta-box, .weighting-box { width: 100%; min-height: auto; }
       .form-bottom-actions { flex-direction: column; align-items: stretch; }
     }
   </style>
@@ -2699,7 +2711,7 @@
               <div class="field-error" data-validation-for="categories"></div>
 
               <div class="dialog-actions-main" style="margin-top: 24px; margin-bottom: 8px; display: flex; justify-content: flex-start;">
-                 <button class="btn primary disabled" id="btnSave" style="width: auto; padding-left: 24px; padding-right: 24px;">Deal Speichern</button>
+                 <button class="btn primary disabled" id="btnSave" style="width: auto; padding: 10px 24px;">Deal Speichern</button>
               </div>
 
               <div class="meta-section-container">
@@ -2713,21 +2725,21 @@
                     <div id="metaEditSection" class="meta-box meta-edit-section">
                        <div id="metaSummary" class="meta-data-list meta-edit-summary">
                           <div class="meta-data-item">
-                            <span class="meta-label">Proj-Nr.</span>
+                            <span class="meta-label">Projektnummer</span>
                             <span class="meta-value" data-meta-field="projectNumber">–</span>
                           </div>
                           <div class="meta-data-item">
-                            <span class="meta-label">KV-Nr.</span>
+                            <span class="meta-label">KV-Nummer</span>
                             <span class="meta-value" data-meta-field="kvNummer">–</span>
                           </div>
                           <div class="meta-data-item">
-                            <span class="meta-label">Datum</span>
+                            <span class="meta-label">Abschlussdatum</span>
                             <span class="meta-value" data-meta-field="freigabedatum">–</span>
                           </div>
                        </div>
 
                        <div class="meta-edit-fields"> 
-                          <input id="projectNumber" type="text" placeholder="Proj-Nr.">
+                          <input id="projectNumber" type="text" placeholder="Projekt-Nr.">
                           <div class="field-error" data-validation-for="projectNumber"></div>
                           <input id="kvNummer" type="text" placeholder="KV-Nr.">
                           <div class="field-error" data-validation-for="kvNummer"></div>
@@ -2739,13 +2751,6 @@
                     <div class="meta-box weighting-box">
                        <div class="slider-container weighting-slider">
                           <button class="slider-info-btn" type="button">i</button>
-                          
-                          <div class="slider-track-labels">
-                            <span data-val="0.5">❄️</span>
-                            <span data-val="1.0">⭐</span>
-                            <span data-val="1.5"></span>
-                            <span data-val="2.0">🚀</span>
-                          </div>
                           
                           <div class="range-wrapper">
                              <div class="slider-ticks">
