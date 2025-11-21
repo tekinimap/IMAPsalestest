@@ -103,6 +103,19 @@ function debounce(fn, wait = 300) {
   };
 }
 
+function isStringFilled(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function hasSalesContributions(list = []) {
+  return Array.isArray(list) && list.some((item) => {
+    if (!item) return false;
+    const pct = Number(item.pct);
+    const money = Number(item.money);
+    return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
+  });
+}
+
 function updateWeightingSliderDisplay(value) {
   if (weightingSlider) {
     weightingSlider.dataset.activeValue = value.toFixed(1);
@@ -543,6 +556,7 @@ async function saveNewEntry(st) {
   const isComplete = !!(st.input.client && st.input.title && finalAmount > 0 && st.input.rows.some(r => r.cs + r.konzept + r.pitch > 0));
   const date = st.input.freigabedatum ? Date.parse(st.input.freigabedatum) : null;
   const ts = st.editingId ? (st.input.ts || Date.now()) : Date.now();
+  const existingEntry = st.editingId ? getEntries().find((entry) => entry.id === st.editingId) : null;
 
   const payload = {
     source: st.source || 'manuell', complete: isComplete, client: st.input.client || '',
@@ -558,6 +572,25 @@ async function saveNewEntry(st) {
     id: st.editingId || undefined,
     transactions: st.input.projectType === 'rahmen' ? [] : undefined
   };
+  const hasAllDockInfo =
+    isStringFilled(payload.title) &&
+    isStringFilled(payload.client) &&
+    Number(payload.amount) > 0 &&
+    isStringFilled(payload.projectNumber) &&
+    isStringFilled(payload.kv_nummer) &&
+    hasSalesContributions(payload.list) &&
+    isStringFilled(payload.submittedBy);
+
+  if (!hasAllDockInfo) {
+    const dockHistory = { ...(existingEntry?.dockPhaseHistory || {}) };
+    if (!dockHistory['1']) {
+      dockHistory['1'] = Date.now();
+    }
+    payload.dockPhase = 1;
+    payload.dockPhaseHistory = dockHistory;
+    payload.dockBuApproved = false;
+    payload.dockBuApprovedAt = null;
+  }
   if (!st.editingId && payload.kv_nummer) {
     const conflict = deps.findDockKvConflict(payload.kv_nummer, null);
     if (conflict) {
