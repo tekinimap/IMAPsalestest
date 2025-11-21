@@ -1666,7 +1666,8 @@ function filtered(type = 'fix') {
     if (searchText) {
       arr = arr.filter(e =>
         String(e.title || '').toLowerCase().includes(searchText) ||
-        String(e.client || '').toLowerCase().includes(searchText)
+        String(e.client || '').toLowerCase().includes(searchText) ||
+        String(e.projectNumber || '').toLowerCase().includes(searchText)
       );
     }
 
@@ -2144,6 +2145,7 @@ function filteredFrameworks() {
   if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 
   return arr.filter(e => {
+    if (String(e.projectNumber || '').toLowerCase().includes(query)) return true;
     if (String(e.title || '').toLowerCase().includes(query)) return true;
     if (String(e.client || '').toLowerCase().includes(query)) return true;
     if ((e.list || []).some(p => String(p.name || '').toLowerCase().includes(query))) return true;
