@@ -1980,7 +1980,8 @@ function editEntry(id) {
       client: e.client || '', title: e.title || '', amount: e.amount || 0, amountKnown: e.amount > 0, projectType: e.projectType || 'fix', submittedBy: e.submittedBy || '', projectNumber: e.projectNumber || '', kvNummer: e.kv_nummer || '',
       freigabedatum: formatDateForInput(e.freigabedatum || e.ts), ts: e.ts,
       rows: Array.isArray(e.rows) && e.rows.length ? e.rows : (Array.isArray(e.list) ? e.list.map(x => ({ name: x.name, cs: 0, konzept: 0, pitch: 0 })) : []),
-      weights: Array.isArray(e.weights) ? e.weights : [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }]
+      weights: Array.isArray(e.weights) ? e.weights : [{ key: 'cs', weight: DEFAULT_WEIGHTS.cs }, { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept }, { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch }],
+      dockRewardFactor: clampDockRewardFactor(e.dockRewardFactor ?? DOCK_WEIGHTING_DEFAULT)
     }
   };
   saveState(st); initFromState(true);
@@ -3251,6 +3252,7 @@ function renderAnalytics() {
   const byNameTeam = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p.team || '']));
   const personStats = new Map();
   const teamStats = new Map();
+  const entryBreakdown = [];
   let fixTotal = 0;
   let fixWeightedTotal = 0;
   let rahmenTotal = 0;
@@ -3288,23 +3290,65 @@ function renderAnalytics() {
     const factor = getEntryRewardFactor(entry);
     if (entry.projectType === 'fix') {
       if (!(datum >= startOfYear && datum <= endOfYear)) return;
-      const amount = Number(entry.amount) || 0;
-      if (amount <= 0) return;
-      fixTotal += amount;
-      fixWeightedTotal += amount * factor;
+      const actualAmount = Number(entry.amount) || 0;
+      if (actualAmount <= 0) return;
+      const weightedAmount = actualAmount * factor;
+      fixTotal += actualAmount;
+      fixWeightedTotal += weightedAmount;
+      entryBreakdown.push({
+        id: entry.id,
+        type: 'fix',
+        title: entry.title || '–',
+        actual: actualAmount,
+        weighted: weightedAmount,
+      });
       if (Array.isArray(entry.list)) {
         entry.list.forEach((contributor) => {
           addPersonStat(contributor?.name || 'Unbekannt', contributor?.money || 0, factor);
         });
       }
     } else if (entry.projectType === 'rahmen') {
-      const { list: actualDistribution, total: totalValueInYear } = calculateActualDistribution(entry, startOfYear, endOfYear);
-      if (totalValueInYear > 0) {
-        rahmenTotal += totalValueInYear;
-        rahmenWeightedTotal += totalValueInYear * factor;
-      }
-      actualDistribution.forEach((person) => {
-        addPersonStat(person?.name || 'Unbekannt', person?.money || 0, factor);
+      const transactions = (entry.transactions || []).filter((trans) => {
+        const d = trans.freigabedatum || trans.ts || 0;
+        return d >= startOfYear && d <= endOfYear;
+      });
+
+      transactions.forEach((trans) => {
+        const amount = Number(trans.amount) || 0;
+        if (amount <= 0) return;
+        const transactionFactor = clampDockRewardFactor(
+          trans?.dockRewardFactor ?? entry?.dockRewardFactor ?? DOCK_WEIGHTING_DEFAULT
+        );
+        const weightedAmount = amount * transactionFactor;
+
+        rahmenTotal += amount;
+        rahmenWeightedTotal += weightedAmount;
+        entryBreakdown.push({
+          id: trans.id,
+          parentId: entry.id,
+          type: 'abruf',
+          title: trans.title || entry.title || '–',
+          actual: amount,
+          weighted: weightedAmount,
+        });
+
+        if (trans.type === 'founder') {
+          (entry.list || []).forEach((founder) => {
+            const pct = Number(founder?.pct) || 0;
+            const money = amount * (pct / 100);
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
+          });
+        } else if (trans.type === 'hunter') {
+          const founderShareAmount = amount * (FOUNDER_SHARE_PCT / 100);
+          (entry.list || []).forEach((founder) => {
+            const pct = Number(founder?.pct) || 0;
+            const money = founderShareAmount * (pct / 100);
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
+          });
+          (trans.list || []).forEach((hunter) => {
+            addPersonStat(hunter?.name || 'Unbekannt', hunter?.money || 0, transactionFactor);
+          });
+        }
       });
     }
   });
@@ -3346,6 +3390,7 @@ function renderAnalytics() {
         weighted: fixWeightedTotal + rahmenWeightedTotal,
       },
     },
+    entryBreakdown,
   });
 }
 
