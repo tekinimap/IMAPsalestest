@@ -3111,6 +3111,9 @@ const anaEndDate = document.getElementById('anaEndDate');
 const btnAnaThisYear = document.getElementById('btnAnaThisYear');
 const btnAnaLastYear = document.getElementById('btnAnaLastYear');
 const btnAnaRangeRefresh = document.getElementById('btnAnaRangeRefresh');
+const anaTogglePersonWeighting = document.getElementById('anaTogglePersonWeighting');
+const anaToggleTeamWeighting = document.getElementById('anaToggleTeamWeighting');
+const anaMarketTeamFilter = document.getElementById('anaMarketTeamFilter');
 const trendFromMonth = document.getElementById('trendFromMonth');
 const trendToMonth = document.getElementById('trendToMonth');
 const btnTrendThisYear = document.getElementById('btnTrendThisYear');
@@ -3122,6 +3125,89 @@ const trendSummary = document.getElementById('trendSummary');
 const trendRevenueChart = document.getElementById('trendRevenueChart');
 const trendCumulativeChart = document.getElementById('trendCumulativeChart');
 
+let anaPersonWeightingEnabled = false;
+let anaTeamWeightingEnabled = false;
+let anaMarketTeamOptions = [];
+
+const closeMarketTeamPanel = () => {
+  const panel = anaMarketTeamFilter?.querySelector('.multi-select-panel');
+  const trigger = anaMarketTeamFilter?.querySelector('.multi-select-trigger');
+  panel?.classList.remove('is-open');
+  trigger?.classList.remove('is-open');
+};
+
+function updateMarketTeamLabel() {
+  if (!anaMarketTeamFilter) return;
+  const labelEl = anaMarketTeamFilter.querySelector('.multi-select-chip');
+  if (!labelEl) return;
+  const selected = getSelectedMarketTeams();
+  if (!selected.length || selected.length === anaMarketTeamOptions.length) {
+    labelEl.textContent = 'Alle Market Teams';
+    return;
+  }
+  if (selected.length <= 2) {
+    labelEl.textContent = selected.join(', ');
+    return;
+  }
+  const head = selected.slice(0, 2).join(', ');
+  labelEl.textContent = `${head} +${selected.length - 2}`;
+}
+
+function populateMarketTeamFilter() {
+  if (!anaMarketTeamFilter) return;
+  const teams = Array.isArray(TEAMS) ? TEAMS.filter(Boolean) : [];
+  anaMarketTeamOptions = teams;
+  anaMarketTeamFilter.innerHTML = '';
+
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'multi-select-trigger';
+  const label = document.createElement('span');
+  label.className = 'multi-select-chip';
+  label.textContent = 'Alle Market Teams';
+  const caret = document.createElement('span');
+  caret.className = 'multi-select-caret';
+  trigger.append(label, caret);
+
+  const panel = document.createElement('div');
+  panel.className = 'multi-select-panel';
+
+  teams.forEach((team) => {
+    const opt = document.createElement('label');
+    opt.className = 'multi-select-option';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = team;
+    cb.checked = true;
+    const text = document.createElement('span');
+    text.textContent = team;
+    opt.append(cb, text);
+    panel.appendChild(opt);
+  });
+
+  trigger.addEventListener('click', () => {
+    const isOpen = panel.classList.toggle('is-open');
+    trigger.classList.toggle('is-open', isOpen);
+  });
+
+  panel.addEventListener('change', (ev) => {
+    if (ev.target && ev.target.matches('input[type="checkbox"]')) {
+      updateMarketTeamLabel();
+      renderContributionCharts();
+    }
+  });
+
+  anaMarketTeamFilter.append(trigger, panel);
+  updateMarketTeamLabel();
+}
+
+function getSelectedMarketTeams() {
+  if (!anaMarketTeamFilter) return [];
+  return Array.from(anaMarketTeamFilter.querySelectorAll('input[type="checkbox"]:checked') || [])
+    .map((input) => input.value)
+    .filter(Boolean);
+}
+
 function initAnalytics() {
   // Fülle Jahres-Dropdown (für Top-Listen)
   const currentYear = new Date().getFullYear();
@@ -3130,6 +3216,10 @@ function initAnalytics() {
     const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); anaYear.appendChild(o);
   }
   anaYear.value = String(currentYear);
+
+  populateMarketTeamFilter();
+  anaPersonWeightingEnabled = Boolean(anaTogglePersonWeighting?.checked);
+  anaTeamWeightingEnabled = Boolean(anaToggleTeamWeighting?.checked);
 
   // Setze Standard-Datum (für Aktivitäts-Chart)
   setAnaDateRange('thisYear');
@@ -3166,71 +3256,215 @@ btnAnaLastYear.addEventListener('click', () => {
 });
 btnAnaRangeRefresh.addEventListener('click', renderActivityAnalytics);
 
+if (anaTogglePersonWeighting) {
+  anaTogglePersonWeighting.addEventListener('change', () => {
+    anaPersonWeightingEnabled = anaTogglePersonWeighting.checked;
+    renderContributionCharts();
+  });
+}
+
+if (anaToggleTeamWeighting) {
+  anaToggleTeamWeighting.addEventListener('change', () => {
+    anaTeamWeightingEnabled = anaToggleTeamWeighting.checked;
+    renderContributionCharts();
+  });
+}
+
+document.addEventListener('click', (ev) => {
+  if (!anaMarketTeamFilter) return;
+  if (anaMarketTeamFilter.contains(ev.target)) return;
+  closeMarketTeamPanel();
+});
+
 document.getElementById('anaRefresh').addEventListener('click', renderAnalytics); // Jährliche Auswertung
 const btnAnaXlsx = document.getElementById('btnAnaXlsx');
 
-function renderSalesContributionSummary(hostOrId, persons = []) {
+function capturePositions(host) {
+  const map = new Map();
+  if (!host) return map;
+  host.querySelectorAll('[data-key]').forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    map.set(el.dataset.key, rect);
+  });
+  return map;
+}
+
+function captureSegmentWidths(host) {
+  const map = new Map();
+  if (!host) return map;
+  host.querySelectorAll('.weighted-row').forEach((row) => {
+    const key = row.dataset.key;
+    if (!key) return;
+    const actual = row.querySelector('.weighted-actual');
+    const delta = row.querySelector('.weighted-delta');
+    const prev = {};
+    if (actual && actual.style.width) prev.actual = parseFloat(actual.style.width) || 0;
+    if (delta && delta.style.width) prev.delta = parseFloat(delta.style.width) || 0;
+    if (delta && delta.style.left) prev.left = parseFloat(delta.style.left) || 0;
+    if (Object.keys(prev).length) {
+      map.set(key, prev);
+    }
+  });
+  return map;
+}
+
+function animatePositionChanges(host, previousRects) {
+  if (!host || !previousRects || previousRects.size === 0) return;
+  requestAnimationFrame(() => {
+    host.querySelectorAll('[data-key]').forEach((el) => {
+      const key = el.dataset.key;
+      const prev = previousRects.get(key);
+      if (!prev) return;
+      const next = el.getBoundingClientRect();
+      const dx = prev.left - next.left;
+      const dy = prev.top - next.top;
+      if (dx || dy) {
+        el.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: 'translate(0, 0)' },
+          ],
+          { duration: 350, easing: 'ease-out' }
+        );
+      }
+    });
+  });
+}
+
+function renderWeightedBars(hostOrId, items = [], options = {}) {
   const host = typeof hostOrId === 'string' ? document.getElementById(hostOrId) : hostOrId;
   if (!host) return;
-  const list = Array.isArray(persons)
-    ? persons.filter((item) => (item.actual || 0) > 0 || (item.weighted || 0) > 0)
-    : [];
+  const showWeighting = Boolean(options.showWeighting);
+  const list = Array.isArray(items) ? items : [];
+  const filtered = typeof options.filterFn === 'function' ? list.filter(options.filterFn) : list;
+  const ranked = filtered
+    .map((item, idx) => ({ ...item, __idx: idx }))
+    .filter((item) => (item.actual || 0) > 0 || (item.weighted || 0) > 0)
+    .sort((a, b) => (showWeighting ? (b.weighted || 0) - (a.weighted || 0) : (b.actual || 0) - (a.actual || 0)));
+
+  const maxValue = ranked.reduce(
+    (max, item) => Math.max(max, Number(item.actual) || 0, Number(item.weighted) || 0),
+    0
+  ) || 1;
+
+  const prevRects = capturePositions(host);
+  const prevWidths = captureSegmentWidths(host);
   host.innerHTML = '';
-  if (!list.length) {
+  if (!ranked.length) {
     const empty = document.createElement('div');
     empty.className = 'log-metrics-empty';
-    empty.textContent = 'Keine Daten verfügbar.';
+    empty.textContent = options.emptyMessage || 'Keine Daten verfügbar.';
     host.appendChild(empty);
     return;
   }
 
-  const maxValue = list.reduce(
-    (max, person) => Math.max(max, Number(person.actual) || 0, Number(person.weighted) || 0),
-    0
-  ) || 1;
-  const fragment = document.createDocumentFragment();
-  list.forEach((person) => {
-    const actual = Math.max(0, Number(person.actual) || 0);
-    const weighted = Math.max(0, Number(person.weighted) || 0);
+  ranked.forEach((item, index) => {
+    const actual = Math.max(0, Number(item.actual) || 0);
+    const weighted = Math.max(0, Number(item.weighted) || 0);
+    const delta = weighted - actual;
+    const baseValue = showWeighting && weighted < actual ? weighted : actual;
+    const baseWidth = Math.max(6, (baseValue / maxValue) * 100);
+    const deltaWidth = showWeighting ? Math.max(0, Math.min(100, (Math.abs(delta) / maxValue) * 100)) : 0;
+    const totalValue = showWeighting ? weighted : actual;
+    const targetBaseWidth = Math.min(baseWidth, 100);
+    const targetDeltaLeft = Math.max(0, Math.min(baseWidth, 100));
+    const targetDeltaWidth = showWeighting ? deltaWidth : 0;
+
+    const prev = prevWidths.get(options.getKey ? options.getKey(item) : item.name || String(item.__idx));
+    const initialBaseWidth = typeof prev?.actual === 'number' ? prev.actual : targetBaseWidth;
+    const initialDeltaWidth = typeof prev?.delta === 'number' ? prev.delta : 0;
+    const initialDeltaLeft = typeof prev?.left === 'number' ? prev.left : targetDeltaLeft;
+
     const row = document.createElement('div');
-    row.className = 'sales-summary-row';
-    const label = document.createElement('span');
-    label.className = 'sales-summary-label';
-    label.textContent = person.name || 'Unbekannt';
+    row.className = 'weighted-row';
+    row.dataset.key = options.getKey ? options.getKey(item) : item.name || String(item.__idx);
+
+    const meta = document.createElement('div');
+    meta.className = 'weighted-meta';
+    const rank = document.createElement('span');
+    rank.className = 'weighted-rank';
+    rank.textContent = String(index + 1);
+    const name = document.createElement('span');
+    name.className = 'weighted-name';
+    const label = options.getLabel ? options.getLabel(item) : item.name || '–';
+    name.textContent = label;
+    name.title = label;
+    meta.append(rank, name);
+
+    if (options.getBadge) {
+      const badgeText = options.getBadge(item);
+      if (badgeText) {
+        const badge = document.createElement('span');
+        badge.className = 'weighted-team';
+        badge.textContent = badgeText;
+        meta.appendChild(badge);
+      }
+    }
+
     const track = document.createElement('div');
-    track.className = 'sales-summary-track';
+    track.className = 'weighted-track';
 
     const actualFill = document.createElement('div');
-    actualFill.className = 'sales-summary-fill sales-actual';
-    const actualWidth = Math.max(4, (actual / maxValue) * 100);
-    actualFill.style.width = `${Math.min(100, actualWidth)}%`;
-    const actualAmount = document.createElement('span');
-    actualAmount.className = 'sales-summary-amount sales-actual';
-    actualAmount.textContent = fmtCurr0.format(actual);
-    actualFill.appendChild(actualAmount);
+    actualFill.className = 'weighted-segment weighted-actual';
+    actualFill.style.width = `${initialBaseWidth}%`;
+    const actualLabel = document.createElement('span');
+    actualLabel.className = 'weighted-segment-label';
+    actualLabel.textContent = fmtCurr0.format(actual);
+    actualFill.appendChild(actualLabel);
 
-    const weightedFill = document.createElement('div');
-    weightedFill.className = 'sales-summary-fill sales-weighted';
-    const weightedWidth = Math.max(4, (weighted / maxValue) * 100);
-    weightedFill.style.width = `${Math.min(100, weightedWidth)}%`;
-    const weightedAmount = document.createElement('span');
-    weightedAmount.className = 'sales-summary-amount sales-weighted';
-    weightedAmount.textContent = fmtCurr0.format(weighted);
-    weightedFill.appendChild(weightedAmount);
+    const deltaFill = document.createElement('div');
+    deltaFill.className = `weighted-segment weighted-delta${delta < 0 ? ' negative' : ''}`;
+    deltaFill.style.width = `${initialDeltaWidth}%`;
+    deltaFill.style.left = `${initialDeltaLeft}%`;
+    deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
+    const deltaLabel = document.createElement('span');
+    deltaLabel.className = 'weighted-segment-label';
+    deltaFill.appendChild(deltaLabel);
 
-    track.append(actualFill, weightedFill);
-    row.append(label, track);
-    fragment.appendChild(row);
+    track.append(actualFill, deltaFill);
+
+    const total = document.createElement('div');
+    total.className = 'weighted-total';
+    total.textContent = fmtCurr0.format(totalValue);
+
+    row.append(meta, track, total);
+    host.appendChild(row);
+
+    const syncDeltaLabel = () => {
+      const labelText = showWeighting && targetDeltaWidth > 0
+        ? `${delta >= 0 ? '+' : '-'}${fmtCurr0.format(Math.abs(delta))}`
+        : '';
+      deltaLabel.textContent = labelText;
+      deltaLabel.style.display = labelText ? 'inline-flex' : 'none';
+      deltaFill.classList.remove('label-outside');
+      deltaLabel.classList.remove('outside-left', 'outside-right');
+      if (!labelText) return;
+
+      const available = deltaFill.getBoundingClientRect().width;
+      const needed = deltaLabel.getBoundingClientRect().width + 12;
+      const useOutside = available < needed;
+      deltaFill.classList.toggle('label-outside', useOutside);
+      if (useOutside) {
+        if (delta >= 0) {
+          deltaLabel.classList.add('outside-right');
+        } else {
+          deltaLabel.classList.add('outside-left');
+        }
+      }
+    };
+
+    requestAnimationFrame(() => {
+      actualFill.style.width = `${targetBaseWidth}%`;
+      const deltaLeft = Math.max(0, Math.min(targetDeltaLeft, 100));
+      deltaFill.style.left = `${deltaLeft}%`;
+      deltaFill.style.width = `${targetDeltaWidth}%`;
+      deltaFill.classList.toggle('collapsed', !showWeighting || targetDeltaWidth === 0);
+      syncDeltaLabel();
+      requestAnimationFrame(syncDeltaLabel);
+    });
   });
 
-  const legend = document.createElement('div');
-  legend.className = 'sales-summary-legend';
-  legend.innerHTML = `
-    <span><span class="legend-dot legend-actual"></span>Tatsächlicher Salesbeitrag</span>
-    <span><span class="legend-dot legend-weighted"></span>Gewichteter Salesbeitrag</span>
-  `;
-  fragment.appendChild(legend);
-  host.appendChild(fragment);
+  animatePositionChanges(host, prevRects);
 }
 
 // Helper to get timestamp, ensuring it's a valid number or 0
@@ -3264,11 +3498,12 @@ function renderAnalytics() {
     const ratio = clampDockRewardFactor(factor);
     const name = rawName || 'Unbekannt';
     const weighted = money * ratio;
-    const person = personStats.get(name) || { name, actual: 0, weighted: 0 };
+    const teamName = byNameTeam.get(name) || 'Ohne Team';
+    const person = personStats.get(name) || { name, team: teamName, actual: 0, weighted: 0 };
     person.actual += money;
     person.weighted += weighted;
+    person.team = person.team || teamName;
     personStats.set(name, person);
-    const teamName = byNameTeam.get(name) || 'Ohne Team';
     const team = teamStats.get(teamName) || { name: teamName, actual: 0, weighted: 0 };
     team.actual += money;
     team.weighted += weighted;
@@ -3359,9 +3594,7 @@ function renderAnalytics() {
       factor: item.actual > 0 ? item.weighted / item.actual : 0,
     }))
     .filter((item) => item.actual > 0)
-    .sort((a, b) => b.weighted - a.weighted)
-    .slice(0, 20);
-  drawComparisonBars('chartPersons', personList);
+    .sort((a, b) => b.weighted - a.weighted);
 
   const teamList = Array.from(teamStats.values())
     .filter((item) => item.actual > 0)
@@ -3370,15 +3603,12 @@ function renderAnalytics() {
       factor: item.actual > 0 ? item.weighted / item.actual : 0,
     }))
     .sort((a, b) => b.weighted - a.weighted);
-  drawComparisonBars('chartTeams', teamList);
 
   const totalArr = [
     { name: 'Fixaufträge', actual: fixTotal, weighted: fixWeightedTotal },
     { name: 'Rahmenverträge', actual: rahmenTotal, weighted: rahmenWeightedTotal },
     { name: 'Gesamt', actual: fixTotal + rahmenTotal, weighted: fixWeightedTotal + rahmenWeightedTotal },
   ].filter((item) => item.actual > 0 || item.weighted > 0);
-  renderSalesContributionSummary('salesContributionSummary', personList);
-  drawComparisonBars('chartTotals', totalArr);
   setAnalyticsData({
     persons: personList,
     teams: teamList,
@@ -3392,6 +3622,36 @@ function renderAnalytics() {
     },
     entryBreakdown,
   });
+
+  renderContributionCharts();
+}
+
+function renderContributionCharts() {
+  const analytics = getAnalyticsData();
+  const selectedTeams = getSelectedMarketTeams();
+
+  renderWeightedBars('salesContributionSummary', analytics.persons, {
+    showWeighting: anaPersonWeightingEnabled,
+    filterFn: (p) => !selectedTeams.length || selectedTeams.includes(p.team || ''),
+  });
+
+  renderWeightedBars('chartTeams', analytics.teams, {
+    showWeighting: anaTeamWeightingEnabled,
+    getLabel: (item) => item.name,
+    getKey: (item) => item.name,
+    emptyMessage: 'Keine Team-Daten verfügbar.',
+  });
+
+  renderTotalsActual(analytics.totals);
+}
+
+function renderTotalsActual(totals = []) {
+  const list = Array.isArray(totals)
+    ? totals
+        .map((t) => ({ name: t.name, val: Math.max(0, Number(t.actual) || 0) }))
+        .filter((t) => t.val > 0)
+    : [];
+  drawBars('chartTotals', list, false, { formatter: fmtCurr0, emptyMessage: 'Keine Daten verfügbar.' });
 }
 
 // Zeitintervall-basierte Aktivität der Rahmenverträge
@@ -4484,13 +4744,14 @@ btnAnaXlsx.addEventListener('click', () => {
   if (analyticsData.persons && analyticsData.persons.length > 0) {
     const ws1Arr = analyticsData.persons.map(p => ({
       Name: p.name,
+      Team: p.team,
       Beitrag_Ist_EUR: Number((p.actual || 0).toFixed(2)),
       Beitrag_Gewichtet_EUR: Number((p.weighted || 0).toFixed(2)),
       Faktor: p.actual > 0 ? Number((p.weighted / p.actual).toFixed(2)) : '',
       Delta_EUR: Number(((p.weighted || 0) - (p.actual || 0)).toFixed(2)),
     }));
     const ws1 = XLSX.utils.json_to_sheet(ws1Arr);
-    XLSX.utils.book_append_sheet(wb, ws1, "Top Personen");
+    XLSX.utils.book_append_sheet(wb, ws1, "Salesbeiträge Personen");
   }
   if (analyticsData.teams && analyticsData.teams.length > 0) {
     const ws2Arr = analyticsData.teams.map(t => ({
@@ -4501,7 +4762,7 @@ btnAnaXlsx.addEventListener('click', () => {
       Delta_EUR: Number(((t.weighted || 0) - (t.actual || 0)).toFixed(2)),
     }));
     const ws2 = XLSX.utils.json_to_sheet(ws2Arr);
-    XLSX.utils.book_append_sheet(wb, ws2, "Teams Aggregiert");
+    XLSX.utils.book_append_sheet(wb, ws2, "Salesbeiträge Teams");
   }
   if (analyticsData.totals && analyticsData.totals.length > 0) {
     const ws3Arr = analyticsData.totals.map(t => ({
