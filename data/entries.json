@@ -11099,8 +11099,9 @@
       "KV-2025-0275"
     ],
     "kv": "KV-2025-0275",
-    "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardFactor": 0.5,
+    "dockRewardComment": "",
+    "modified": 1763736359743
   },
   {
     "id": "entry_1761664649070_KV20250280",
