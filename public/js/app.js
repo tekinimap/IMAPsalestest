@@ -3440,8 +3440,11 @@ function renderWeightedBars(hostOrId, items = [], options = {}) {
       deltaLabel.classList.remove('outside-left', 'outside-right');
       if (!labelText) return;
 
-      const available = deltaFill.getBoundingClientRect().width;
-      const needed = deltaLabel.getBoundingClientRect().width + 12;
+      const trackWidth = track.getBoundingClientRect().width;
+      const targetDeltaPx = (targetDeltaWidth / 100) * trackWidth;
+      const currentDeltaPx = deltaFill.getBoundingClientRect().width;
+      const available = Math.max(currentDeltaPx, targetDeltaPx);
+      const needed = deltaLabel.getBoundingClientRect().width + 10;
       const useOutside = available < needed;
       deltaFill.classList.toggle('label-outside', useOutside);
       if (useOutside) {
