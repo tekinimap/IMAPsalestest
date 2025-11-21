@@ -4085,12 +4085,12 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1761667755282,
+    "modified": 1763734847280,
     "kvNummern": [
       "KV-2025-0042"
     ],
     "kv": "KV-2025-0042",
-    "dockRewardFactor": 1,
+    "dockRewardFactor": 2,
     "dockRewardComment": ""
   },
   {
@@ -8151,12 +8151,12 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1761667755282,
+    "modified": 1763736409997,
     "kvNummern": [
       "KV-2025-0161"
     ],
     "kv": "KV-2025-0161",
-    "dockRewardFactor": 1,
+    "dockRewardFactor": 0.5,
     "dockRewardComment": ""
   },
   {
@@ -11100,7 +11100,8 @@
     ],
     "kv": "KV-2025-0275",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "modified": 1763736387500
   },
   {
     "id": "entry_1761664649070_KV20250280",
