@@ -8151,12 +8151,12 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1761667755282,
+    "modified": 1763736409997,
     "kvNummern": [
       "KV-2025-0161"
     ],
     "kv": "KV-2025-0161",
-    "dockRewardFactor": 1,
+    "dockRewardFactor": 0.5,
     "dockRewardComment": ""
   },
   {
