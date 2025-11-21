@@ -567,6 +567,7 @@ async function saveNewEntry(st) {
     totals: resultData.totals || {}, weights: resultData.effectiveWeights || [], submittedBy: st.input.submittedBy || '',
     projectNumber: st.input.projectNumber || '', kv_nummer: st.input.kvNummer,
     freigabedatum: Number.isFinite(date) ? date : null,
+    dockRewardFactor: deps.clampDockRewardFactor(st.input.dockRewardFactor ?? deps.dockWeightingDefault),
     ts: ts,
     modified: st.editingId ? Date.now() : undefined,
     id: st.editingId || undefined,
@@ -650,6 +651,9 @@ async function saveHunterAbruf(st) {
     type: 'hunter',
     title: st.input.title,
     amount: abrufAmount,
+    dockRewardFactor: deps.clampDockRewardFactor(
+      st.input.dockRewardFactor ?? parentEntry.dockRewardFactor ?? deps.dockWeightingDefault
+    ),
     ts: Date.now(),
     freigabedatum: date,
     submittedBy: st.input.submittedBy,
@@ -855,6 +859,9 @@ export function initErfassung(options = {}) {
         const payload = {
           projectNumber: projectNumber.value.trim(),
           kv_nummer: kvNummer.value.trim(),
+          dockRewardFactor: deps.clampDockRewardFactor(
+            getSelectedWeightingFactor() ?? deps.dockWeightingDefault
+          ),
         };
         let dateMs = null;
         if (freigabedatum.value) {
@@ -880,6 +887,7 @@ export function initErfassung(options = {}) {
           st.input.projectNumber = payload.projectNumber;
           st.input.kvNummer = payload.kv_nummer;
           st.input.freigabedatum = freigabedatum.value || '';
+          st.input.dockRewardFactor = payload.dockRewardFactor;
           saveState(st);
         }
         deps.queueDockAutoCheck(entryId, { projectNumber: payload.projectNumber, kvNummer: payload.kv_nummer });
