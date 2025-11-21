@@ -11373,7 +11373,7 @@
     "amount": 12000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "hubspot",
+    "projectNumber": "hubspot1",
     "client": "",
     "submittedBy": "Bülent Arslan",
     "list": [
@@ -11395,7 +11395,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 2,
     "flagship_projekt": false,
-    "freigabedatum": 1763721468339,
+    "freigabedatum": 1763683200000,
     "kvNummern": [
       "hubspot"
     ],
@@ -11407,7 +11407,7 @@
       "1": 1763633842372,
       "2": 1763634380585
     },
-    "modified": 1763652504798,
+    "modified": 1763727630011,
     "complete": true,
     "rows": [
       {
