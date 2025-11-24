@@ -2050,34 +2050,96 @@ function editEntry(id) {
 
 document.getElementById('btnNo').addEventListener('click', () => document.getElementById('confirmDlg').close());
 // *** NEU: btnYes click handler (mit bulk-delete) ***
+// *** NEU: btnYes click handler (Optimistic UI) ***
 document.getElementById('btnYes').addEventListener('click', async () => {
   const { id, ids, type, parentId, fromDock } = getPendingDelete();
   document.getElementById('confirmDlg').close();
 
-  showLoader();
+  // 1. Optimistic UI: Visuelles Entfernen
+  const hiddenElements = [];
+  const restoreElements = () => {
+    hiddenElements.forEach(el => {
+      el.style.display = '';
+      // Force reflow
+      void el.offsetWidth;
+      el.style.opacity = '1';
+    });
+  };
+
   try {
+    if (type === 'entry' && id) {
+      // Versuche Zeile in History zu finden
+      const row = document.querySelector(`#historyBody .row-check[data-id="${id}"]`)?.closest('tr')
+        || document.querySelector(`button[data-act="del"][data-id="${id}"]`)?.closest('tr');
+      if (row) {
+        row.style.transition = 'opacity 0.3s';
+        row.style.opacity = '0';
+        hiddenElements.push(row);
+      }
+      // Versuche Dock-Card zu finden
+      const card = document.querySelector(`.dock-card[data-entry-id="${id}"]`);
+      if (card) {
+        card.style.transition = 'opacity 0.3s';
+        card.style.opacity = '0';
+        hiddenElements.push(card);
+      }
+
+    } else if (type === 'batch-entry' && ids && ids.length > 0) {
+      ids.forEach(batchId => {
+        const row = document.querySelector(`#historyBody .row-check[data-id="${batchId}"]`)?.closest('tr');
+        if (row) {
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = '0';
+          hiddenElements.push(row);
+        }
+        const card = document.querySelector(`.dock-card[data-entry-id="${batchId}"]`);
+        if (card) {
+          card.style.transition = 'opacity 0.3s';
+          card.style.opacity = '0';
+          hiddenElements.push(card);
+        }
+      });
+
+    } else if (type === 'transaction' && id) {
+      const btn = document.querySelector(`button[data-act="del-trans"][data-id="${id}"]`);
+      if (btn) {
+        const row = btn.closest('tr') || btn.closest('li') || btn.closest('.trans-item');
+        if (row) {
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = '0';
+          hiddenElements.push(row);
+        }
+      }
+    }
+
+    // Nach Transition ausblenden (Display none)
+    setTimeout(() => {
+      hiddenElements.forEach(el => el.style.display = 'none');
+    }, 300);
+
+    // 2. Background Request
     if (type === 'entry') {
-      // Einzelnes Löschen (bleibt gleich)
       if (!id) return;
       const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (!r.ok) throw new Error(await r.text());
+
       showToast('Eintrag gelöscht.', 'ok');
       removeEntryById(id);
+      // Kein renderHistory() hier nötig, da Zeile schon weg. 
+      // Aber wir sollten den State sauber halten.
+      // Wenn wir renderHistory() aufrufen, wird die Tabelle neu gebaut (ohne den Eintrag).
+      // Das ist sicher.
       renderHistory();
       renderFrameworkContracts();
 
     } else if (type === 'batch-entry') {
-      // *** NEU: BULK DELETE LOGIK ***
       if (!ids || ids.length === 0) return;
-      hideLoader(); // Hide small loader, show batch progress
-      showBatchProgress(`Lösche ${ids.length} Einträge...`, 1); // Nur 1 Schritt
-
+      // Bei Batch zeigen wir Toast erst am Ende
       const r = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: ids })
       });
-      updateBatchProgress(1, 1); // Schritt 1 von 1 erledigt
 
       if (!r.ok) {
         const errData = await r.json().catch(() => ({ error: "Unbekannter Fehler beim Löschen" }));
@@ -2086,39 +2148,60 @@ document.getElementById('btnYes').addEventListener('click', async () => {
 
       const result = await r.json();
       showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
-      await loadHistory(); // Lade alle Daten neu
+
+      // State bereinigen
+      await loadHistory();
       renderHistory();
       if (fromDock) {
         clearDockSelection();
         updateDockSelectionUi();
       }
-      // *** ENDE NEUE LOGIK ***
 
     } else if (type === 'transaction') {
-      // Transaktion löschen (bleibt gleich)
       if (!id || !parentId) return;
       const entry = findEntryById(parentId);
       if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+
       const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
       entry.transactions = entry.transactions.filter(t => t.id !== id);
       entry.modified = Date.now();
+
       const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry)
       });
+
       if (!r.ok) {
-        entry.transactions = originalTransactions; // rollback on fail
+        entry.transactions = originalTransactions;
         throw new Error(await r.text());
       }
       showToast('Abruf gelöscht.', 'ok');
       upsertEntry(entry);
       renderRahmenDetails(parentId);
     }
+
   } catch (e) {
-    showToast('Aktion fehlgeschlagen.', 'bad');
     console.error(e);
+    restoreElements();
+    showToast('Löschen fehlgeschlagen: ' + e.message, 'bad');
+    // Falls Transaction rollback nötig war, ist das oben im catch block der Transaction Logik schon passiert? 
+    // Nein, bei Transaction ist der Rollback im if(!r.ok) Block.
+    // Aber wenn fetchWithRetry wirft (Netzwerkfehler), müssen wir auch rollbacken.
+    if (type === 'transaction' && parentId) {
+      // Reload entry to be safe or use local rollback if we had reference
+      // Einfachheitshalber: User muss neu laden oder wir laden neu.
+      // Da wir Optimistic UI nur visuell gemacht haben, ist das Model noch "alt" (außer bei Transaction wo wir es manipuliert haben).
+      // Bei Transaction haben wir `entry.transactions` manipuliert VOR dem Request?
+      // Im Original Code: Ja.
+      // Hier: Ich habe es auch so übernommen.
+      // Wenn es fehlschlägt, müssen wir es zurücksetzen.
+      // Das passiert im `if (!r.ok)` Block. Aber wenn fetch wirft, springen wir direkt hierher.
+      // Wir sollten den Rollback auch hier machen.
+      // Da `originalTransactions` im try-Block definiert ist, kommen wir hier nicht ran.
+      // Das ist eine kleine Schwäche. Aber für jetzt ok. Der User sieht Fehler und Daten sind inkonsistent -> Reload hilft.
+      // Oder wir laden den Entry neu.
+      if (parentId) loadHistory().then(() => renderRahmenDetails(parentId));
+    }
   } finally {
-    hideLoader();
-    hideBatchProgress();
     resetPendingDelete();
   }
 });
@@ -3710,8 +3793,8 @@ function renderContributionCharts() {
 function renderTotalsActual(totals = []) {
   const list = Array.isArray(totals)
     ? totals
-        .map((t) => ({ name: t.name, val: Math.max(0, Number(t.actual) || 0) }))
-        .filter((t) => t.val > 0)
+      .map((t) => ({ name: t.name, val: Math.max(0, Number(t.actual) || 0) }))
+      .filter((t) => t.val > 0)
     : [];
   drawBars('chartTotals', list, false, { formatter: fmtCurr0, emptyMessage: 'Keine Daten verfügbar.' });
 }
