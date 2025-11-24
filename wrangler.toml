@@ -33,9 +33,3 @@ GH_LOG_DIR = "data/logs"
 # - HUBSPOT_ACCESS_TOKEN: HubSpot API token
 # - HUBSPOT_APP_SECRET: HubSpot app secret
 # - ALLOWED_ORIGIN: CORS origin (optional)
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "imap-sales-db"
-database_id = "ac2e7ed0-cb7c-4be7-b9e6-2805fe2dcf04"
-

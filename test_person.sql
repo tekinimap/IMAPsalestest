@@ -1,1 +1,0 @@
-INSERT OR IGNORE INTO people (id, name, email, data, updatedAt) VALUES ('p_oe_head_02', 'Merlin Klein', 'klein@imap-institut.de', '{"name":"Merlin Klein","id":"p_oe_head_02","team":"Head of Organisational Excellence","email":"klein@imap-institut.de"}', 1763976412460);
