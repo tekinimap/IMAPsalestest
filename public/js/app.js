@@ -2150,16 +2150,18 @@ document.getElementById('btnYes').addEventListener('click', async () => {
 
 
 /* Export XLSX */
-btnXlsx.addEventListener('click', () => {
-  const arr = filtered('fix').map(e => ({
-    Projektnummer: e.projectNumber || '', Titel: e.title || '', Auftraggeber: e.client || '', Quelle: e.source || '',
-    Status: autoComplete(e) ? 'vollständig' : 'unvollständig', Wert_EUR: e.amount || 0,
-    Abschlussdatum: e.freigabedatum ? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts ? new Date(e.ts).toISOString().split('T')[0] : '')
-  }));
-  const ws = XLSX.utils.json_to_sheet(arr);
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
-  XLSX.writeFile(wb, "fixauftraege_export.xlsx");
-});
+if (btnXlsx) {
+  btnXlsx.addEventListener('click', () => {
+    const arr = filtered('fix').map(e => ({
+      Projektnummer: e.projectNumber || '', Titel: e.title || '', Auftraggeber: e.client || '', Quelle: e.source || '',
+      Status: autoComplete(e) ? 'vollständig' : 'unvollständig', Wert_EUR: e.amount || 0,
+      Abschlussdatum: e.freigabedatum ? new Date(e.freigabedatum).toISOString().split('T')[0] : (e.ts ? new Date(e.ts).toISOString().split('T')[0] : '')
+    }));
+    const ws = XLSX.utils.json_to_sheet(arr);
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fixaufträge");
+    XLSX.writeFile(wb, "fixauftraege_export.xlsx");
+  });
+}
 
 /* Rahmenverträge */
 const rahmenBody = document.getElementById('rahmenBody');
