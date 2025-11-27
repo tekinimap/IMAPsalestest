@@ -51,6 +51,7 @@ import {
 } from './features/calculations.js';
 import { initNavigation, isViewVisible, showView } from './features/navigation.js';
 import { initCommonEvents } from './features/common-events.js';
+import { initPortfolio, renderPortfolio } from './features/portfolio.js';
 import {
   getDockFilterState,
   updateDockFilterState,
@@ -1500,6 +1501,11 @@ function handleFixauftraegeNavigation() {
   loadHistory(true);
 }
 
+function handlePortfolioNavigation() {
+  showView('portfolio');
+  loadHistory(true).then(renderPortfolio);
+}
+
 function handleRahmenNavigation() {
   showView('rahmen');
   loadHistory(true).then(renderFrameworkContracts);
@@ -1541,8 +1547,7 @@ export function setupNavigation() {
     getIsBatchRunning,
     showToast,
     hideBatchProgress,
-    onShowFixauftraege: handleFixauftraegeNavigation,
-    onShowRahmen: handleRahmenNavigation,
+    onShowPortfolio: handlePortfolioNavigation,
     onShowAnalytics: handleAnalyticsNavigation,
     onShowAdmin: handleAdminClick,
     onShowErfassung: handleErfassungNavigation,
@@ -1594,6 +1599,7 @@ async function loadHistory(silent = false) {
   resetFixPagination();
   renderHistory();
   renderDockBoard();
+  renderPortfolio();
 }
 
 function hasPositiveDistribution(list = [], amount = 0) {
@@ -1634,7 +1640,7 @@ function autoComplete(e) {
 function filtered(type = 'fix') {
   const currentEntries = getEntries();
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift auf den zentralen Eintrags-Store zu
-  const query = omniSearch.value.trim().toLowerCase();
+  const query = omniSearch ? omniSearch.value.trim().toLowerCase() : '';
   const selectedPerson = personFilter ? personFilter.value : '';
 
   if (type === 'fix') {
@@ -1804,6 +1810,7 @@ function updateFixPaginationUI(totalItems, totalPages) {
 }
 
 function renderHistory() {
+  if (!historyBody) return;
   historyBody.innerHTML = '';
   updateSortIcons();
   updatePersonFilterOptions();
@@ -1882,22 +1889,31 @@ function renderHistory() {
   appendSection('Unvollständig', groups.incomplete, 'bad');
   appendSection('Vollständig', groups.complete, 'ok');
 
-  document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
-  updateFixPaginationUI(decoratedEntries.length, totalPages);
-  checkAllFix.checked = false;
-  updateBatchButtons();
+    const fixSumDisplay = document.getElementById('fixSumDisplay');
+    if (fixSumDisplay) {
+      fixSumDisplay.innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+    }
+    updateFixPaginationUI(decoratedEntries.length, totalPages);
+    if (checkAllFix) {
+      checkAllFix.checked = false;
+    }
+    updateBatchButtons();
 }
-omniSearch.addEventListener('input', () => {
-  resetFixPagination();
-  renderHistory();
-});
+if (omniSearch) {
+  omniSearch.addEventListener('input', () => {
+    resetFixPagination();
+    renderHistory();
+  });
+}
 if (personFilter) {
   personFilter.addEventListener('change', () => {
     resetFixPagination();
     renderHistory();
   });
 }
-rahmenSearch.addEventListener('input', renderFrameworkContracts);
+if (rahmenSearch) {
+  rahmenSearch.addEventListener('input', renderFrameworkContracts);
+}
 
 if (fixPageSizeSelect) {
   fixPageSizeSelect.addEventListener('change', () => {
@@ -1939,8 +1955,9 @@ function getSelectedFixIds() {
   return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
 }
 
-function updateBatchButtons() {
-  const selectedIds = getSelectedFixIds();
+  function updateBatchButtons() {
+    if (!checkAllFix || !btnBatchDelete || !btnMoveToFramework) return;
+    const selectedIds = getSelectedFixIds();
   if (selectedIds.length > 0) {
     btnBatchDelete.classList.remove('hide');
     btnMoveToFramework.classList.remove('hide');
@@ -1953,18 +1970,22 @@ function updateBatchButtons() {
   checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
 
-checkAllFix.addEventListener('change', () => {
-  document.querySelectorAll('#historyBody .row-check').forEach(cb => {
-    cb.checked = checkAllFix.checked;
-  });
-  updateBatchButtons();
-});
-
-historyBody.addEventListener('change', (ev) => {
-  if (ev.target.classList.contains('row-check')) {
-    updateBatchButtons();
+  if (checkAllFix) {
+    checkAllFix.addEventListener('change', () => {
+      document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+        cb.checked = checkAllFix.checked;
+      });
+      updateBatchButtons();
+    });
   }
-});
+
+  if (historyBody) {
+    historyBody.addEventListener('change', (ev) => {
+      if (ev.target.classList.contains('row-check')) {
+        updateBatchButtons();
+      }
+    });
+  }
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -2007,28 +2028,32 @@ function handleDeleteClick(id, type = 'entry', parentId = null) {
 }
 
 // PASSWORTFREI: Batch-Löschung
-btnBatchDelete.addEventListener('click', () => {
-  const selectedIds = getSelectedFixIds();
-  if (selectedIds.length === 0) return;
+  if (btnBatchDelete) {
+    btnBatchDelete.addEventListener('click', () => {
+      const selectedIds = getSelectedFixIds();
+      if (selectedIds.length === 0) return;
 
-  // Passwortabfrage entfernt
-  setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
-  document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
-  document.getElementById('confirmDlgText').textContent =
-    `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
-  document.getElementById('confirmDlg').showModal();
-});
-
-
-historyBody.addEventListener('click', async (ev) => {
-  const btn = ev.target.closest('button[data-act]'); if (!btn) return;
-  const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
-  if (act === 'edit') {
-    editEntry(id);
-  } else if (act === 'del') {
-    handleDeleteClick(id, 'entry');
+      // Passwortabfrage entfernt
+      setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
+      document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
+      document.getElementById('confirmDlgText').textContent =
+        `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+      document.getElementById('confirmDlg').showModal();
+    });
   }
-});
+
+
+  if (historyBody) {
+    historyBody.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button[data-act]'); if (!btn) return;
+      const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
+      if (act === 'edit') {
+        editEntry(id);
+      } else if (act === 'del') {
+        handleDeleteClick(id, 'entry');
+      }
+    });
+  }
 
 function editEntry(id) {
   const e = entries.find(x => x.id === id); if (!e) return;
@@ -2141,7 +2166,8 @@ const rahmenBody = document.getElementById('rahmenBody');
 
 function filteredFrameworks() {
   let arr = entries.filter(e => e.projectType === 'rahmen');
-  const query = rahmenSearch.value.trim().toLowerCase();
+  const query = rahmenSearch ? rahmenSearch.value.trim().toLowerCase() : '';
+  if (!rahmenSearch) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
   if (!query) return arr.sort((a, b) => (b.modified || b.ts) - (a.modified || a.ts));
 
   return arr.filter(e => {
@@ -2163,6 +2189,7 @@ function filteredFrameworks() {
 }
 
 function renderFrameworkContracts() {
+  if (!rahmenBody) return;
   rahmenBody.innerHTML = '';
   const rahmenEntries = filteredFrameworks();
   let totalSum = 0;
@@ -2186,40 +2213,45 @@ function renderFrameworkContracts() {
     `;
     rahmenBody.appendChild(tr);
   }
-  document.getElementById('rahmenSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (Summe aller Abrufe)`;
+  const sumDisplay = document.getElementById('rahmenSumDisplay');
+  if (sumDisplay) {
+    sumDisplay.innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (Summe aller Abrufe)`;
+  }
 }
 
-rahmenBody.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-act]');
-  if (btn) {
-    e.stopPropagation(); // Stop click from bubbling to the row
-    const act = btn.dataset.act;
-    const id = btn.dataset.id;
-    const entry = entries.find(en => en.id === id);
-    if (!entry) return;
+if (rahmenBody) {
+  rahmenBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (btn) {
+      e.stopPropagation(); // Stop click from bubbling to the row
+      const act = btn.dataset.act;
+      const id = btn.dataset.id;
+      const entry = entries.find(en => en.id === id);
+      if (!entry) return;
 
-    if (act === 'founder-plus') {
-      openEditTransactionModal({ type: 'founder' }, entry);
-    } else if (act === 'hunter-plus') {
-      saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input: { projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
-      initFromState();
-      showView('erfassung');
-    } else if (act === 'details') {
-      renderRahmenDetails(id);
-      showView('rahmenDetails');
-    } else if (act === 'del') {
-      handleDeleteClick(id, 'entry');
+      if (act === 'founder-plus') {
+        openEditTransactionModal({ type: 'founder' }, entry);
+      } else if (act === 'hunter-plus') {
+        saveState({ source: 'manuell', isAbrufMode: true, parentEntry: entry, input: { projectNumber: entry.projectNumber || '', freigabedatum: getTodayDate() } });
+        initFromState();
+        showView('erfassung');
+      } else if (act === 'details') {
+        renderRahmenDetails(id);
+        showView('rahmenDetails');
+      } else if (act === 'del') {
+        handleDeleteClick(id, 'entry');
+      }
+      return;
     }
-    return;
-  }
 
-  const row = e.target.closest('tr.clickable');
-  if (row) {
-    const id = row.dataset.id;
-    const entry = entries.find(en => en.id === id);
-    if (entry) openEditFrameworkContractModal(entry);
-  }
-});
+    const row = e.target.closest('tr.clickable');
+    if (row) {
+      const id = row.dataset.id;
+      const entry = entries.find(en => en.id === id);
+      if (entry) openEditFrameworkContractModal(entry);
+    }
+  });
+}
 
 
 async function saveHunterAbruf(st) {
@@ -2355,24 +2387,26 @@ const moveToFrameworkDlg = document.getElementById('moveToFrameworkDlg');
 const moveValidationSummary = document.getElementById('moveValidationSummary');
 const moveTargetFramework = document.getElementById('moveTargetFramework');
 
-btnMoveToFramework.addEventListener('click', () => {
-  const selectedIds = getSelectedFixIds();
-  if (selectedIds.length === 0) return;
+if (btnMoveToFramework) {
+  btnMoveToFramework.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
 
-  moveValidationSummary.textContent = '';
-  document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
+    moveValidationSummary.textContent = '';
+    document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
 
-  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => a.title.localeCompare(b.title));
-  moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
-  rahmenEntries.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id;
-    opt.textContent = `${e.title} (${e.client})`;
-    moveTargetFramework.appendChild(opt);
+    const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => a.title.localeCompare(b.title));
+    moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+    rahmenEntries.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = `${e.title} (${e.client})`;
+      moveTargetFramework.appendChild(opt);
+    });
+
+    moveToFrameworkDlg.showModal();
   });
-
-  moveToFrameworkDlg.showModal();
-});
+}
 
 document.getElementById('btnConfirmMove').addEventListener('click', async () => {
   const selectedIds = getSelectedFixIds();
@@ -4879,6 +4913,7 @@ const erfassungDeps = {
 };
 
 initErfassung(erfassungDeps);
+initPortfolio({ openEditTransactionModal });
 
 export function initializeCommonEvents() {
   initCommonEvents({

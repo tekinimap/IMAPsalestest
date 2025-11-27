@@ -1,10 +1,9 @@
 const navigationViews = {
   erfassung: null,
-  fixauftraege: null,
-  rahmen: null,
-  rahmenDetails: null,
-  admin: null,
+  portfolio: null,
   analytics: null,
+  admin: null,
+  rahmenDetails: null
 };
 
 let navLinks = [];
@@ -30,11 +29,10 @@ function isNavigationBlockedByBatch() {
 function ensureViewsInitialized() {
   if (navigationViews.erfassung) return;
   navigationViews.erfassung = document.getElementById('viewErfassung');
-  navigationViews.fixauftraege = document.getElementById('viewFixauftraege');
-  navigationViews.rahmen = document.getElementById('viewRahmen');
-  navigationViews.rahmenDetails = document.getElementById('viewRahmenDetails');
-  navigationViews.admin = document.getElementById('viewAdmin');
+  navigationViews.portfolio = document.getElementById('viewPortfolio');
   navigationViews.analytics = document.getElementById('viewAnalytics');
+  navigationViews.admin = document.getElementById('viewAdmin');
+  navigationViews.rahmenDetails = document.getElementById('viewRahmenDetails');
 }
 
 function registerNavLinks() {
@@ -62,11 +60,10 @@ function handleNavigation(viewName) {
   }
 
   const viewHandlers = {
-    fixauftraege: () => deps.onShowFixauftraege?.(),
-    rahmen: () => deps.onShowRahmen?.(),
-    analytics: () => deps.onShowAnalytics?.(),
-    admin: () => deps.onShowAdmin?.(),
     erfassung: () => deps.onShowErfassung?.(),
+    portfolio: () => deps.onShowPortfolio?.(),
+    analytics: () => deps.onShowAnalytics?.(),
+    admin: () => deps.onShowAdmin?.()
   };
 
   const handler = viewHandlers[viewName];
