@@ -1,7 +1,6 @@
 const navigationViews = {
   erfassung: null,
-  fixauftraege: null,
-  rahmen: null,
+  portfolio: null,
   rahmenDetails: null,
   admin: null,
   analytics: null,
@@ -30,8 +29,7 @@ function isNavigationBlockedByBatch() {
 function ensureViewsInitialized() {
   if (navigationViews.erfassung) return;
   navigationViews.erfassung = document.getElementById('viewErfassung');
-  navigationViews.fixauftraege = document.getElementById('viewFixauftraege');
-  navigationViews.rahmen = document.getElementById('viewRahmen');
+  navigationViews.portfolio = document.getElementById('viewPortfolio');
   navigationViews.rahmenDetails = document.getElementById('viewRahmenDetails');
   navigationViews.admin = document.getElementById('viewAdmin');
   navigationViews.analytics = document.getElementById('viewAnalytics');
@@ -62,8 +60,7 @@ function handleNavigation(viewName) {
   }
 
   const viewHandlers = {
-    fixauftraege: () => deps.onShowFixauftraege?.(),
-    rahmen: () => deps.onShowRahmen?.(),
+    portfolio: () => deps.onShowPortfolio?.(),
     analytics: () => deps.onShowAnalytics?.(),
     admin: () => deps.onShowAdmin?.(),
     erfassung: () => deps.onShowErfassung?.(),
@@ -76,6 +73,7 @@ function handleNavigation(viewName) {
     showView(viewName);
   }
 }
+
 
 export function showView(viewName) {
   ensureViewsInitialized();

@@ -50,6 +50,7 @@ import {
   getEntryRewardFactor,
 } from './features/calculations.js';
 import { initNavigation, isViewVisible, showView } from './features/navigation.js';
+import { initPortfolio, renderPortfolio } from './features/portfolio.js';
 import { initCommonEvents } from './features/common-events.js';
 import {
   getDockFilterState,
@@ -1510,6 +1511,11 @@ function handleAnalyticsNavigation() {
   loadHistory(true).then(initAnalytics);
 }
 
+function handlePortfolioNavigation() {
+  showView('portfolio');
+  loadHistory(true).then(renderPortfolio);
+}
+
 function handleErfassungNavigation() {
   const dockVisible = isViewVisible('erfassung');
   const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
@@ -1543,6 +1549,7 @@ export function setupNavigation() {
     hideBatchProgress,
     onShowFixauftraege: handleFixauftraegeNavigation,
     onShowRahmen: handleRahmenNavigation,
+    onShowPortfolio: handlePortfolioNavigation,
     onShowAnalytics: handleAnalyticsNavigation,
     onShowAdmin: handleAdminClick,
     onShowErfassung: handleErfassungNavigation,
@@ -1594,6 +1601,7 @@ async function loadHistory(silent = false) {
   resetFixPagination();
   renderHistory();
   renderDockBoard();
+  renderPortfolio();
 }
 
 function hasPositiveDistribution(list = [], amount = 0) {
@@ -3710,8 +3718,8 @@ function renderContributionCharts() {
 function renderTotalsActual(totals = []) {
   const list = Array.isArray(totals)
     ? totals
-        .map((t) => ({ name: t.name, val: Math.max(0, Number(t.actual) || 0) }))
-        .filter((t) => t.val > 0)
+      .map((t) => ({ name: t.name, val: Math.max(0, Number(t.actual) || 0) }))
+      .filter((t) => t.val > 0)
     : [];
   drawBars('chartTotals', list, false, { formatter: fmtCurr0, emptyMessage: 'Keine Daten verfügbar.' });
 }
@@ -4879,6 +4887,7 @@ const erfassungDeps = {
 };
 
 initErfassung(erfassungDeps);
+initPortfolio({});
 
 export function initializeCommonEvents() {
   initCommonEvents({

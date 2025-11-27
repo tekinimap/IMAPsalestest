@@ -1,0 +1,181 @@
+<!-- Deal Architect Modal (replaces dockEntryDialog) -->
+<dialog id="dockEntryDialog"
+    style="border: 1px solid #213044; background: #0a0f16; color: #e6ebf3; border-radius: 16px; padding: 0; width: 95vw; max-width: 1400px; max-height: 90vh;">
+    <button class="dialog-close" type="button" aria-label="Modal schließen"
+        onclick="this.closest('dialog').close()">×</button>
+
+    <div class="da-modal-layout">
+        <!-- LEFT COLUMN: Deal Data -->
+        <div class="da-col-left">
+            <!-- Auftraggeber mit Logo -->
+            <div class="da-input-group">
+                <label class="da-label">Auftraggeber</label>
+                <div class="da-client-wrapper">
+                    <div id="clientLogo" class="da-logo-container"></div>
+                    <input type="text" id="auftraggeber" class="da-input" placeholder="Firmenname">
+                </div>
+            </div>
+
+            <!-- Projekttitel -->
+            <div class="da-input-group">
+                <label class="da-label">Projekttitel</label>
+                <input type="text" id="projekttitel" class="da-input" placeholder="Titel des Projekts">
+            </div>
+
+            <!-- Auftragswert -->
+            <div class="da-input-group">
+                <label class="da-label">Auftragswert</label>
+                <input type="text" id="auftragswert" class="da-input da-money-large" placeholder="0 €">
+                <label class="da-checkbox">
+                    <input type="checkbox" id="auftragswertBekannt" checked>
+                    <span>Auftragswert bekannt</span>
+                </label>
+            </div>
+
+            <!-- Einschätzung von -->
+            <div class="da-input-group">
+                <label class="da-label">Einschätzung von</label>
+                <input type="text" id="submittedBy" class="da-input" placeholder="Name suchen..." list="peopleDatalist">
+                <datalist id="peopleDatalist"></datalist>
+            </div>
+
+            <!-- Collapsible Metadata Footer -->
+            <div class="da-footer">
+                <div class="da-footer-toggle" id="metaToggle">
+                    <span class="da-label">Metadaten</span>
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                    </svg>
+                </div>
+                <div class="da-footer-content" id="metaContent">
+                    <!-- Strategischer Faktor -->
+                    <div class="da-strat-slider">
+                        <div class="da-strat-header">
+                            <span class="da-label">Strategischer Faktor</span>
+                            <span class="da-strat-value" id="weightingActiveValue">1.0×</span>
+                        </div>
+                        <input type="range" name="weightingFactor" min="0.5" max="2.0" step="0.5" value="1.0"
+                            class="weighting-slider">
+                        <div class="da-strat-labels">
+                            <span>Kalt</span>
+                            <span>Standard</span>
+                            <span>Strategisch</span>
+                        </div>
+                    </div>
+
+                    <div class="da-input-group">
+                        <input type="text" id="projectNumber" class="da-input" placeholder="Projektnummer">
+                    </div>
+                    <div class="da-input-group">
+                        <input type="text" id="kvNummer" class="da-input" placeholder="KV-Nummer">
+                    </div>
+                    <div class="da-input-group">
+                        <input type="date" id="freigabedatum" class="da-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Team & Rules -->
+        <div class="da-col-right">
+            <!-- Kategorie-Gewichtung -->
+            <section class="da-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                    Kategorie-Gewichtung
+                </h3>
+                <div class="da-weight-sliders">
+                    <div class="da-slider-row">
+                        <span class="da-slider-label">Consultative Selling</span>
+                        <input type="range" id="w_cs" min="0" max="100" step="10" value="50">
+                        <span class="da-slider-value" id="w_cs_val">50%</span>
+                    </div>
+                    <div class="da-slider-row">
+                        <span class="da-slider-label">Konzept</span>
+                        <input type="range" id="w_konzept" min="0" max="100" step="10" value="30">
+                        <span class="da-slider-value" id="w_konzept_val">30%</span>
+                    </div>
+                    <div class="da-slider-row">
+                        <span class="da-slider-label">Pitch</span>
+                        <input type="range" id="w_pitch" min="0" max="100" step="10" value="20">
+                        <span class="da-slider-value" id="w_pitch_val">20%</span>
+                    </div>
+                    <div id="w_note" style="font-size: 12px; color: var(--da-muted); margin-top: 8px;"></div>
+                </div>
+            </section>
+
+            <!-- Team & Verteilung -->
+            <section class="da-section">
+                <h3>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    Team & Verteilung
+                </h3>
+
+                <div class="da-add-person">
+                    <input type="text" id="addPersonInput" class="da-input" placeholder="+ Person hinzufügen"
+                        list="peopleDatalist">
+                    <button id="btnAddRow">+</button>
+                </div>
+
+                <!-- Person Cards Container -->
+                <div id="personCardsContainer" class="da-person-cards"></div>
+
+                <!-- Hidden table for compatibility with existing JS -->
+                <table style="display:none;">
+                    <tbody id="tbody"></tbody>
+                </table>
+
+                <!-- Category Progress Bars -->
+                <div class="da-category-progress">
+                    <div class="da-progress-item">
+                        <div class="da-progress-header">
+                            <span class="da-progress-label">Consultative Selling</span>
+                            <span class="da-progress-status" id="progress-cs-status">0%</span>
+                        </div>
+                        <div class="da-progress-bar">
+                            <div class="da-progress-fill" id="progress-cs" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="da-progress-item">
+                        <div class="da-progress-header">
+                            <span class="da-progress-label">Konzept</span>
+                            <span class="da-progress-status" id="progress-konzept-status">0%</span>
+                        </div>
+                        <div class="da-progress-bar">
+                            <div class="da-progress-fill" id="progress-konzept" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="da-progress-item">
+                        <div class="da-progress-header">
+                            <span class="da-progress-label">Pitch</span>
+                            <span class="da-progress-status" id="progress-pitch-status">0%</span>
+                        </div>
+                        <div class="da-progress-bar">
+                            <div class="da-progress-fill" id="progress-pitch" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sum Chips -->
+                <div id="sumchips" class="da-sumchips"></div>
+            </section>
+
+            <!-- Actions -->
+            <div class="da-actions">
+                <button class="btn" type="button"
+                    onclick="window.requestDockEntryDialogClose && window.requestDockEntryDialogClose()">Abbrechen</button>
+                <button class="btn ok" id="btnSave" type="button">Speichern</button>
+            </div>
+        </div>
+    </div>
+</dialog>
