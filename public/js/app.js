@@ -1642,7 +1642,7 @@ function autoComplete(e) {
 function filtered(type = 'fix') {
   const currentEntries = getEntries();
   let arr = currentEntries.filter(e => (e.projectType || 'fix') === type); // Greift auf den zentralen Eintrags-Store zu
-  const query = omniSearch ? omniSearch.value.trim().toLowerCase() : '';
+  const query = omniSearch.value.trim().toLowerCase();
   const selectedPerson = personFilter ? personFilter.value : '';
 
   if (type === 'fix') {
@@ -1812,7 +1812,6 @@ function updateFixPaginationUI(totalItems, totalPages) {
 }
 
 function renderHistory() {
-  if (!historyBody) return;
   historyBody.innerHTML = '';
   updateSortIcons();
   updatePersonFilterOptions();
@@ -1891,29 +1890,22 @@ function renderHistory() {
   appendSection('Unvollständig', groups.incomplete, 'bad');
   appendSection('Vollständig', groups.complete, 'ok');
 
-  const fixSumDisplay = document.getElementById('fixSumDisplay');
-  fixSumDisplay?.innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+  document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
   updateFixPaginationUI(decoratedEntries.length, totalPages);
-  if (checkAllFix) {
-    checkAllFix.checked = false;
-  }
+  checkAllFix.checked = false;
   updateBatchButtons();
 }
-if (omniSearch) {
-  omniSearch.addEventListener('input', () => {
-    resetFixPagination();
-    renderHistory();
-  });
-}
+omniSearch.addEventListener('input', () => {
+  resetFixPagination();
+  renderHistory();
+});
 if (personFilter) {
   personFilter.addEventListener('change', () => {
     resetFixPagination();
     renderHistory();
   });
 }
-if (rahmenSearch) {
-  rahmenSearch.addEventListener('input', renderFrameworkContracts);
-}
+rahmenSearch.addEventListener('input', renderFrameworkContracts);
 
 if (fixPageSizeSelect) {
   fixPageSizeSelect.addEventListener('change', () => {
@@ -1952,12 +1944,10 @@ if (fixNextPage) {
 }
 
 function getSelectedFixIds() {
-  if (!historyBody) return [];
   return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
 }
 
 function updateBatchButtons() {
-  if (!btnBatchDelete || !btnMoveToFramework) return;
   const selectedIds = getSelectedFixIds();
   if (selectedIds.length > 0) {
     btnBatchDelete.classList.remove('hide');
@@ -1968,27 +1958,21 @@ function updateBatchButtons() {
     btnBatchDelete.classList.add('hide');
     btnMoveToFramework.classList.add('hide');
   }
-  if (checkAllFix) {
-    checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
-  }
+  checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
 
-if (checkAllFix) {
-  checkAllFix.addEventListener('change', () => {
-    document.querySelectorAll('#historyBody .row-check').forEach(cb => {
-      cb.checked = checkAllFix.checked;
-    });
+checkAllFix.addEventListener('change', () => {
+  document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+    cb.checked = checkAllFix.checked;
+  });
+  updateBatchButtons();
+});
+
+historyBody.addEventListener('change', (ev) => {
+  if (ev.target.classList.contains('row-check')) {
     updateBatchButtons();
-  });
-}
-
-if (historyBody) {
-  historyBody.addEventListener('change', (ev) => {
-    if (ev.target.classList.contains('row-check')) {
-      updateBatchButtons();
-    }
-  });
-}
+  }
+});
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
