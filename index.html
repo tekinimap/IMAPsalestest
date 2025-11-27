@@ -2486,6 +2486,43 @@
         min-width: 800px;
       }
     }
+
+    /* Markierungen für Fix vs. Rahmen */
+    #viewPortfolio tbody tr.entry-fix td:first-child {
+      border-left: 4px solid var(--accent);
+    }
+
+    #viewPortfolio tbody tr.entry-rahmen td:first-child {
+      border-left: 4px solid var(--ok);
+    }
+
+    /* Progress-Bar für Rahmenverträge */
+    .progress-bar {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 100%;
+      height: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+    }
+
+    .progress-fill.ok {
+      background-color: var(--ok);
+    }
+
+    .progress-fill.warn {
+      background-color: var(--warn);
+    }
+
+    .progress-fill.bad {
+      background-color: var(--bad);
+    }
   </style>
 
   <style>
@@ -2813,9 +2850,8 @@
         <img src="public/dock_png_original.png" alt="dock Logo" loading="lazy" class="app-logo">
       </div>
       <div class="main-nav">
-        <a href="#" class="nav-link active" data-view="erfassung">Dock</a>
-        <a href="#" class="nav-link" data-view="fixauftraege">Fixaufträge</a>
-        <a href="#" class="nav-link" data-view="rahmen">Rahmenverträge</a>
+        <a href="#" class="nav-link active" data-view="erfassung">Erfassung</a>
+        <a href="#" class="nav-link" data-view="portfolio">Portfolio</a>
         <a href="#" class="nav-link" data-view="analytics">Auswertung</a>
         <a href="#" class="nav-link" data-view="admin">Admin</a>
       </div>
@@ -3040,95 +3076,54 @@
       </div>
     </div>
 
-    <div class="card hide" id="viewFixauftraege">
+    <section id="viewPortfolio" class="hide">
       <div class="hd">
-        <h1>Fixaufträge</h1>
-        <div id="fixSumDisplay" class="sum-display">💰 Lade Summe...</div>
-        <p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p>
+        <h1>Portfolio</h1>
+        <p>Alle Fixaufträge und Rahmenverträge im Überblick.</p>
       </div>
       <div class="ct">
-        <div class="search-wrapper">
-          <input id="omniSearch" type="text"
-            placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
-          <div class="filter-group">
-            <label for="personFilter">Einschätzung abgegeben oder abzugeben von:</label>
-            <select id="personFilter">
-              <option value="">Alle Personen</option>
-            </select>
-          </div>
-          <div class="batch-actions">
-            <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
-            <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
-            <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-check"><input type="checkbox" id="checkAllFix" title="Alle auswählen"></th>
-                <th class="sortable" data-sort="projectNumber">Projektnummer<span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="title">Projekttitel<span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="client">Auftraggeber<span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="source">Quelle<span class="sort-icon"></span></th>
-                <th class="sortable" data-sort="submittedBy">Einschätzung abgegeben von<span class="sort-icon"></span>
-                </th>
-                <th class="sortable col-amount" data-sort="amount">Wert EUR<span class="sort-icon"></span></th>
-                <th class="sortable col-date" data-sort="freigabedatum">Abschluss<span class="sort-icon"></span></th>
-                <th style="width:10%">Aktionen</th>
-              </tr>
-            </thead>
-            <tbody id="historyBody"></tbody>
-          </table>
-        </div>
-
-        <div class="pagination-bar">
-          <div class="pagination-info" id="fixPaginationInfo">Lade Daten...</div>
-          <div class="pagination-controls">
-            <label for="fixPageSize">Pro Seite</label>
-            <select id="fixPageSize">
-              <option value="10">10</option>
-              <option value="25" selected>25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-            <div class="page-buttons">
-              <button class="btn" id="fixPrevPage" type="button">← Zurück</button>
-              <span class="page-indicator" id="fixPageIndicator">Seite 1 / 1</span>
-              <button class="btn" id="fixNextPage" type="button">Weiter →</button>
+        <div class="dock-toolbar">
+          <div class="dock-filters">
+            <div class="dock-filter">
+              <label>Filter</label>
+              <div class="dock-badge-row" id="portfolioFilters">
+                <button class="dock-pill accent" data-filter="all">Alle</button>
+                <button class="dock-pill" data-filter="fix">Nur Fix</button>
+                <button class="dock-pill" data-filter="rahmen">Nur Rahmen</button>
+                <button class="dock-pill warn" data-filter="critical">Kritisch (&gt;80%)</button>
+              </div>
+            </div>
+            <div class="dock-filter" style="flex: 1; min-width: 200px;">
+              <label for="portfolioSearch">Suche</label>
+              <input type="text" id="portfolioSearch" placeholder="Titel, Kunde, Projektnummer, KV-Nummer..." />
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="card hide" id="viewRahmen">
-      <div class="hd">
-        <h1>Rahmenverträge</h1>
-        <div id="rahmenSumDisplay" class="sum-display">💰 Lade Summe...</div>
-        <p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p>
-      </div>
-      <div class="ct">
-        <div class="search-wrapper">
-          <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:15%">Projektnummer</th>
-                <th style="width:30%">Projekttitel</th>
-                <th style="width:20%">Kunde</th>
-                <th style="width:15%">Gesamtwert</th>
-                <th style="width:20%">Aktionen</th>
-              </tr>
-            </thead>
-            <tbody id="rahmenBody"></tbody>
-          </table>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="w-full">
+              <thead>
+                <tr>
+                  <th class="w-12">Typ</th>
+                  <th class="text-left">Projektnummer</th>
+                  <th class="text-left">Titel</th>
+                  <th class="text-left">Kunde</th>
+                  <th class="text-right">Budget / Volumen</th>
+                  <th class="text-right">Status</th>
+                  <th class="w-12"></th>
+                </tr>
+              </thead>
+              <tbody id="portfolioBody">
+                <!-- Inhalte werden durch portfolio.js eingefügt -->
+              </tbody>
+            </table>
+          </div>
+          <div class="dock-empty hide" id="portfolioEmptyState">
+            Keine Einträge gefunden.
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <div class="card hide" id="viewRahmenDetails">
       <div class="hd">
