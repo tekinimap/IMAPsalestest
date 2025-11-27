@@ -1889,10 +1889,15 @@ function renderHistory() {
   appendSection('Unvollständig', groups.incomplete, 'bad');
   appendSection('Vollständig', groups.complete, 'ok');
 
-  document.getElementById('fixSumDisplay').innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
-  updateFixPaginationUI(decoratedEntries.length, totalPages);
-  checkAllFix.checked = false;
-  updateBatchButtons();
+    const fixSumDisplay = document.getElementById('fixSumDisplay');
+    if (fixSumDisplay) {
+      fixSumDisplay.innerHTML = `💰 <span>${fmtCurr0.format(totalSum)}</span> (gefilterte Ansicht)`;
+    }
+    updateFixPaginationUI(decoratedEntries.length, totalPages);
+    if (checkAllFix) {
+      checkAllFix.checked = false;
+    }
+    updateBatchButtons();
 }
 if (omniSearch) {
   omniSearch.addEventListener('input', () => {
@@ -1950,8 +1955,9 @@ function getSelectedFixIds() {
   return Array.from(document.querySelectorAll('#historyBody .row-check:checked')).map(cb => cb.dataset.id);
 }
 
-function updateBatchButtons() {
-  const selectedIds = getSelectedFixIds();
+  function updateBatchButtons() {
+    if (!checkAllFix || !btnBatchDelete || !btnMoveToFramework) return;
+    const selectedIds = getSelectedFixIds();
   if (selectedIds.length > 0) {
     btnBatchDelete.classList.remove('hide');
     btnMoveToFramework.classList.remove('hide');
@@ -1964,18 +1970,22 @@ function updateBatchButtons() {
   checkAllFix.checked = selectedIds.length > 0 && selectedIds.length === document.querySelectorAll('#historyBody .row-check').length;
 }
 
-checkAllFix.addEventListener('change', () => {
-  document.querySelectorAll('#historyBody .row-check').forEach(cb => {
-    cb.checked = checkAllFix.checked;
-  });
-  updateBatchButtons();
-});
-
-historyBody.addEventListener('change', (ev) => {
-  if (ev.target.classList.contains('row-check')) {
-    updateBatchButtons();
+  if (checkAllFix) {
+    checkAllFix.addEventListener('change', () => {
+      document.querySelectorAll('#historyBody .row-check').forEach(cb => {
+        cb.checked = checkAllFix.checked;
+      });
+      updateBatchButtons();
+    });
   }
-});
+
+  if (historyBody) {
+    historyBody.addEventListener('change', (ev) => {
+      if (ev.target.classList.contains('row-check')) {
+        updateBatchButtons();
+      }
+    });
+  }
 
 document.querySelectorAll('#viewFixauftraege th.sortable').forEach(th => {
   th.addEventListener('click', () => {
@@ -2018,28 +2028,32 @@ function handleDeleteClick(id, type = 'entry', parentId = null) {
 }
 
 // PASSWORTFREI: Batch-Löschung
-btnBatchDelete.addEventListener('click', () => {
-  const selectedIds = getSelectedFixIds();
-  if (selectedIds.length === 0) return;
+  if (btnBatchDelete) {
+    btnBatchDelete.addEventListener('click', () => {
+      const selectedIds = getSelectedFixIds();
+      if (selectedIds.length === 0) return;
 
-  // Passwortabfrage entfernt
-  setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
-  document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
-  document.getElementById('confirmDlgText').textContent =
-    `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
-  document.getElementById('confirmDlg').showModal();
-});
-
-
-historyBody.addEventListener('click', async (ev) => {
-  const btn = ev.target.closest('button[data-act]'); if (!btn) return;
-  const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
-  if (act === 'edit') {
-    editEntry(id);
-  } else if (act === 'del') {
-    handleDeleteClick(id, 'entry');
+      // Passwortabfrage entfernt
+      setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
+      document.getElementById('confirmDlgTitle').textContent = `Einträge löschen`;
+      document.getElementById('confirmDlgText').textContent =
+        `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+      document.getElementById('confirmDlg').showModal();
+    });
   }
-});
+
+
+  if (historyBody) {
+    historyBody.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button[data-act]'); if (!btn) return;
+      const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
+      if (act === 'edit') {
+        editEntry(id);
+      } else if (act === 'del') {
+        handleDeleteClick(id, 'entry');
+      }
+    });
+  }
 
 function editEntry(id) {
   const e = entries.find(x => x.id === id); if (!e) return;
@@ -2373,24 +2387,26 @@ const moveToFrameworkDlg = document.getElementById('moveToFrameworkDlg');
 const moveValidationSummary = document.getElementById('moveValidationSummary');
 const moveTargetFramework = document.getElementById('moveTargetFramework');
 
-btnMoveToFramework.addEventListener('click', () => {
-  const selectedIds = getSelectedFixIds();
-  if (selectedIds.length === 0) return;
+if (btnMoveToFramework) {
+  btnMoveToFramework.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
 
-  moveValidationSummary.textContent = '';
-  document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
+    moveValidationSummary.textContent = '';
+    document.getElementById('moveDlgCountLabel').textContent = `Sie sind dabei, ${selectedIds.length} Auftrag/Aufträge zuzuweisen.`;
 
-  const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => a.title.localeCompare(b.title));
-  moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
-  rahmenEntries.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e.id;
-    opt.textContent = `${e.title} (${e.client})`;
-    moveTargetFramework.appendChild(opt);
+    const rahmenEntries = entries.filter(e => e.projectType === 'rahmen').sort((a, b) => a.title.localeCompare(b.title));
+    moveTargetFramework.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
+    rahmenEntries.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = `${e.title} (${e.client})`;
+      moveTargetFramework.appendChild(opt);
+    });
+
+    moveToFrameworkDlg.showModal();
   });
-
-  moveToFrameworkDlg.showModal();
-});
+}
 
 document.getElementById('btnConfirmMove').addEventListener('click', async () => {
   const selectedIds = getSelectedFixIds();
