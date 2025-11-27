@@ -3133,26 +3133,151 @@ min-width: 800px;
                     </div>
                   </div>
                 </div>
+              </div>
+              <div class="ct">
+                <h3>Personen & Teams</h3>
+                <div class="search-wrapper">
+                  <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
+                </div>
+                <div class="grid-admin">
+                  <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text"
+                      placeholder="z. B. Max Mustermann"></div>
+                  <div><label for="adm_team">Team</label>
+                    <select id="adm_team" data-placeholder="— bitte wählen —"></select>
+                  </div>
+                  <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button>
+                  </div>
+                </div>
+                <div class="table-wrapper" style="margin-top:14px;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:44%">Name</th>
+                        <th style="width:44%">Team</th>
+                        <th style="width:12%">Aktionen</th>
+                      </tr>
+                    </thead>
+                    <tbody id="adm_body"></tbody>
+                  </table>
+                </div>
+                <div class="hr"></div>
+                <h3>ERP-Abgleich per Excel-Import</h3>
+                <p class="note" style="font-size: 14px; margin-bottom: 12px;">Laden Sie hier die Excel-Datei aus
+                  dem
+                  ERP-System
+                  hoch. Das System wird bestehende Abrufe (via KV-Nummer) aktualisieren, neue Abrufe zu
+                  bestehenden
+                  Rahmenverträgen (via Projektnummer) hinzufügen oder neue Fixaufträge anlegen.</p>
+                <div class="search-wrapper">
+                  <input type="file" id="erpFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
+                  <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
+                </div>
+                <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
 
-                <div class="meta-box weighting-box">
-                  <div class="slider-container weighting-slider">
-                    <button class="slider-info-btn" type="button">i</button>
+                <div class="hr"></div>
+                <h3>Import: dock (Altdaten)</h3>
+                <p class="note" style="font-size: 14px; margin-bottom: 12px;">
+                  Nur für Altdaten: Lädt eine Excel-Datei, die KV-Nummern und Team-Prozentsätze (als Zahlen von
+                  0-1)
+                  enthält.
+                  Die Funktion <strong>überspringt KV-Nummern, die nicht gefunden werden</strong>, und erstellt
+                  <strong>keine</strong> neuen Aufträge.
+                  Sie <strong>überschreibt</strong> die Sales-Verteilung für alle gefundenen Einträge.
+                </p>
+                <div class="search-wrapper">
+                  <input type="file" id="legacySalesFile" accept=".xlsx, .xls, .csv"
+                    style="padding: 10px; flex-grow: 1;">
+                  <button class="btn warn" id="btnLegacySalesImport">Legacy-Sales-Import starten</button>
+                </div>
+                <div id="legacyImportResult" class="info-box hide" style="margin-top: 14px;"></div>
+              </div>
+            </div>
 
-                    <div class="range-wrapper">
-                      <div class="slider-ticks">
-                        <div class="tick-mark"></div>
-                        <div class="tick-mark"></div>
-                        <div class="tick-mark"></div>
-                        <div class="tick-mark"></div>
+            <div class="card hide" id="viewAnalytics">
+              <div class="hd">
+                <h1>Auswertung</h1>
+                <p>Jahressummen, monetär. Basis: Fixaufträge & Rahmenverträge.</p>
+              </div>
+              <div class="ct">
+                <div class="analytics-controls">
+                  <label>Jahr</label>
+                  <select id="anaYear" class="ipt"></select>
+                  <button class="btn" id="anaRefresh">Aktualisieren</button>
+                  <button class="btn" id="btnAnaXlsx">Export XLSX</button>
+                </div>
+                <div class="grid-3">
+                  <div class="chart sales-summary-card" style="grid-column:1/-1">
+                    <div class="chart-head">
+                      <h3>Salesbeiträge pro Person (Ist vs. gewichtet)</h3>
+                      <div class="chart-actions">
+                        <label class="chart-toggle" for="anaTogglePersonWeighting">
+                          <input type="checkbox" id="anaTogglePersonWeighting"> Blende Gewichtung ein
+                        </label>
+                        <div class="chart-toggle chart-multi" style="gap:10px;">
+                          <span>Markt-Team Filter</span>
+                          <div id="anaMarketTeamFilter" class="analytics-multiselect"></div>
+                        </div>
                       </div>
-                      <input type="range" class="snappy-range" name="weightingFactor" id="weightingFactor" min="0.5"
-                        max="2.0" step="0.5" value="1.0">
                     </div>
+                    <div id="salesContributionSummary" class="weighted-list"></div>
+                  </div>
+                  <div class="chart" style="grid-column:1/-1">
+                    <div class="chart-head">
+                      <h3>Salesbeiträge pro Team (Ist vs. gewichtet)</h3>
+                      <div class="chart-actions">
+                        <label class="chart-toggle" for="anaToggleTeamWeighting">
+                          <input type="checkbox" id="anaToggleTeamWeighting"> Blende Gewichtung ein
+                        </label>
+                      </div>
+                    </div>
+                    <div id="chartTeams" class="weighted-list"></div>
+                  </div>
+                  <div class="chart" style="grid-column:1/-1">
+                    <h3>Gesamtübersicht (monetär)</h3>
+                    <div id="chartTotals"></div>
+                  </div>
+                </div>
 
-                    <div class="slider-values-row">
-                      <span>0,5</span><span>1,0</span><span>1,5</span><span>2,0</span>
-                    </div>
-                    <span id="weightingActiveValue" style="display:none">1,0×</span>
+                <div class="hr"></div>
+                <h2>Aktivität Rahmenverträge</h2>
+                <div class="analytics-controls">
+                  <label for="anaStartDate">Von</label>
+                  <input type="date" id="anaStartDate">
+                  <label for="anaEndDate">Bis</label>
+                  <input type="date" id="anaEndDate">
+                  <button class="btn" id="btnAnaThisYear">Dieses Jahr</button>
+                  <button class="btn" id="btnAnaLastYear">Letztes Jahr</button>
+                  <button class="btn primary" id="btnAnaRangeRefresh">Laden</button>
+                </div>
+                <div class="grid-3">
+                  <div class="chart" style="grid-column:1/-1">
+                    <h3 id="chartActivityTitle">Rahmenvertragsnutzung und Hunter/Founder-Anteile</h3>
+                    <div id="chartActivity"></div>
+                  </div>
+                </div>
+
+                <div class="hr"></div>
+                <h2>Umsatz- & Deal-Trends</h2>
+                <div class="analytics-controls">
+                  <label for="trendFromMonth">Von</label>
+                  <input type="month" id="trendFromMonth">
+                  <label for="trendToMonth">Bis</label>
+                  <input type="month" id="trendToMonth">
+                  <button class="btn" id="btnTrendThisYear">Dieses Jahr</button>
+                  <button class="btn" id="btnTrendLast12">Letzte 12 Monate</button>
+                  <button class="btn primary" id="btnTrendLoad">Aktualisieren</button>
+                  <button class="btn" id="btnTrendCsv">Export CSV</button>
+                  <button class="btn" id="btnTrendXlsx">Export XLSX</button>
+                </div>
+                <div id="trendSummary" class="metrics-grid"></div>
+                <div class="grid-3">
+                  <div class="chart" style="grid-column:1/-1">
+                    <h3>Monatlicher Umsatz</h3>
+                    <div id="trendRevenueChart" class="chart-canvas"></div>
+                  </div>
+                  <div class="chart" style="grid-column:1/-1">
+                    <h3>Kumulierte Jahresleistung</h3>
+                    <div id="trendCumulativeChart" class="chart-canvas"></div>
                   </div>
                 </div>
 
@@ -3160,572 +3285,292 @@ min-width: 800px;
             </div>
 
           </div>
-        </div>
-      </dialog>
-    </div>
-  </div>
 
-  <div class="card hide" id="viewFixauftraege">
-    <div class="hd">
-      <h1>Fixaufträge</h1>
-      <div id="fixSumDisplay" class="sum-display">💰 Lade Summe...</div>
-      <p>Suche, Filter & Sortierung. Export .xlsx der gefilterten Ansicht.</p>
-    </div>
-    <div class="ct">
-      <div class="search-wrapper">
-        <input id="omniSearch" type="text"
-          placeholder="Suchen... (z.B. 'DRV Bund status:vollständig quelle:hubspot wert:>50000')">
-        <div class="filter-group">
-          <label for="personFilter">Einschätzung abgegeben oder abzugeben von:</label>
-          <select id="personFilter">
-            <option value="">Alle Personen</option>
-          </select>
-        </div>
-        <div class="batch-actions">
-          <button class="btn" id="btnXlsx" style="white-space:nowrap;">Export XLSX</button>
-          <button class="btn warn hide" id="btnMoveToFramework">Zuweisen...</button>
-          <button class="btn danger hide" id="btnBatchDelete">Markierte Löschen</button>
-        </div>
-      </div>
+          <!-- PORTFOLIO VIEW -->
+          <section id="viewPortfolio" class="hide">
+            <div class="hd">
+              <h1>Portfolio</h1>
+              <p>Alle Fixaufträge und Rahmenverträge im Überblick.</p>
+            </div>
 
-      <th style="width:10%">Aktionen</th>
-      </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-      </table>
-    </div>
+            <div class="ct">
+              <div class="dock-toolbar">
+                <div class="dock-filters">
+                  <div class="dock-filter">
+                    <label>Filter</label>
+                    <div class="dock-badge-row" id="portfolioFilters">
+                      <button class="dock-pill accent" data-filter="all">Alle</button>
+                      <button class="dock-pill" data-filter="fix">Nur Fix</button>
+                      <button class="dock-pill" data-filter="rahmen">Nur Rahmen</button>
+                      <button class="dock-pill warn" data-filter="critical">Kritisch (>80%)</button>
+                    </div>
+                  </div>
+                  <div class="dock-filter" style="flex: 1; min-width: 200px;">
+                    <label for="portfolioSearch">Suche</label>
+                    <input type="text" id="portfolioSearch" placeholder="Titel, Kunde, Projektnummer..." />
+                  </div>
+                </div>
+              </div>
 
-    <div class="pagination-bar">
-      <div class="pagination-info" id="fixPaginationInfo">Lade Daten...</div>
-      <div class="pagination-controls">
-        <label for="fixPageSize">Pro Seite</label>
-        <select id="fixPageSize">
-          <option value="10">10</option>
-          <option value="25" selected>25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-        <div class="page-buttons">
-          <button class="btn" id="fixPrevPage" type="button">← Zurück</button>
-          <span class="page-indicator" id="fixPageIndicator">Seite 1 / 1</span>
-          <button class="btn" id="fixNextPage" type="button">Weiter →</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <div class="card hide" id="viewRahmen">
-    <div class="hd">
-      <h1>Rahmenverträge</h1>
-      <div id="rahmenSumDisplay" class="sum-display">💰 Lade Summe...</div>
-      <p>Werte von dynamischen Rahmenverträgen aktualisieren und neue Abrufe erfassen.</p>
-    </div>
-    <div class="ct">
-      <div class="search-wrapper">
-        <input id="rahmenSearch" type="text" placeholder="Suchen nach Titel, Kunde, Person oder Hunter-Auftrag...">
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:15%">Projektnummer</th>
-              <th style="width:30%">Projekttitel</th>
-              <th style="width:20%">Kunde</th>
-              <th style="width:15%">Gesamtwert</th>
-              <th style="width:20%">Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="rahmenBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="card hide" id="viewRahmenDetails">
-    <div class="hd">
-      <h1 id="rahmenDetailsTitle"></h1>
-      <p id="rahmenDetailsSub"></p>
-    </div>
-    <div class="ct">
-      <button class="btn" id="backToRahmen" style="margin-bottom: 16px;">← Zurück zur Übersicht</button>
-
-      <div class="grid-2">
-        <div>
-          <h3>Gründer-Team (initiale Verteilung)</h3>
-          <div class="table-wrapper">
-            <table style="min-width:auto;">
-              <thead>
-                <tr>
-                  <th>Person</th>
-                  <th>Anteil</th>
-                </tr>
-              </thead>
-              <tbody id="rahmenFoundersBody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div>
-          <h3>Tatsächliche Gesamtverteilung</h3>
-          <div class="table-wrapper">
-            <table style="min-width:auto;">
-              <thead>
-                <tr>
-                  <th>Person</th>
-                  <th>Anteil</th>
-                  <th>Wert</th>
-                </tr>
-              </thead>
-              <tbody id="rahmenActualBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-      <h3>Transaktions-Historie (zum Bearbeiten klicken)</h3>
-      <div class="table-wrapper">
-        <table style="min-width:auto;">
-          <thead>
-            <tr>
-              <th>KV-Nummer</th>
-              <th>Typ</th>
-              <th>Titel</th>
-              <th>Wert</th>
-              <th>Abschluss</th>
-              <th>Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="rahmenTransaktionenBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="card hide" id="viewAdmin">
-    <div class="hd">
-      <h1>Admin</h1>
-      <p>Verwaltung von Personen, Teams und Datenimport.</p>
-    </div>
-    <div class="ct">
-      <h3>Personen & Teams</h3>
-      <div class="search-wrapper">
-        <input id="adminSearch" type="text" placeholder="Person oder Team suchen...">
-      </div>
-      <div class="grid-admin">
-        <div><label for="adm_name">Vor- und Nachname</label><input id="adm_name" type="text"
-            placeholder="z. B. Max Mustermann"></div>
-        <div><label for="adm_team">Team</label>
-          <select id="adm_team" data-placeholder="— bitte wählen —"></select>
-        </div>
-        <div style="display:flex;align-items:flex-end"><button class="btn ok" id="adm_add">Anlegen</button></div>
-      </div>
-      <div class="table-wrapper" style="margin-top:14px;">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:44%">Name</th>
-              <th style="width:44%">Team</th>
-              <th style="width:12%">Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="adm_body"></tbody>
-        </table>
-      </div>
-      <div class="hr"></div>
-      <h3>ERP-Abgleich per Excel-Import</h3>
-      <p class="note" style="font-size: 14px; margin-bottom: 12px;">Laden Sie hier die Excel-Datei aus dem ERP-System
-        hoch. Das System wird bestehende Abrufe (via KV-Nummer) aktualisieren, neue Abrufe zu bestehenden
-        Rahmenverträgen (via Projektnummer) hinzufügen oder neue Fixaufträge anlegen.</p>
-      <div class="search-wrapper">
-        <input type="file" id="erpFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
-        <button class="btn primary" id="btnErpImport">Import & Abgleich starten</button>
-      </div>
-      <div id="importResult" class="info-box hide" style="margin-top: 14px;"></div>
-
-      <div class="hr"></div>
-      <h3>Import: dock (Altdaten)</h3>
-      <p class="note" style="font-size: 14px; margin-bottom: 12px;">
-        Nur für Altdaten: Lädt eine Excel-Datei, die KV-Nummern und Team-Prozentsätze (als Zahlen von 0-1) enthält.
-        Die Funktion <strong>überspringt KV-Nummern, die nicht gefunden werden</strong>, und erstellt
-        <strong>keine</strong> neuen Aufträge.
-        Sie <strong>überschreibt</strong> die Sales-Verteilung für alle gefundenen Einträge.
-      </p>
-      <div class="search-wrapper">
-        <input type="file" id="legacySalesFile" accept=".xlsx, .xls, .csv" style="padding: 10px; flex-grow: 1;">
-        <button class="btn warn" id="btnLegacySalesImport">Legacy-Sales-Import starten</button>
-      </div>
-      <div id="legacyImportResult" class="info-box hide" style="margin-top: 14px;"></div>
-    </div>
-  </div>
-
-  <div class="card hide" id="viewAnalytics">
-    <div class="hd">
-      <h1>Auswertung</h1>
-      <p>Jahressummen, monetär. Basis: Fixaufträge & Rahmenverträge.</p>
-    </div>
-    <div class="ct">
-      <div class="analytics-controls">
-        <label>Jahr</label>
-        <select id="anaYear" class="ipt"></select>
-        <button class="btn" id="anaRefresh">Aktualisieren</button>
-        <button class="btn" id="btnAnaXlsx">Export XLSX</button>
-      </div>
-      <div class="grid-3">
-        <div class="chart sales-summary-card" style="grid-column:1/-1">
-          <div class="chart-head">
-            <h3>Salesbeiträge pro Person (Ist vs. gewichtet)</h3>
-            <div class="chart-actions">
-              <label class="chart-toggle" for="anaTogglePersonWeighting">
-                <input type="checkbox" id="anaTogglePersonWeighting"> Blende Gewichtung ein
-              </label>
-              <div class="chart-toggle chart-multi" style="gap:10px;">
-                <span>Markt-Team Filter</span>
-                <div id="anaMarketTeamFilter" class="analytics-multiselect"></div>
+              <div class="card">
+                <div class="table-wrapper">
+                  <table class="w-full">
+                    <thead>
+                      <tr>
+                        <th class="w-12">Typ</th>
+                        <th class="text-left">Projektnummer</th>
+                        <th class="text-left">Titel</th>
+                        <th class="text-left">Kunde</th>
+                        <th class="text-right">Budget / Volumen</th>
+                        <th class="text-right">Status</th>
+                        <th class="w-12"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="portfolioBody">
+                      <!-- Content rendered via JS -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="dock-empty hide" id="portfolioEmptyState">
+                  Keine Einträge gefunden.
+                </div>
               </div>
             </div>
-          </div>
-          <div id="salesContributionSummary" class="weighted-list"></div>
-        </div>
-        <div class="chart" style="grid-column:1/-1">
-          <div class="chart-head">
-            <h3>Salesbeiträge pro Team (Ist vs. gewichtet)</h3>
-            <div class="chart-actions">
-              <label class="chart-toggle" for="anaToggleTeamWeighting">
-                <input type="checkbox" id="anaToggleTeamWeighting"> Blende Gewichtung ein
-              </label>
+          </section>
+
+          <dialog id="confirmDlg">
+
+            <button class="dialog-close" type="button" aria-label="Modal schließen">×</button>
+            <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong><span
+                  id="confirmDlgTitle">Eintrag
+                  löschen</span></strong></div>
+            <div class="ct" style="padding:16px">
+              <p id="confirmDlgText">Wollen Sie den Eintrag wirklich löschen?</p>
+              <div style="display:flex;gap:10px;justify-content:flex-end">
+                <button class="btn" id="btnNo">Abbrechen</button>
+                <button class="btn danger" id="btnYes">Löschen</button>
+              </div>
             </div>
-          </div>
-          <div id="chartTeams" class="weighted-list"></div>
-        </div>
-        <div class="chart" style="grid-column:1/-1">
-          <h3>Gesamtübersicht (monetär)</h3>
-          <div id="chartTotals"></div>
-        </div>
-      </div>
+          </dialog>
 
-      <div class="hr"></div>
-      <h2>Aktivität Rahmenverträge</h2>
-      <div class="analytics-controls">
-        <label for="anaStartDate">Von</label>
-        <input type="date" id="anaStartDate">
-        <label for="anaEndDate">Bis</label>
-        <input type="date" id="anaEndDate">
-        <button class="btn" id="btnAnaThisYear">Dieses Jahr</button>
-        <button class="btn" id="btnAnaLastYear">Letztes Jahr</button>
-        <button class="btn primary" id="btnAnaRangeRefresh">Laden</button>
-      </div>
-      <div class="grid-3">
-        <div class="chart" style="grid-column:1/-1">
-          <h3 id="chartActivityTitle">Rahmenvertragsnutzung und Hunter/Founder-Anteile</h3>
-          <div id="chartActivity"></div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-      <h2>Umsatz- & Deal-Trends</h2>
-      <div class="analytics-controls">
-        <label for="trendFromMonth">Von</label>
-        <input type="month" id="trendFromMonth">
-        <label for="trendToMonth">Bis</label>
-        <input type="month" id="trendToMonth">
-        <button class="btn" id="btnTrendThisYear">Dieses Jahr</button>
-        <button class="btn" id="btnTrendLast12">Letzte 12 Monate</button>
-        <button class="btn primary" id="btnTrendLoad">Aktualisieren</button>
-        <button class="btn" id="btnTrendCsv">Export CSV</button>
-        <button class="btn" id="btnTrendXlsx">Export XLSX</button>
-      </div>
-      <div id="trendSummary" class="metrics-grid"></div>
-      <div class="grid-3">
-        <div class="chart" style="grid-column:1/-1">
-          <h3>Monatlicher Umsatz</h3>
-          <div id="trendRevenueChart" class="chart-canvas"></div>
-        </div>
-        <div class="chart" style="grid-column:1/-1">
-          <h3>Kumulierte Jahresleistung</h3>
-          <div id="trendCumulativeChart" class="chart-canvas"></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  </div>
-
-  <!-- PORTFOLIO VIEW -->
-  <section id="viewPortfolio" class="hide">
-    <div class="hd">
-      <h1>Portfolio</h1>
-      <p>Alle Fixaufträge und Rahmenverträge im Überblick.</p>
-    </div>
-
-    <div class="ct">
-      <div class="dock-toolbar">
-        <div class="dock-filters">
-          <div class="dock-filter">
-            <label>Filter</label>
-            <div class="dock-badge-row" id="portfolioFilters">
-              <button class="dock-pill accent" data-filter="all">Alle</button>
-              <button class="dock-pill" data-filter="fix">Nur Fix</button>
-              <button class="dock-pill" data-filter="rahmen">Nur Rahmen</button>
-              <button class="dock-pill warn" data-filter="critical">Kritisch (>80%)</button>
+          <dialog id="moveToFrameworkDlg" style="min-width: 500px;">
+            <button class="dialog-close" type="button" aria-label="Modal schließen"
+              onclick="this.closest('dialog').close()">×</button>
+            <div class="hd">
+              <h1>Aufträge zuweisen</h1>
             </div>
-          </div>
-          <div class="dock-filter" style="flex: 1; min-width: 200px;">
-            <label for="portfolioSearch">Suche</label>
-            <input type="text" id="portfolioSearch" placeholder="Titel, Kunde, Projektnummer..." />
-          </div>
-        </div>
-      </div>
+            <div class="ct">
+              <div id="moveValidationSummary" class="validation-summary"></div>
+              <p id="moveDlgCountLabel"></p>
+              <div>
+                <label for="moveTargetFramework">Ziel-Rahmenvertrag *</label>
+                <select id="moveTargetFramework">
+                  <option value="">-- Bitte Rahmenvertrag wählen --</option>
+                </select>
+              </div>
+              <div style="margin-top: 16px;">
+                <label>Abruf-Typ *</label>
+                <div class="radio-group">
+                  <label><input type="radio" name="moveType" value="founder" checked> Passiver Abruf
+                    (Founder)</label>
+                  <label><input type="radio" name="moveType" value="hunter"> Aktiver Abruf (Hunter)</label>
+                </div>
+                <p class="note small" style="margin-top: 10px;">
+                  <b>Passiv (Founder):</b> Nur Betrag & KV-Nr. werden übernommen. Die Sales-Verteilung des
+                  Fixauftrags
+                  wird
+                  verworfen und stattdessen die Founder-Verteilung des Rahmenvertrags angewendet.
+                  <br><br>
+                  <b>Aktiv (Hunter):</b> Der komplette Eintrag inkl. Sales-Verteilung wird 1:1 als "Hunter"-Abruf
+                  übernommen.
+                  Dies geht nur, wenn der Fixauftrag vollständig (Status "ok") ist.
+                </p>
+              </div>
+              <div class="hr"></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
+                <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
+              </div>
+            </div>
+          </dialog>
 
-      <div class="card">
-        <div class="table-wrapper">
-          <table class="w-full">
-            <thead>
-              <tr>
-                <th class="w-12">Typ</th>
-                <th class="text-left">Projektnummer</th>
-                <th class="text-left">Titel</th>
-                <th class="text-left">Kunde</th>
-                <th class="text-right">Budget / Volumen</th>
-                <th class="text-right">Status</th>
-                <th class="w-12"></th>
-              </tr>
-            </thead>
-            <tbody id="portfolioBody">
-              <!-- Content rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-        <div class="dock-empty hide" id="portfolioEmptyState">
-          Keine Einträge gefunden.
-        </div>
-      </div>
-    </div>
-  </section>
+          <dialog id="editTransactionDlg" style="min-width: 800px;">
+            <button class="dialog-close" type="button" aria-label="Modal schließen"
+              onclick="this.closest('dialog').close()">×</button>
+            <div class="hd">
+              <h1 id="editTransDlgTitle">Abruf bearbeiten</h1>
+            </div>
+            <div class="ct">
+              <div id="editTransValidationSummary" class="validation-summary"></div>
+              <div id="editFounderTransView">
+                <div class="grid-2">
+                  <div>
+                    <label for="editFounderValueInput">Wert (EUR)</label>
+                    <input type="text" id="editFounderValueInput" inputmode="decimal">
+                  </div>
+                  <div>
+                    <label for="editFounderKvNummer">KV-Nummer</label>
+                    <input type="text" id="editFounderKvNummer">
+                  </div>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label for="editFounderFreigabedatum">Abschlussdatum</label>
+                  <input type="date" id="editFounderFreigabedatum">
+                </div>
+              </div>
 
-  <dialog id="confirmDlg">
+              <div id="editHunterTransView" class="hide">
+                <div class="grid-3">
+                  <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
+                  <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount"
+                      inputmode="decimal"></div>
+                  <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer">
+                  </div>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label for="editHunterFreigabedatum">Abschlussdatum</label>
+                  <input type="date" id="editHunterFreigabedatum">
+                </div>
+                <div class="hr"></div>
+                <div class="grid-3">
+                  <div><label>Gewicht: Consultative Selling (%)</label><input type="number" id="editW_cs" value="50">
+                  </div>
+                  <div><label>Gewicht: Konzept (%)</label><input type="number" id="editW_konzept" value="30">
+                  </div>
+                  <div><label>Gewicht: Pitch (%)</label><input type="number" id="editW_pitch" value="20"></div>
+                </div>
+                <div class="hr"></div>
+                <div class="actions"><span class="tag">Personen & Verteilung</span><button class="btn"
+                    id="editBtnAddRow" style="width:auto;">+ Zeile</button></div>
+                <div class="table-wrapper" style="margin-top:14px">
+                  <table style="min-width:auto;">
+                    <thead>
+                      <tr>
+                        <th>Person</th>
+                        <th>Consultative Selling</th>
+                        <th>Konzept</th>
+                        <th>Pitch</th>
+                        <th>Aktion</th>
+                      </tr>
+                    </thead>
+                    <tbody id="editTbody"></tbody>
+                  </table>
+                </div>
+              </div>
 
-    <button class="dialog-close" type="button" aria-label="Modal schließen">×</button>
-    <div class="hd" style="padding:16px;border-bottom:1px solid var(--border)"><strong><span
-          id="confirmDlgTitle">Eintrag
-          löschen</span></strong></div>
-    <div class="ct" style="padding:16px">
-      <p id="confirmDlgText">Wollen Sie den Eintrag wirklich löschen?</p>
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn" id="btnNo">Abbrechen</button>
-        <button class="btn danger" id="btnYes">Löschen</button>
-      </div>
-    </div>
-  </dialog>
+              <div class="hr"></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="btn" onclick="document.getElementById('editTransactionDlg').close()">Abbrechen</button>
+                <button class="btn ok" id="btnSaveTransaction">Speichern</button>
+              </div>
+            </div>
+          </dialog>
 
-  <dialog id="moveToFrameworkDlg" style="min-width: 500px;">
-    <button class="dialog-close" type="button" aria-label="Modal schließen"
-      onclick="this.closest('dialog').close()">×</button>
-    <div class="hd">
-      <h1>Aufträge zuweisen</h1>
-    </div>
-    <div class="ct">
-      <div id="moveValidationSummary" class="validation-summary"></div>
-      <p id="moveDlgCountLabel"></p>
-      <div>
-        <label for="moveTargetFramework">Ziel-Rahmenvertrag *</label>
-        <select id="moveTargetFramework">
-          <option value="">-- Bitte Rahmenvertrag wählen --</option>
-        </select>
-      </div>
-      <div style="margin-top: 16px;">
-        <label>Abruf-Typ *</label>
-        <div class="radio-group">
-          <label><input type="radio" name="moveType" value="founder" checked> Passiver Abruf (Founder)</label>
-          <label><input type="radio" name="moveType" value="hunter"> Aktiver Abruf (Hunter)</label>
-        </div>
-        <p class="note small" style="margin-top: 10px;">
-          <b>Passiv (Founder):</b> Nur Betrag & KV-Nr. werden übernommen. Die Sales-Verteilung des Fixauftrags wird
-          verworfen und stattdessen die Founder-Verteilung des Rahmenvertrags angewendet.
-          <br><br>
-          <b>Aktiv (Hunter):</b> Der komplette Eintrag inkl. Sales-Verteilung wird 1:1 als "Hunter"-Abruf übernommen.
-          Dies geht nur, wenn der Fixauftrag vollständig (Status "ok") ist.
-        </p>
-      </div>
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn" onclick="document.getElementById('moveToFrameworkDlg').close()">Abbrechen</button>
-        <button class="btn ok" id="btnConfirmMove">Zuweisen</button>
-      </div>
-    </div>
-  </dialog>
+          <dialog id="editFrameworkContractDlg" style="min-width: 800px;">
+            <button class="dialog-close" type="button" aria-label="Modal schließen"
+              onclick="this.closest('dialog').close()">×</button>
+            <div class="hd">
+              <h1>Rahmenvertrag bearbeiten</h1>
+            </div>
+            <div class="ct">
+              <div id="editFwValidationSummary" class="validation-summary"></div>
+              <div class="grid-3">
+                <div><label for="editFwClient">Auftraggeber</label><input type="text" id="editFwClient"></div>
+                <div><label for="editFwTitle">Projekttitel</label><input type="text" id="editFwTitle"></div>
+                <div><label for="editFwProjectNumber">Projektnummer</label><input type="text" id="editFwProjectNumber">
+                </div>
+              </div>
+              <div class="hr"></div>
+              <div class="grid-3">
+                <div><label>Gewicht: Consultative Selling (%)</label><input type="number" id="editFwW_cs" value="50">
+                </div>
+                <div><label>Gewicht: Konzept (%)</label><input type="number" id="editFwW_konzept" value="30">
+                </div>
+                <div><label>Gewicht: Pitch (%)</label><input type="number" id="editFwW_pitch" value="20"></div>
+              </div>
+              <div class="hr"></div>
+              <div class="actions"><span class="tag">Gründer-Team & initiale Verteilung</span><button class="btn"
+                  id="editFwBtnAddRow" style="width:auto;">+ Zeile</button></div>
+              <div class="table-wrapper" style="margin-top:14px">
+                <table style="min-width:auto;">
+                  <thead>
+                    <tr>
+                      <th>Person</th>
+                      <th>Consultative Selling</th>
+                      <th>Konzept</th>
+                      <th>Pitch</th>
+                      <th>Aktion</th>
+                    </tr>
+                  </thead>
+                  <tbody id="editFwTbody"></tbody>
+                </table>
+              </div>
+              <div class="hr"></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <button class="btn"
+                  onclick="document.getElementById('editFrameworkContractDlg').close()">Abbrechen</button>
+                <button class="btn ok" id="btnSaveFrameworkContract">Speichern</button>
+              </div>
+            </div>
+          </dialog>
 
-  <dialog id="editTransactionDlg" style="min-width: 800px;">
-    <button class="dialog-close" type="button" aria-label="Modal schließen"
-      onclick="this.closest('dialog').close()">×</button>
-    <div class="hd">
-      <h1 id="editTransDlgTitle">Abruf bearbeiten</h1>
-    </div>
-    <div class="ct">
-      <div id="editTransValidationSummary" class="validation-summary"></div>
-      <div id="editFounderTransView">
-        <div class="grid-2">
-          <div>
-            <label for="editFounderValueInput">Wert (EUR)</label>
-            <input type="text" id="editFounderValueInput" inputmode="decimal">
-          </div>
-          <div>
-            <label for="editFounderKvNummer">KV-Nummer</label>
-            <input type="text" id="editFounderKvNummer">
-          </div>
-        </div>
-        <div style="margin-top: 10px;">
-          <label for="editFounderFreigabedatum">Abschlussdatum</label>
-          <input type="date" id="editFounderFreigabedatum">
-        </div>
-      </div>
+          <script type="module" src="public/js/main.js"></script>
 
-      <div id="editHunterTransView" class="hide">
-        <div class="grid-3">
-          <div><label for="editHunterTitle">Titel</label><input type="text" id="editHunterTitle"></div>
-          <div><label for="editHunterAmount">Wert (EUR)</label><input type="text" id="editHunterAmount"
-              inputmode="decimal"></div>
-          <div><label for="editHunterKvNummer">KV-Nummer</label><input type="text" id="editHunterKvNummer"></div>
-        </div>
-        <div style="margin-top: 10px;">
-          <label for="editHunterFreigabedatum">Abschlussdatum</label>
-          <input type="date" id="editHunterFreigabedatum">
-        </div>
-        <div class="hr"></div>
-        <div class="grid-3">
-          <div><label>Gewicht: Consultative Selling (%)</label><input type="number" id="editW_cs" value="50"></div>
-          <div><label>Gewicht: Konzept (%)</label><input type="number" id="editW_konzept" value="30"></div>
-          <div><label>Gewicht: Pitch (%)</label><input type="number" id="editW_pitch" value="20"></div>
-        </div>
-        <div class="hr"></div>
-        <div class="actions"><span class="tag">Personen & Verteilung</span><button class="btn" id="editBtnAddRow"
-            style="width:auto;">+ Zeile</button></div>
-        <div class="table-wrapper" style="margin-top:14px">
-          <table style="min-width:auto;">
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Consultative Selling</th>
-                <th>Konzept</th>
-                <th>Pitch</th>
-                <th>Aktion</th>
-              </tr>
-            </thead>
-            <tbody id="editTbody"></tbody>
-          </table>
-        </div>
-      </div>
+          <!-- LOGBOOK v2 Dialog (admin-only access via dedicated button) -->
+          <dialog id="logbookDlgV2">
+            <button class="dialog-close" type="button" aria-label="Modal schließen"
+              onclick="this.closest('dialog').close()">×</button>
+            <div class="hd" style="display:flex;align-items:center;justify-content:space-between">
+              <h1 style="margin:0;font-size:18px;">Logbuch</h1>
+            </div>
+            <div id="logbookV2" class="ct">
 
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn" onclick="document.getElementById('editTransactionDlg').close()">Abbrechen</button>
-        <button class="btn ok" id="btnSaveTransaction">Speichern</button>
-      </div>
-    </div>
-  </dialog>
-
-  <dialog id="editFrameworkContractDlg" style="min-width: 800px;">
-    <button class="dialog-close" type="button" aria-label="Modal schließen"
-      onclick="this.closest('dialog').close()">×</button>
-    <div class="hd">
-      <h1>Rahmenvertrag bearbeiten</h1>
-    </div>
-    <div class="ct">
-      <div id="editFwValidationSummary" class="validation-summary"></div>
-      <div class="grid-3">
-        <div><label for="editFwClient">Auftraggeber</label><input type="text" id="editFwClient"></div>
-        <div><label for="editFwTitle">Projekttitel</label><input type="text" id="editFwTitle"></div>
-        <div><label for="editFwProjectNumber">Projektnummer</label><input type="text" id="editFwProjectNumber"></div>
-      </div>
-      <div class="hr"></div>
-      <div class="grid-3">
-        <div><label>Gewicht: Consultative Selling (%)</label><input type="number" id="editFwW_cs" value="50"></div>
-        <div><label>Gewicht: Konzept (%)</label><input type="number" id="editFwW_konzept" value="30"></div>
-        <div><label>Gewicht: Pitch (%)</label><input type="number" id="editFwW_pitch" value="20"></div>
-      </div>
-      <div class="hr"></div>
-      <div class="actions"><span class="tag">Gründer-Team & initiale Verteilung</span><button class="btn"
-          id="editFwBtnAddRow" style="width:auto;">+ Zeile</button></div>
-      <div class="table-wrapper" style="margin-top:14px">
-        <table style="min-width:auto;">
-          <thead>
-            <tr>
-              <th>Person</th>
-              <th>Consultative Selling</th>
-              <th>Konzept</th>
-              <th>Pitch</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
-          <tbody id="editFwTbody"></tbody>
-        </table>
-      </div>
-      <div class="hr"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn" onclick="document.getElementById('editFrameworkContractDlg').close()">Abbrechen</button>
-        <button class="btn ok" id="btnSaveFrameworkContract">Speichern</button>
-      </div>
-    </div>
-  </dialog>
-
-  <script type="module" src="public/js/main.js"></script>
-
-  <!-- LOGBOOK v2 Dialog (admin-only access via dedicated button) -->
-  <dialog id="logbookDlgV2">
-    <button class="dialog-close" type="button" aria-label="Modal schließen"
-      onclick="this.closest('dialog').close()">×</button>
-    <div class="hd" style="display:flex;align-items:center;justify-content:space-between">
-      <h1 style="margin:0;font-size:18px;">Logbuch</h1>
-    </div>
-    <div id="logbookV2" class="ct">
-
-      <div class="controls">
-        <input type="text" id="logSearchV2" placeholder="Suchen (KV, Projektnummer, Titel, Kunde, Grund, ID)…"
-          style="flex:1">
-        <label>Von <input type="date" id="logFromV2"></label>
-        <label>Bis <input type="date" id="logToV2"></label>
-        <select id="logEventFilterV2">
-          <option value="">Alle Ereignisse</option>
-          <option value="create">Neu angelegt</option>
-          <option value="update">Aktualisiert</option>
-          <option value="delete">Gelöscht</option>
-          <option value="skip">Übersprungen</option>
-        </select>
-        <select id="logSourceFilterV2">
-          <option value="">Alle Quellen</option>
-          <option value="erp">ERP</option>
-          <option value="legacy_sales">Legacy</option>
-          <option value="manuell">Manuell</option>
-          <option value="hubspot">HubSpot</option>
-        </select>
-        <button class="btn" id="btnLogRefreshV2">Aktualisieren</button>
-        <button class="btn" id="btnLogExportTxtV2">Export .txt</button>
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:140px;">Zeit</th>
-              <th style="width:110px;">Ereignis</th>
-              <th style="width:120px;">KV</th>
-              <th style="width:150px;">Projektnummer</th>
-              <th style="width:260px;">Titel</th>
-              <th style="width:180px;">Kunde</th>
-              <th style="width:110px;">Δ Betrag</th>
-              <th>Grund / Details</th>
-            </tr>
-          </thead>
-          <tbody id="logbookBodyV2"></tbody>
-        </table>
-      </div>
-    </div>
-  </dialog>
+              <div class="controls">
+                <input type="text" id="logSearchV2" placeholder="Suchen (KV, Projektnummer, Titel, Kunde, Grund, ID)…"
+                  style="flex:1">
+                <label>Von <input type="date" id="logFromV2"></label>
+                <label>Bis <input type="date" id="logToV2"></label>
+                <select id="logEventFilterV2">
+                  <option value="">Alle Ereignisse</option>
+                  <option value="create">Neu angelegt</option>
+                  <option value="update">Aktualisiert</option>
+                  <option value="delete">Gelöscht</option>
+                  <option value="skip">Übersprungen</option>
+                </select>
+                <select id="logSourceFilterV2">
+                  <option value="">Alle Quellen</option>
+                  <option value="erp">ERP</option>
+                  <option value="legacy_sales">Legacy</option>
+                  <option value="manuell">Manuell</option>
+                  <option value="hubspot">HubSpot</option>
+                </select>
+                <button class="btn" id="btnLogRefreshV2">Aktualisieren</button>
+                <button class="btn" id="btnLogExportTxtV2">Export .txt</button>
+              </div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:140px;">Zeit</th>
+                      <th style="width:110px;">Ereignis</th>
+                      <th style="width:120px;">KV</th>
+                      <th style="width:150px;">Projektnummer</th>
+                      <th style="width:260px;">Titel</th>
+                      <th style="width:180px;">Kunde</th>
+                      <th style="width:110px;">Δ Betrag</th>
+                      <th>Grund / Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="logbookBodyV2"></tbody>
+                </table>
+              </div>
+            </div>
+          </dialog>
 
 
 
-  <script type="module" src="public/js/logbook-interceptor.js"></script>
-  <script src="public/js/erp-preview-override.js"></script>
+          <script type="module" src="public/js/logbook-interceptor.js"></script>
+          <script src="public/js/erp-preview-override.js"></script>
 </body>
 
 </html>
