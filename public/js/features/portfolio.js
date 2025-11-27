@@ -112,9 +112,9 @@ export function initPortfolio(portfolioDeps = {}) {
                 }
                 tr.innerHTML = `
                   <td></td>
-                  <td>${trans.kv_nummer || '–'}</td>
+                  <td>${escapeHtml(trans.kv_nummer) || '–'}</td>
                   <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
-                  <td>${trans.title || '–'}</td>
+                  <td>${escapeHtml(trans.title) || '–'}</td>
                   <td class="text-right">${fmtCurr2(trans.amount)}</td>
                   <td class="text-right">${datum}</td>
                   <td>
