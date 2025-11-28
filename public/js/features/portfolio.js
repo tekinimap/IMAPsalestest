@@ -9,6 +9,15 @@ import { DEFAULT_WEIGHTS } from '../config.js';
 
 let currentFilter = 'all';
 let deps = {};
+const PORTFOLIO_SORT_DEFAULTS = {
+  type: 'asc',
+  projectNumber: 'asc',
+  title: 'asc',
+  client: 'asc',
+  budget: 'desc',
+  status: 'desc',
+};
+let sortState = { key: 'title', direction: PORTFOLIO_SORT_DEFAULTS.title };
 
 export function initPortfolio(portfolioDeps = {}) {
   deps = portfolioDeps;
@@ -39,6 +48,20 @@ export function initPortfolio(portfolioDeps = {}) {
       renderPortfolio();
     });
   }
+
+  document.querySelectorAll('#viewPortfolio th.sortable').forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (!key) return;
+      if (sortState.key === key) {
+        sortState = { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' };
+      } else {
+        const defaultDirection = PORTFOLIO_SORT_DEFAULTS[key] || 'asc';
+        sortState = { key, direction: defaultDirection };
+      }
+      renderPortfolio();
+    });
+  });
 
   const tableBody = document.getElementById('portfolioBody');
   if (tableBody) {
@@ -83,6 +106,15 @@ export function initPortfolio(portfolioDeps = {}) {
         return;
       }
 
+      if (isTransactionRow) {
+        const parentEntry = findEntryById(targetRow.dataset.parentId);
+        const transaction = parentEntry?.transactions?.find((t) => t.id === transId);
+        if (transaction) {
+          deps.openEditTransactionModal?.(transaction, parentEntry);
+        }
+        return;
+      }
+
       if (!isTransactionRow) {
         const entry = findEntryById(entryId);
         if (entry && entry.projectType === 'rahmen') {
@@ -101,7 +133,7 @@ export function initPortfolio(portfolioDeps = {}) {
               const fragment = document.createDocumentFragment();
               entry.transactions.forEach((trans) => {
                 const tr = document.createElement('tr');
-                tr.classList.add('transaction-row');
+                tr.classList.add('transaction-row', 'clickable');
                 tr.dataset.parentId = entryId;
                 tr.dataset.transId = trans.id;
                 let datum = '–';
@@ -117,7 +149,7 @@ export function initPortfolio(portfolioDeps = {}) {
                   <td>${trans.title || '–'}</td>
                   <td class="text-right">${fmtCurr2(trans.amount)}</td>
                   <td class="text-right">${datum}</td>
-                  <td>
+                  <td class="cell-actions">
                     <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
                   </td>`;
                 fragment.appendChild(tr);
@@ -149,8 +181,7 @@ export function renderPortfolio() {
   } else if (currentFilter === 'critical') {
     filteredEntries = filteredEntries.filter((e) => {
       if (e.projectType !== 'rahmen') return false;
-      const total = e.amount || 0;
-      const used = (e.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
+      const { total, used } = getFrameworkUsage(e);
       return total > 0 && used / total > 0.8;
     });
   }
@@ -176,11 +207,12 @@ export function renderPortfolio() {
 
   if (filteredEntries.length === 0) {
     if (emptyState) emptyState.classList.remove('hide');
+    updatePortfolioSortIcons();
     return;
   }
   if (emptyState) emptyState.classList.add('hide');
 
-  filteredEntries.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  filteredEntries.sort(comparePortfolioEntries);
 
   const frag = document.createDocumentFragment();
   for (const entry of filteredEntries) {
@@ -191,10 +223,8 @@ export function renderPortfolio() {
     const typeSymbol = isFramework ? 'R' : 'F';
     let budgetCellContent = '';
     if (isFramework) {
-      const total = entry.amount || 0;
-      const used = (entry.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
+      const { total, used, pct } = getFrameworkUsage(entry);
       const ratio = total > 0 ? used / total : 0;
-      const pct = total > 0 ? Math.round(ratio * 100) : 0;
       const barColorClass = ratio > 1 ? 'bad' : ratio > 0.8 ? 'warn' : 'ok';
       budgetCellContent = `
         <div class="progress-bar">
@@ -209,9 +239,7 @@ export function renderPortfolio() {
       const complete = autoComplete(entry);
       statusContent = `<span class="status-indicator ${complete ? 'ok' : 'bad'}">${complete ? '✓' : '!'}</span>`;
     } else {
-      const total = entry.amount || 0;
-      const used = (entry.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
-      const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+      const { pct } = getFrameworkUsage(entry);
       statusContent = `${pct || 0} %`;
     }
     tr.innerHTML = `
@@ -221,13 +249,69 @@ export function renderPortfolio() {
       <td>${escapeHtml(entry.client) || '–'}</td>
       <td class="text-right">${budgetCellContent}</td>
       <td class="text-right">${statusContent}</td>
-      <td>
+      <td class="cell-actions">
         <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten">✏️</button>
         <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen">🗑️</button>
       </td>`;
     frag.appendChild(tr);
   }
   tbody.appendChild(frag);
+  updatePortfolioSortIcons();
+}
+
+function comparePortfolioEntries(a, b) {
+  const direction = sortState.direction === 'asc' ? 1 : -1;
+  const key = sortState.key;
+  const aVal = getSortValue(a, key);
+  const bVal = getSortValue(b, key);
+
+  if (typeof aVal === 'string' && typeof bVal === 'string') {
+    return aVal.localeCompare(bVal) * direction;
+  }
+  if (aVal === bVal) return 0;
+  return (aVal > bVal ? 1 : -1) * direction;
+}
+
+function getSortValue(entry, key) {
+  switch (key) {
+    case 'type':
+      return entry.projectType === 'rahmen' ? 1 : 0;
+    case 'projectNumber':
+      return (entry.projectNumber || '').toString().toLowerCase();
+    case 'title':
+      return (entry.title || '').toString().toLowerCase();
+    case 'client':
+      return (entry.client || '').toString().toLowerCase();
+    case 'budget':
+      return Number(entry.amount) || 0;
+    case 'status':
+      if (entry.projectType === 'rahmen') {
+        return getFrameworkUsage(entry).pct;
+      }
+      return autoComplete(entry) ? 1 : 0;
+    default:
+      return (entry.title || '').toString().toLowerCase();
+  }
+}
+
+function getFrameworkUsage(entry) {
+  const total = entry.amount || 0;
+  const used = (entry.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
+  const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+  return { total, used, pct };
+}
+
+function updatePortfolioSortIcons() {
+  document.querySelectorAll('#viewPortfolio th.sortable .sort-icon').forEach((icon) => {
+    icon.textContent = '';
+    icon.style.opacity = 0.5;
+  });
+
+  const activeIcon = document.querySelector(`#viewPortfolio th[data-sort="${sortState.key}"] .sort-icon`);
+  if (activeIcon) {
+    activeIcon.textContent = sortState.direction === 'asc' ? '▲' : '▼';
+    activeIcon.style.opacity = 1;
+  }
 }
 
 function escapeHtml(str) {
