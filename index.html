@@ -909,6 +909,10 @@
       font-size: 13px
     }
 
+    thead th.sortable {
+      cursor: pointer;
+    }
+
     tbody td {
       border-top: 1px solid var(--border);
       padding: 10px 12px;
@@ -921,6 +925,43 @@
 
     tbody tr.clickable {
       cursor: pointer;
+    }
+
+    #viewPortfolio tbody td {
+      padding: 8px 10px;
+    }
+
+    #viewPortfolio td.cell-actions {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+      white-space: nowrap;
+    }
+
+    #viewPortfolio td.cell-actions .iconbtn {
+      width: 32px;
+      height: 32px;
+    }
+
+    tbody tr.transaction-row {
+      background: #0f1a2d;
+      animation: portfolioSlideDown 180ms ease;
+    }
+
+    tbody tr.transaction-row:hover {
+      background: #122341;
+    }
+
+    @keyframes portfolioSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .delrow {
@@ -3104,12 +3145,12 @@
             <table class="w-full">
               <thead>
                 <tr>
-                  <th class="w-12">Typ</th>
-                  <th class="text-left">Projektnummer</th>
-                  <th class="text-left">Titel</th>
-                  <th class="text-left">Kunde</th>
-                  <th class="text-right">Budget / Volumen</th>
-                  <th class="text-right">Status</th>
+                  <th class="w-12 sortable" data-sort="type">Typ <span class="sort-icon"></span></th>
+                  <th class="text-left sortable" data-sort="projectNumber">Projektnummer <span class="sort-icon"></span></th>
+                  <th class="text-left sortable" data-sort="title">Titel <span class="sort-icon"></span></th>
+                  <th class="text-left sortable" data-sort="client">Kunde <span class="sort-icon"></span></th>
+                  <th class="text-right sortable" data-sort="budget">Budget / Volumen <span class="sort-icon"></span></th>
+                  <th class="text-right sortable" data-sort="status">Status <span class="sort-icon"></span></th>
                   <th class="w-12"></th>
                 </tr>
               </thead>
