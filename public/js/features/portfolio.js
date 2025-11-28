@@ -220,6 +220,9 @@ export function renderPortfolio() {
     const tr = document.createElement('tr');
     tr.dataset.id = entry.id;
     tr.classList.add(isFramework ? 'entry-rahmen' : 'entry-fix');
+    if (isFramework) {
+      tr.classList.add('clickable');
+    }
     const typeSymbol = isFramework ? 'R' : 'F';
     let budgetCellContent = '';
     if (isFramework) {
