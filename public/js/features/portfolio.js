@@ -149,7 +149,7 @@ export function initPortfolio(portfolioDeps = {}) {
                   <td>${trans.title || '–'}</td>
                   <td class="text-right">${fmtCurr2(trans.amount)}</td>
                   <td class="text-right">${datum}</td>
-                  <td>
+                  <td class="cell-actions">
                     <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
                   </td>`;
                 fragment.appendChild(tr);
@@ -249,7 +249,7 @@ export function renderPortfolio() {
       <td>${escapeHtml(entry.client) || '–'}</td>
       <td class="text-right">${budgetCellContent}</td>
       <td class="text-right">${statusContent}</td>
-      <td>
+      <td class="cell-actions">
         <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten">✏️</button>
         <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen">🗑️</button>
       </td>`;
