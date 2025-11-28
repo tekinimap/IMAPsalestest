@@ -2090,6 +2090,7 @@ document.getElementById('btnYes').addEventListener('click', async () => {
       removeEntryById(id);
       renderHistory();
       renderFrameworkContracts();
+      renderPortfolio();
 
     } else if (type === 'batch-entry') {
       // *** NEU: BULK DELETE LOGIK ***
@@ -2117,6 +2118,7 @@ document.getElementById('btnYes').addEventListener('click', async () => {
         clearDockSelection();
         updateDockSelectionUi();
       }
+      renderPortfolio();
       // *** ENDE NEUE LOGIK ***
 
     } else if (type === 'transaction') {
@@ -2137,6 +2139,7 @@ document.getElementById('btnYes').addEventListener('click', async () => {
       showToast('Abruf gelöscht.', 'ok');
       upsertEntry(entry);
       renderRahmenDetails(parentId);
+      renderPortfolio();
     }
   } catch (e) {
     showToast('Aktion fehlgeschlagen.', 'bad');
