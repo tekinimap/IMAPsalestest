@@ -41,7 +41,7 @@ import {
   hideBatchProgress,
 } from './ui/feedback.js';
 import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
-import { initErfassung, openWizard } from './features/erfassung.js';
+import { initErfassung, initFromState, openWizard } from './features/erfassung.js';
 import { compute } from './features/compute.js';
 import { initAdminModule, handleAdminClick as handleAdminDataLoad, populateAdminTeamOptions } from './features/admin.js';
 import {
@@ -577,6 +577,10 @@ async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
 
 function showManualPanel(entryId = null) {
   openWizard(entryId);
+}
+
+function clearInputFields() {
+  // Der neue Wizard verwaltet seine Felder selbst; hier nur Kompatibilitäts-Stubs.
 }
 
 function hideManualPanel() {
@@ -1514,11 +1518,12 @@ function handleErfassungNavigation() {
     if (!confirmed) return;
   }
 
-  showManualPanel(editingId);
-
   loadHistory().then(() => {
     renderDockBoard();
     showView('erfassung');
+    if (editingId) {
+      showManualPanel(editingId);
+    }
   });
 }
 
