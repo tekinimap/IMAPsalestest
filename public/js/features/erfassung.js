@@ -173,6 +173,11 @@ export function initErfassung(deps) {
   }
 }
 
+// Platzhalter für Legacy-Aufrufe aus app.js/portfolio.js
+export function initFromState() {
+  // Der neue Wizard initialisiert sich selbst; kein Pre-Render nötig.
+}
+
 export function openWizard(entryId = null) {
   currentEntryId = entryId;
   
@@ -196,7 +201,7 @@ export function openWizard(entryId = null) {
     document.getElementById('input-weight').value = "1.0";
     document.getElementById('input-kv').value = '';
     document.getElementById('input-proj').value = '';
-    document.getElementById('status-owner').innerText = entry.submittedBy || (window.currentSession?.name || 'Unbekannt');
+    document.getElementById('status-owner').innerText = 'Maria Musterfrau'; 
     
     renderTeamList();
     initBucketSortables();
