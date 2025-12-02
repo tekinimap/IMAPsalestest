@@ -196,7 +196,7 @@ export function openWizard(entryId = null) {
     document.getElementById('input-weight').value = "1.0";
     document.getElementById('input-kv').value = '';
     document.getElementById('input-proj').value = '';
-    document.getElementById('status-owner').innerText = 'Maria Musterfrau'; 
+    document.getElementById('status-owner').innerText = entry.submittedBy || (window.currentSession?.name || 'Unbekannt');
     
     renderTeamList();
     initBucketSortables();
