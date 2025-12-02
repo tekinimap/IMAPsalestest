@@ -41,7 +41,8 @@ import {
   hideBatchProgress,
 } from './ui/feedback.js';
 import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
-import { initErfassung, initFromState, clearInputFields, loadInputForm, compute } from './features/erfassung.js';
+import { initErfassung, initFromState, openWizard } from './features/erfassung.js';
+import { compute } from './features/compute.js';
 import { initAdminModule, handleAdminClick as handleAdminDataLoad, populateAdminTeamOptions } from './features/admin.js';
 import {
   calculateActualDistribution,
@@ -171,7 +172,7 @@ const DOCK_ASSIGNMENT_LABELS = {
 
 const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
-const dockEntryDialog = document.getElementById('dockEntryDialog');
+const dockEntryDialog = document.getElementById('app-modal');
 const dockManualPanel = document.getElementById('dockManualPanel');
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
@@ -382,8 +383,7 @@ function startAbrufMode(entry, framework) {
       freigabedatum: freigabeDate,
     },
   });
-  showManualPanel();
-  initFromState();
+  showManualPanel(entry.id);
   showView('erfassung');
 }
 
@@ -575,17 +575,12 @@ async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
   }
 }
 
-function showManualPanel() {
-  if (dockEntryDialog && !dockEntryDialog.open) {
-    try {
-      dockEntryDialog.showModal();
-    } catch (err) {
-      console.error('Dialog konnte nicht geöffnet werden', err);
-    }
-  }
-  if (dockManualPanel) {
-    dockManualPanel.scrollTop = 0;
-  }
+function showManualPanel(entryId = null) {
+  openWizard(entryId);
+}
+
+function clearInputFields() {
+  // Der neue Wizard verwaltet seine Felder selbst; hier nur Kompatibilitäts-Stubs.
 }
 
 function hideManualPanel() {
@@ -1473,8 +1468,6 @@ if (btnManualDeal) {
     if (!confirm('Standardprozess: Deals kommen automatisch aus HubSpot. Nur in Ausnahmefällen manuell anlegen. Fortfahren?')) {
       return;
     }
-    clearInputFields();
-    initFromState();
     showManualPanel();
   });
 }
@@ -1517,28 +1510,20 @@ function handleAnalyticsNavigation() {
 }
 
 function handleErfassungNavigation() {
-  const dockVisible = isViewVisible('erfassung');
-  const manualVisible = dockEntryDialog ? dockEntryDialog.open : false;
-  if (getHasUnsavedChanges() && dockVisible && manualVisible) {
+  const state = loadState();
+  const editingId = state?.editingId || null;
+
+  if (getHasUnsavedChanges()) {
     const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
     if (!confirmed) return;
-  }
-
-  const state = loadState();
-  const isEditing = !!state?.editingId;
-
-  if (!isEditing) {
-    hideManualPanel();
-    clearInputFields();
-    initFromState();
-  } else {
-    showManualPanel();
-    initFromState(true);
   }
 
   loadHistory().then(() => {
     renderDockBoard();
     showView('erfassung');
+    if (editingId) {
+      showManualPanel(editingId);
+    }
   });
 }
 
@@ -2067,10 +2052,10 @@ function editEntry(id) {
       dockRewardFactor: clampDockRewardFactor(e.dockRewardFactor ?? DOCK_WEIGHTING_DEFAULT)
     }
   };
-  saveState(st); initFromState(true);
-  showManualPanel(true);
+  saveState(st);
+  initFromState(true);
   showView('erfassung');
-  showManualPanel();
+  showManualPanel(e.id);
 }
 
 document.getElementById('btnNo').addEventListener('click', () => document.getElementById('confirmDlg').close());
