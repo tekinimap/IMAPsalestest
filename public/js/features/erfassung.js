@@ -240,14 +240,24 @@ function loadEntryData(id) {
     });
   }
 
-  // Team
-  if (entry.rows && Array.isArray(entry.rows)) {
+  const rawRows = Array.isArray(entry?.rows) && entry.rows.length
+    ? entry.rows
+    : Array.isArray(entry?.list)
+      ? entry.list.map(item => ({
+          name: item.name || item.person || '',
+          cs: Number(item.cs) || 0,
+          konzept: Number(item.konzept ?? item.cz) || 0,
+          pitch: Number(item.pitch) || 0,
+        }))
+      : [];
+
+  if (rawRows.length) {
     const existingNames = new Set();
-    entry.rows.forEach(row => {
+    rawRows.forEach(row => {
         if(!row.name) return;
         if(!existingNames.has(row.name)) {
             const dbPerson = people.find(p => p.name === row.name);
-            const color = dbPerson?.color || '#64748b'; 
+            const color = dbPerson?.color || '#64748b';
             wizardTeam.push({
                 id: "p_" + row.name.replace(/\s/g, ''),
                 name: row.name,

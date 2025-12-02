@@ -2052,10 +2052,10 @@ function editEntry(id) {
       dockRewardFactor: clampDockRewardFactor(e.dockRewardFactor ?? DOCK_WEIGHTING_DEFAULT)
     }
   };
-  saveState(st); initFromState(true);
-  showManualPanel(true);
+  saveState(st);
+  initFromState(true);
   showView('erfassung');
-  showManualPanel();
+  showManualPanel(e.id);
 }
 
 document.getElementById('btnNo').addEventListener('click', () => document.getElementById('confirmDlg').close());
