@@ -11492,11 +11492,9 @@
     "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
-    "kvNummern": [
-      "5"
-    ],
-    "kv_nummer": "5",
-    "kv": "5",
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11531,11 +11529,9 @@
         "weight": 20
       }
     ],
-    "ts": 1764766943339,
-    "modified": 1764766943451,
+    "ts": 1764767441745,
+    "modified": 1764767442155,
     "kvNummer": "",
-    "kv_list": [
-      "5"
-    ]
+    "kv_list": []
   }
 ]
