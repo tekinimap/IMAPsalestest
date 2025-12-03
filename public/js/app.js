@@ -576,7 +576,8 @@ async function createDockAbrufTransaction(entry, framework, type = 'hunter') {
 }
 
 function showManualPanel(entryId = null) {
-  openWizard(entryId);
+  const entryObj = entryId ? findEntryById(entryId) : null;
+  openWizard(entryObj || entryId);
 }
 
 function clearInputFields() {

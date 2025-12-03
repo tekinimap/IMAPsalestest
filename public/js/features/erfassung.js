@@ -178,7 +178,10 @@ export function initFromState() {
   // Der neue Wizard initialisiert sich selbst; kein Pre-Render nötig.
 }
 
-export function openWizard(entryId = null) {
+export function openWizard(entryOrId = null) {
+  bindWizardEvents();
+  const preloadedEntry = typeof entryOrId === 'object' && entryOrId !== null ? entryOrId : null;
+  const entryId = preloadedEntry?.id || entryOrId || null;
   currentEntryId = entryId;
   
   // Reset State
@@ -190,8 +193,8 @@ export function openWizard(entryId = null) {
       pitch: { label: 'Pitch', color: '#10b981', bg: 'bg-emerald-500', val: 20, active: true }
   };
 
-  if (entryId) {
-    loadEntryData(entryId);
+  if (preloadedEntry || entryId) {
+    loadEntryData(preloadedEntry || findEntryById(entryId));
   } else {
     // Neuer Deal Defaults
     document.getElementById('inp-title').value = '';
@@ -214,8 +217,7 @@ export function openWizard(entryId = null) {
   window.goToStep(1);
 }
 
-function loadEntryData(id) {
-  const entry = findEntryById(id);
+function loadEntryData(entry) {
   if (!entry) return;
 
   document.getElementById('inp-title').value = entry.title || '';
@@ -230,7 +232,7 @@ function loadEntryData(id) {
   wSelect.value = weight.toString();
   if(wSelect.value === '') wSelect.value = "1.0";
 
-  const owner = entry.submittedBy || 'Unbekannt';
+  const owner = entry.submittedBy || entry.owner || 'Unbekannt';
   document.getElementById('status-owner').innerText = owner;
 
   // Weights
@@ -242,7 +244,7 @@ function loadEntryData(id) {
 
   const rawRows = Array.isArray(entry?.rows) && entry.rows.length
     ? entry.rows
-    : Array.isArray(entry?.list)
+    : Array.isArray(entry?.list) && entry.list.length
       ? entry.list.map(item => ({
           name: item.name || item.person || '',
           cs: Number(item.cs) || 0,
@@ -251,9 +253,26 @@ function loadEntryData(id) {
         }))
       : [];
 
-  if (rawRows.length) {
+  const fallbackPeople = Array.isArray(entry?.people)
+    ? entry.people
+    : Array.isArray(entry?.persons)
+      ? entry.persons
+      : Array.isArray(entry?.team)
+        ? entry.team
+        : [];
+
+  const normalizedFallbackRows = rawRows.length
+    ? rawRows
+    : fallbackPeople.map((p) => ({
+        name: typeof p === 'string' ? p : p?.name || '',
+        cs: 0,
+        konzept: 0,
+        pitch: 0,
+      }));
+
+  if (normalizedFallbackRows.length) {
     const existingNames = new Set();
-    rawRows.forEach(row => {
+    normalizedFallbackRows.forEach(row => {
         if(!row.name) return;
         if(!existingNames.has(row.name)) {
             const dbPerson = people.find(p => p.name === row.name);
@@ -649,16 +668,20 @@ window.saveWizardData = async function() {
 };
 
 // --- EVENT LISTENERS ---
-document.addEventListener('DOMContentLoaded', () => {
+let wizardEventsBound = false;
+function bindWizardEvents() {
+    if (wizardEventsBound) return;
+    wizardEventsBound = true;
+
     const btnFinish = document.getElementById('btn-finish');
     if(btnFinish) btnFinish.onclick = window.saveWizardData;
-    
+
     const btnClose = document.getElementById('btn-close-modal');
     if(btnClose) btnClose.onclick = () => document.getElementById('app-modal').close();
-    
+
     const btnCloseAdmin = document.getElementById('btn-close-admin');
     if(btnCloseAdmin) btnCloseAdmin.onclick = () => window.togglePopup('admin-panel');
-    
+
     const btnSaveAdmin = document.getElementById('btn-save-admin');
     if(btnSaveAdmin) btnSaveAdmin.onclick = () => { window.togglePopup('admin-panel'); showToast('Stammdaten übernommen (lokal)', 'ok'); };
 
@@ -701,4 +724,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);
         if(el) el.addEventListener('change', window.updateFooterStatus);
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindWizardEvents);
+} else {
+    bindWizardEvents();
+}
