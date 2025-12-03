@@ -11389,6 +11389,12 @@
         "name": "Jens Maaßen",
         "pct": 0,
         "money": 0
+      },
+      {
+        "key": "Sven Backhausen",
+        "name": "Sven Backhausen",
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633853131,
@@ -11420,11 +11426,14 @@
     "rows": [
       {
         "name": "Merlin Klein",
-        "konzept": 0,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
+        "pitch": 0
+      },
+      {
+        "name": "Sven Backhausen",
         "cs": 0,
         "pitch": 0
       }
@@ -11448,8 +11457,8 @@
       "konzept": null,
       "pitch": 0
     },
-    "ts": 1764763521942,
-    "modified": 1764763522092
+    "ts": 1764763867489,
+    "modified": 1764763867738
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
