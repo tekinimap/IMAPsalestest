@@ -11489,7 +11489,7 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
     "kvNummern": [
@@ -11532,7 +11532,7 @@
       }
     ],
     "ts": 1764764472822,
-    "modified": 1764764735409,
+    "modified": 1764764975157,
     "kvNummer": "KV-2025-00999",
     "kv_list": [
       "KV-2025-00999"
