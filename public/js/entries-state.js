@@ -31,7 +31,8 @@ export function getEntriesSnapshot() {
 
 export function findEntryById(id) {
   if (!id) return null;
-  return entriesState.entries.find((item) => item && item.id === id) || null;
+  const idStr = String(id);
+  return entriesState.entries.find((item) => item && String(item.id) === idStr) || null;
 }
 
 export function upsertEntry(updatedEntry) {
