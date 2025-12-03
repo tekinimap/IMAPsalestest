@@ -11419,7 +11419,7 @@
     "amount": 100000,
     "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "DRV-001",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11481,8 +11481,8 @@
         "weight": 20
       }
     ],
-    "ts": 1764759713340,
-    "modified": 1764759713230,
+    "ts": 1764759736642,
+    "modified": 1764759736733,
     "kvNummer": "721776"
   }
 ]
