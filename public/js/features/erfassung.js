@@ -661,6 +661,25 @@ function buildEntryPayload() {
     const existingEntry = currentEntryId ? findEntryById(currentEntryId) : null;
     const baseData = existingEntry ? { ...existingEntry } : {};
 
+    const kvList = kv
+        ? [kv]
+        : baseData.kv_list || baseData.kvNummern || (baseData.kvNummer ? [baseData.kvNummer] : []);
+    const hasSalesContributions = Array.isArray(calcResult.list)
+        ? calcResult.list.some((item) => {
+              if (!item) return false;
+              const pct = Number(item.pct);
+              const money = Number(item.money);
+              return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
+          })
+        : false;
+    const isPhaseTwoReady =
+        amount > 0 &&
+        !!client &&
+        !!proj &&
+        kvList.length > 0 &&
+        hasSalesContributions;
+    const computedDockPhase = Math.max(baseData.dockPhase ?? 1, isPhaseTwoReady ? 2 : 1);
+
     const entryData = {
         ...baseData,
         id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
@@ -668,9 +687,9 @@ function buildEntryPayload() {
         client: client,
         amount: amount,
         kv_nummer: kv,
-        kvNummern: kv ? [kv] : [],
+        kvNummern: kvList,
         kvNummer: kv,
-        kv_list: kv ? [kv] : [],
+        kv_list: kvList,
         kv: kv,
         projectNumber: proj,
         freigabedatum: date ? new Date(date).getTime() : Date.now(),
@@ -681,7 +700,7 @@ function buildEntryPayload() {
         list: calcResult.list,
         totals: calcResult.totals,
         source: baseData.source || 'wizard',
-        dockPhase: baseData.dockPhase ?? 1,
+        dockPhase: computedDockPhase,
         ts: Date.now()
     };
 
