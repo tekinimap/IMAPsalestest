@@ -11406,7 +11406,7 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
     "kvNummern": [
@@ -11417,7 +11417,8 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
-      "1": 1763633853131
+      "1": 1763633853131,
+      "2": 1764764286304
     },
     "kvNummer": "KV-2025-00990",
     "kv_list": [
@@ -11463,7 +11464,7 @@
       "pitch": 0
     },
     "ts": 1764764279913,
-    "modified": 1764764280116
+    "modified": 1764764286538
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
