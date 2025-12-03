@@ -184,6 +184,7 @@ export function initFromState() {
 }
 
 export function openWizard(entryOrId = null) {
+  ensureWizardDialogVisible();
   bindWizardEvents();
   const preloadedEntry = typeof entryOrId === 'object' && entryOrId !== null ? entryOrId : null;
   const entryId = preloadedEntry?.id || entryOrId || null;
@@ -221,8 +222,22 @@ export function openWizard(entryOrId = null) {
 
   const dialog = document.getElementById('app-modal');
   if (dialog) dialog.showModal();
-  
+
   window.goToStep(1);
+}
+
+function ensureWizardDialogVisible() {
+  const dialog = document.getElementById('app-modal');
+  if (!dialog) return;
+
+  // Der Dialog lag bisher im Dock-View und war damit ausgeblendet, sobald man
+  // im Portfolio unterwegs war. In dieser Situation machte showModal() die
+  // Seite zwar modal/inaktiv, aber der Dialog blieb unsichtbar. Durch das
+  // Anhängen an <body> stellen wir sicher, dass er unabhängig vom aktiven View
+  // sichtbar ist.
+  if (dialog.parentElement !== document.body) {
+    document.body.appendChild(dialog);
+  }
 }
 
 function loadEntryData(entry) {
