@@ -1,7 +1,10 @@
 import { people } from './people.js';
-import { findEntryById, upsertEntry } from '../entries-state.js';
+import { findEntryById, getEntries, upsertEntry } from '../entries-state.js';
 import { showToast, showLoader, hideLoader } from '../ui/feedback.js';
 import { getTodayDate } from '../utils/format.js';
+import { compute } from './compute.js';
+import { WORKER_BASE } from '../config.js';
+import { fetchWithRetry } from '../api.js';
 
 // --- STATE ---
 let currentEntryId = null;
@@ -226,7 +229,14 @@ function loadEntryData(entry) {
   document.getElementById('inp-title').value = entry.title || '';
   document.getElementById('inp-client').value = entry.client || '';
   document.getElementById('inp-amount').value = entry.amount || '';
-  document.getElementById('input-kv').value = entry.kv_nummer || entry.kvNummer || entry.kv || '';
+
+  const kvCandidates = Array.isArray(entry?.kvNummern)
+    ? entry.kvNummern
+    : Array.isArray(entry?.kv_list)
+      ? entry.kv_list
+      : [];
+  const kvValue = entry.kv_nummer || entry.kvNummer || entry.kv || kvCandidates[0] || '';
+  document.getElementById('input-kv').value = kvValue;
   document.getElementById('input-proj').value = entry.projectNumber || '';
   document.getElementById('input-date').value = entry.freigabedatum ? new Date(entry.freigabedatum).toISOString().split('T')[0] : getTodayDate();
   
@@ -615,7 +625,8 @@ function buildEntryPayload() {
 
     const title = document.getElementById('inp-title').value.trim();
     const client = document.getElementById('inp-client').value.trim();
-    const amount = document.getElementById('inp-amount').value.trim();
+    const amountRaw = document.getElementById('inp-amount').value.trim();
+    const amount = Number(amountRaw) || 0;
     const kv = document.getElementById('input-kv').value.trim();
     const proj = document.getElementById('input-proj').value.trim();
     const date = document.getElementById('input-date').value;
@@ -641,20 +652,26 @@ function buildEntryPayload() {
         { key: 'pitch', weight: wizardPhases.pitch.val }
     ];
 
+    const calcResult = compute(entryRows, weights, amount, true);
+
     const entryData = {
         id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
         title: title,
         client: client,
-        amount: parseFloat(amount),
+        amount: amount,
         kv_nummer: kv,
+        kvNummern: kv ? [kv] : [],
         kvNummer: kv,
+        kv_list: kv ? [kv] : [],
         kv: kv,
         projectNumber: proj,
         freigabedatum: date ? new Date(date).getTime() : Date.now(),
         dockRewardFactor: weightFactor,
         submittedBy: owner,
         rows: entryRows,
-        weights: weights,
+        weights: calcResult.effectiveWeights,
+        list: calcResult.list,
+        totals: calcResult.totals,
         source: 'wizard',
         ts: Date.now()
     };
@@ -663,12 +680,35 @@ function buildEntryPayload() {
     return entryData;
 }
 
+async function persistEntry(entryData) {
+    const allEntries = getEntries();
+    const exists = allEntries.some(e => e && e.id === entryData.id);
+    const url = exists
+        ? `${WORKER_BASE}/entries/${encodeURIComponent(entryData.id)}`
+        : `${WORKER_BASE}/entries`;
+    const method = exists ? 'PUT' : 'POST';
+
+    const response = await fetchWithRetry(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entryData)
+    });
+
+    if (!response.ok) {
+        throw new Error(await response.text());
+    }
+
+    return entryData;
+}
+
 async function saveAdminMetadata() {
     showLoader();
     try {
         const entryData = buildEntryPayload();
-        await upsertEntry(entryData);
+        await persistEntry(entryData);
+        upsertEntry(entryData);
         showToast('Stammdaten gespeichert.', 'ok');
+        if(window.loadHistory) await window.loadHistory(true);
         updateFooterStatus();
         window.togglePopup('admin-panel');
     } catch (err) {
@@ -683,7 +723,8 @@ window.saveWizardData = async function() {
     showLoader();
     try {
         const entryData = buildEntryPayload();
-        await upsertEntry(entryData);
+        await persistEntry(entryData);
+        upsertEntry(entryData);
         showToast('Deal erfolgreich gespeichert.', 'ok');
         document.getElementById('app-modal').close();
 
