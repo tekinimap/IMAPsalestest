@@ -663,7 +663,7 @@ function buildEntryPayload() {
 
     const kvList = kv
         ? [kv]
-        : baseData.kv_list || baseData.kvNummern || (baseData.kvNummer ? [baseData.kvNummer] : []);
+        : [];
     const hasSalesContributions = Array.isArray(calcResult.list)
         ? calcResult.list.some((item) => {
               if (!item) return false;
