@@ -197,6 +197,7 @@ export function openWizard(entryOrId = null) {
     loadEntryData(preloadedEntry || findEntryById(entryId));
   } else {
     // Neuer Deal Defaults
+    ensureTeamPoolFilled();
     document.getElementById('inp-title').value = '';
     document.getElementById('inp-client').value = '';
     document.getElementById('inp-amount').value = '';
@@ -204,10 +205,12 @@ export function openWizard(entryOrId = null) {
     document.getElementById('input-weight').value = "1.0";
     document.getElementById('input-kv').value = '';
     document.getElementById('input-proj').value = '';
-    document.getElementById('status-owner').innerText = 'Maria Musterfrau'; 
-    
+    document.getElementById('status-owner').innerText = 'Maria Musterfrau';
+
+    renderBucketsFromState();
     renderTeamList();
     initBucketSortables();
+    syncPhasesWithBuckets();
     updateFooterStatus();
   }
 
@@ -223,7 +226,7 @@ function loadEntryData(entry) {
   document.getElementById('inp-title').value = entry.title || '';
   document.getElementById('inp-client').value = entry.client || '';
   document.getElementById('inp-amount').value = entry.amount || '';
-  document.getElementById('input-kv').value = entry.kv_nummer || entry.kv || '';
+  document.getElementById('input-kv').value = entry.kv_nummer || entry.kvNummer || entry.kv || '';
   document.getElementById('input-proj').value = entry.projectNumber || '';
   document.getElementById('input-date').value = entry.freigabedatum ? new Date(entry.freigabedatum).toISOString().split('T')[0] : getTodayDate();
   
@@ -292,8 +295,11 @@ function loadEntryData(entry) {
         if(row.pitch > 0) wizardBuckets.pitch.push({ ...pObj, share: row.pitch });
     });
   }
+  ensureTeamPoolFilled();
+  renderBucketsFromState();
   renderTeamList();
   initBucketSortables();
+  syncPhasesWithBuckets();
   updateFooterStatus();
 }
 
@@ -360,12 +366,13 @@ window.updateFooterStatus = function() {
 
 window.handleSearch = function(val) {
     const dropdown = document.getElementById('search-dropdown');
-    if (!val) { dropdown.style.display = 'none'; return; }
-    
+    if (!val) { dropdown.style.display = 'none'; dropdown.classList.remove('open'); return; }
+
     const hits = people.filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
     dropdown.innerHTML = '';
     dropdown.style.display = 'block';
-    
+    dropdown.classList.add('open');
+
     if (hits.length === 0) {
         dropdown.innerHTML = '<div class="p-2 text-xs text-slate-500">Keine Treffer</div>';
     } else {
@@ -388,8 +395,9 @@ window.handleSearchKey = function(e) {
         e.preventDefault();
         const val = e.target.value;
         const hits = people.filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
-        if (hits.length === 1 && !wizardTeam.some(t => t.name === hits[0].name)) {
-            selectPerson(hits[0]);
+        const first = hits.find((h) => !wizardTeam.some((t) => t.name === h.name));
+        if (first) {
+            selectPerson(first);
         }
     }
 };
@@ -403,7 +411,9 @@ function selectPerson(p) {
     });
     renderTeamList();
     document.getElementById('person-search').value = '';
-    document.getElementById('search-dropdown').style.display = 'none';
+    const dropdown = document.getElementById('search-dropdown');
+    dropdown.style.display = 'none';
+    dropdown.classList.remove('open');
 }
 
 window.removePerson = function(id) {
@@ -475,9 +485,11 @@ function updateBucketsState() {
         wizardBuckets[key] = Array.from(document.querySelectorAll(`#bucket-${key} .person-chip`)).map(c => ({
             id: c.getAttribute('data-id'),
             name: c.getAttribute('data-name'),
-            color: c.getAttribute('data-color')
+            color: c.getAttribute('data-color'),
+            share: Number(c.getAttribute('data-share')) || undefined
         }));
     });
+    syncPhasesWithBuckets();
 }
 
 window.handleOwnerSearch = function(val) {
@@ -501,7 +513,7 @@ window.handleOwnerSearch = function(val) {
 
 function initPhase3() {
     initMainPhaseBar();
-    initPersonBarsStructure(); 
+    initPersonBarsStructure();
     updatePersonBarsValues();
 }
 
@@ -604,8 +616,8 @@ window.saveWizardData = async function() {
         const title = document.getElementById('inp-title').value;
         const client = document.getElementById('inp-client').value;
         const amount = document.getElementById('inp-amount').value;
-        const kv = document.getElementById('input-kv').value;
-        const proj = document.getElementById('input-proj').value;
+        const kv = document.getElementById('input-kv').value.trim();
+        const proj = document.getElementById('input-proj').value.trim();
         const date = document.getElementById('input-date').value;
         const weightFactor = parseFloat(document.getElementById('input-weight').value);
         const owner = document.getElementById('status-owner').innerText;
@@ -643,6 +655,8 @@ window.saveWizardData = async function() {
             client: client,
             amount: parseFloat(amount),
             kv_nummer: kv,
+            kvNummer: kv,
+            kv: kv,
             projectNumber: proj,
             freigabedatum: date ? new Date(date).getTime() : Date.now(),
             dockRewardFactor: weightFactor,
@@ -730,4 +744,60 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindWizardEvents);
 } else {
     bindWizardEvents();
+}
+
+function ensureTeamPoolFilled() {
+    if (wizardTeam.length) return;
+    wizardTeam = people.map((p, idx) => ({
+        id: p.id || `p_${idx}_${(p.name || 'person').replace(/\s/g, '')}`,
+        name: p.name,
+        role: p.team || 'Team',
+        color: p.color || '#3b82f6'
+    }));
+}
+
+function renderBucketsFromState() {
+    ['cs', 'konzept', 'pitch'].forEach((key) => {
+        const el = document.getElementById(`bucket-${key}`);
+        if (!el) return;
+        let msg = el.querySelector('.empty-msg');
+        el.innerHTML = '';
+        if (!msg) {
+            msg = document.createElement('div');
+            msg.className = 'empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic';
+            msg.textContent = 'Hier ablegen';
+        }
+        el.appendChild(msg);
+        (wizardBuckets[key] || []).forEach((p) => {
+            const chip = document.createElement('div');
+            chip.className = 'person-chip bg-slate-800 p-2 rounded border border-slate-600 text-xs text-white flex justify-between items-center mb-1 shadow-sm';
+            chip.setAttribute('data-id', p.id);
+            chip.setAttribute('data-name', p.name);
+            chip.setAttribute('data-color', p.color);
+            if (typeof p.share === 'number') chip.setAttribute('data-share', p.share);
+            chip.innerHTML = `<span class="truncate pr-2">${p.name}</span><button onclick="window.removeBucketItem(this, '${key}')" class="text-slate-500 hover:text-red-400"><i class="fa-solid fa-times"></i></button>`;
+            el.appendChild(chip);
+        });
+        checkEmpty(key);
+    });
+    syncPhasesWithBuckets();
+}
+
+function syncPhasesWithBuckets() {
+    let phaseChanged = false;
+    ['cs', 'konzept', 'pitch'].forEach((key) => {
+        const hasPeople = wizardBuckets[key]?.length > 0;
+        const chk = document.getElementById(`chk-${key}`);
+        if (chk) chk.checked = hasPeople;
+        if (wizardPhases[key].active !== hasPeople) {
+            wizardPhases[key].active = hasPeople;
+            phaseChanged = true;
+        }
+    });
+
+    if (phaseChanged && !document.getElementById('view-step-2').classList.contains('hidden')) {
+        initPhase3();
+    } else if (phaseChanged && mainBarInstance) {
+        updatePersonBarsValues();
+    }
 }
