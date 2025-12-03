@@ -15,6 +15,7 @@ let wizardPhases = {
   konzept: { label: 'Konzeption', color: '#f59e0b', bg: 'bg-amber-500', val: 30, active: true },
   pitch: { label: 'Pitch', color: '#10b981', bg: 'bg-emerald-500', val: 20, active: true }
 };
+let deps = {};
 
 // Instanzen für SplitBars
 let mainBarInstance = null;
@@ -169,7 +170,8 @@ class SplitBar {
 
 // --- EXPORTS ---
 
-export function initErfassung(deps) {
+export function initErfassung(dependencies) {
+  deps = dependencies || {};
   // Check dependencies
   if (typeof Sortable === 'undefined') {
     console.warn('SortableJS nicht geladen.');
@@ -625,8 +627,6 @@ function updatePersonBarsValues() {
 }
 
 function buildEntryPayload() {
-    updateBucketsState();
-
     const title = document.getElementById('inp-title').value.trim();
     const client = document.getElementById('inp-client').value.trim();
     const amountRaw = document.getElementById('inp-amount').value.trim();
@@ -706,40 +706,36 @@ async function persistEntry(entryData) {
 }
 
 async function saveAdminMetadata() {
-    showLoader();
-    try {
-        const entryData = buildEntryPayload();
-        await persistEntry(entryData);
-        upsertEntry(entryData);
-        showToast('Stammdaten gespeichert.', 'ok');
-        if(window.loadHistory) await window.loadHistory(true);
-        updateFooterStatus();
-        window.togglePopup('admin-panel');
-    } catch (err) {
-        console.error(err);
-        showToast('Fehler beim Speichern: ' + err.message, 'bad');
-    } finally {
-        hideLoader();
-    }
+    const entryData = buildEntryPayload();
+    upsertEntry(entryData);
+    window.togglePopup('admin-panel');
+    updateFooterStatus();
+    if (deps.renderDockBoard) deps.renderDockBoard();
+    if (deps.renderHistory) deps.renderHistory();
+
+    persistEntry(entryData)
+        .then(() => {
+            showToast('Stammdaten im Hintergrund gespeichert', 'ok');
+        })
+        .catch((err) => {
+            console.error(err);
+            showToast('Fehler beim Speichern: ' + err.message, 'bad');
+        });
 }
 
 window.saveWizardData = async function() {
-    showLoader();
-    try {
-        const entryData = buildEntryPayload();
-        await persistEntry(entryData);
-        upsertEntry(entryData);
-        showToast('Deal erfolgreich gespeichert.', 'ok');
-        document.getElementById('app-modal').close();
+    const entryData = buildEntryPayload();
+    upsertEntry(entryData);
+    document.getElementById('app-modal').close();
+    showToast('Deal wird gespeichert...', 'ok');
 
-        if(window.loadHistory) await window.loadHistory();
+    if (deps.renderDockBoard) deps.renderDockBoard();
+    if (deps.renderHistory) deps.renderHistory();
 
-    } catch (err) {
+    persistEntry(entryData).catch((err) => {
         console.error(err);
-        showToast('Fehler beim Speichern: ' + err.message, 'bad');
-    } finally {
-        hideLoader();
-    }
+        showToast('Speichern fehlgeschlagen: ' + err.message, 'warn');
+    });
 };
 
 // --- EVENT LISTENERS ---
