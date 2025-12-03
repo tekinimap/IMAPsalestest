@@ -11410,19 +11410,19 @@
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
     "kvNummern": [
-      "1"
+      "111"
     ],
-    "kv_nummer": "1",
-    "kv": "1",
+    "kv_nummer": "111",
+    "kv": "111",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763633853131,
       "2": 1764764286304
     },
-    "kvNummer": "",
+    "kvNummer": "111",
     "kv_list": [
-      "1"
+      "111"
     ],
     "rows": [
       {
@@ -11463,8 +11463,8 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1764766472086,
-    "modified": 1764766472157
+    "ts": 1764766603882,
+    "modified": 1764766604094
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
