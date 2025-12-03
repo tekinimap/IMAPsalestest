@@ -11469,7 +11469,7 @@
     "amount": 100000,
     "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "DRV-001",
+    "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11492,11 +11492,9 @@
     "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
-    "kvNummern": [
-      "KV-2025-00999"
-    ],
-    "kv_nummer": "KV-2025-00999",
-    "kv": "KV-2025-00999",
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11531,11 +11529,9 @@
         "weight": 20
       }
     ],
-    "ts": 1764764472822,
-    "modified": 1764764977444,
-    "kvNummer": "KV-2025-00999",
-    "kv_list": [
-      "KV-2025-00999"
-    ]
+    "ts": 1764764974833,
+    "modified": 1764764979226,
+    "kvNummer": "",
+    "kv_list": []
   }
 ]
