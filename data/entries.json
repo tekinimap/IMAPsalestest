@@ -11406,7 +11406,7 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
     "kvNummern": [
@@ -11464,7 +11464,7 @@
       "pitch": 0
     },
     "ts": 1764766463352,
-    "modified": 1764766463475
+    "modified": 1764766467871
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
