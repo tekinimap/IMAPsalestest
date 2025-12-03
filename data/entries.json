@@ -11443,10 +11443,10 @@
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
     "kvNummern": [
-      "721776"
+      "KV-2025-00999"
     ],
-    "kv_nummer": "721776",
-    "kv": "721776",
+    "kv_nummer": "KV-2025-00999",
+    "kv": "KV-2025-00999",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11481,8 +11481,11 @@
         "weight": 20
       }
     ],
-    "ts": 1764759736642,
-    "modified": 1764759748353,
-    "kvNummer": "721776"
+    "ts": 1764761757276,
+    "modified": 1764761757546,
+    "kvNummer": "KV-2025-00999",
+    "kv_list": [
+      "KV-2025-00999"
+    ]
   }
 ]
