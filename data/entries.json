@@ -11439,7 +11439,7 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
     "kvNummern": [
@@ -11450,7 +11450,8 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
-      "1": 1763633855222
+      "1": 1763633855222,
+      "2": 1764759356278
     },
     "complete": true,
     "rows": [
@@ -11481,7 +11482,7 @@
       }
     ],
     "ts": 1764759353490,
-    "modified": 1764759353801,
+    "modified": 1764759356385,
     "kvNummer": "721776"
   }
 ]
