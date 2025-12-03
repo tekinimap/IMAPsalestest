@@ -166,6 +166,7 @@ function handlePortfolioClick(e, tableBody) {
           }
           targetRow.classList.add('expanded');
         }
+        targetRow.classList.add('expanded');
       }
     }
   } catch (err) {
