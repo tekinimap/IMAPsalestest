@@ -60,107 +60,116 @@ export function initPortfolio(portfolioDeps = {}) {
   });
 
   const tableBody = document.getElementById('portfolioBody');
-  if (tableBody) {
-    tableBody.addEventListener('click', (e) => {
-      const targetRow = e.target.closest('tr');
-      if (!targetRow) return;
-      const isTransactionRow = targetRow.dataset.parentId;
-      const entryId = targetRow.dataset.id;
-      const transId = targetRow.dataset.transId;
-      const actBtn = e.target.closest('button[data-act]');
-      if (actBtn) {
-        const action = actBtn.dataset.act;
-        const id = actBtn.dataset.id;
-        if (action === 'edit') {
-          if (isTransactionRow) {
-            const parentId = targetRow.dataset.parentId;
-            const parentEntry = findEntryById(parentId);
-            if (!parentEntry) return;
-            const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
-            if (!transaction) return;
-            deps.openEditTransactionModal?.(transaction, parentEntry);
-          } else {
-            editEntryById(id);
-          }
-        } else if (action === 'del') {
-          if (isTransactionRow) {
-            const parentId = targetRow.dataset.parentId;
-            setPendingDelete({ id: transId, type: 'transaction', parentId });
-          } else {
-            setPendingDelete({ id: id, type: 'entry', parentId: null });
-          }
-          const confirmDlg = document.getElementById('confirmDlg');
-          const titleEl = document.getElementById('confirmDlgTitle');
-          const textEl = document.getElementById('confirmDlgText');
-          if (titleEl && textEl && confirmDlg) {
-            titleEl.textContent = 'Eintrag löschen';
-            textEl.textContent = `Wollen Sie den ${isTransactionRow ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
-            confirmDlg.showModal();
-          }
-        }
-        e.stopPropagation();
-        return;
-      }
+  const portfolioView = document.getElementById('viewPortfolio');
+  const clickTarget = tableBody || portfolioView;
+  if (clickTarget) {
+    clickTarget.addEventListener('click', (event) => handlePortfolioClick(event, tableBody));
+  }
+}
 
-      if (isTransactionRow) {
-        const parentEntry = findEntryById(targetRow.dataset.parentId);
-        const transaction = parentEntry?.transactions?.find((t) => t.id === transId);
-        if (transaction) {
+function handlePortfolioClick(e, tableBody) {
+  try {
+    const targetRow = e.target.closest('tr');
+    if (!targetRow || (tableBody && !tableBody.contains(targetRow))) return;
+    const isTransactionRow = targetRow.dataset.parentId;
+    const entryId = targetRow.dataset.id;
+    const transId = targetRow.dataset.transId;
+    const actBtn = e.target.closest('button[data-act]');
+
+    if (actBtn) {
+      const action = actBtn.dataset.act;
+      const id = actBtn.dataset.id || entryId;
+      if (action === 'edit') {
+        if (isTransactionRow) {
+          const parentId = targetRow.dataset.parentId;
+          const parentEntry = findEntryById(parentId);
+          if (!parentEntry) return;
+          const transaction = (parentEntry.transactions || []).find((t) => String(t.id) === String(transId));
+          if (!transaction) return;
           deps.openEditTransactionModal?.(transaction, parentEntry);
+        } else if (id) {
+          editEntryById(id);
         }
-        return;
+      } else if (action === 'del') {
+        if (isTransactionRow) {
+          const parentId = targetRow.dataset.parentId;
+          setPendingDelete({ id: transId, type: 'transaction', parentId });
+        } else {
+          setPendingDelete({ id: id, type: 'entry', parentId: null });
+        }
+        const confirmDlg = document.getElementById('confirmDlg');
+        const titleEl = document.getElementById('confirmDlgTitle');
+        const textEl = document.getElementById('confirmDlgText');
+        if (titleEl && textEl && confirmDlg) {
+          titleEl.textContent = 'Eintrag löschen';
+          textEl.textContent = `Wollen Sie den ${isTransactionRow ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
+          confirmDlg.showModal();
+        }
       }
+      e.stopPropagation();
+      return;
+    }
 
-      if (!isTransactionRow) {
-        const entry = findEntryById(entryId);
-        if (entry && entry.projectType === 'rahmen') {
-          const alreadyExpanded = targetRow.classList.contains('expanded');
-          if (alreadyExpanded) {
-            const childRows = tableBody.querySelectorAll(`tr[data-parent-id="${entryId}"]`);
-            childRows.forEach((r) => r.remove());
-            targetRow.classList.remove('expanded');
-          } else {
-            if (entry.transactions && entry.transactions.length > 0) {
-              entry.transactions.sort((a, b) => {
-                const dateA = a.freigabedatum || a.ts || 0;
-                const dateB = b.freigabedatum || b.ts || 0;
-                return dateB - dateA;
-              });
-              const fragment = document.createDocumentFragment();
-              entry.transactions.forEach((trans) => {
-                const tr = document.createElement('tr');
-                tr.classList.add('transaction-row', 'clickable');
-                tr.dataset.parentId = entryId;
-                tr.dataset.transId = trans.id;
-                let datum = '–';
-                if (trans.freigabedatum) {
-                  datum = new Date(trans.freigabedatum).toLocaleDateString('de-DE');
-                } else if (trans.ts) {
-                  datum = new Date(trans.ts).toLocaleDateString('de-DE');
-                }
-                tr.innerHTML = `
-                  <td></td>
-                  <td>${trans.kv_nummer || '–'}</td>
-                  <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
-                  <td>${trans.title || '–'}</td>
-                  <td class="text-right">${fmtCurr2(trans.amount)}</td>
-                  <td class="text-right">${datum}</td>
-                  <td class="cell-actions">
-                    <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
-                  </td>`;
-                fragment.appendChild(tr);
-              });
-              if (targetRow.nextSibling) {
-                tableBody.insertBefore(fragment, targetRow.nextSibling);
-              } else {
-                tableBody.appendChild(fragment);
+    if (isTransactionRow) {
+      const parentEntry = findEntryById(targetRow.dataset.parentId);
+      const transaction = parentEntry?.transactions?.find((t) => String(t.id) === String(transId));
+      if (transaction) {
+        deps.openEditTransactionModal?.(transaction, parentEntry);
+      }
+      return;
+    }
+
+    if (!isTransactionRow) {
+      const entry = findEntryById(entryId);
+      if (entry && entry.projectType === 'rahmen' && tableBody) {
+        const alreadyExpanded = targetRow.classList.contains('expanded');
+        if (alreadyExpanded) {
+          const childRows = tableBody.querySelectorAll(`tr[data-parent-id="${entryId}"]`);
+          childRows.forEach((r) => r.remove());
+          targetRow.classList.remove('expanded');
+        } else {
+          if (entry.transactions && entry.transactions.length > 0) {
+            entry.transactions.sort((a, b) => {
+              const dateA = a.freigabedatum || a.ts || 0;
+              const dateB = b.freigabedatum || b.ts || 0;
+              return dateB - dateA;
+            });
+            const fragment = document.createDocumentFragment();
+            entry.transactions.forEach((trans) => {
+              const tr = document.createElement('tr');
+              tr.classList.add('transaction-row', 'clickable');
+              tr.dataset.parentId = entryId;
+              tr.dataset.transId = trans.id;
+              let datum = '–';
+              if (trans.freigabedatum) {
+                datum = new Date(trans.freigabedatum).toLocaleDateString('de-DE');
+              } else if (trans.ts) {
+                datum = new Date(trans.ts).toLocaleDateString('de-DE');
               }
+              tr.innerHTML = `
+                <td></td>
+                <td>${trans.kv_nummer || '–'}</td>
+                <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
+                <td>${trans.title || '–'}</td>
+                <td class="text-right">${fmtCurr2(trans.amount)}</td>
+                <td class="text-right">${datum}</td>
+                <td class="cell-actions">
+                  <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
+                </td>`;
+              fragment.appendChild(tr);
+            });
+            if (targetRow.nextSibling) {
+              tableBody.insertBefore(fragment, targetRow.nextSibling);
+            } else {
+              tableBody.appendChild(fragment);
             }
-            targetRow.classList.add('expanded');
           }
+          targetRow.classList.add('expanded');
         }
       }
-    });
+    }
+  } catch (err) {
+    console.error('Fehler beim Klick im Portfolio', err);
   }
 }
 
@@ -354,5 +363,5 @@ function autoComplete(e) {
 function editEntryById(entryId) {
   const e = findEntryById(entryId);
   if (!e) return;
-  openWizard(e.id);
+  openWizard(e);
 }
