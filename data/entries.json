@@ -11372,23 +11372,23 @@
     "hubspotId": "49624657983",
     "title": "FKE",
     "amount": 500000,
-    "source": "hubspot",
+    "source": "wizard",
     "projectType": "fix",
     "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "hubspot_user_Merlin Klein",
+        "key": "Merlin Klein",
         "name": "Merlin Klein",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Jens Maaßen",
+        "key": "Jens Maaßen",
         "name": "Jens Maaßen",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633853131,
@@ -11402,15 +11402,56 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1763633852099,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "freigabedatum": 1763596800000,
+    "kvNummern": [
+      "KV-2025-00998"
+    ],
+    "kv_nummer": "KV-2025-00998",
+    "kv": "KV-2025-00998",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763633853131
-    }
+    },
+    "kvNummer": "KV-2025-00998",
+    "kv_list": [
+      "KV-2025-00998"
+    ],
+    "rows": [
+      {
+        "name": "Merlin Klein",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Jens Maaßen",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "ts": 1764761778057,
+    "modified": 1764761778503
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
