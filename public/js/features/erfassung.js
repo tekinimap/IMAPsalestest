@@ -1,5 +1,5 @@
 import { people } from './people.js';
-import { findEntryById, getEntries, upsertEntry } from '../entries-state.js';
+import { findEntryById, getEntries, getEntriesSnapshot, setEntries, upsertEntry } from '../entries-state.js';
 import { showToast, showLoader, hideLoader } from '../ui/feedback.js';
 import { getTodayDate } from '../utils/format.js';
 import { compute } from './compute.js';
@@ -731,6 +731,7 @@ async function persistEntry(entryData) {
 
 async function saveAdminMetadata() {
     const entryData = buildEntryPayload();
+    const prevEntries = getEntriesSnapshot();
     upsertEntry(entryData);
     window.togglePopup('admin-panel');
     updateFooterStatus();
@@ -742,6 +743,9 @@ async function saveAdminMetadata() {
             showToast('Stammdaten im Hintergrund gespeichert', 'ok');
         })
         .catch((err) => {
+            setEntries(prevEntries);
+            if (deps.renderDockBoard) deps.renderDockBoard();
+            if (deps.renderHistory) deps.renderHistory();
             console.error(err);
             showToast('Fehler beim Speichern: ' + err.message, 'bad');
         });
@@ -749,6 +753,7 @@ async function saveAdminMetadata() {
 
 window.saveWizardData = async function() {
     const entryData = buildEntryPayload();
+    const prevEntries = getEntriesSnapshot();
     upsertEntry(entryData);
     document.getElementById('app-modal').close();
     showToast('Deal wird gespeichert...', 'ok');
@@ -757,6 +762,9 @@ window.saveWizardData = async function() {
     if (deps.renderHistory) deps.renderHistory();
 
     persistEntry(entryData).catch((err) => {
+        setEntries(prevEntries);
+        if (deps.renderDockBoard) deps.renderDockBoard();
+        if (deps.renderHistory) deps.renderHistory();
         console.error(err);
         showToast('Speichern fehlgeschlagen: ' + err.message, 'warn');
     });
