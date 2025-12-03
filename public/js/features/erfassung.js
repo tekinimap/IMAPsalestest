@@ -658,7 +658,11 @@ function buildEntryPayload() {
 
     const calcResult = compute(entryRows, weights, amount, true);
 
+    const existingEntry = currentEntryId ? findEntryById(currentEntryId) : null;
+    const baseData = existingEntry ? { ...existingEntry } : {};
+
     const entryData = {
+        ...baseData,
         id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
         title: title,
         client: client,
@@ -676,7 +680,8 @@ function buildEntryPayload() {
         weights: calcResult.effectiveWeights,
         list: calcResult.list,
         totals: calcResult.totals,
-        source: 'wizard',
+        source: baseData.source || 'wizard',
+        dockPhase: baseData.dockPhase ?? 1,
         ts: Date.now()
     };
 
