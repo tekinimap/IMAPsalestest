@@ -4896,6 +4896,7 @@ const erfassungDeps = {
   queueDockAutoCheck,
   loadHistory,
   renderHistory,
+  renderDockBoard,
   renderFrameworkContracts,
   finalizeDockAbruf,
   hideManualPanel,
