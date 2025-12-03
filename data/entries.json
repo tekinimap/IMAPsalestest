@@ -11379,22 +11379,22 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Merlin Klein",
-        "name": "Merlin Klein",
-        "pct": 17,
-        "money": 85000
-      },
-      {
         "key": "Jens Maaßen",
         "name": "Jens Maaßen",
-        "pct": 16.5,
-        "money": 82500
+        "pct": 42.16583867991193,
+        "money": 210829
+      },
+      {
+        "key": "Merlin Klein",
+        "name": "Merlin Klein",
+        "pct": 21.334161320088075,
+        "money": 106671
       },
       {
         "key": "Sven Backhausen",
         "name": "Sven Backhausen",
-        "pct": 16.5,
-        "money": 82500
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633853131,
@@ -11428,18 +11428,18 @@
       {
         "name": "Merlin Klein",
         "cs": 34,
-        "konzept": 0,
+        "konzept": 14.447204400293575,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
         "cs": 33,
-        "konzept": 0,
+        "konzept": 85.55279559970643,
         "pitch": 0
       },
       {
         "name": "Sven Backhausen",
-        "cs": 33,
+        "cs": 0,
         "konzept": 0,
         "pitch": 0
       }
@@ -11459,12 +11459,12 @@
       }
     ],
     "totals": {
-      "cs": 100,
-      "konzept": 0,
+      "cs": 67,
+      "konzept": 100,
       "pitch": 0
     },
-    "ts": 1764768312395,
-    "modified": 1764768312749
+    "ts": 1764768380260,
+    "modified": 1764768380699
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
