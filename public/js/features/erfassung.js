@@ -587,11 +587,15 @@ function initPersonBarsStructure() {
             const base = Math.floor(100 / count);
             const remainder = 100 - (base * count);
             
-            const items = people.map((p, i) => ({ 
-                id: p.id, label: p.name, 
-                val: p.share || (base + (i < remainder ? 1 : 0)), 
-                color: p.color 
+            const items = people.map((p, i) => ({
+                id: p.id, label: p.name,
+                val: p.share || (base + (i < remainder ? 1 : 0)),
+                color: p.color
             }));
+
+            // Damit Standardverteilungen auch ohne Interaktion gespeichert werden,
+            // schreiben wir die initialen Werte direkt zurück ins State.
+            items.forEach((it, idx) => { wizardBuckets[key][idx].share = it.val; });
             
             setTimeout(() => {
                 const sb = new SplitBar(barDiv, items, (updated) => {
