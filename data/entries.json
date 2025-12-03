@@ -11409,11 +11409,9 @@
     "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
-    "kvNummern": [
-      "111"
-    ],
-    "kv_nummer": "111",
-    "kv": "111",
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11421,9 +11419,7 @@
       "2": 1764764286304
     },
     "kvNummer": "",
-    "kv_list": [
-      "111"
-    ],
+    "kv_list": [],
     "rows": [
       {
         "name": "Merlin Klein",
@@ -11463,8 +11459,8 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1764766903536,
-    "modified": 1764767433383
+    "ts": 1764767430796,
+    "modified": 1764767435259
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
