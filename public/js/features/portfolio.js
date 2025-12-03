@@ -1,11 +1,7 @@
 import { getEntries, findEntryById } from '../entries-state.js';
 import { setPendingDelete } from '../state/history-state.js';
-import { saveState } from '../state.js';
-import { initFromState } from './erfassung.js';
+import { openWizard } from './erfassung.js';
 import { showView } from './navigation.js';
-import { formatDateForInput } from '../utils/format.js';
-import { clampDockRewardFactor, DOCK_WEIGHTING_DEFAULT } from './calculations.js';
-import { DEFAULT_WEIGHTS } from '../config.js';
 
 let currentFilter = 'all';
 let deps = {};
@@ -358,44 +354,5 @@ function autoComplete(e) {
 function editEntryById(entryId) {
   const e = findEntryById(entryId);
   if (!e) return;
-  const st = {
-    source: e.source || 'manuell',
-    editingId: e.id,
-    input: {
-      client: e.client || '',
-      title: e.title || '',
-      amount: e.amount || 0,
-      amountKnown: !!(e.amount && e.amount > 0),
-      projectType: e.projectType || 'fix',
-      submittedBy: e.submittedBy || '',
-      projectNumber: e.projectNumber || '',
-      kvNummer: e.kv_nummer || '',
-      freigabedatum: formatDateForInput(e.freigabedatum || e.ts),
-      ts: e.ts || Date.now(),
-      rows: Array.isArray(e.rows) && e.rows.length
-        ? e.rows
-        : Array.isArray(e.list)
-          ? e.list.map((x) => ({ name: x.name, cs: 0, konzept: 0, pitch: 0 }))
-          : [],
-      weights: Array.isArray(e.weights)
-        ? e.weights
-        : [
-            { key: 'cs', weight: DEFAULT_WEIGHTS.cs },
-            { key: 'konzept', weight: DEFAULT_WEIGHTS.konzept },
-            { key: 'pitch', weight: DEFAULT_WEIGHTS.pitch },
-          ],
-      dockRewardFactor: clampDockRewardFactor(e.dockRewardFactor ?? DOCK_WEIGHTING_DEFAULT),
-    },
-  };
-  saveState(st);
-  initFromState(true);
-  const dockEntryDialog = document.getElementById('dockEntryDialog');
-  if (dockEntryDialog && !dockEntryDialog.open) {
-    try {
-      dockEntryDialog.showModal();
-    } catch (err) {
-      /* ignoriert */
-    }
-  }
-  showView('erfassung');
+  openWizard(e.id);
 }
