@@ -678,7 +678,9 @@ function buildEntryPayload() {
         !!proj &&
         kvList.length > 0 &&
         hasSalesContributions;
-    const computedDockPhase = Math.max(baseData.dockPhase ?? 1, isPhaseTwoReady ? 2 : 1);
+    const computedDockPhase = (baseData.dockPhase ?? 0) >= 3
+        ? baseData.dockPhase
+        : (isPhaseTwoReady ? 2 : 1);
 
     const entryData = {
         ...baseData,
@@ -703,6 +705,14 @@ function buildEntryPayload() {
         dockPhase: computedDockPhase,
         ts: Date.now()
     };
+
+    if (!kv) {
+        delete entryData.kv_nummer;
+        delete entryData.kvNummern;
+        delete entryData.kvNummer;
+        delete entryData.kv_list;
+        delete entryData.kv;
+    }
 
     currentEntryId = entryData.id;
     return entryData;
