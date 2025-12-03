@@ -11441,7 +11441,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1763596800000,
+    "freigabedatum": 1764028800000,
     "kvNummern": [
       "721776"
     ],
@@ -11481,8 +11481,8 @@
         "weight": 20
       }
     ],
-    "ts": 1764759695002,
-    "modified": 1764759695174,
-    "kvNummer": "KV-2025-00999"
+    "ts": 1764759713340,
+    "modified": 1764759713230,
+    "kvNummer": "721776"
   }
 ]
