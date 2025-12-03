@@ -229,7 +229,14 @@ function loadEntryData(entry) {
   document.getElementById('inp-title').value = entry.title || '';
   document.getElementById('inp-client').value = entry.client || '';
   document.getElementById('inp-amount').value = entry.amount || '';
-  document.getElementById('input-kv').value = entry.kv_nummer || entry.kvNummer || entry.kv || '';
+
+  const kvCandidates = Array.isArray(entry?.kvNummern)
+    ? entry.kvNummern
+    : Array.isArray(entry?.kv_list)
+      ? entry.kv_list
+      : [];
+  const kvValue = entry.kv_nummer || entry.kvNummer || entry.kv || kvCandidates[0] || '';
+  document.getElementById('input-kv').value = kvValue;
   document.getElementById('input-proj').value = entry.projectNumber || '';
   document.getElementById('input-date').value = entry.freigabedatum ? new Date(entry.freigabedatum).toISOString().split('T')[0] : getTodayDate();
   
@@ -653,7 +660,9 @@ function buildEntryPayload() {
         client: client,
         amount: amount,
         kv_nummer: kv,
+        kvNummern: kv ? [kv] : [],
         kvNummer: kv,
+        kv_list: kv ? [kv] : [],
         kv: kv,
         projectNumber: proj,
         freigabedatum: date ? new Date(date).getTime() : Date.now(),
@@ -699,6 +708,7 @@ async function saveAdminMetadata() {
         await persistEntry(entryData);
         upsertEntry(entryData);
         showToast('Stammdaten gespeichert.', 'ok');
+        if(window.loadHistory) await window.loadHistory(true);
         updateFooterStatus();
         window.togglePopup('admin-panel');
     } catch (err) {
