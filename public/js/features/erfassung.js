@@ -610,68 +610,84 @@ function updatePersonBarsValues() {
     });
 }
 
+function buildEntryPayload() {
+    updateBucketsState();
+
+    const title = document.getElementById('inp-title').value.trim();
+    const client = document.getElementById('inp-client').value.trim();
+    const amount = document.getElementById('inp-amount').value.trim();
+    const kv = document.getElementById('input-kv').value.trim();
+    const proj = document.getElementById('input-proj').value.trim();
+    const date = document.getElementById('input-date').value;
+    const weightFactor = parseFloat(document.getElementById('input-weight').value);
+    const owner = document.getElementById('status-owner').innerText;
+
+    const entryRows = wizardTeam.map(p => {
+        const pCS = wizardBuckets.cs.find(x => x.name === p.name);
+        const pKonz = wizardBuckets.konzept.find(x => x.name === p.name);
+        const pPitch = wizardBuckets.pitch.find(x => x.name === p.name);
+
+        return {
+            name: p.name,
+            cs: pCS ? pCS.share : 0,
+            konzept: pKonz ? pKonz.share : 0,
+            pitch: pPitch ? pPitch.share : 0
+        };
+    });
+
+    const weights = [
+        { key: 'cs', weight: wizardPhases.cs.val },
+        { key: 'konzept', weight: wizardPhases.konzept.val },
+        { key: 'pitch', weight: wizardPhases.pitch.val }
+    ];
+
+    const entryData = {
+        id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
+        title: title,
+        client: client,
+        amount: parseFloat(amount),
+        kv_nummer: kv,
+        kvNummer: kv,
+        kv: kv,
+        projectNumber: proj,
+        freigabedatum: date ? new Date(date).getTime() : Date.now(),
+        dockRewardFactor: weightFactor,
+        submittedBy: owner,
+        rows: entryRows,
+        weights: weights,
+        source: 'wizard',
+        ts: Date.now()
+    };
+
+    currentEntryId = entryData.id;
+    return entryData;
+}
+
+async function saveAdminMetadata() {
+    showLoader();
+    try {
+        const entryData = buildEntryPayload();
+        await upsertEntry(entryData);
+        showToast('Stammdaten gespeichert.', 'ok');
+        updateFooterStatus();
+        window.togglePopup('admin-panel');
+    } catch (err) {
+        console.error(err);
+        showToast('Fehler beim Speichern: ' + err.message, 'bad');
+    } finally {
+        hideLoader();
+    }
+}
+
 window.saveWizardData = async function() {
     showLoader();
     try {
-        const title = document.getElementById('inp-title').value;
-        const client = document.getElementById('inp-client').value;
-        const amount = document.getElementById('inp-amount').value;
-        const kv = document.getElementById('input-kv').value.trim();
-        const proj = document.getElementById('input-proj').value.trim();
-        const date = document.getElementById('input-date').value;
-        const weightFactor = parseFloat(document.getElementById('input-weight').value);
-        const owner = document.getElementById('status-owner').innerText;
-
-        const entryRows = wizardTeam.map(p => {
-            const pCS = wizardBuckets.cs.find(x => x.name === p.name);
-            const pKonz = wizardBuckets.konzept.find(x => x.name === p.name);
-            const pPitch = wizardBuckets.pitch.find(x => x.name === p.name);
-            
-            // Absolute shares calculated back to % of phase
-            // Actually rows expect pure percentages of total deal if I recall correctly?
-            // Or does it expect the raw input values per category?
-            // Based on app.js "compute", it takes category weights and row points.
-            // Here we have visual shares (e.g. 50% of CS).
-            // The backend likely expects: name, cs: 50, konzept: 0...
-            // And global weights: cs: 50, konzept: 30...
-            
-            return {
-                name: p.name,
-                cs: pCS ? pCS.share : 0,
-                konzept: pKonz ? pKonz.share : 0,
-                pitch: pPitch ? pPitch.share : 0
-            };
-        });
-
-        const weights = [
-            { key: 'cs', weight: wizardPhases.cs.val },
-            { key: 'konzept', weight: wizardPhases.konzept.val },
-            { key: 'pitch', weight: wizardPhases.pitch.val }
-        ];
-
-        const entryData = {
-            id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
-            title: title,
-            client: client,
-            amount: parseFloat(amount),
-            kv_nummer: kv,
-            kvNummer: kv,
-            kv: kv,
-            projectNumber: proj,
-            freigabedatum: date ? new Date(date).getTime() : Date.now(),
-            dockRewardFactor: weightFactor,
-            submittedBy: owner,
-            rows: entryRows,
-            weights: weights,
-            source: 'wizard',
-            ts: Date.now()
-        };
-        
+        const entryData = buildEntryPayload();
         await upsertEntry(entryData);
         showToast('Deal erfolgreich gespeichert.', 'ok');
         document.getElementById('app-modal').close();
-        
-        if(window.loadHistory) await window.loadHistory(); 
+
+        if(window.loadHistory) await window.loadHistory();
 
     } catch (err) {
         console.error(err);
@@ -697,7 +713,7 @@ function bindWizardEvents() {
     if(btnCloseAdmin) btnCloseAdmin.onclick = () => window.togglePopup('admin-panel');
 
     const btnSaveAdmin = document.getElementById('btn-save-admin');
-    if(btnSaveAdmin) btnSaveAdmin.onclick = () => { window.togglePopup('admin-panel'); showToast('Stammdaten übernommen (lokal)', 'ok'); };
+    if(btnSaveAdmin) btnSaveAdmin.onclick = () => { saveAdminMetadata(); };
 
     const btnNext = document.getElementById('btn-next-step');
     if(btnNext) btnNext.onclick = () => window.goToStep(2);
