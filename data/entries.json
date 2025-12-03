@@ -11374,7 +11374,7 @@
     "amount": 500000,
     "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "111",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11406,20 +11406,24 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "kvNummern": [
+      "222"
+    ],
+    "kv_nummer": "222",
+    "kv": "222",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763633853131,
       "2": 1764764286304
     },
-    "kvNummer": "",
-    "kv_list": [],
+    "kvNummer": "222",
+    "kv_list": [
+      "222"
+    ],
     "rows": [
       {
         "name": "Merlin Klein",
@@ -11459,8 +11463,8 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1764767455817,
-    "modified": 1764767460456
+    "ts": 1764768302235,
+    "modified": 1764768302453
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
