@@ -1,5 +1,5 @@
 import { people } from './people.js';
-import { findEntryById, getEntries, upsertEntry } from '../entries-state.js';
+import { findEntryById, getEntries, getEntriesSnapshot, setEntries, upsertEntry } from '../entries-state.js';
 import { showToast, showLoader, hideLoader } from '../ui/feedback.js';
 import { getTodayDate } from '../utils/format.js';
 import { compute } from './compute.js';
@@ -15,6 +15,7 @@ let wizardPhases = {
   konzept: { label: 'Konzeption', color: '#f59e0b', bg: 'bg-amber-500', val: 30, active: true },
   pitch: { label: 'Pitch', color: '#10b981', bg: 'bg-emerald-500', val: 20, active: true }
 };
+let deps = {};
 
 // Instanzen für SplitBars
 let mainBarInstance = null;
@@ -169,7 +170,8 @@ class SplitBar {
 
 // --- EXPORTS ---
 
-export function initErfassung(deps) {
+export function initErfassung(dependencies) {
+  deps = dependencies || {};
   // Check dependencies
   if (typeof Sortable === 'undefined') {
     console.warn('SortableJS nicht geladen.');
@@ -625,8 +627,6 @@ function updatePersonBarsValues() {
 }
 
 function buildEntryPayload() {
-    updateBucketsState();
-
     const title = document.getElementById('inp-title').value.trim();
     const client = document.getElementById('inp-client').value.trim();
     const amountRaw = document.getElementById('inp-amount').value.trim();
@@ -658,15 +658,38 @@ function buildEntryPayload() {
 
     const calcResult = compute(entryRows, weights, amount, true);
 
+    const existingEntry = currentEntryId ? findEntryById(currentEntryId) : null;
+    const baseData = existingEntry ? { ...existingEntry } : {};
+
+    const kvList = kv
+        ? [kv]
+        : [];
+    const hasSalesContributions = Array.isArray(calcResult.list)
+        ? calcResult.list.some((item) => {
+              if (!item) return false;
+              const pct = Number(item.pct);
+              const money = Number(item.money);
+              return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
+          })
+        : false;
+    const isPhaseTwoReady =
+        amount > 0 &&
+        !!client &&
+        !!proj &&
+        kvList.length > 0 &&
+        hasSalesContributions;
+    const computedDockPhase = Math.max(baseData.dockPhase ?? 1, isPhaseTwoReady ? 2 : 1);
+
     const entryData = {
+        ...baseData,
         id: currentEntryId || `entry_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
         title: title,
         client: client,
         amount: amount,
         kv_nummer: kv,
-        kvNummern: kv ? [kv] : [],
+        kvNummern: kvList,
         kvNummer: kv,
-        kv_list: kv ? [kv] : [],
+        kv_list: kvList,
         kv: kv,
         projectNumber: proj,
         freigabedatum: date ? new Date(date).getTime() : Date.now(),
@@ -676,7 +699,8 @@ function buildEntryPayload() {
         weights: calcResult.effectiveWeights,
         list: calcResult.list,
         totals: calcResult.totals,
-        source: 'wizard',
+        source: baseData.source || 'wizard',
+        dockPhase: computedDockPhase,
         ts: Date.now()
     };
 
@@ -706,40 +730,44 @@ async function persistEntry(entryData) {
 }
 
 async function saveAdminMetadata() {
-    showLoader();
-    try {
-        const entryData = buildEntryPayload();
-        await persistEntry(entryData);
-        upsertEntry(entryData);
-        showToast('Stammdaten gespeichert.', 'ok');
-        if(window.loadHistory) await window.loadHistory(true);
-        updateFooterStatus();
-        window.togglePopup('admin-panel');
-    } catch (err) {
-        console.error(err);
-        showToast('Fehler beim Speichern: ' + err.message, 'bad');
-    } finally {
-        hideLoader();
-    }
+    const entryData = buildEntryPayload();
+    const prevEntries = getEntriesSnapshot();
+    upsertEntry(entryData);
+    window.togglePopup('admin-panel');
+    updateFooterStatus();
+    if (deps.renderDockBoard) deps.renderDockBoard();
+    if (deps.renderHistory) deps.renderHistory();
+
+    persistEntry(entryData)
+        .then(() => {
+            showToast('Stammdaten im Hintergrund gespeichert', 'ok');
+        })
+        .catch((err) => {
+            setEntries(prevEntries);
+            if (deps.renderDockBoard) deps.renderDockBoard();
+            if (deps.renderHistory) deps.renderHistory();
+            console.error(err);
+            showToast('Fehler beim Speichern: ' + err.message, 'bad');
+        });
 }
 
 window.saveWizardData = async function() {
-    showLoader();
-    try {
-        const entryData = buildEntryPayload();
-        await persistEntry(entryData);
-        upsertEntry(entryData);
-        showToast('Deal erfolgreich gespeichert.', 'ok');
-        document.getElementById('app-modal').close();
+    const entryData = buildEntryPayload();
+    const prevEntries = getEntriesSnapshot();
+    upsertEntry(entryData);
+    document.getElementById('app-modal').close();
+    showToast('Deal wird gespeichert...', 'ok');
 
-        if(window.loadHistory) await window.loadHistory();
+    if (deps.renderDockBoard) deps.renderDockBoard();
+    if (deps.renderHistory) deps.renderHistory();
 
-    } catch (err) {
+    persistEntry(entryData).catch((err) => {
+        setEntries(prevEntries);
+        if (deps.renderDockBoard) deps.renderDockBoard();
+        if (deps.renderHistory) deps.renderHistory();
         console.error(err);
-        showToast('Fehler beim Speichern: ' + err.message, 'bad');
-    } finally {
-        hideLoader();
-    }
+        showToast('Speichern fehlgeschlagen: ' + err.message, 'warn');
+    });
 };
 
 // --- EVENT LISTENERS ---
