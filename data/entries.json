@@ -11408,7 +11408,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1763596800000,
+    "freigabedatum": 1764028800000,
     "kvNummern": [
       "111"
     ],
@@ -11420,7 +11420,7 @@
       "1": 1763633853131,
       "2": 1764764286304
     },
-    "kvNummer": "",
+    "kvNummer": "111",
     "kv_list": [
       "111"
     ],
@@ -11463,8 +11463,8 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1764766872490,
-    "modified": 1764766872698
+    "ts": 1764766881252,
+    "modified": 1764766881701
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
