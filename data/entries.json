@@ -11410,31 +11410,36 @@
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
     "kvNummern": [
-      "KV-2025-00998"
+      "KV-2025-00990"
     ],
-    "kv_nummer": "KV-2025-00998",
-    "kv": "KV-2025-00998",
+    "kv_nummer": "KV-2025-00990",
+    "kv": "KV-2025-00990",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1763633853131
     },
-    "kvNummer": "KV-2025-00998",
+    "kvNummer": "KV-2025-00990",
     "kv_list": [
-      "KV-2025-00998"
+      "KV-2025-00990"
     ],
     "rows": [
       {
         "name": "Merlin Klein",
+        "cs": 0,
+        "konzept": 0,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
+        "cs": 0,
+        "konzept": 0,
         "pitch": 0
       },
       {
         "name": "Sven Backhausen",
         "cs": 0,
+        "konzept": 0,
         "pitch": 0
       }
     ],
@@ -11453,12 +11458,12 @@
       }
     ],
     "totals": {
-      "cs": null,
-      "konzept": null,
+      "cs": 0,
+      "konzept": 0,
       "pitch": 0
     },
-    "ts": 1764763867489,
-    "modified": 1764763867738
+    "ts": 1764764267163,
+    "modified": 1764764267357
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
