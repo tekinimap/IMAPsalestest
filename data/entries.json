@@ -11420,14 +11420,10 @@
     "rows": [
       {
         "name": "Merlin Klein",
-        "cs": 0,
-        "konzept": 0,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
-        "cs": 0,
-        "konzept": 0,
         "pitch": 0
       }
     ],
@@ -11446,12 +11442,12 @@
       }
     ],
     "totals": {
-      "cs": 0,
-      "konzept": 0,
+      "cs": null,
+      "konzept": null,
       "pitch": 0
     },
-    "ts": 1764761802220,
-    "modified": 1764761802361
+    "ts": 1764761831053,
+    "modified": 1764761831406
   },
   {
     "id": "hubspot_09b1f0f811abf9a05f66ee0c6abfca8a",
