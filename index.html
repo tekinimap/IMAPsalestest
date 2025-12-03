@@ -7,6 +7,15 @@
   <title>dock</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // WICHTIG: Preflight deaktivieren, damit bestehende Styles nicht kaputt gehen
+    tailwind.config = { corePlugins: { preflight: false } }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.3/dist/chartjs-plugin-dragdata.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
       --bg: #0a0f16;
@@ -2886,6 +2895,83 @@
       .meta-box, .weighting-box { width: 100%; min-height: auto; }
       .form-bottom-actions { flex-direction: column; align-items: stretch; }
     }
+
+    /* --- WIZARD STYLES (NEU) --- */
+    dialog#app-modal {
+        background: transparent; padding: 0; border: none; width: 95%; max-width: 1200px; height: 92vh; color: inherit; outline: none;
+    }
+    dialog#app-modal::backdrop {
+        background-color: rgba(15, 23, 42, 0.95); backdrop-filter: blur(5px);
+    }
+
+    .wizard-container {
+        background-color: #1e293b; border: 1px solid #334155; border-radius: 1rem; display: flex; flex-direction: column; height: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden;
+    }
+
+    /* Inputs & UI im Wizard */
+    .wizard-container .locked-input { background: transparent; border: 1px solid transparent; color: #cbd5e1; font-weight: 600; cursor: default; pointer-events: none; }
+    .wizard-container .unlocked-input { background: #0f172a; border: 1px solid #3b82f6; color: white; cursor: text; pointer-events: auto; }
+    .wizard-container .lock-btn { transition: all 0.2s; } 
+    .wizard-container .lock-btn:hover { color: #3b82f6; background: rgba(59, 130, 246, 0.1); } 
+    .wizard-container .is-unlocked .lock-btn { color: #3b82f6; }
+
+    /* Footer Items */
+    .wizard-container .footer-item { 
+        display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.25rem; 
+        border-radius: 0.5rem; border: 1px solid #334155; background-color: #1e293b; 
+        color: #cbd5e1; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; select-none; 
+        min-width: 260px; justify-content: flex-start;
+    }
+    .wizard-container .footer-item:hover { background-color: #334155; border-color: #475569; color: #fff; }
+    .wizard-container .footer-item:active { background-color: #475569; }
+    .wizard-container .footer-icon-box { width: 2rem; height: 2rem; border-radius: 9999px; background-color: #0f172a; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; color: #60a5fa; }
+
+    /* Drag & Drop */
+    .person-chip { background-color: #334155; border: 1px solid #475569; cursor: grab; user-select: none; transition: all 0.2s; }
+    .person-chip:active { cursor: grabbing; z-index: 50; transform: scale(1.02); }
+    .sortable-ghost { opacity: 0.4; background: #475569; border: 1px dashed #94a3b8; }
+    .bucket-wrapper { display: flex; flex-direction: column; height: 100%; background-color: rgba(15, 23, 42, 0.3); border: 1px solid #334155; border-radius: 0.5rem; overflow: hidden; }
+    .bucket-list { flex-grow: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px; }
+    .bucket-list.drag-over { background-color: rgba(59, 130, 246, 0.1); box-shadow: inset 0 0 0 2px #3b82f6; }
+
+    /* Split Bar */
+    .split-bar-wrapper { width: 100%; position: relative; padding-top: 40px; padding-bottom: 5px; }
+    .split-bar-container { position: relative; height: 32px; background: #334155; border-radius: 6px; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); overflow: visible; }
+    .split-segment { height: 100%; display: flex; align-items: center; justify-content: center; position: relative; transition: width 0.05s linear; }
+    .split-segment:first-child { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+    .split-segment:last-child { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+
+    /* Pills */
+    .segment-pill { background: rgba(0, 0, 0, 0.4); padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; backdrop-filter: blur(2px); pointer-events: none; z-index: 20; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .segment-pill.popped-out { position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid #475569; box-shadow: 0 4px 8px rgba(0,0,0,0.5); color: #e2e8f0; z-index: 50; }
+    .segment-pill.popped-out.stagger-up { top: -54px; z-index: 51; background: #0f172a; border-color: #64748b; }
+    .segment-pill.popped-out::after { content: ''; position: absolute; bottom: -4px; left: 50%; margin-left: -4px; border-width: 4px; border-style: solid; border-color: #475569 transparent transparent transparent; }
+    .segment-pill.popped-out.stagger-up::after { bottom: -30px; border: none; width: 1px; height: 30px; background: #64748b; margin-left: 0; }
+
+    /* Handles & Actions */
+    .split-handle { position: absolute; top: 0; bottom: 0; width: 24px; margin-left: -12px; background: transparent; cursor: col-resize; z-index: 30; display: flex; align-items: center; justify-content: center; }
+    .split-handle::after { content: ''; width: 4px; height: 20px; background: white; border-radius: 2px; box-shadow: 0 0 4px rgba(0,0,0,0.8); transition: all 0.1s; }
+    .split-handle:hover::after { height: 28px; background: #e2e8f0; transform: scaleX(1.2); }
+    .split-handle:active::after { background: #60a5fa; height: 32px; }
+
+    .action-btn { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8; background: rgba(255,255,255,0.05); transition: all 0.1s; font-size: 0.75rem; cursor: pointer; }
+    .action-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* Status & Panels */
+    .phase-disabled { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+    .phase-card-disabled { position: relative; border-style: dashed !important; border-color: #475569 !important; background: transparent !important; }
+    .phase-card-disabled::after { content: "Deaktiviert (0%)"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; z-index: 50; }
+
+    .popup-panel { position: absolute; bottom: 4.5rem; left: 0; width: 320px; background-color: #1e293b; border: 1px solid #475569; border-radius: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.2s ease-out; z-index: 100; display: none; }
+    .popup-panel.open { transform: translateY(0); opacity: 1; pointer-events: all; display: block; }
+
+    .search-suggestions { position: absolute; top: 100%; left: 0; width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 0.5rem; max-height: 200px; overflow-y: auto; z-index: 60; margin-top: 4px; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+    .search-suggestions.open { display: block; }
+    .search-item:hover { background-color: #334155; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
   </style>
 
 </head>
@@ -2967,164 +3053,136 @@
             wieder.</div>
         </div>
 
-<dialog id="dockEntryDialog">
-          <button class="dialog-close" id="btnCloseManualDeal" type="button" aria-label="Modal schließen">×</button>
-          <div class="dock-modal-layout">
-            <div id="dockManualPanel" class="dock-manual">
-              <div class="dock-manual-header">
-                <div>
-                  <h2>Deal bearbeiten</h2>
-                  <p>Bitte fehlende Informationen ergänzen.</p>
-                </div>
-              </div>
-              <div id="abrufInfo" class="info-box hide"></div>
-              
-              <div class="grid-3">
-                <div>
-                  <label for="auftraggeber">Auftraggeber *</label>
-                  <input id="auftraggeber" type="text" autocomplete="organization">
-                  <div class="field-error" data-validation-for="auftraggeber"></div>
-                </div>
-                <div>
-                  <label for="projekttitel">Projekttitel *</label>
-                  <input id="projekttitel" type="text">
-                  <div class="field-error" data-validation-for="projekttitel"></div>
-                </div>
-                <div>
-                  <label for="auftragswert">Auftragswert *</label>
-                  <input id="auftragswert" type="text" inputmode="decimal" placeholder="0,00">
-                  <div class="checkbox-wrapper">
-                    <input type="checkbox" id="auftragswertBekannt" checked>
-                    <label for="auftragswertBekannt">Wert bekannt?</label>
-                  </div>
-                  <div class="field-error" data-validation-for="auftragswert"></div>
-                </div>
-              </div>
-              
-              <div class="grid-3 dock-compact-row">
-                <div>
-                  <label for="submittedBy">Einschätzung von *</label>
-                  <input id="submittedBy" type="text" list="peopleList">
-                  <div class="field-error" data-validation-for="submittedBy"></div>
-                </div>
-              </div>
+<dialog id="app-modal">
+  <div class="wizard-container">
+    <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex justify-between items-center shrink-0">
+      <h1 class="text-xl font-bold text-white flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+          <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
+        </div>
+        Sales Attribution
+      </h1>
+      <div class="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+        <button id="nav-btn-1" class="px-5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-md transition-all">1. Setup & Zuordnung</button>
+        <button id="nav-btn-2" class="px-5 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">2. Gewichtung</button>
+      </div>
+      <button id="btn-close-modal" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-times text-lg"></i></button>
+    </div>
 
-              <div class="hr"></div>
+    <div class="flex-grow overflow-y-auto relative bg-slate-900 custom-scrollbar" id="wizard-content">
+      
+      <div id="view-step-1" class="p-6 h-full flex flex-col">
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 mb-6 relative group" id="deal-info-card">
+          <div class="absolute top-4 right-4">
+            <button id="btn-toggle-lock" class="lock-btn w-8 h-8 rounded flex items-center justify-center text-slate-500" title="Bearbeiten entsperren"><i class="fa-solid fa-lock" id="lock-icon"></i></button>
+          </div>
+          <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-6 md:col-span-6 col-span-12"><label class="block text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-wider">Projekttitel</label><input type="text" id="inp-title" class="w-full text-xl font-bold p-1 rounded locked-input" readonly></div>
+            <div class="col-span-3 md:col-span-3 col-span-6"><label class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Auftraggeber</label><input type="text" id="inp-client" class="w-full text-lg p-1 rounded locked-input" readonly></div>
+            <div class="col-span-3 md:col-span-3 col-span-6"><label class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Wert (€)</label><input type="text" id="inp-amount" class="w-full text-lg font-mono text-green-400 p-1 rounded locked-input" readonly></div>
+          </div>
+        </div>
 
-              <div class="grid-3">
-                <div>
-                  <label>Consultative Selling (%)</label>
-                  <input id="w_cs" type="number" min="0" max="100" step="1" value="50">
-                </div>
-                <div>
-                  <label>Konzepterstellung (%)</label>
-                  <input id="w_konzept" type="number" min="0" max="100" step="1" value="30">
-                </div>
-                <div>
-                  <label>Pitch (%)</label>
-                  <input id="w_pitch" type="number" min="0" max="100" step="1" value="20">
-                </div>
-              </div>
-              <div class="note mono" id="w_note" style="margin-top:6px">Summe: 100 %</div>
-              <div class="field-error" data-validation-for="weights"></div>
+        <div class="grid grid-cols-12 gap-6 flex-grow pb-4" style="min-height: 0;"> 
+          <div class="col-span-3 flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-lg h-full overflow-hidden">
+            <h3 class="text-xs uppercase font-bold text-slate-400 mb-3 flex items-center gap-2"><i class="fa-solid fa-users text-blue-500"></i> Team Pool</h3>
+            <div class="relative mb-4 shrink-0">
+              <input type="text" id="person-search" placeholder="Person hinzufügen (Enter)..." class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-white focus:border-blue-500 focus:outline-none placeholder-slate-600">
+              <div id="search-dropdown" class="search-suggestions custom-scrollbar"></div>
+            </div>
+            <div id="source-pool" class="flex flex-col gap-2 overflow-y-auto flex-grow pr-1 custom-scrollbar"></div>
+          </div>
 
-              <div class="hr"></div>
-
-              <div class="actions">
-                 <span class="tag">Personen-Verteilung</span>
-                 <button class="btn" id="btnAddRow">+ Zeile</button>
-              </div>
-              <div class="field-error" data-validation-for="rows"></div>
-
-              <datalist id="peopleList"></datalist>
-
-              <div class="table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th style="width:25%">Person</th>
-                      <th style="width:15%">Consultative Selling</th>
-                      <th style="width:15%">Konzept</th>
-                      <th style="width:15%">Pitch</th>
-                      <th style="width:20%">Live</th>
-                      <th style="width:10%"></th>
-                    </tr>
-                  </thead>
-                  <tbody id="tbody"></tbody>
-                </table>
-              </div>
-
-              <div class="sumchips" id="sumchips"></div>
-              <div class="field-error" data-validation-for="categories"></div>
-
-              <div class="dialog-actions-main" style="margin-top: 24px; margin-bottom: 8px; display: flex; justify-content: flex-start;">
-                 <button class="btn primary disabled" id="btnSave" style="width: auto; padding: 10px 24px;">Deal Speichern</button>
-              </div>
-
-              <div class="meta-section-container">
-                  <div class="meta-header-row">
-                    <h3>Metadaten & Gewichtung</h3>
-                    <button id="btnMetaEditToggle" class="edit-btn-link" type="button">Bearbeiten</button>
-                  </div>
-
-                  <div class="meta-compact-grid">
-                    
-                    <div id="metaEditSection" class="meta-box meta-edit-section">
-                       <div id="metaSummary" class="meta-data-list meta-edit-summary">
-                          <div class="meta-data-item">
-                            <span class="meta-label">Projektnummer</span>
-                            <span class="meta-value" data-meta-field="projectNumber">–</span>
-                          </div>
-                          <div class="meta-data-item">
-                            <span class="meta-label">KV-Nummer</span>
-                            <span class="meta-value" data-meta-field="kvNummer">–</span>
-                          </div>
-                          <div class="meta-data-item">
-                            <span class="meta-label">Abschlussdatum</span>
-                            <span class="meta-value" data-meta-field="freigabedatum">–</span>
-                          </div>
-                       </div>
-
-                       <div class="meta-edit-fields">
-                          <div class="meta-field">
-                            <input id="projectNumber" type="text" placeholder="Projekt-Nr.">
-                            <div class="field-error" data-validation-for="projectNumber"></div>
-                          </div>
-                          <div class="meta-field">
-                            <input id="kvNummer" type="text" placeholder="KV-Nr.">
-                            <div class="field-error" data-validation-for="kvNummer"></div>
-                          </div>
-                          <div class="meta-field">
-                            <input id="freigabedatum" type="date">
-                            <div class="field-error" data-validation-for="freigabedatum"></div>
-                          </div>
-                       </div>
-                    </div>
-
-                    <div class="meta-box weighting-box">
-                       <div class="slider-container weighting-slider">
-                          <button class="slider-info-btn" type="button">i</button>
-                          
-                          <div class="range-wrapper">
-                             <div class="slider-ticks">
-                               <div class="tick-mark"></div><div class="tick-mark"></div><div class="tick-mark"></div><div class="tick-mark"></div>
-                             </div>
-                             <input type="range" class="snappy-range" name="weightingFactor" id="weightingFactor" min="0.5" max="2.0" step="0.5" value="1.0">
-                          </div>
-                          
-                          <div class="slider-values-row">
-                            <span>0,5</span><span>1,0</span><span>1,5</span><span>2,0</span>
-                          </div>
-                          <span id="weightingActiveValue" style="display:none">1,0×</span>
-                       </div>
-                    </div>
-
-                  </div>
-              </div>
-
+          <div class="col-span-9 grid grid-cols-3 gap-4 h-full overflow-hidden">
+            <div class="bucket-wrapper">
+              <div class="p-3 bg-purple-900/30 text-purple-300 font-bold text-center border-b border-purple-500/20 text-sm uppercase tracking-wider shrink-0">Consultative Selling</div>
+              <div id="bucket-cs" class="bucket-list custom-scrollbar" data-phase="cs"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
+            </div>
+            <div class="bucket-wrapper">
+              <div class="p-3 bg-amber-900/30 text-amber-300 font-bold text-center border-b border-amber-500/20 text-sm uppercase tracking-wider shrink-0">Konzeption</div>
+              <div id="bucket-konzept" class="bucket-list custom-scrollbar" data-phase="konzept"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
+            </div>
+            <div class="bucket-wrapper">
+              <div class="p-3 bg-emerald-900/30 text-emerald-300 font-bold text-center border-b border-emerald-500/20 text-sm uppercase tracking-wider shrink-0">Pitch</div>
+              <div id="bucket-pitch" class="bucket-list custom-scrollbar" data-phase="pitch"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
             </div>
           </div>
-        </dialog>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 h-20 bg-slate-900/95 border-t border-slate-700 flex justify-between items-center px-6 backdrop-blur z-40">
+          <div class="flex items-center gap-6">
+            <div class="relative">
+              <div id="btn-stammdaten" class="footer-item">
+                <div class="footer-icon-box"><i class="fa-solid fa-database"></i></div>
+                <div class="flex flex-col leading-none gap-1">
+                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Stammdaten</span>
+                  <span class="font-mono text-white text-[11px]" id="status-stammdaten">-</span>
+                </div>
+              </div>
+              <div id="admin-panel" class="popup-panel">
+                <div class="p-4 space-y-4">
+                  <div class="flex justify-between items-center border-b border-slate-700 pb-2"><h4 class="font-bold text-white text-sm">Stammdaten</h4><button id="btn-close-admin" class="text-slate-400"><i class="fa-solid fa-times"></i></button></div>
+                  <div><label class="block text-[10px] uppercase text-blue-400 font-bold mb-1">Gewichtung</label><select id="input-weight" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"><option value="0.5">0,5 - Kalt</option><option value="1.0" selected>1,0 - Standard</option><option value="2.0">2,0 - Strategisch</option></select></div>
+                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Projektnummer</label><input id="input-proj" type="text" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
+                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">KV-Nummer</label><input id="input-kv" type="text" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
+                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Abschlussdatum</label><input id="input-date" type="date" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
+                  <button id="btn-save-admin" class="w-full bg-green-600 hover:bg-green-500 text-white py-1.5 rounded text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> Speichern</button>
+                </div>
+              </div>
+            </div>
+            <div class="relative">
+              <div id="btn-owner" class="footer-item">
+                <div class="footer-icon-box text-emerald-400 border-emerald-500/30"><i class="fa-solid fa-user-check"></i></div>
+                <div class="flex flex-col leading-none gap-1">
+                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Einschätzung von</span>
+                  <span class="text-white text-[11px]" id="status-owner">-</span>
+                </div>
+              </div>
+              <div id="owner-panel" class="popup-panel">
+                <div class="p-3">
+                  <label class="block text-[10px] uppercase text-slate-500 font-bold mb-2">Person ändern</label>
+                  <input type="text" id="owner-search-input" placeholder="Suchen..." class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white mb-2 focus:border-blue-500 outline-none">
+                  <div id="owner-dropdown" class="max-h-32 overflow-y-auto space-y-1 custom-scrollbar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button id="btn-next-step" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105 text-sm">Weiter zur Gewichtung <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <div id="view-step-2" class="hidden p-8 h-full overflow-y-auto pb-32 custom-scrollbar">
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="bg-slate-800 rounded-xl border border-slate-600 p-1 shadow-lg overflow-visible">
+            <div class="bg-slate-900/50 px-4 py-2 border-b border-slate-700 flex justify-between items-center rounded-t-xl">
+              <div class="flex items-center gap-3">
+                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wide">Phasen-Gewichtung</h3>
+                <div class="flex gap-1">
+                  <button id="btn-equal-phases" class="action-btn" title="Gleichverteilung"><i class="fa-solid fa-scale-balanced"></i></button>
+                  <button id="btn-reset-phases" class="action-btn" title="Reset (50/30/20)"><i class="fa-solid fa-rotate-left"></i></button>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-500 font-mono">TOTAL 100%</div>
+            </div>
+            <div class="p-6 overflow-visible">
+              <div class="flex gap-6 mb-4 text-sm">
+                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-cs" checked class="accent-purple-500"><span class="text-purple-400 font-bold text-xs uppercase">Consultative Selling</span></label>
+                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-konzept" checked class="accent-amber-500"><span class="text-amber-400 font-bold text-xs uppercase">Konzeption</span></label>
+                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-pitch" checked class="accent-emerald-500"><span class="text-emerald-400 font-bold text-xs uppercase">Pitch</span></label>
+              </div>
+              <div id="main-split-bar-container"></div>
+            </div>
+          </div>
+          <div class="space-y-4 pt-4" id="person-split-list"></div>
+          <div class="flex justify-end gap-4 pt-8">
+            <button id="btn-back-step" class="text-slate-400 hover:text-white font-medium px-4">Zurück</button>
+            <button id="btn-finish" class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform hover:scale-105 transition"><i class="fa-solid fa-check"></i> Abschluss Speichern</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+</dialog>
       </div>
     </div>
 
