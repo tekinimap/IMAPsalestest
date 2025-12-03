@@ -11417,9 +11417,9 @@
     "hubspotId": "48945843333",
     "title": "Diversity Befragung",
     "amount": 100000,
-    "source": "hubspot",
+    "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "721776",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11442,9 +11442,11 @@
     "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1763596800000,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "kvNummern": [
+      "721776"
+    ],
+    "kv_nummer": "721776",
+    "kv": "721776",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11453,7 +11455,6 @@
     "complete": true,
     "rows": [
       {
-        "personId": null,
         "name": "Bülent Arslan",
         "cs": 100,
         "konzept": 100,
@@ -11479,7 +11480,8 @@
         "weight": 20
       }
     ],
-    "ts": 1763634148043,
-    "modified": 1763725082183
+    "ts": 1764759306624,
+    "modified": 1764759307157,
+    "kvNummer": "721776"
   }
 ]
