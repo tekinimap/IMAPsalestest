@@ -11419,7 +11419,7 @@
     "amount": 100000,
     "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "721776",
+    "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11481,8 +11481,8 @@
         "weight": 20
       }
     ],
-    "ts": 1764759353490,
-    "modified": 1764759356385,
-    "kvNummer": "721776"
+    "ts": 1764759509320,
+    "modified": 1764759509787,
+    "kvNummer": ""
   }
 ]
