@@ -11470,20 +11470,20 @@
       {
         "key": "Merlin Klein",
         "name": "Merlin Klein",
-        "pct": 0,
-        "money": 0
+        "pct": 42.00000000000001,
+        "money": 210000
       },
       {
         "key": "Jens Maaßen",
         "name": "Jens Maaßen",
-        "pct": 0,
-        "money": 0
+        "pct": 41.5,
+        "money": 207500
       },
       {
         "key": "Leonie Athanasiadis",
         "name": "Leonie Athanasiadis",
-        "pct": 0,
-        "money": 0
+        "pct": 16.5,
+        "money": 82500
       }
     ],
     "updatedAt": 1764774380595,
@@ -11515,14 +11515,19 @@
     "rows": [
       {
         "name": "Merlin Klein",
+        "cs": 34,
+        "konzept": 50,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
+        "cs": 33,
+        "konzept": 50,
         "pitch": 0
       },
       {
         "name": "Leonie Athanasiadis",
+        "cs": 33,
         "konzept": 0,
         "pitch": 0
       }
@@ -11534,19 +11539,19 @@
       },
       {
         "key": "konzept",
-        "weight": 30
+        "weight": 50
       },
       {
         "key": "pitch",
-        "weight": 20
+        "weight": 0
       }
     ],
     "totals": {
-      "cs": null,
-      "konzept": null,
+      "cs": 100,
+      "konzept": 100,
       "pitch": 0
     },
-    "ts": 1764854928511,
-    "modified": 1764854928819
+    "ts": 1764855034635,
+    "modified": 1764855034889
   }
 ]
