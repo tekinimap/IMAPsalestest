@@ -11478,6 +11478,12 @@
         "name": "Jens Maaßen",
         "pct": 0,
         "money": 0
+      },
+      {
+        "key": "Leonie Athanasiadis",
+        "name": "Leonie Athanasiadis",
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1764774380595,
@@ -11509,13 +11515,14 @@
     "rows": [
       {
         "name": "Merlin Klein",
-        "cs": 0,
-        "konzept": 0,
         "pitch": 0
       },
       {
         "name": "Jens Maaßen",
-        "cs": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Leonie Athanasiadis",
         "konzept": 0,
         "pitch": 0
       }
@@ -11535,11 +11542,11 @@
       }
     ],
     "totals": {
-      "cs": 0,
-      "konzept": 0,
+      "cs": null,
+      "konzept": null,
       "pitch": 0
     },
-    "ts": 1764776206542,
-    "modified": 1764776206806
+    "ts": 1764854928511,
+    "modified": 1764854928819
   }
 ]
