@@ -11374,7 +11374,7 @@
     "amount": 100000,
     "source": "wizard",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "1",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11383,6 +11383,12 @@
         "name": "Bülent Arslan",
         "pct": 100,
         "money": 100000
+      },
+      {
+        "key": "Uta Giebel",
+        "name": "Uta Giebel",
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633855222,
@@ -11394,12 +11400,14 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
+    "kvNummern": [
+      "1"
+    ],
+    "kv_nummer": "1",
+    "kv": "1",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11413,6 +11421,12 @@
         "cs": 100,
         "konzept": 100,
         "pitch": 100
+      },
+      {
+        "name": "Uta Giebel",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
       }
     ],
     "totals": {
@@ -11434,10 +11448,12 @@
         "weight": 20
       }
     ],
-    "ts": 1764767441745,
-    "modified": 1764767442155,
-    "kvNummer": "",
-    "kv_list": []
+    "ts": 1764837973937,
+    "modified": 1764837974206,
+    "kvNummer": "1",
+    "kv_list": [
+      "1"
+    ]
   },
   {
     "id": "hubspot_a254354b6973d1dec24901c62c9afd72",
