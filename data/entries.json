@@ -11381,14 +11381,14 @@
       {
         "key": "Bülent Arslan",
         "name": "Bülent Arslan",
-        "pct": 58.88883831841609,
-        "money": 58889
+        "pct": 0,
+        "money": 0
       },
       {
         "key": "Uta Giebel",
         "name": "Uta Giebel",
-        "pct": 46.039734200068835,
-        "money": 46040
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633855222,
@@ -11419,21 +11419,21 @@
     "rows": [
       {
         "name": "Bülent Arslan",
-        "cs": 56.736108991834854,
-        "konzept": 43.19444232516819,
-        "pitch": 100
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
       },
       {
         "name": "Uta Giebel",
-        "cs": 43.263891008165146,
-        "konzept": 56.805557674831796,
-        "pitch": 50
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
       }
     ],
     "totals": {
-      "cs": 100,
-      "konzept": 99.99999999999999,
-      "pitch": 150
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
     },
     "weights": [
       {
@@ -11449,8 +11449,8 @@
         "weight": 9.857145036969854
       }
     ],
-    "ts": 1765210281010,
-    "modified": 1765210276968,
+    "ts": 1765210292366,
+    "modified": 1765210288471,
     "kvNummer": "1",
     "kv_list": [
       "1"
