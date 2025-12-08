@@ -11463,7 +11463,7 @@
     "amount": 500000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "1",
+    "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11552,7 +11552,7 @@
       "konzept": 100,
       "pitch": 0
     },
-    "ts": 1764855047275,
-    "modified": 1764855065621
+    "ts": 1765210266630,
+    "modified": 1765210262774
   }
 ]
