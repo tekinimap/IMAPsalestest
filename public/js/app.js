@@ -904,18 +904,28 @@ function scheduleDockAutoDowngrade(items = []) {
   (Array.isArray(items) ? items : []).forEach((item) => {
     const entryId = item?.entry?.id;
     if (!entryId) return;
-    const missingRequiredFields = item.phase === 2 && !isPhaseTwoReady(item.checklist);
-    if (!missingRequiredFields) {
+
+    const checklistComplete = isPhaseTwoReady(item.checklist);
+    let targetPhase = null;
+
+    if (item.phase === 2 && !checklistComplete) {
+      targetPhase = 1;
+    } else if (item.phase === 3 && !checklistComplete) {
+      targetPhase = 2;
+    } else {
       dockAutoDowngradeProcessed.delete(entryId);
       return;
     }
+
     if (dockAutoDowngradeProcessed.has(entryId)) {
       return;
     }
-    dockAutoDowngradeQueue.push(item.entry);
+
+    dockAutoDowngradeQueue.push({ entry: item.entry, targetPhase });
     dockAutoDowngradeProcessed.add(entryId);
     hasNewItems = true;
   });
+
   if (hasNewItems) {
     processDockAutoDowngradeQueue();
   }
@@ -926,14 +936,18 @@ async function processDockAutoDowngradeQueue() {
   dockAutoDowngradeRunning = true;
   setDockAutoDowngradeRunning(true);
   while (dockAutoDowngradeQueue.length) {
-    const entry = dockAutoDowngradeQueue.shift();
+    const payload = dockAutoDowngradeQueue.shift();
+    const entry = payload?.entry;
     if (!entry || !entry.id) continue;
+    const targetPhase = payload?.targetPhase || 1;
     try {
       await updateDockPhase(
         entry,
-        1,
+        targetPhase,
         {},
-        'Deal automatisch in Phase 1 zurückgestuft (Pflichtfelder fehlen).',
+        targetPhase === 1
+          ? 'Deal automatisch in Phase 1 zurückgestuft (Pflichtfelder fehlen).'
+          : 'Deal automatisch in Phase 2 zurückgestuft (Pflichtfelder fehlen).',
         { silent: true }
       );
     } catch (err) {

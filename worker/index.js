@@ -521,6 +521,32 @@ function ensureKvStructure(entry){
   return applyKvList(entry, kvListFrom(entry));
 }
 
+function mergeEntryWithKvOverride(base, patch = {}) {
+  const merged = { ...(base || {}), ...(patch || {}) };
+  const kvList = kvListFrom(patch);
+  const kvFields = [
+    'kv',
+    'kv_nummer',
+    'kvNummer',
+    'kvNummern',
+    'kvNumbers',
+    'kv_numbers',
+    'kvList',
+    'kv_list',
+  ];
+  const hasKvIntent = kvList.length > 0 || kvFields.some((key) => Object.prototype.hasOwnProperty.call(patch, key));
+
+  if (kvList.length > 0) {
+    applyKvList(merged, kvList);
+  } else if (hasKvIntent) {
+    merged.kvNummern = [];
+    merged.kv_nummer = '';
+    merged.kv = '';
+  }
+
+  return merged;
+}
+
 function indexTransactionKvs(entry, entryId, kvsAddedInThisBatch, itemsByKV) {
   if (!entry || typeof entry !== 'object') return;
   if (entry.projectType !== 'rahmen' || !Array.isArray(entry.transactions)) return;
@@ -2108,7 +2134,8 @@ export default {
 
             if (isFullEntry(body)) {
                  if(Array.isArray(body.transactions)){ body.transactions = body.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-                 updatedEntry = ensureKvStructure({ ...before, ...body, id, modified: Date.now() });
+                 const merged = mergeEntryWithKvOverride(before, { ...body, id, modified: Date.now() });
+                 updatedEntry = ensureKvStructure(merged);
                  ensureDockMetadata(updatedEntry);
                  cur.items[idx] = updatedEntry;
                  const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
@@ -2116,9 +2143,11 @@ export default {
                  await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
                  const f = fieldsOf(updatedEntry); await logJSONL(env, [{ event:'update', source: updatedEntry.source||'manuell', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
             } else {
-                const v = validateRow({ ...before, ...body });
+                const mergedForValidation = mergeEntryWithKvOverride(before, body);
+                const v = validateRow({ ...mergedForValidation });
                 if (!v.ok) { await logJSONL(env, [{ event:'skip', ...v }]); return respond({ error:'validation_failed', ...v }, 422, env); }
-                updatedEntry = ensureKvStructure({ ...before, ...body, amount: v.amount, modified: Date.now() });
+                const merged = mergeEntryWithKvOverride(before, { ...body, amount: v.amount, modified: Date.now() });
+                updatedEntry = ensureKvStructure(merged);
                 ensureDockMetadata(updatedEntry);
                 cur.items[idx] = updatedEntry;
                 const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
