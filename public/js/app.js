@@ -1244,18 +1244,14 @@ function buildDockCard(item) {
   const footer = createDockElement('div', { className: 'dock-card-footer' });
 
   if (phase === 2) {
-    if (entry.dockBuApproved) {
-      footer.appendChild(createDockElement('span', { className: 'dock-pill ok', text: 'BU freigegeben' }));
-    } else {
-      footer.appendChild(
-        createDockElement('button', {
-          className: 'btn ok tight',
-          text: 'BU-Freigabe bestätigen',
-          attrs: { type: 'button' },
-          dataset: { dockAct: 'bu-approve', id: entry.id },
-        })
-      );
-    }
+    footer.appendChild(
+      createDockElement('button', {
+        className: 'btn ok tight',
+        text: 'HoBU Freigabe',
+        attrs: { type: 'button' },
+        dataset: { dockAct: 'bu-approve', id: entry.id },
+      })
+    );
   } else if (phase === 3) {
     footer.appendChild(
       createDockElement('button', {
@@ -1296,7 +1292,12 @@ function buildDockCard(item) {
 
 async function updateDockPhase(entry, targetPhase, extra = {}, successMessage = 'Dock-Status aktualisiert.', options = {}) {
   const { silent = false } = options;
-  const updates = { ...extra };
+  const resets = {};
+  if (targetPhase === 1) {
+    resets.dockBuApproved = false;
+    resets.dockBuApprovedAt = null;
+  }
+  const updates = { ...extra, ...resets };
   const history = { ...(entry.dockPhaseHistory || {}) };
   const key = String(targetPhase);
   if (!history[key]) {
@@ -1382,7 +1383,7 @@ function handleDockBoardClick(event) {
     };
 
     if (action === 'bu-approve') {
-      if (!confirm('BU-Freigabe bestätigen?')) return;
+      if (!confirm('HoBU-Freigabe bestätigen?')) return;
       const payload = {
         dockBuApproved: true,
         dockBuApprovedAt: Date.now(),
