@@ -11379,16 +11379,22 @@
     "submittedBy": "Merlin Klein",
     "list": [
       {
-        "key": "Bülent Arslan",
-        "name": "Bülent Arslan",
-        "pct": 0,
-        "money": 0
-      },
-      {
         "key": "Uta Giebel",
         "name": "Uta Giebel",
-        "pct": 0,
-        "money": 0
+        "pct": 76.07612153613387,
+        "money": 76076
+      },
+      {
+        "key": "Constanze Aka",
+        "name": "Constanze Aka",
+        "pct": 15.767632495873354,
+        "money": 15768
+      },
+      {
+        "key": "Bülent Arslan",
+        "name": "Bülent Arslan",
+        "pct": 8.156245967992776,
+        "money": 8156
       }
     ],
     "updatedAt": 1763633855222,
@@ -11420,20 +11426,26 @@
       {
         "name": "Bülent Arslan",
         "cs": 0,
-        "konzept": 0,
+        "konzept": 10.162039156313298,
         "pitch": 0
       },
       {
         "name": "Uta Giebel",
         "cs": 0,
+        "konzept": 89.8379608436867,
+        "pitch": 20.115742860016994
+      },
+      {
+        "name": "Constanze Aka",
+        "cs": 0,
         "konzept": 0,
-        "pitch": 0
+        "pitch": 79.884257139983
       }
     ],
     "totals": {
       "cs": 0,
-      "konzept": 0,
-      "pitch": 0
+      "konzept": 100,
+      "pitch": 100
     },
     "weights": [
       {
@@ -11442,15 +11454,15 @@
       },
       {
         "key": "konzept",
-        "weight": 15.595238095238102
+        "weight": 80.26190258207775
       },
       {
         "key": "pitch",
-        "weight": 9.857145036969854
+        "weight": 19.738097417922248
       }
     ],
-    "ts": 1765210799528,
-    "modified": 1765210795686,
+    "ts": 1765292505084,
+    "modified": 1765292505971,
     "kvNummer": "1",
     "kv_list": [
       "1"
