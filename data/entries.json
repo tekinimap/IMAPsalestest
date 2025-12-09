@@ -11393,8 +11393,8 @@
       {
         "key": "Bülent Arslan",
         "name": "Bülent Arslan",
-        "pct": 8.156245967992776,
-        "money": 8156
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1763633855222,
@@ -11426,7 +11426,7 @@
       {
         "name": "Bülent Arslan",
         "cs": 0,
-        "konzept": 10.162039156313298,
+        "konzept": 0,
         "pitch": 0
       },
       {
@@ -11444,7 +11444,7 @@
     ],
     "totals": {
       "cs": 0,
-      "konzept": 100,
+      "konzept": 89.8379608436867,
       "pitch": 100
     },
     "weights": [
@@ -11461,8 +11461,8 @@
         "weight": 19.738097417922248
       }
     ],
-    "ts": 1765295898467,
-    "modified": 1765295899472,
+    "ts": 1765296618441,
+    "modified": 1765296619297,
     "kvNummer": "1",
     "kv_list": [
       "1"
