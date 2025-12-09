@@ -1245,12 +1245,12 @@ function buildDockCard(item) {
 
   if (phase === 2) {
     if (entry.dockBuApproved) {
-      footer.appendChild(createDockElement('span', { className: 'dock-pill ok', text: 'BU freigegeben' }));
+      footer.appendChild(createDockElement('span', { className: 'dock-pill ok', text: 'HoBU freigegeben' }));
     } else {
       footer.appendChild(
         createDockElement('button', {
           className: 'btn ok tight',
-          text: 'BU-Freigabe bestätigen',
+          text: 'HoBU Freigabe',
           attrs: { type: 'button' },
           dataset: { dockAct: 'bu-approve', id: entry.id },
         })
@@ -1382,7 +1382,7 @@ function handleDockBoardClick(event) {
     };
 
     if (action === 'bu-approve') {
-      if (!confirm('BU-Freigabe bestätigen?')) return;
+      if (!confirm('HoBU-Freigabe bestätigen?')) return;
       const payload = {
         dockBuApproved: true,
         dockBuApprovedAt: Date.now(),
