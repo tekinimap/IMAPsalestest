@@ -11475,7 +11475,7 @@
     "amount": 500000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "DRV-001",
+    "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11507,7 +11507,7 @@
     "dockBuApprovedAt": 1764855065437,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1764720000000,
     "kvNummern": [
@@ -11565,7 +11565,7 @@
       "konzept": 100,
       "pitch": 0
     },
-    "ts": 1765296631887,
-    "modified": 1765296632757
+    "ts": 1765377008805,
+    "modified": 1765377008918
   }
 ]
