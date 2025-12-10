@@ -11410,10 +11410,10 @@
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
     "kvNummern": [
-      "1"
+      "KV-2020-0001"
     ],
-    "kv_nummer": "1",
-    "kv": "1",
+    "kv_nummer": "KV-2020-0001",
+    "kv": "KV-2020-0001",
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhaseHistory": {
@@ -11461,11 +11461,11 @@
         "weight": 19.738097417922248
       }
     ],
-    "ts": 1765296618441,
-    "modified": 1765376918227,
-    "kvNummer": "1",
+    "ts": 1765376934325,
+    "modified": 1765376934363,
+    "kvNummer": "KV-2020-0001",
     "kv_list": [
-      "1"
+      "KV-2020-0001"
     ]
   },
   {
