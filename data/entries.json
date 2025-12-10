@@ -11406,9 +11406,9 @@
     "dockBuApprovedAt": 1765376918216,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1765376964249,
+    "freigabedatum": 1765324800000,
     "kvNummern": [
       "KV-2020-0001"
     ],
@@ -11461,8 +11461,8 @@
         "weight": 19.738097417922248
       }
     ],
-    "ts": 1765376964249,
-    "modified": 1765376968430,
+    "ts": 1765377017445,
+    "modified": 1765377017408,
     "kvNummer": "KV-2020-0001",
     "kv_list": [
       "KV-2020-0001"
