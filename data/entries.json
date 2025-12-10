@@ -11381,18 +11381,24 @@
       {
         "key": "Uta Giebel",
         "name": "Uta Giebel",
-        "pct": 76.07612153613387,
-        "money": 76076
+        "pct": 37.234286063058036,
+        "money": 37234
       },
       {
         "key": "Constanze Aka",
         "name": "Constanze Aka",
-        "pct": 15.767632495873354,
-        "money": 15768
+        "pct": 36.43642894199917,
+        "money": 36436
       },
       {
         "key": "Bülent Arslan",
         "name": "Bülent Arslan",
+        "pct": 26.329284994942803,
+        "money": 26329
+      },
+      {
+        "key": "Leonie Athanasiadis",
+        "name": "Leonie Athanasiadis",
         "pct": 0,
         "money": 0
       }
@@ -11426,25 +11432,31 @@
       {
         "name": "Bülent Arslan",
         "cs": 0,
-        "konzept": 0,
+        "konzept": 33,
         "pitch": 0
       },
       {
         "name": "Uta Giebel",
         "cs": 0,
-        "konzept": 89.8379608436867,
-        "pitch": 20.115742860016994
+        "konzept": 34,
+        "pitch": 50
       },
       {
         "name": "Constanze Aka",
         "cs": 0,
+        "konzept": 33,
+        "pitch": 50
+      },
+      {
+        "name": "Leonie Athanasiadis",
+        "cs": 0,
         "konzept": 0,
-        "pitch": 79.884257139983
+        "pitch": 0
       }
     ],
     "totals": {
       "cs": 0,
-      "konzept": 89.8379608436867,
+      "konzept": 100,
       "pitch": 100
     },
     "weights": [
@@ -11454,15 +11466,15 @@
       },
       {
         "key": "konzept",
-        "weight": 80.26190258207775
+        "weight": 79.78571210588727
       },
       {
         "key": "pitch",
-        "weight": 19.738097417922248
+        "weight": 20.21428789411273
       }
     ],
-    "ts": 1765377017445,
-    "modified": 1765377017408,
+    "ts": 1765381902371,
+    "modified": 1765381902286,
     "kvNummer": "KV-2020-0001",
     "kv_list": [
       "KV-2020-0001"
