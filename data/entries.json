@@ -11403,10 +11403,10 @@
     "businessUnit": "",
     "assessmentOwner": "Merlin Klein",
     "dockBuApproved": true,
-    "dockBuApprovedAt": 1764838065319,
+    "dockBuApprovedAt": 1765376918216,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 3,
     "flagship_projekt": true,
     "freigabedatum": 1764028800000,
     "kvNummern": [
@@ -11462,7 +11462,7 @@
       }
     ],
     "ts": 1765296618441,
-    "modified": 1765296619297,
+    "modified": 1765376918227,
     "kvNummer": "1",
     "kv_list": [
       "1"
