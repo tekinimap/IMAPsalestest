@@ -11409,10 +11409,10 @@
     "businessUnit": "",
     "assessmentOwner": "Merlin Klein",
     "dockBuApproved": true,
-    "dockBuApprovedAt": 1765376918216,
+    "dockBuApprovedAt": 1765381943473,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 3,
     "flagship_projekt": true,
     "freigabedatum": 1765324800000,
     "kvNummern": [
@@ -11474,7 +11474,7 @@
       }
     ],
     "ts": 1765381920997,
-    "modified": 1765381920975,
+    "modified": 1765381943586,
     "kvNummer": "KV-2020-0001",
     "kv_list": [
       "KV-2020-0001"
