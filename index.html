@@ -3515,40 +3515,6 @@
             wieder.</div>
         </div>
 
-        <dialog id="frameworkVolumeDialog">
-          <form id="frameworkVolumeForm"
-            class="flex flex-col bg-slate-900 rounded-2xl overflow-hidden border border-slate-700">
-            <div class="flex items-center justify-between px-5 py-4 bg-slate-800 border-b border-slate-700">
-              <div>
-                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-1">Rahmenvertrag</p>
-                <h2 class="text-lg font-bold text-white">Höchstabrufsvolumen</h2>
-              </div>
-              <button id="frameworkVolumeCancel" type="button"
-                class="w-9 h-9 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center">
-                <i class="fa-solid fa-times"></i>
-              </button>
-            </div>
-
-            <div class="px-5 py-4 space-y-3">
-              <p class="text-sm text-slate-300">Bitte gib das maximale Abrufsvolumen für diesen Rahmenvertrag ein. Das
-                Feld
-                akzeptiert nur positive Zahlen.</p>
-              <label for="frameworkVolumeInput"
-                class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Volumen in
-                Euro</label>
-              <input id="frameworkVolumeInput" name="frameworkVolumeInput" type="text"
-                class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
-                placeholder="z. B. 1.250.000" autocomplete="off" inputmode="decimal">
-              <p id="frameworkVolumeError" class="text-sm text-red-400 min-h-[20px]"></p>
-            </div>
-
-            <div class="px-5 py-4 bg-slate-800 border-t border-slate-700 flex justify-end gap-3">
-              <button type="button" id="frameworkVolumeCancelFooter" class="btn">Abbrechen</button>
-              <button type="submit" class="btn primary">Speichern &amp; zuweisen</button>
-            </div>
-          </form>
-        </dialog>
-
         <dialog id="app-modal">
           <div class="wizard-container">
             <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex justify-between items-center shrink-0">
