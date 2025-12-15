@@ -176,6 +176,12 @@ const dockEntryDialog = document.getElementById('app-modal');
 const dockManualPanel = document.getElementById('dockManualPanel');
 const dockIntroEl = document.getElementById('erfassungSub');
 const dockIntroDefaultText = dockIntroEl ? dockIntroEl.textContent : '';
+const frameworkVolumeDialog = document.getElementById('frameworkVolumeDialog');
+const frameworkVolumeForm = document.getElementById('frameworkVolumeForm');
+const frameworkVolumeInput = document.getElementById('frameworkVolumeInput');
+const frameworkVolumeError = document.getElementById('frameworkVolumeError');
+const frameworkVolumeCancel = document.getElementById('frameworkVolumeCancel');
+const frameworkVolumeCancelFooter = document.getElementById('frameworkVolumeCancelFooter');
 const dockFilterBu = document.getElementById('dockFilterBu');
 const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
 const dockFilterAssessment = document.getElementById('dockFilterAssessment');
@@ -186,6 +192,91 @@ const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
 if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
   btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
 }
+
+let onFrameworkVolumeSubmit = null;
+
+function resetFrameworkVolumeDialog() {
+  onFrameworkVolumeSubmit = null;
+  if (frameworkVolumeError) {
+    frameworkVolumeError.textContent = '';
+  }
+}
+
+function closeFrameworkVolumeDialog() {
+  if (frameworkVolumeDialog) {
+    if (typeof frameworkVolumeDialog.close === 'function') {
+      frameworkVolumeDialog.close();
+    } else {
+      frameworkVolumeDialog.removeAttribute('open');
+    }
+  }
+  resetFrameworkVolumeDialog();
+}
+
+function openFrameworkVolumeDialog(entry, onSubmit) {
+  if (typeof onSubmit !== 'function') return;
+
+  if (!frameworkVolumeDialog || !frameworkVolumeInput) {
+    const manualInput = prompt('Höchstabrufsvolumen (EUR):');
+    const parsedManual = parseAmountInput(manualInput);
+    if (Number.isFinite(parsedManual) && parsedManual > 0) {
+      onSubmit(parsedManual);
+    } else {
+      showToast('Ungültiges Volumen. Bitte eine positive Zahl eingeben.', 'bad');
+    }
+    return;
+  }
+
+  onFrameworkVolumeSubmit = onSubmit;
+  if (frameworkVolumeError) {
+    frameworkVolumeError.textContent = '';
+  }
+  const existingVolume = getFrameworkVolume(entry);
+  frameworkVolumeInput.value = existingVolume != null ? formatAmountInput(existingVolume) : '';
+
+  if (typeof frameworkVolumeDialog.showModal === 'function') {
+    frameworkVolumeDialog.showModal();
+  } else {
+    frameworkVolumeDialog.setAttribute('open', 'open');
+  }
+
+  if (typeof frameworkVolumeInput.focus === 'function') {
+    frameworkVolumeInput.focus();
+    frameworkVolumeInput.select?.();
+  }
+}
+
+if (frameworkVolumeForm) {
+  frameworkVolumeForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const rawValue = frameworkVolumeInput?.value ?? '';
+    const parsed = parseAmountInput(rawValue);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      if (frameworkVolumeError) {
+        frameworkVolumeError.textContent = 'Bitte gib eine positive Zahl ein.';
+      }
+      frameworkVolumeInput?.focus();
+      return;
+    }
+
+    const callback = onFrameworkVolumeSubmit;
+    closeFrameworkVolumeDialog();
+    if (callback) {
+      callback(parsed);
+    }
+  });
+}
+
+const handleFrameworkVolumeCancel = () => {
+  closeFrameworkVolumeDialog();
+};
+
+frameworkVolumeCancel?.addEventListener('click', handleFrameworkVolumeCancel);
+frameworkVolumeCancelFooter?.addEventListener('click', handleFrameworkVolumeCancel);
+frameworkVolumeDialog?.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeFrameworkVolumeDialog();
+});
 
 const dockColumnBodies = new Map();
 const dockColumnCounts = new Map();
@@ -1399,21 +1490,33 @@ function handleDockBoardClick(event) {
         startDockAbrufAssignment(entry);
         return;
       }
+      if (target === 'rahmen') {
+        openFrameworkVolumeDialog(entry, (volume) => {
+          const label = DOCK_ASSIGNMENT_LABELS[target] || target;
+          if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
+          const message = 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.';
+          const payload = {
+            dockFinalAssignment: target,
+            dockFinalAssignmentAt: Date.now(),
+            dockRewardFactor: rewardFactor,
+            dockRewardComment: rewardComment,
+            projectType: 'rahmen',
+            frameworkVolume: volume,
+          };
+          queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
+          runUpdate(3, payload, message);
+        });
+        return;
+      }
       const label = DOCK_ASSIGNMENT_LABELS[target] || target;
       if (!confirm(`Deal endgültig als ${label} zuweisen?`)) return;
-      const message =
-        target === 'rahmen'
-          ? 'Deal als Rahmenvertrag markiert. Bitte Abschluss im entsprechenden Bereich prüfen.'
-          : 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
+      const message = 'Zuweisung gespeichert. Der Deal verschwindet aus dem Dock.';
       const payload = {
         dockFinalAssignment: target,
         dockFinalAssignmentAt: Date.now(),
         dockRewardFactor: rewardFactor,
         dockRewardComment: rewardComment,
       };
-      if (target === 'rahmen') {
-        payload.projectType = 'rahmen';
-      }
       queueDockAutoCheck(entry.id, { entry, projectNumber: entry.projectNumber || '', finalAssignment: target });
       runUpdate(3, payload, message);
     }
