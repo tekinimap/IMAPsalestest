@@ -11579,5 +11579,37 @@
     },
     "ts": 1765377008805,
     "modified": 1765377008918
+  },
+  {
+    "id": "hubspot_f783d454b326a64ff464e606186d8930",
+    "hubspotId": "51900163939",
+    "title": "Abteilung 30 - Veränderungs- und Prozessmanagement – KV-2025-0279",
+    "amount": 15039.39,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1765786786753,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1761264000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1765786786753
+    }
   }
 ]
