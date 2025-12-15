@@ -11643,5 +11643,37 @@
     "dockPhaseHistory": {
       "1": 1765786788076
     }
+  },
+  {
+    "id": "hubspot_1c0aa5e12f3c09258814cba68e289cf5",
+    "hubspotId": "51901492380",
+    "title": "Moderation Workshops LOS 3 – KV-2025-0273",
+    "amount": 5025,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1765786789259,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1761091200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1765786789259
+    }
   }
 ]
