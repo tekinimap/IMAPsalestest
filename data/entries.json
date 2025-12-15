@@ -12059,5 +12059,37 @@
     "dockPhaseHistory": {
       "1": 1765786799949
     }
+  },
+  {
+    "id": "hubspot_c63a832ec2746c6fed8781040c6d6fcc",
+    "hubspotId": "51901288328",
+    "title": "Moderation von Führungskräfteveranstaltungen – KV-2025-0223",
+    "amount": 18650,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1765786800914,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1757635200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1765786800914
+    }
   }
 ]
