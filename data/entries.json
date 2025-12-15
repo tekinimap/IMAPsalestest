@@ -11373,7 +11373,7 @@
     "title": "Diversity Befragung",
     "amount": 100000,
     "source": "wizard",
-    "projectType": "fix",
+    "projectType": "rahmen",
     "projectNumber": "111",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
@@ -11410,8 +11410,8 @@
     "assessmentOwner": "Merlin Klein",
     "dockBuApproved": true,
     "dockBuApprovedAt": 1765381943473,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null,
+    "dockFinalAssignment": "rahmen",
+    "dockFinalAssignmentAt": 1765787214828,
     "dockPhase": 3,
     "flagship_projekt": true,
     "freigabedatum": 1765324800000,
@@ -11474,7 +11474,7 @@
       }
     ],
     "ts": 1765381920997,
-    "modified": 1765381943586,
+    "modified": 1765787215575,
     "kvNummer": "KV-2020-0001",
     "kv_list": [
       "KV-2020-0001"
