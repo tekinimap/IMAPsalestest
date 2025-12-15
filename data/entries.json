@@ -11373,7 +11373,7 @@
     "title": "FKE",
     "amount": 500000,
     "source": "hubspot",
-    "projectType": "fix",
+    "projectType": "rahmen",
     "projectNumber": "test",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
@@ -11404,8 +11404,8 @@
     "assessmentOwner": "Merlin Klein",
     "dockBuApproved": true,
     "dockBuApprovedAt": 1765788746761,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null,
+    "dockFinalAssignment": "rahmen",
+    "dockFinalAssignmentAt": 1765788760888,
     "dockPhase": 3,
     "flagship_projekt": true,
     "freigabedatum": 1764720000000,
@@ -11465,6 +11465,7 @@
       "pitch": 0
     },
     "ts": 1765788742555,
-    "modified": 1765788747339
+    "modified": 1765788761833,
+    "frameworkVolume": 500000
   }
 ]
