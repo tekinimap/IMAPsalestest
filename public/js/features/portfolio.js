@@ -90,15 +90,23 @@ function handlePortfolioClick(e, tableBody) {
         editEntryById(id);
       }
     } else if (action === 'edit-volume') {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Portfolio: edit-volume clicked', id);
       const entry = findEntryById(id);
       if (entry && deps.openFrameworkVolumeDialog) {
-        deps.openFrameworkVolumeDialog(entry, (vol) => {
-          if (deps.onUpdateFrameworkVolume) {
-            deps.onUpdateFrameworkVolume(entry, vol);
-          }
-        });
+        // Use setTimeout to detach from current event loop and prevent potential freezups
+        setTimeout(() => {
+          console.log('Portfolio: Opening volume dialog for', entry.id);
+          deps.openFrameworkVolumeDialog(entry, (vol) => {
+            if (deps.onUpdateFrameworkVolume) {
+              deps.onUpdateFrameworkVolume(entry, vol);
+            }
+          });
+        }, 10);
+      } else {
+        console.warn('Portfolio: Entry or dialog function missing', entry, !!deps.openFrameworkVolumeDialog);
       }
-      e.stopPropagation();
       return;
     } else if (action === 'del') {
       if (isTransactionRow) {
