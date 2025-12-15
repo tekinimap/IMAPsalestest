@@ -1525,21 +1525,39 @@ function handleAnalyticsNavigation() {
   loadHistory(true).then(initAnalytics);
 }
 
-function handleErfassungNavigation() {
+function clearEditingState() {
   const state = loadState();
-  const editingId = state?.editingId || null;
+  if (!state || !state.editingId) return state;
+
+  const { editingId, ...rest } = state;
+  saveState(rest);
+  return rest;
+}
+
+function closeOpenDialogs() {
+  document.querySelectorAll('dialog[open]').forEach((dialog) => {
+    try {
+      dialog.close();
+    } catch (err) {
+      console.warn('Dialog konnte nicht geschlossen werden.', err);
+    }
+  });
+}
+
+function handleErfassungNavigation() {
+  clearEditingState();
 
   if (getHasUnsavedChanges()) {
     const confirmed = confirm('Ungespeicherte Änderungen gehen verloren. Möchtest du fortfahren?');
     if (!confirmed) return;
+    setHasUnsavedChanges(false);
   }
 
   loadHistory().then(() => {
+    closeOpenDialogs();
+    hideManualPanel();
     renderDockBoard();
     showView('erfassung');
-    if (editingId) {
-      showManualPanel(editingId);
-    }
   });
 }
 
