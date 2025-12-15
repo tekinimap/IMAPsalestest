@@ -91,21 +91,36 @@ function handlePortfolioClick(e, tableBody) {
       }
     } else if (action === 'edit-volume') {
       e.preventDefault();
-      e.stopPropagation();
+      e.stopPropagation(); // Stop event from bubbling to row handler
+
+      const id = actBtn.dataset.id;
+      if (!id) {
+        console.warn('Portfolio: edit-volume clicked but no ID found');
+        return;
+      }
+
       console.log('Portfolio: edit-volume clicked', id);
       const entry = findEntryById(id);
-      if (entry && deps.openFrameworkVolumeDialog) {
-        // Use setTimeout to detach from current event loop and prevent potential freezups
-        setTimeout(() => {
-          console.log('Portfolio: Opening volume dialog for', entry.id);
-          deps.openFrameworkVolumeDialog(entry, (vol) => {
-            if (deps.onUpdateFrameworkVolume) {
-              deps.onUpdateFrameworkVolume(entry, vol);
-            }
-          });
-        }, 10);
-      } else {
-        console.warn('Portfolio: Entry or dialog function missing', entry, !!deps.openFrameworkVolumeDialog);
+
+      if (!entry) {
+        console.error('Portfolio: Entry not found for ID', id);
+        return;
+      }
+
+      if (typeof deps.openFrameworkVolumeDialog !== 'function') {
+        console.error('Portfolio: openFrameworkVolumeDialog dep is missing', deps);
+        return;
+      }
+
+      // Safe invocation
+      try {
+        deps.openFrameworkVolumeDialog(entry, (vol) => {
+          if (typeof deps.onUpdateFrameworkVolume === 'function') {
+            deps.onUpdateFrameworkVolume(entry, vol);
+          }
+        });
+      } catch (err) {
+        console.error('Portfolio: Error opening dialog:', err);
       }
       return;
     } else if (action === 'del') {
