@@ -85,7 +85,7 @@
     .clickable,
     .nav-link:not(.disabled),
     summary,
-    details[open] > summary {
+    details[open]>summary {
       cursor: pointer;
     }
 
@@ -994,6 +994,7 @@
         opacity: 0;
         transform: translateY(-6px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -2706,7 +2707,8 @@
       align-items: center;
       gap: 6px;
     }
-/* =========================================
+
+    /* =========================================
        FINAL V6: Clean Design (Liste, Linksbündig, No Emojis)
        ========================================= */
     .meta-section-container {
@@ -2751,19 +2753,23 @@
       color: #fff;
       border-color: var(--accent);
     }
-    
+
     /* FLEXBOX: Linksbündig */
     .meta-compact-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      justify-content: flex-start; /* Alles nach links */
-      align-items: stretch; /* Gleiche Höhe */
-      gap: 8px; /* Sehr geringer Abstand */
+      justify-content: flex-start;
+      /* Alles nach links */
+      align-items: stretch;
+      /* Gleiche Höhe */
+      gap: 8px;
+      /* Sehr geringer Abstand */
     }
 
     /* --- Metadaten Box (Liste untereinander) --- */
     .meta-box {
-      width: 100%; /* Gleiche Breite */
+      width: 100%;
+      /* Gleiche Breite */
       min-width: 0;
       background: rgba(11, 17, 26, 0.4);
       border: 1px solid var(--border);
@@ -2777,30 +2783,32 @@
     .meta-data-list {
       display: flex;
       flex-direction: column;
-      gap: 4px; /* Geringerer Zeilenabstand */
+      gap: 4px;
+      /* Geringerer Zeilenabstand */
     }
 
     .meta-data-item {
       display: flex;
-      flex-direction: column; /* Untereinander */
+      flex-direction: column;
+      /* Untereinander */
       gap: 0;
       line-height: 1.3;
     }
 
-    .meta-label { 
-      font-size: 11px; 
-      color: var(--muted); 
-      text-transform: uppercase; 
+    .meta-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
       letter-spacing: 0.03em;
     }
-    
-    .meta-value { 
-      font-size: 13px; 
-      color: var(--text); 
-      font-weight: 500; 
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
+
+    .meta-value {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Inputs im Edit-Modus */
@@ -2824,13 +2832,24 @@
       height: 28px;
       width: 100%;
     }
-    .meta-edit-section.is-editing .meta-edit-summary { display: none; }
-    .meta-edit-section .meta-edit-fields { display: none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-    .meta-edit-section.is-editing .meta-edit-fields { display: grid; }
+
+    .meta-edit-section.is-editing .meta-edit-summary {
+      display: none;
+    }
+
+    .meta-edit-section .meta-edit-fields {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .meta-edit-section.is-editing .meta-edit-fields {
+      display: grid;
+    }
 
     /* --- Schieberegler Box --- */
     .weighting-box {
-      width: 100%; /* Gleiche Breite wie Metadaten */
+      width: 100%;
+      /* Gleiche Breite wie Metadaten */
       min-width: 0;
       background: rgba(11, 17, 26, 0.4);
       border: 1px solid var(--border);
@@ -2839,8 +2858,10 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      height: 100%; /* Gleiche Höhe */
-      min-height: 84px; /* Gleiche optische Höhe wie Meta-Box */
+      height: 100%;
+      /* Gleiche Höhe */
+      min-height: 84px;
+      /* Gleiche optische Höhe wie Meta-Box */
     }
 
     .slider-container {
@@ -2849,145 +2870,570 @@
       width: 100%;
     }
 
-    .range-wrapper { 
-      position: relative; 
-      height: 20px; 
-      display: flex; 
-      align-items: center; 
-      width: 100%; 
-      margin-bottom: 6px; /* Platz zu den Zahlen */
+    .range-wrapper {
+      position: relative;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 6px;
+      /* Platz zu den Zahlen */
     }
 
     /* Input Slider Reset & Style */
     input[type=range].snappy-range {
-      -webkit-appearance: none; appearance: none;
-      width: 100%; background: transparent; margin: 0; z-index: 5; position: relative; cursor: pointer; height: 20px;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      background: transparent;
+      margin: 0;
+      z-index: 5;
+      position: relative;
+      cursor: pointer;
+      height: 20px;
     }
-    input[type=range].snappy-range:focus { outline: none; }
+
+    input[type=range].snappy-range:focus {
+      outline: none;
+    }
 
     /* Track */
     input[type=range].snappy-range::-webkit-slider-runnable-track {
-      width: 100%; height: 4px; cursor: pointer; background: linear-gradient(to right, var(--accent), #22c55e); border-radius: 4px;
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--accent), #22c55e);
+      border-radius: 4px;
     }
+
     input[type=range].snappy-range::-moz-range-track {
-      width: 100%; height: 4px; cursor: pointer; background: linear-gradient(to right, var(--accent), #22c55e); border-radius: 4px;
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--accent), #22c55e);
+      border-radius: 4px;
     }
 
     /* Thumb (Kreis) */
     input[type=range].snappy-range::-webkit-slider-thumb {
-      height: 16px; width: 16px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); position: relative; z-index: 10;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 10;
     }
+
     input[type=range].snappy-range::-moz-range-thumb {
-      height: 16px; width: 16px; border: 2px solid var(--accent); border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      height: 16px;
+      width: 16px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     }
 
     /* Ticks (Striche) */
     .slider-ticks {
-      display: flex; justify-content: space-between; position: absolute; width: 100%; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 2; 
-      padding: 0 7px; /* Alignment: (Thumb 16px / 2) - (Tick 2px / 2) = 8 - 1 = 7px */
+      display: flex;
+      justify-content: space-between;
+      position: absolute;
+      width: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 2;
+      padding: 0 7px;
+      /* Alignment: (Thumb 16px / 2) - (Tick 2px / 2) = 8 - 1 = 7px */
     }
-    .tick-mark { width: 2px; height: 8px; background: rgba(255,255,255,0.8); border-radius: 1px; }
+
+    .tick-mark {
+      width: 2px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 1px;
+    }
 
     /* Zahlen unter dem Slider */
     .slider-values-row {
-      display: flex; justify-content: space-between; margin-top: 0; font-size: 11px; color: var(--muted); font-family: monospace;
-      width: calc(100% + 10px); margin-left: -5px; margin-right: -5px; /* Negative Margin für Alignment */
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      width: calc(100% + 10px);
+      margin-left: -5px;
+      margin-right: -5px;
+      /* Negative Margin für Alignment */
     }
-    .slider-values-row span { width: 24px; text-align: center; }
+
+    .slider-values-row span {
+      width: 24px;
+      text-align: center;
+    }
 
     /* Info Button */
     .slider-info-btn {
-      position: absolute; top: -8px; right: -8px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; width: 14px; height: 14px; font-size: 9px; display: flex; align-items: center; justify-content: center; cursor: help; z-index: 15; opacity: 0.6;
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      z-index: 15;
+      opacity: 0.6;
     }
-    .slider-info-btn:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+
+    .slider-info-btn:hover {
+      opacity: 1;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .slider-info-btn:hover::after {
-      content: "Gewichtung:\A 0,5 = Kalt\A 1,0 = Standard\A 2,0 = Prio / KI"; white-space: pre; position: absolute; bottom: 20px; right: -4px; width: 140px; background: #0f172a; border: 1px solid var(--accent); padding: 8px; border-radius: 6px; font-size: 11px; color: #e2e8f0; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,0.9); z-index: 100; text-align: left; font-weight: normal; pointer-events: none;
+      content: "Gewichtung:\A 0,5 = Kalt\A 1,0 = Standard\A 2,0 = Prio / KI";
+      white-space: pre;
+      position: absolute;
+      bottom: 20px;
+      right: -4px;
+      width: 140px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #e2e8f0;
+      line-height: 1.4;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+      z-index: 100;
+      text-align: left;
+      font-weight: normal;
+      pointer-events: none;
     }
-    
-    .weighting-slider.is-disabled { opacity: 0.5; pointer-events: none; }
+
+    .weighting-slider.is-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
 
     @media(max-width: 600px) {
-      .meta-compact-grid { grid-template-columns: 1fr; width: 100%; gap: 8px; }
-      .meta-box, .weighting-box { width: 100%; min-height: auto; }
-      .form-bottom-actions { flex-direction: column; align-items: stretch; }
+      .meta-compact-grid {
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 8px;
+      }
+
+      .meta-box,
+      .weighting-box {
+        width: 100%;
+        min-height: auto;
+      }
+
+      .form-bottom-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
 
     /* --- WIZARD STYLES (NEU) --- */
     dialog#app-modal {
-        background: transparent; padding: 0; border: none; width: 95%; max-width: 1200px; height: 92vh; color: inherit; outline: none;
+      background: transparent;
+      padding: 0;
+      border: none;
+      width: 95%;
+      max-width: 1200px;
+      height: 92vh;
+      color: inherit;
+      outline: none;
     }
+
     dialog#app-modal::backdrop {
-        background-color: rgba(15, 23, 42, 0.95); backdrop-filter: blur(5px);
+      background-color: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(5px);
     }
 
     .wizard-container {
-        background-color: #1e293b; border: 1px solid #334155; border-radius: 1rem; display: flex; flex-direction: column; height: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden;
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
     }
 
     /* Inputs & UI im Wizard */
-    .wizard-container .locked-input { background: transparent; border: 1px solid transparent; color: #cbd5e1; font-weight: 600; cursor: default; pointer-events: none; }
-    .wizard-container .unlocked-input { background: #0f172a; border: 1px solid #3b82f6; color: white; cursor: text; pointer-events: auto; }
-    .wizard-container .lock-btn { transition: all 0.2s; } 
-    .wizard-container .lock-btn:hover { color: #3b82f6; background: rgba(59, 130, 246, 0.1); } 
-    .wizard-container .is-unlocked .lock-btn { color: #3b82f6; }
+    .wizard-container .locked-input {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #cbd5e1;
+      font-weight: 600;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .wizard-container .unlocked-input {
+      background: #0f172a;
+      border: 1px solid #3b82f6;
+      color: white;
+      cursor: text;
+      pointer-events: auto;
+    }
+
+    .wizard-container .lock-btn {
+      transition: all 0.2s;
+    }
+
+    .wizard-container .lock-btn:hover {
+      color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .wizard-container .is-unlocked .lock-btn {
+      color: #3b82f6;
+    }
 
     /* Footer Items */
-    .wizard-container .footer-item { 
-        display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.25rem; 
-        border-radius: 0.5rem; border: 1px solid #334155; background-color: #1e293b; 
-        color: #cbd5e1; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; select-none; 
-        min-width: 260px; justify-content: flex-start;
+    .wizard-container .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid #334155;
+      background-color: #1e293b;
+      color: #cbd5e1;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      select-none;
+      min-width: 260px;
+      justify-content: flex-start;
     }
-    .wizard-container .footer-item:hover { background-color: #334155; border-color: #475569; color: #fff; }
-    .wizard-container .footer-item:active { background-color: #475569; }
-    .wizard-container .footer-icon-box { width: 2rem; height: 2rem; border-radius: 9999px; background-color: #0f172a; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; color: #60a5fa; }
+
+    .wizard-container .footer-item:hover {
+      background-color: #334155;
+      border-color: #475569;
+      color: #fff;
+    }
+
+    .wizard-container .footer-item:active {
+      background-color: #475569;
+    }
+
+    .wizard-container .footer-icon-box {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      background-color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #334155;
+      color: #60a5fa;
+    }
 
     /* Drag & Drop */
-    .person-chip { background-color: #334155; border: 1px solid #475569; cursor: grab; user-select: none; transition: all 0.2s; }
-    .person-chip:active { cursor: grabbing; z-index: 50; transform: scale(1.02); }
-    .sortable-ghost { opacity: 0.4; background: #475569; border: 1px dashed #94a3b8; }
-    .bucket-wrapper { display: flex; flex-direction: column; height: 100%; background-color: rgba(15, 23, 42, 0.3); border: 1px solid #334155; border-radius: 0.5rem; overflow: hidden; }
-    .bucket-list { flex-grow: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; min-height: 100px; }
-    .bucket-list.drag-over { background-color: rgba(59, 130, 246, 0.1); box-shadow: inset 0 0 0 2px #3b82f6; }
+    .person-chip {
+      background-color: #334155;
+      border: 1px solid #475569;
+      cursor: grab;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .person-chip:active {
+      cursor: grabbing;
+      z-index: 50;
+      transform: scale(1.02);
+    }
+
+    .sortable-ghost {
+      opacity: 0.4;
+      background: #475569;
+      border: 1px dashed #94a3b8;
+    }
+
+    .bucket-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: rgba(15, 23, 42, 0.3);
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .bucket-list {
+      flex-grow: 1;
+      padding: 0.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 100px;
+    }
+
+    .bucket-list.drag-over {
+      background-color: rgba(59, 130, 246, 0.1);
+      box-shadow: inset 0 0 0 2px #3b82f6;
+    }
 
     /* Split Bar */
-    .split-bar-wrapper { width: 100%; position: relative; padding-top: 40px; padding-bottom: 5px; }
-    .split-bar-container { position: relative; height: 32px; background: #334155; border-radius: 6px; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); overflow: visible; }
-    .split-segment { height: 100%; display: flex; align-items: center; justify-content: center; position: relative; transition: width 0.05s linear; }
-    .split-segment:first-child { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
-    .split-segment:last-child { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+    .split-bar-wrapper {
+      width: 100%;
+      position: relative;
+      padding-top: 40px;
+      padding-bottom: 5px;
+    }
+
+    .split-bar-container {
+      position: relative;
+      height: 32px;
+      background: #334155;
+      border-radius: 6px;
+      display: flex;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: visible;
+    }
+
+    .split-segment {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: width 0.05s linear;
+    }
+
+    .split-segment:first-child {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+    }
+
+    .split-segment:last-child {
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
+    }
 
     /* Pills */
-    .segment-pill { background: rgba(0, 0, 0, 0.4); padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; backdrop-filter: blur(2px); pointer-events: none; z-index: 20; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    .segment-pill.popped-out { position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid #475569; box-shadow: 0 4px 8px rgba(0,0,0,0.5); color: #e2e8f0; z-index: 50; }
-    .segment-pill.popped-out.stagger-up { top: -54px; z-index: 51; background: #0f172a; border-color: #64748b; }
-    .segment-pill.popped-out::after { content: ''; position: absolute; bottom: -4px; left: 50%; margin-left: -4px; border-width: 4px; border-style: solid; border-color: #475569 transparent transparent transparent; }
-    .segment-pill.popped-out.stagger-up::after { bottom: -30px; border: none; width: 1px; height: 30px; background: #64748b; margin-left: 0; }
+    .segment-pill {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      backdrop-filter: blur(2px);
+      pointer-events: none;
+      z-index: 20;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .segment-pill.popped-out {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid #475569;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      color: #e2e8f0;
+      z-index: 50;
+    }
+
+    .segment-pill.popped-out.stagger-up {
+      top: -54px;
+      z-index: 51;
+      background: #0f172a;
+      border-color: #64748b;
+    }
+
+    .segment-pill.popped-out::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      margin-left: -4px;
+      border-width: 4px;
+      border-style: solid;
+      border-color: #475569 transparent transparent transparent;
+    }
+
+    .segment-pill.popped-out.stagger-up::after {
+      bottom: -30px;
+      border: none;
+      width: 1px;
+      height: 30px;
+      background: #64748b;
+      margin-left: 0;
+    }
 
     /* Handles & Actions */
-    .split-handle { position: absolute; top: 0; bottom: 0; width: 24px; margin-left: -12px; background: transparent; cursor: col-resize; z-index: 30; display: flex; align-items: center; justify-content: center; }
-    .split-handle::after { content: ''; width: 4px; height: 20px; background: white; border-radius: 2px; box-shadow: 0 0 4px rgba(0,0,0,0.8); transition: all 0.1s; }
-    .split-handle:hover::after { height: 28px; background: #e2e8f0; transform: scaleX(1.2); }
-    .split-handle:active::after { background: #60a5fa; height: 32px; }
+    .split-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 24px;
+      margin-left: -12px;
+      background: transparent;
+      cursor: col-resize;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-    .action-btn { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8; background: rgba(255,255,255,0.05); transition: all 0.1s; font-size: 0.75rem; cursor: pointer; }
-    .action-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .split-handle::after {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+      transition: all 0.1s;
+    }
+
+    .split-handle:hover::after {
+      height: 28px;
+      background: #e2e8f0;
+      transform: scaleX(1.2);
+    }
+
+    .split-handle:active::after {
+      background: #60a5fa;
+      height: 32px;
+    }
+
+    .action-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all 0.1s;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
 
     /* Status & Panels */
-    .phase-disabled { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
-    .phase-card-disabled { position: relative; border-style: dashed !important; border-color: #475569 !important; background: transparent !important; }
-    .phase-card-disabled::after { content: "Deaktiviert (0%)"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; z-index: 50; }
+    .phase-disabled {
+      opacity: 0.3;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
 
-    .popup-panel { position: absolute; bottom: 4.5rem; left: 0; width: 320px; background-color: #1e293b; border: 1px solid #475569; border-radius: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.2s ease-out; z-index: 100; display: none; }
-    .popup-panel.open { transform: translateY(0); opacity: 1; pointer-events: all; display: block; }
+    .phase-card-disabled {
+      position: relative;
+      border-style: dashed !important;
+      border-color: #475569 !important;
+      background: transparent !important;
+    }
 
-    .search-suggestions { position: absolute; top: 100%; left: 0; width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 0.5rem; max-height: 200px; overflow-y: auto; z-index: 60; margin-top: 4px; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-    .search-suggestions.open { display: block; }
-    .search-item:hover { background-color: #334155; }
+    .phase-card-disabled::after {
+      content: "Deaktiviert (0%)";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #64748b;
+      z-index: 50;
+    }
 
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    .popup-panel {
+      position: absolute;
+      bottom: 4.5rem;
+      left: 0;
+      width: 320px;
+      background-color: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease-out;
+      z-index: 100;
+      display: none;
+    }
+
+    .popup-panel.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: all;
+      display: block;
+    }
+
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 60;
+      margin-top: 4px;
+      display: none;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-suggestions.open {
+      display: block;
+    }
+
+    .search-item:hover {
+      background-color: #334155;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
   </style>
 
 </head>
@@ -3069,167 +3515,247 @@
             wieder.</div>
         </div>
 
-<dialog id="frameworkVolumeDialog">
-  <form id="frameworkVolumeForm" class="flex flex-col bg-slate-900 rounded-2xl overflow-hidden border border-slate-700">
-    <div class="flex items-center justify-between px-5 py-4 bg-slate-800 border-b border-slate-700">
-      <div>
-        <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-1">Rahmenvertrag</p>
-        <h2 class="text-lg font-bold text-white">Höchstabrufsvolumen</h2>
-      </div>
-      <button id="frameworkVolumeCancel" type="button"
-        class="w-9 h-9 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center">
-        <i class="fa-solid fa-times"></i>
-      </button>
-    </div>
-
-    <div class="px-5 py-4 space-y-3">
-      <p class="text-sm text-slate-300">Bitte gib das maximale Abrufsvolumen für diesen Rahmenvertrag ein. Das Feld
-        akzeptiert nur positive Zahlen.</p>
-      <label for="frameworkVolumeInput" class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Volumen in
-        Euro</label>
-      <input id="frameworkVolumeInput" name="frameworkVolumeInput" type="text"
-        class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
-        placeholder="z. B. 1.250.000" autocomplete="off" inputmode="decimal">
-      <p id="frameworkVolumeError" class="text-sm text-red-400 min-h-[20px]"></p>
-    </div>
-
-    <div class="px-5 py-4 bg-slate-800 border-t border-slate-700 flex justify-end gap-3">
-      <button type="button" id="frameworkVolumeCancelFooter" class="btn">Abbrechen</button>
-      <button type="submit" class="btn primary">Speichern &amp; zuweisen</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="app-modal">
-  <div class="wizard-container">
-    <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex justify-between items-center shrink-0">
-      <h1 class="text-xl font-bold text-white flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-          <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
-        </div>
-        Sales Attribution
-      </h1>
-      <div class="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700">
-        <button id="nav-btn-1" class="px-5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-md transition-all">1. Setup & Zuordnung</button>
-        <button id="nav-btn-2" class="px-5 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">2. Gewichtung</button>
-      </div>
-      <button id="btn-close-modal" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-times text-lg"></i></button>
-    </div>
-
-    <div class="flex-grow overflow-y-auto relative bg-slate-900 custom-scrollbar" id="wizard-content">
-      
-      <div id="view-step-1" class="p-6 h-full flex flex-col">
-        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 mb-6 relative group" id="deal-info-card">
-          <div class="absolute top-4 right-4">
-            <button id="btn-toggle-lock" class="lock-btn w-8 h-8 rounded flex items-center justify-center text-slate-500" title="Bearbeiten entsperren"><i class="fa-solid fa-lock" id="lock-icon"></i></button>
-          </div>
-          <div class="grid grid-cols-12 gap-6">
-            <div class="col-span-6 md:col-span-6 col-span-12"><label class="block text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-wider">Projekttitel</label><input type="text" id="inp-title" class="w-full text-xl font-bold p-1 rounded locked-input" readonly></div>
-            <div class="col-span-3 md:col-span-3 col-span-6"><label class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Auftraggeber</label><input type="text" id="inp-client" class="w-full text-lg p-1 rounded locked-input" readonly></div>
-            <div class="col-span-3 md:col-span-3 col-span-6"><label class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Wert (€)</label><input type="text" id="inp-amount" class="w-full text-lg font-mono text-green-400 p-1 rounded locked-input" readonly></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-12 gap-6 flex-grow pb-4" style="min-height: 0;"> 
-          <div class="col-span-3 flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-lg h-full overflow-hidden">
-            <h3 class="text-xs uppercase font-bold text-slate-400 mb-3 flex items-center gap-2"><i class="fa-solid fa-users text-blue-500"></i> Team Pool</h3>
-            <div class="relative mb-4 shrink-0">
-              <input type="text" id="person-search" placeholder="Person hinzufügen (Enter)..." class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-white focus:border-blue-500 focus:outline-none placeholder-slate-600">
-              <div id="search-dropdown" class="search-suggestions custom-scrollbar"></div>
+        <dialog id="frameworkVolumeDialog">
+          <form id="frameworkVolumeForm"
+            class="flex flex-col bg-slate-900 rounded-2xl overflow-hidden border border-slate-700">
+            <div class="flex items-center justify-between px-5 py-4 bg-slate-800 border-b border-slate-700">
+              <div>
+                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-1">Rahmenvertrag</p>
+                <h2 class="text-lg font-bold text-white">Höchstabrufsvolumen</h2>
+              </div>
+              <button id="frameworkVolumeCancel" type="button"
+                class="w-9 h-9 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-times"></i>
+              </button>
             </div>
-            <div id="source-pool" class="flex flex-col gap-2 overflow-y-auto flex-grow pr-1 custom-scrollbar"></div>
-          </div>
 
-          <div class="col-span-9 grid grid-cols-3 gap-4 h-full overflow-hidden">
-            <div class="bucket-wrapper">
-              <div class="p-3 bg-purple-900/30 text-purple-300 font-bold text-center border-b border-purple-500/20 text-sm uppercase tracking-wider shrink-0">Consultative Selling</div>
-              <div id="bucket-cs" class="bucket-list custom-scrollbar" data-phase="cs"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
+            <div class="px-5 py-4 space-y-3">
+              <p class="text-sm text-slate-300">Bitte gib das maximale Abrufsvolumen für diesen Rahmenvertrag ein. Das
+                Feld
+                akzeptiert nur positive Zahlen.</p>
+              <label for="frameworkVolumeInput"
+                class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Volumen in
+                Euro</label>
+              <input id="frameworkVolumeInput" name="frameworkVolumeInput" type="text"
+                class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+                placeholder="z. B. 1.250.000" autocomplete="off" inputmode="decimal">
+              <p id="frameworkVolumeError" class="text-sm text-red-400 min-h-[20px]"></p>
             </div>
-            <div class="bucket-wrapper">
-              <div class="p-3 bg-amber-900/30 text-amber-300 font-bold text-center border-b border-amber-500/20 text-sm uppercase tracking-wider shrink-0">Konzeption</div>
-              <div id="bucket-konzept" class="bucket-list custom-scrollbar" data-phase="konzept"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
-            </div>
-            <div class="bucket-wrapper">
-              <div class="p-3 bg-emerald-900/30 text-emerald-300 font-bold text-center border-b border-emerald-500/20 text-sm uppercase tracking-wider shrink-0">Pitch</div>
-              <div id="bucket-pitch" class="bucket-list custom-scrollbar" data-phase="pitch"><div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier ablegen</div></div>
-            </div>
-          </div>
-        </div>
 
-        <div class="absolute bottom-0 left-0 right-0 h-20 bg-slate-900/95 border-t border-slate-700 flex justify-between items-center px-6 backdrop-blur z-40">
-          <div class="flex items-center gap-6">
-            <div class="relative">
-              <div id="btn-stammdaten" class="footer-item">
-                <div class="footer-icon-box"><i class="fa-solid fa-database"></i></div>
-                <div class="flex flex-col leading-none gap-1">
-                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Stammdaten</span>
-                  <span class="font-mono text-white text-[11px]" id="status-stammdaten">-</span>
+            <div class="px-5 py-4 bg-slate-800 border-t border-slate-700 flex justify-end gap-3">
+              <button type="button" id="frameworkVolumeCancelFooter" class="btn">Abbrechen</button>
+              <button type="submit" class="btn primary">Speichern &amp; zuweisen</button>
+            </div>
+          </form>
+        </dialog>
+
+        <dialog id="app-modal">
+          <div class="wizard-container">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex justify-between items-center shrink-0">
+              <h1 class="text-xl font-bold text-white flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
+                </div>
+                Sales Attribution
+              </h1>
+              <div class="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700">
+                <button id="nav-btn-1"
+                  class="px-5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-md transition-all">1.
+                  Setup & Zuordnung</button>
+                <button id="nav-btn-2" class="px-5 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">2.
+                  Gewichtung</button>
+              </div>
+              <button id="btn-close-modal"
+                class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"><i
+                  class="fa-solid fa-times text-lg"></i></button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto relative bg-slate-900 custom-scrollbar" id="wizard-content">
+
+              <div id="view-step-1" class="p-6 h-full flex flex-col">
+                <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 mb-6 relative group"
+                  id="deal-info-card">
+                  <div class="absolute top-4 right-4">
+                    <button id="btn-toggle-lock"
+                      class="lock-btn w-8 h-8 rounded flex items-center justify-center text-slate-500"
+                      title="Bearbeiten entsperren"><i class="fa-solid fa-lock" id="lock-icon"></i></button>
+                  </div>
+                  <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-6 md:col-span-6 col-span-12"><label
+                        class="block text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-wider">Projekttitel</label><input
+                        type="text" id="inp-title" class="w-full text-xl font-bold p-1 rounded locked-input" readonly>
+                    </div>
+                    <div class="col-span-3 md:col-span-3 col-span-6"><label
+                        class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Auftraggeber</label><input
+                        type="text" id="inp-client" class="w-full text-lg p-1 rounded locked-input" readonly></div>
+                    <div class="col-span-3 md:col-span-3 col-span-6"><label
+                        class="block text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">Wert
+                        (€)</label><input type="text" id="inp-amount"
+                        class="w-full text-lg font-mono text-green-400 p-1 rounded locked-input" readonly></div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-6 flex-grow pb-4" style="min-height: 0;">
+                  <div
+                    class="col-span-3 flex flex-col bg-slate-800 rounded-xl border border-slate-700 p-4 shadow-lg h-full overflow-hidden">
+                    <h3 class="text-xs uppercase font-bold text-slate-400 mb-3 flex items-center gap-2"><i
+                        class="fa-solid fa-users text-blue-500"></i> Team Pool</h3>
+                    <div class="relative mb-4 shrink-0">
+                      <input type="text" id="person-search" placeholder="Person hinzufügen (Enter)..."
+                        class="w-full bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-sm text-white focus:border-blue-500 focus:outline-none placeholder-slate-600">
+                      <div id="search-dropdown" class="search-suggestions custom-scrollbar"></div>
+                    </div>
+                    <div id="source-pool" class="flex flex-col gap-2 overflow-y-auto flex-grow pr-1 custom-scrollbar">
+                    </div>
+                  </div>
+
+                  <div class="col-span-9 grid grid-cols-3 gap-4 h-full overflow-hidden">
+                    <div class="bucket-wrapper">
+                      <div
+                        class="p-3 bg-purple-900/30 text-purple-300 font-bold text-center border-b border-purple-500/20 text-sm uppercase tracking-wider shrink-0">
+                        Consultative Selling</div>
+                      <div id="bucket-cs" class="bucket-list custom-scrollbar" data-phase="cs">
+                        <div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier
+                          ablegen</div>
+                      </div>
+                    </div>
+                    <div class="bucket-wrapper">
+                      <div
+                        class="p-3 bg-amber-900/30 text-amber-300 font-bold text-center border-b border-amber-500/20 text-sm uppercase tracking-wider shrink-0">
+                        Konzeption</div>
+                      <div id="bucket-konzept" class="bucket-list custom-scrollbar" data-phase="konzept">
+                        <div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier
+                          ablegen</div>
+                      </div>
+                    </div>
+                    <div class="bucket-wrapper">
+                      <div
+                        class="p-3 bg-emerald-900/30 text-emerald-300 font-bold text-center border-b border-emerald-500/20 text-sm uppercase tracking-wider shrink-0">
+                        Pitch</div>
+                      <div id="bucket-pitch" class="bucket-list custom-scrollbar" data-phase="pitch">
+                        <div class="empty-msg text-center text-slate-600 text-sm mt-10 pointer-events-none italic">Hier
+                          ablegen</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="absolute bottom-0 left-0 right-0 h-20 bg-slate-900/95 border-t border-slate-700 flex justify-between items-center px-6 backdrop-blur z-40">
+                  <div class="flex items-center gap-6">
+                    <div class="relative">
+                      <div id="btn-stammdaten" class="footer-item">
+                        <div class="footer-icon-box"><i class="fa-solid fa-database"></i></div>
+                        <div class="flex flex-col leading-none gap-1">
+                          <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Stammdaten</span>
+                          <span class="font-mono text-white text-[11px]" id="status-stammdaten">-</span>
+                        </div>
+                      </div>
+                      <div id="admin-panel" class="popup-panel">
+                        <div class="p-4 space-y-4">
+                          <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                            <h4 class="font-bold text-white text-sm">Stammdaten</h4><button id="btn-close-admin"
+                              class="text-slate-400"><i class="fa-solid fa-times"></i></button>
+                          </div>
+                          <div><label
+                              class="block text-[10px] uppercase text-blue-400 font-bold mb-1">Gewichtung</label><select
+                              id="input-weight"
+                              class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+                              <option value="0.5">0,5 - Kalt</option>
+                              <option value="1.0" selected>1,0 - Standard</option>
+                              <option value="2.0">2,0 - Strategisch</option>
+                            </select></div>
+                          <div><label
+                              class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Projektnummer</label><input
+                              id="input-proj" type="text"
+                              class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+                          </div>
+                          <div><label
+                              class="block text-[10px] uppercase text-slate-500 font-bold mb-1">KV-Nummer</label><input
+                              id="input-kv" type="text"
+                              class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+                          </div>
+                          <div><label
+                              class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Abschlussdatum</label><input
+                              id="input-date" type="date"
+                              class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white">
+                          </div>
+                          <button id="btn-save-admin"
+                            class="w-full bg-green-600 hover:bg-green-500 text-white py-1.5 rounded text-xs font-bold flex items-center justify-center gap-1"><i
+                              class="fa-solid fa-check"></i> Speichern</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="relative">
+                      <div id="btn-owner" class="footer-item">
+                        <div class="footer-icon-box text-emerald-400 border-emerald-500/30"><i
+                            class="fa-solid fa-user-check"></i></div>
+                        <div class="flex flex-col leading-none gap-1">
+                          <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Einschätzung
+                            von</span>
+                          <span class="text-white text-[11px]" id="status-owner">-</span>
+                        </div>
+                      </div>
+                      <div id="owner-panel" class="popup-panel">
+                        <div class="p-3">
+                          <label class="block text-[10px] uppercase text-slate-500 font-bold mb-2">Person ändern</label>
+                          <input type="text" id="owner-search-input" placeholder="Suchen..."
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white mb-2 focus:border-blue-500 outline-none">
+                          <div id="owner-dropdown" class="max-h-32 overflow-y-auto space-y-1 custom-scrollbar"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button id="btn-next-step"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105 text-sm">Weiter
+                    zur Gewichtung <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
               </div>
-              <div id="admin-panel" class="popup-panel">
-                <div class="p-4 space-y-4">
-                  <div class="flex justify-between items-center border-b border-slate-700 pb-2"><h4 class="font-bold text-white text-sm">Stammdaten</h4><button id="btn-close-admin" class="text-slate-400"><i class="fa-solid fa-times"></i></button></div>
-                  <div><label class="block text-[10px] uppercase text-blue-400 font-bold mb-1">Gewichtung</label><select id="input-weight" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"><option value="0.5">0,5 - Kalt</option><option value="1.0" selected>1,0 - Standard</option><option value="2.0">2,0 - Strategisch</option></select></div>
-                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Projektnummer</label><input id="input-proj" type="text" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
-                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">KV-Nummer</label><input id="input-kv" type="text" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
-                  <div><label class="block text-[10px] uppercase text-slate-500 font-bold mb-1">Abschlussdatum</label><input id="input-date" type="date" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white"></div>
-                  <button id="btn-save-admin" class="w-full bg-green-600 hover:bg-green-500 text-white py-1.5 rounded text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> Speichern</button>
-                </div>
-              </div>
-            </div>
-            <div class="relative">
-              <div id="btn-owner" class="footer-item">
-                <div class="footer-icon-box text-emerald-400 border-emerald-500/30"><i class="fa-solid fa-user-check"></i></div>
-                <div class="flex flex-col leading-none gap-1">
-                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Einschätzung von</span>
-                  <span class="text-white text-[11px]" id="status-owner">-</span>
-                </div>
-              </div>
-              <div id="owner-panel" class="popup-panel">
-                <div class="p-3">
-                  <label class="block text-[10px] uppercase text-slate-500 font-bold mb-2">Person ändern</label>
-                  <input type="text" id="owner-search-input" placeholder="Suchen..." class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white mb-2 focus:border-blue-500 outline-none">
-                  <div id="owner-dropdown" class="max-h-32 overflow-y-auto space-y-1 custom-scrollbar"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button id="btn-next-step" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105 text-sm">Weiter zur Gewichtung <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
-      </div>
 
-      <div id="view-step-2" class="hidden p-8 h-full overflow-y-auto pb-32 custom-scrollbar">
-        <div class="max-w-4xl mx-auto space-y-4">
-          <div class="bg-slate-800 rounded-xl border border-slate-600 p-1 shadow-lg overflow-visible">
-            <div class="bg-slate-900/50 px-4 py-2 border-b border-slate-700 flex justify-between items-center rounded-t-xl">
-              <div class="flex items-center gap-3">
-                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wide">Phasen-Gewichtung</h3>
-                <div class="flex gap-1">
-                  <button id="btn-equal-phases" class="action-btn" title="Gleichverteilung"><i class="fa-solid fa-scale-balanced"></i></button>
-                  <button id="btn-reset-phases" class="action-btn" title="Reset (50/30/20)"><i class="fa-solid fa-rotate-left"></i></button>
+              <div id="view-step-2" class="hidden p-8 h-full overflow-y-auto pb-32 custom-scrollbar">
+                <div class="max-w-4xl mx-auto space-y-4">
+                  <div class="bg-slate-800 rounded-xl border border-slate-600 p-1 shadow-lg overflow-visible">
+                    <div
+                      class="bg-slate-900/50 px-4 py-2 border-b border-slate-700 flex justify-between items-center rounded-t-xl">
+                      <div class="flex items-center gap-3">
+                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wide">Phasen-Gewichtung</h3>
+                        <div class="flex gap-1">
+                          <button id="btn-equal-phases" class="action-btn" title="Gleichverteilung"><i
+                              class="fa-solid fa-scale-balanced"></i></button>
+                          <button id="btn-reset-phases" class="action-btn" title="Reset (50/30/20)"><i
+                              class="fa-solid fa-rotate-left"></i></button>
+                        </div>
+                      </div>
+                      <div class="text-[10px] text-slate-500 font-mono">TOTAL 100%</div>
+                    </div>
+                    <div class="p-6 overflow-visible">
+                      <div class="flex gap-6 mb-4 text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox"
+                            id="chk-cs" checked class="accent-purple-500"><span
+                            class="text-purple-400 font-bold text-xs uppercase">Consultative Selling</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox"
+                            id="chk-konzept" checked class="accent-amber-500"><span
+                            class="text-amber-400 font-bold text-xs uppercase">Konzeption</span></label>
+                        <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox"
+                            id="chk-pitch" checked class="accent-emerald-500"><span
+                            class="text-emerald-400 font-bold text-xs uppercase">Pitch</span></label>
+                      </div>
+                      <div id="main-split-bar-container"></div>
+                    </div>
+                  </div>
+                  <div class="space-y-4 pt-4" id="person-split-list"></div>
+                  <div class="flex justify-end gap-4 pt-8">
+                    <button id="btn-back-step" class="text-slate-400 hover:text-white font-medium px-4">Zurück</button>
+                    <button id="btn-finish"
+                      class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform hover:scale-105 transition"><i
+                        class="fa-solid fa-check"></i> Abschluss Speichern</button>
+                  </div>
                 </div>
               </div>
-              <div class="text-[10px] text-slate-500 font-mono">TOTAL 100%</div>
-            </div>
-            <div class="p-6 overflow-visible">
-              <div class="flex gap-6 mb-4 text-sm">
-                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-cs" checked class="accent-purple-500"><span class="text-purple-400 font-bold text-xs uppercase">Consultative Selling</span></label>
-                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-konzept" checked class="accent-amber-500"><span class="text-amber-400 font-bold text-xs uppercase">Konzeption</span></label>
-                <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="chk-pitch" checked class="accent-emerald-500"><span class="text-emerald-400 font-bold text-xs uppercase">Pitch</span></label>
-              </div>
-              <div id="main-split-bar-container"></div>
-            </div>
-          </div>
-          <div class="space-y-4 pt-4" id="person-split-list"></div>
-          <div class="flex justify-end gap-4 pt-8">
-            <button id="btn-back-step" class="text-slate-400 hover:text-white font-medium px-4">Zurück</button>
-            <button id="btn-finish" class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transform hover:scale-105 transition"><i class="fa-solid fa-check"></i> Abschluss Speichern</button>
-          </div>
-        </div>
-      </div>
 
-    </div>
-</dialog>
+            </div>
+        </dialog>
       </div>
     </div>
 
@@ -3262,10 +3788,12 @@
               <thead>
                 <tr>
                   <th class="w-12 sortable" data-sort="type">Typ <span class="sort-icon"></span></th>
-                  <th class="text-left sortable" data-sort="projectNumber">Projektnummer <span class="sort-icon"></span></th>
+                  <th class="text-left sortable" data-sort="projectNumber">Projektnummer <span class="sort-icon"></span>
+                  </th>
                   <th class="text-left sortable" data-sort="title">Titel <span class="sort-icon"></span></th>
                   <th class="text-left sortable" data-sort="client">Kunde <span class="sort-icon"></span></th>
-                  <th class="text-right sortable" data-sort="budget">Budget / Volumen <span class="sort-icon"></span></th>
+                  <th class="text-right sortable" data-sort="budget">Budget / Volumen <span class="sort-icon"></span>
+                  </th>
                   <th class="text-right sortable" data-sort="status">Status <span class="sort-icon"></span></th>
                   <th class="w-12"></th>
                 </tr>
@@ -3652,6 +4180,28 @@
         <button class="btn" onclick="document.getElementById('editFrameworkContractDlg').close()">Abbrechen</button>
         <button class="btn ok" id="btnSaveFrameworkContract">Speichern</button>
       </div>
+    </div>
+  </dialog>
+
+  <dialog id="frameworkVolumeDialog">
+    <button class="dialog-close" type="button" aria-label="Modal schließen" id="frameworkVolumeCancel">×</button>
+    <div class="hd">
+      <h1>Höchstabrufsvolumen festlegen</h1>
+    </div>
+    <div class="ct">
+      <form id="frameworkVolumeForm" method="dialog">
+        <label for="frameworkVolumeInput" style="margin-bottom: 12px; display: block;">Was ist das Höchstabrufsvolumen
+          des Rahmenvertrags?</label>
+        <div style="margin-bottom:8px">
+          <input type="text" id="frameworkVolumeInput" placeholder="z.B. 50.000,00" autocomplete="off">
+        </div>
+        <div id="frameworkVolumeError" class="validation-summary" style="margin-bottom:12px;color:var(--bad)"></div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn" id="frameworkVolumeCancelFooter">Abbrechen</button>
+          <button type="submit" class="btn ok">Speichern</button>
+        </div>
+      </form>
     </div>
   </dialog>
 

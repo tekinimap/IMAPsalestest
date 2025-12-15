@@ -1,0 +1,10 @@
+aee03cc4 Fix index.html structure and restore Portfolio view components
+6317e90d Refactor: Implement Portfolio view with filters, search, and budget progress
+71f47c58 Revert "feat: Add Deal Architect Modal with two-column layout and interdependent sliders"
+300fd4fa feat: Add Deal Architect Modal with two-column layout and interdependent sliders
+1da1c0ce Merge pull request #151 from tekinimap/codex/erlaube-suche-nach-projektnummern
+184e4e1e Allow searching project numbers in fix and framework views
+e7e6bb55 log 1 events
+e09cdcd4 update entry (narrow): hubspot_a66c0b8a967955a1ab6ff6417e73c618
+34ce5b45 Merge pull request #150 from tekinimap/codex/zuruckstufen-von-karten-ohne-projektdaten
+39113341 Automatisch unvollständige Deals in Phase 1 zurückstufen

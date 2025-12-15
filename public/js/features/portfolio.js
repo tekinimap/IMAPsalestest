@@ -73,7 +73,7 @@ function handlePortfolioClick(e, tableBody) {
   const isTransactionRow = targetRow.dataset.parentId;
   const entryId = targetRow.dataset.id;
   const transId = targetRow.dataset.transId;
-  const actBtn = e.target.closest('button[data-act]');
+  const actBtn = e.target.closest('[data-act]');
 
   if (actBtn) {
     const action = actBtn.dataset.act;
@@ -89,6 +89,17 @@ function handlePortfolioClick(e, tableBody) {
       } else {
         editEntryById(id);
       }
+    } else if (action === 'edit-volume') {
+      const entry = findEntryById(id);
+      if (entry && deps.openFrameworkVolumeDialog) {
+        deps.openFrameworkVolumeDialog(entry, (vol) => {
+          if (deps.onUpdateFrameworkVolume) {
+            deps.onUpdateFrameworkVolume(entry, vol);
+          }
+        });
+      }
+      e.stopPropagation();
+      return;
     } else if (action === 'del') {
       if (isTransactionRow) {
         const parentId = targetRow.dataset.parentId;
@@ -231,7 +242,7 @@ export function renderPortfolio() {
       const ratio = total > 0 ? used / total : 0;
       const barColorClass = ratio > 1 ? 'bad' : ratio > 0.8 ? 'warn' : 'ok';
       budgetCellContent = `
-        <div class="progress-bar">
+        <div class="progress-bar clickable" data-act="edit-volume" data-id="${entry.id}" title="Volumen anpassen">
           <div class="progress-fill ${barColorClass}" style="width:${Math.min(pct, 100)}%;"></div>
         </div>
         <small>${fmtCurr2(used)} / ${fmtCurr2(total)}</small>`;

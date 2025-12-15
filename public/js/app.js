@@ -5041,7 +5041,28 @@ const erfassungDeps = {
 };
 
 initErfassung(erfassungDeps);
-initPortfolio({ openEditTransactionModal });
+initPortfolio({ 
+  openEditTransactionModal, 
+  openFrameworkVolumeDialog,
+  onUpdateFrameworkVolume: async (entry, vol) => {
+    try {
+      showLoader();
+      const res = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frameworkVolume: vol })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      showToast('Volumen aktualisiert', 'ok');
+      await loadHistory(true);
+    } catch(e) {
+      console.error(e);
+      showToast('Fehler beim Speichern: ' + e.message, 'bad');
+    } finally {
+      hideLoader();
+    }
+  }
+});
 
 export function initializeCommonEvents() {
   initCommonEvents({
