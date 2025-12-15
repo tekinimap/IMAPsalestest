@@ -11374,7 +11374,7 @@
     "amount": 500000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "",
+    "projectNumber": "test",
     "client": "IMAP GmbH",
     "submittedBy": "Merlin Klein",
     "list": [
@@ -11406,7 +11406,7 @@
     "dockBuApprovedAt": 1764855065437,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
+    "dockPhase": 2,
     "flagship_projekt": true,
     "freigabedatum": 1764720000000,
     "kvNummern": [
@@ -11464,7 +11464,7 @@
       "konzept": 100,
       "pitch": 0
     },
-    "ts": 1765788734787,
-    "modified": 1765788735489
+    "ts": 1765788742555,
+    "modified": 1765788742984
   }
 ]
