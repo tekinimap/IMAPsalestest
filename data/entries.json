@@ -11379,22 +11379,28 @@
     "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
     "list": [
       {
-        "key": "hubspot_user_Sara Kaufmann (geb. Shekoomand)",
+        "key": "Sara Kaufmann (geb. Shekoomand)",
         "name": "Sara Kaufmann (geb. Shekoomand)",
-        "money": 0,
-        "pct": 0
+        "pct": 44.98448784591034,
+        "money": 224922
       },
       {
-        "key": "hubspot_user_Constanze Aka",
+        "key": "Constanze Aka",
         "name": "Constanze Aka",
-        "money": 0,
-        "pct": 0
+        "pct": 29.444081402834094,
+        "money": 147220
       },
       {
-        "key": "hubspot_user_Philip Lahrmann",
+        "key": "Leonie Athanasiadis",
+        "name": "Leonie Athanasiadis",
+        "pct": 17.84080894106915,
+        "money": 89204
+      },
+      {
+        "key": "Philip Lahrmann",
         "name": "Philip Lahrmann",
-        "money": 0,
-        "pct": 0
+        "pct": 7.730621810186429,
+        "money": 38653
       }
     ],
     "updatedAt": 1765878955509,
@@ -11408,7 +11414,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1765878954459,
+    "freigabedatum": 1765843200000,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
@@ -11416,6 +11422,53 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1765878955509
-    }
+    },
+    "rows": [
+      {
+        "name": "Sara Kaufmann (geb. Shekoomand)",
+        "cs": 0,
+        "konzept": 60.43981269553855,
+        "pitch": 0
+      },
+      {
+        "name": "Constanze Aka",
+        "cs": 0,
+        "konzept": 39.56018730446145,
+        "pitch": 0
+      },
+      {
+        "name": "Philip Lahrmann",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 30.23147936220522
+      },
+      {
+        "name": "Leonie Athanasiadis",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 69.76852063779478
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 74.42856924874442
+      },
+      {
+        "key": "pitch",
+        "weight": 25.571430751255576
+      }
+    ],
+    "totals": {
+      "cs": 0,
+      "konzept": 100,
+      "pitch": 100
+    },
+    "ts": 1765882619917,
+    "modified": 1765882621527
   }
 ]
