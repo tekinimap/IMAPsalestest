@@ -11366,5 +11366,56 @@
     "kv": "KV-2025-0100",
     "dockRewardFactor": 1,
     "dockRewardComment": ""
+  },
+  {
+    "id": "hubspot_73936209195f39bb0c2123325b00dd2f",
+    "hubspotId": "49624657983",
+    "title": "FKE",
+    "amount": 500000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
+    "list": [
+      {
+        "key": "hubspot_user_Sara Kaufmann (geb. Shekoomand)",
+        "name": "Sara Kaufmann (geb. Shekoomand)",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Constanze Aka",
+        "name": "Constanze Aka",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Philip Lahrmann",
+        "name": "Philip Lahrmann",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1765878955509,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Sara Kaufmann (geb. Shekoomand)",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": true,
+    "freigabedatum": 1765878954459,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1765878955509
+    }
   }
 ]
