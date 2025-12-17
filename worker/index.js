@@ -2722,10 +2722,6 @@ export default {
         return respond({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
       }
 
-      // Static Asset Fallback (Pages Advanced Mode)
-      if (env.ASSETS) {
-        return env.ASSETS.fetch(request);
-      }
 
       console.log(`Route not found: ${request.method} ${pathname}`);
       return addCorsToResponse(jsonResponse({ error: "not_found" }, 404, env, request));
