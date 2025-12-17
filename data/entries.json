@@ -11414,11 +11414,11 @@
     "market_team": "",
     "businessUnit": "",
     "assessmentOwner": "Sara Kaufmann (geb. Shekoomand)",
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null,
+    "dockBuApproved": true,
+    "dockBuApprovedAt": 1765979854786,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 3,
     "flagship_projekt": true,
     "freigabedatum": 1765843200000,
     "kvNummern": [
@@ -11430,7 +11430,8 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1765878955509,
-      "2": 1765882673615
+      "2": 1765882673615,
+      "3": 1765979854786
     },
     "rows": [
       {
@@ -11484,7 +11485,7 @@
       "pitch": 100
     },
     "ts": 1765979835937,
-    "modified": 1765979834966,
+    "modified": 1765979854304,
     "kvNummer": "1",
     "kv_list": [
       "1"
