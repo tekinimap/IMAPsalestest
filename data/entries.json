@@ -11379,28 +11379,34 @@
     "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
     "list": [
       {
-        "key": "Sara Kaufmann (geb. Shekoomand)",
-        "name": "Sara Kaufmann (geb. Shekoomand)",
-        "pct": 44.98448784591034,
-        "money": 224922
+        "key": "Philip Lahrmann",
+        "name": "Philip Lahrmann",
+        "pct": 33.5,
+        "money": 167500
       },
       {
         "key": "Constanze Aka",
         "name": "Constanze Aka",
-        "pct": 29.444081402834094,
-        "money": 147220
+        "pct": 33,
+        "money": 165000
+      },
+      {
+        "key": "Sara Kaufmann (geb. Shekoomand)",
+        "name": "Sara Kaufmann (geb. Shekoomand)",
+        "pct": 17,
+        "money": 85000
       },
       {
         "key": "Leonie Athanasiadis",
         "name": "Leonie Athanasiadis",
-        "pct": 17.84080894106915,
-        "money": 89204
+        "pct": 16.5,
+        "money": 82500
       },
       {
-        "key": "Philip Lahrmann",
-        "name": "Philip Lahrmann",
-        "pct": 7.730621810186429,
-        "money": 38653
+        "key": "Gunhild Busch",
+        "name": "Gunhild Busch",
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1765878955509,
@@ -11430,26 +11436,32 @@
       {
         "name": "Sara Kaufmann (geb. Shekoomand)",
         "cs": 0,
-        "konzept": 60.43981269553855,
+        "konzept": 34,
         "pitch": 0
       },
       {
         "name": "Constanze Aka",
         "cs": 0,
-        "konzept": 39.56018730446145,
-        "pitch": 0
+        "konzept": 33,
+        "pitch": 33
       },
       {
         "name": "Philip Lahrmann",
         "cs": 0,
-        "konzept": 0,
-        "pitch": 30.23147936220522
+        "konzept": 33,
+        "pitch": 34
       },
       {
         "name": "Leonie Athanasiadis",
         "cs": 0,
         "konzept": 0,
-        "pitch": 69.76852063779478
+        "pitch": 33
+      },
+      {
+        "name": "Gunhild Busch",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
       }
     ],
     "weights": [
@@ -11459,11 +11471,11 @@
       },
       {
         "key": "konzept",
-        "weight": 74.42856924874442
+        "weight": 50
       },
       {
         "key": "pitch",
-        "weight": 25.571430751255576
+        "weight": 50
       }
     ],
     "totals": {
@@ -11471,8 +11483,8 @@
       "konzept": 100,
       "pitch": 100
     },
-    "ts": 1765976534850,
-    "modified": 1765976534271,
+    "ts": 1765979826899,
+    "modified": 1765979826513,
     "kvNummer": "1",
     "kv_list": [
       "1"
