@@ -11374,7 +11374,7 @@
     "amount": 500000,
     "source": "hubspot",
     "projectType": "fix",
-    "projectNumber": "1",
+    "projectNumber": "",
     "client": "IMAP GmbH",
     "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
     "list": [
@@ -11412,7 +11412,7 @@
     "dockBuApprovedAt": null,
     "dockFinalAssignment": "",
     "dockFinalAssignmentAt": null,
-    "dockPhase": 2,
+    "dockPhase": 1,
     "flagship_projekt": true,
     "freigabedatum": 1765843200000,
     "kvNummern": [
@@ -11471,8 +11471,8 @@
       "konzept": 100,
       "pitch": 100
     },
-    "ts": 1765882672631,
-    "modified": 1765882673615,
+    "ts": 1765976534850,
+    "modified": 1765976534271,
     "kvNummer": "1",
     "kv_list": [
       "1"
