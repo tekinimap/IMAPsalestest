@@ -1579,4 +1579,4 @@ export function initDockBoard(options = {}) {
   }
 }
 
-export { finalizeDockAbruf, hideManualPanel, requestDockEntryDialogClose, getFrameworkVolume };
+export { finalizeDockAbruf, hideManualPanel, requestDockEntryDialogClose };
