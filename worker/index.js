@@ -45,6 +45,13 @@ import {
 } from './services/hubspot.js';
 export { normalizeTransactionKv } from './utils/validation.js';
 export { hsFetchDeal } from './services/hubspot.js';
+import { createRouter, normalizePathname } from './router.js';
+import { registerSessionRoutes } from './controllers/session.js';
+import { registerValidationRoutes } from './controllers/validation.js';
+import { registerEntryRoutes } from './controllers/entries.js';
+import { registerPeopleRoutes } from './controllers/people.js';
+import { registerLogRoutes } from './controllers/logs.js';
+import { registerHubspotRoutes } from './controllers/hubspot.js';
 
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 const VALIDATION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
@@ -1376,6 +1383,86 @@ export function upsertByHubSpotId(entries, deal) {
 }
 
 /* ------------------------ Router ------------------------ */
+function* dateRange(from, to) {
+  const d1 = to ? new Date(to + 'T00:00:00Z') : new Date();
+  const d0 = from ? new Date(from + 'T00:00:00Z') : new Date(d1.getTime() - 13 * 24 * 3600 * 1000);
+  if (d0 > d1) return;
+  const maxRange = 90 * 24 * 3600 * 1000;
+  if (d1.getTime() - d0.getTime() > maxRange) {
+    const limitedStart = new Date(d1.getTime() - (maxRange - 24 * 3600 * 1000));
+    for (let d = new Date(limitedStart); d <= d1; d = new Date(d.getTime() + 24 * 3600 * 1000)) {
+      yield d.toISOString().slice(0, 10);
+    }
+  } else {
+    for (let d = new Date(d0); d <= d1; d = new Date(d.getTime() + 24 * 3600 * 1000)) {
+      yield d.toISOString().slice(0, 10);
+    }
+  }
+}
+
+const router = createRouter();
+
+registerSessionRoutes(router, { resolveAccessIdentity });
+registerValidationRoutes(router, {
+  ghGetFile,
+  kvListFrom,
+  validateKvNumberUsage,
+  validateProjectNumberUsage,
+  readValidationCache,
+  writeValidationCache,
+  findDuplicateKv,
+  isDockEntryActive,
+  isAdminRequest,
+  normalizeString,
+});
+registerEntryRoutes(router, {
+  ghGetFile,
+  kvListFrom,
+  canonicalizeEntries,
+  ensureKvStructure,
+  ensureDockMetadata,
+  isFullEntry,
+  validateRow,
+  entriesShareKv,
+  mergeKvLists,
+  rndId,
+  logJSONL,
+  fieldsOf,
+  applyKvList,
+  collectHubspotSyncPayload,
+  processHubspotSyncQueue,
+  mergeEntryWithKvOverride,
+  mergeContributionLists,
+  indexTransactionKvs,
+  syncCalloffDealsForEntry,
+});
+registerPeopleRoutes(router, { ghGetFile, ghPutFile, normalizePersonRecord, normalizeString, rndId });
+registerLogRoutes(router, {
+  appendFile,
+  todayStr,
+  LOG_DIR,
+  readLogEntries,
+  ghGetContent,
+  ghPutContent,
+  ghGetFile,
+  ghPutFile,
+  computeLogMetrics,
+  MAX_LOG_ENTRIES,
+  dateRange,
+});
+registerHubspotRoutes(router, {
+  verifyHubSpotSignatureV3,
+  hsFetchDeal,
+  hsFetchCompany,
+  hsFetchOwner,
+  collectHubspotSyncPayload,
+  upsertByHubSpotId,
+  ghGetFile,
+  ghPutFile,
+  canonicalizeEntries,
+  logJSONL,
+});
+
 export default {
   async fetch(request, env, ctx) {
     const addCorsToResponse = (response) => {
@@ -1399,818 +1486,45 @@ export default {
       });
     };
 
-    if (request.method === "OPTIONS") {
+    if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: getCorsHeaders(env, request) });
     }
 
-    const respond = (data, status = 200, arg3, arg4) => {
-      let headers = {};
-      if (arg3 === env) {
-        headers = arg4 || {};
-      } else if (arg3 && typeof arg3 === 'object' && arg4 === undefined) {
-        headers = arg3;
-      } else if (arg3 && typeof arg3 === 'object') {
-        headers = arg3;
-      }
-      return addCorsToResponse(jsonResponse(data, status, env, request, headers));
-    };
+    const respond = (data, status = 200, headers = {}) => (
+      addCorsToResponse(jsonResponse(data, status, env, request, headers))
+    );
 
     try {
       const url = new URL(request.url);
-      const pathname = url.pathname.replace(/\/+$/, '') || '/';
-      const ghPath = env.GH_PATH || "data/entries.json";
-      const peoplePath = env.GH_PEOPLE_PATH || "data/people.json";
+      const pathname = normalizePathname(url.pathname);
+      const ghPath = env.GH_PATH || 'data/entries.json';
+      const peoplePath = env.GH_PEOPLE_PATH || 'data/people.json';
       const branch = env.GH_BRANCH;
       const saveEntries = async (items, sha, message) => {
         const payload = canonicalizeEntries(items);
         return ghPutFile(env, ghPath, payload, sha, message, branch);
       };
 
-      if (pathname === "/session" && request.method === "GET") {
-        const identity = await resolveAccessIdentity(request, env, branch, peoplePath);
-        const person = identity.person
-          ? {
-            id: identity.person.id,
-            name: identity.person.name,
-            team: identity.person.team || '',
-            email: identity.person.email || '',
-          }
-          : null;
-        return respond({
-          email: identity.email,
-          name: identity.name,
-          rawName: identity.rawName,
-          person,
-        }, 200, env);
-      }
+      const routeResponse = await router.handle(request, {
+        env,
+        ctx,
+        url,
+        pathname,
+        respond,
+        addCorsToResponse,
+        ghPath,
+        peoplePath,
+        branch,
+        saveEntries,
+      });
 
-      /* ===== Validation Endpoints ===== */
-      if (pathname === "/api/validation/check_kv" && request.method === "POST") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const kvList = kvListFrom(body);
-        const cacheKey = `kv:${kvList.join('|')}:id:${body.id || ''}`;
-        const cached = readValidationCache(cacheKey);
-        if (cached) return respond(cached, 200, env);
-
-        const { items } = await ghGetFile(env, ghPath, branch);
-        const active = items.filter(isDockEntryActive);
-        const result = validateKvNumberUsage(active, kvList, body.id ? String(body.id) : undefined);
-        writeValidationCache(cacheKey, result);
-        return respond(result, 200, env);
-      }
-
-      if (pathname === "/api/validation/check_projektnummer" && request.method === "POST") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const projectNumber = body.projectNumber || body.projektnummer || body.project_no || '';
-        const cacheKey = `pn:${normalizeString(projectNumber).toLowerCase()}:id:${body.id || ''}`;
-        const cached = readValidationCache(cacheKey);
-        if (cached) return respond(cached, 200, env);
-
-        const { items } = await ghGetFile(env, ghPath, branch);
-        const active = items.filter(isDockEntryActive);
-        const result = validateProjectNumberUsage(active, projectNumber, body.id ? String(body.id) : undefined);
-        writeValidationCache(cacheKey, result);
-        return respond(result, 200, env);
-      }
-
-      if (pathname === "/api/admin/validation/legacy_report" && request.method === "GET") {
-        if (!isAdminRequest(request, env)) {
-          return respond({ error: 'forbidden' }, 403, env);
-        }
-        const { items } = await ghGetFile(env, ghPath, branch);
-        const active = items.filter(isDockEntryActive);
-        const offenders = [];
-        const seen = new Set();
-
-        for (const entry of active) {
-          const kvList = kvListFrom(entry);
-          const conflict = findDuplicateKv(active, kvList, entry.id);
-          if (conflict && conflict.entry) {
-            const key = [entry.id, conflict.entry.id].sort().join('::');
-            if (seen.has(key)) continue;
-            seen.add(key);
-            offenders.push({
-              cardId: entry.id,
-              title: entry.title || '',
-              kvNummer: conflict.conflict,
-              conflictingCardId: conflict.entry.id,
-            });
-          }
-        }
-
-        return respond(offenders, 200, env, { 'Content-Type': 'application/json; charset=utf-8' });
-      }
-
-      /* ===== Entries GET ===== */
-      if (pathname === "/entries" && request.method === "GET") {
-        const { items } = await ghGetFile(env, ghPath, branch);
-        const normalized = canonicalizeEntries(items);
-        return respond(normalized, 200, env);
-      }
-      if (pathname.startsWith("/entries/") && request.method === "GET") {
-        const id = decodeURIComponent(pathname.split("/").pop());
-        const { items } = await ghGetFile(env, ghPath, branch);
-        const found = items.find(x => String(x.id) === id);
-        if (!found) return respond({ error: "not found" }, 404, env);
-        return respond(ensureKvStructure({ ...found }), 200, env);
-      }
-
-      /* ===== Entries POST (Single Create/Upsert) ===== */
-      if (pathname === "/entries" && request.method === "POST") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON body" }, 400, env); }
-        const cur = await ghGetFile(env, ghPath, branch);
-        const items = cur.items || [];
-        let entry; let status = 201; let skipSave = false;
-        const hubspotUpdates = [];
-
-        if (isFullEntry(body)) { /* Create Full Entry Logic */
-          const existingById = items.find(e => e.id === body.id);
-          if (existingById) return respond({ error: "Conflict: ID exists. Use PUT." }, 409, env);
-          entry = { id: body.id || rndId('entry_'), ...body, ts: body.ts || Date.now(), modified: undefined };
-          if (Array.isArray(entry.transactions)) { entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-          ensureKvStructure(entry);
-          ensureDockMetadata(entry);
-          items.push(entry);
-          const f = fieldsOf(entry); await logJSONL(env, [{ event: 'create', source: entry.source || 'manuell', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason: 'manual_or_import' }]);
-        } else { /* Upsert-by-KV Logic */
-          const v = validateRow(body);
-          if (!v.ok) { await logJSONL(env, [{ event: 'skip', source: v.source || 'erp', ...v }]); return respond({ error: 'validation_failed', ...v }, 422, env); }
-          const kvList = v.kvList;
-          const existing = items.find(e => entriesShareKv(kvList, e));
-          if (!existing) {
-            entry = { id: rndId('entry_'), kvNummern: kvList, projectNumber: v.projectNumber || '', title: v.title || '', client: v.client || '', amount: v.amount, source: v.source || 'erp', projectType: 'fix', ts: Date.now() };
-            ensureKvStructure(entry);
-            items.push(entry);
-            await logJSONL(env, [{ event: 'create', source: entry.source, after: entry, kv: entry.kv, kvList: entry.kvNummern, projectNumber: entry.projectNumber, title: entry.title, client: entry.client, reason: 'excel_new' }]);
-          } else {
-            status = 200; entry = existing; const before = JSON.parse(JSON.stringify(existing));
-            const oldAmt = Number(existing.amount) || 0; const amountChanged = Math.abs(oldAmt - v.amount) >= 0.01;
-            const mergedKvList = mergeKvLists(kvListFrom(existing), kvList);
-            let updated = false;
-            if (mergedKvList.length !== kvListFrom(existing).length) { applyKvList(existing, mergedKvList); updated = true; }
-            if (amountChanged) { existing.amount = v.amount; updated = true; }
-            if (v.projectNumber && v.projectNumber !== existing.projectNumber) { existing.projectNumber = v.projectNumber; updated = true; }
-            if (v.title && v.title !== existing.title) { existing.title = v.title; updated = true; }
-            if (v.client && v.client !== existing.client) { existing.client = v.client; updated = true; }
-            const freigabeTsBody = body.freigabedatum ? new Date(body.freigabedatum).getTime() : null;
-            if (freigabeTsBody && Number.isFinite(freigabeTsBody) && freigabeTsBody !== existing.freigabedatum) { existing.freigabedatum = freigabeTsBody; updated = true; }
-            if (updated) {
-              ensureKvStructure(existing);
-              ensureDockMetadata(existing);
-              existing.modified = Date.now();
-              const syncPayload = collectHubspotSyncPayload(before, existing);
-              if (syncPayload) hubspotUpdates.push(syncPayload);
-              await logJSONL(env, [{ event: 'update', source: existing.source || v.source || 'erp', before, after: existing, kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason: 'excel_override' }]);
-            } else {
-              skipSave = true; await logJSONL(env, [{ event: 'skip', source: existing.source || v.source || 'erp', kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason: 'no_change' }]);
-            }
-          }
-        }
-        if (!skipSave) {
-          try { await saveEntries(items, cur.sha, `upsert entry: ${entry.kv || entry.id}`); }
-          catch (e) {
-            if (String(e).includes('sha') || String(e).includes('conflict')) {
-              console.warn("Retrying PUT due to SHA conflict..."); await new Promise(r => setTimeout(r, 600));
-              const ref = await ghGetFile(env, ghPath, branch);
-              let refIdx = ref.items.findIndex(i => i.id === entry.id);
-              const refItems = ref.items || [];
-              if (status === 201 && refIdx === -1) { refItems.push(entry); }
-              else if (status === 200 && refIdx > -1) { refItems[refIdx] = entry; }
-              else { console.error("Cannot cleanly retry after SHA conflict."); throw new Error("SHA conflict, unresolved."); }
-              ensureKvStructure(entry);
-              await saveEntries(refItems, ref.sha, `upsert entry (retry): ${entry.kv || entry.id}`);
-            } else { throw e; }
-          }
-          if (hubspotUpdates.length) {
-            await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_post' });
-          }
-        }
-        return respond(entry, status, env);
-      }
-
-      /* ===== Entries PUT (Single Update) ===== */
-      if (pathname.startsWith("/entries/") && request.method === "PUT") {
-        const id = decodeURIComponent(pathname.split("/").pop());
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const cur = await ghGetFile(env, ghPath, branch);
-        const idx = cur.items.findIndex(x => String(x.id) === id);
-        if (idx < 0) return respond({ error: "not found" }, 404, env);
-        const before = JSON.parse(JSON.stringify(cur.items[idx])); let updatedEntry;
-        const hubspotUpdates = [];
-
-        if (isFullEntry(body)) {
-          if (Array.isArray(body.transactions)) { body.transactions = body.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-          const merged = mergeEntryWithKvOverride(before, { ...body, id, modified: Date.now() });
-          updatedEntry = ensureKvStructure(merged);
-          ensureDockMetadata(updatedEntry);
-          cur.items[idx] = updatedEntry;
-          const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
-          if (syncPayload) hubspotUpdates.push(syncPayload);
-          await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
-          const f = fieldsOf(updatedEntry); await logJSONL(env, [{ event: 'update', source: updatedEntry.source || 'manuell', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
-        } else {
-          const mergedForValidation = mergeEntryWithKvOverride(before, body);
-          const v = validateRow({ ...mergedForValidation });
-          if (!v.ok) { await logJSONL(env, [{ event: 'skip', ...v }]); return respond({ error: 'validation_failed', ...v }, 422, env); }
-          const merged = mergeEntryWithKvOverride(before, { ...body, amount: v.amount, modified: Date.now() });
-          updatedEntry = ensureKvStructure(merged);
-          ensureDockMetadata(updatedEntry);
-          cur.items[idx] = updatedEntry;
-          const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
-          if (syncPayload) hubspotUpdates.push(syncPayload);
-          await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);
-          const f = fieldsOf(updatedEntry); const changes = {}; for (const k in body) { if (before[k] !== body[k]) changes[k] = body[k]; } if (before.amount !== v.amount) changes.amount = v.amount;
-          if (changes.freigabedatum == null && updatedEntry.freigabedatum != null) { changes.freigabedatum = updatedEntry.freigabedatum; }
-          const beforeSnapshot = { amount: before.amount };
-          if (before.freigabedatum != null) beforeSnapshot.freigabedatum = before.freigabedatum;
-          for (const key of Object.keys(changes)) {
-            if (key === 'amount') continue;
-            if (before[key] != null) {
-              beforeSnapshot[key] = before[key];
-            }
-          }
-          await logJSONL(env, [{ event: 'update', ...f, before: beforeSnapshot, after: changes }]);
-        }
-        if (hubspotUpdates.length) {
-          await processHubspotSyncQueue(env, hubspotUpdates, { reason: 'entries_put' });
-        }
-        return respond(updatedEntry, 200, env);
-      }
-
-      /* ===== Entries DELETE (Single) ===== */
-      if (pathname.startsWith("/entries/") && request.method === "DELETE") {
-        const id = decodeURIComponent(pathname.split("/").pop());
-        const cur = await ghGetFile(env, ghPath, branch);
-        const before = cur.items.find(x => String(x.id) === id);
-        if (!before) return respond({ ok: true, message: "already deleted?" }, 200, env);
-        const next = cur.items.filter(x => String(x.id) !== id);
-        await saveEntries(next, cur.sha, `delete entry: ${id}`);
-        const f = fieldsOf(before); await logJSONL(env, [{ event: 'delete', reason: 'delete.entry', before, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client }]);
-        return respond({ ok: true }, 200, env);
-      }
-
-      /* ===== Entries POST /entries/bulk (Legacy - Nur schlanker KV-Upsert) ===== */
-      if (pathname === "/entries/bulk" && request.method === "POST") {
-        console.log("Processing legacy /entries/bulk");
-        let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-        if (!rows.length) return respond({ ok: false, message: 'rows empty' }, 400, env);
-        const cur = await ghGetFile(env, ghPath, branch); const items = cur.items || [];
-        const byKV = new Map(items.filter(x => x && kvListFrom(x).length).flatMap(x => kvListFrom(x).map(kv => [kv, x])));
-        const logs = []; let created = 0, updated = 0, skipped = 0, errors = 0; let changed = false;
-        for (const r of rows) {
-          const validation = validateRow(r);
-          if (!validation.ok) { skipped++; logs.push({ event: 'skip', ...validation }); continue; }
-          const kvList = validation.kvList;
-          const existing = items.find(item => entriesShareKv(kvList, item));
-          if (!existing) {
-            const entry = ensureKvStructure({ id: rndId('entry_'), kvNummern: kvList, projectNumber: validation.projectNumber || '', title: validation.title || '', client: validation.client || '', amount: validation.amount, source: validation.source || 'erp', projectType: 'fix', ts: Date.now() });
-            items.push(entry); kvList.forEach(kv => byKV.set(kv, entry));
-            logs.push({ event: 'create', source: entry.source, after: entry, kv: entry.kv, kvList: entry.kvNummern, projectNumber: entry.projectNumber, title: entry.title, client: entry.client, reason: 'legacy_bulk_new' });
-            created++; changed = true;
-          } else {
-            const before = JSON.parse(JSON.stringify(existing));
-            const merged = mergeKvLists(kvListFrom(existing), kvList);
-            applyKvList(existing, merged);
-            const oldAmount = Number(existing.amount) || 0;
-            const newAmount = validation.amount;
-            const amountChanged = Math.abs(oldAmount - newAmount) >= 0.01;
-            if (amountChanged) existing.amount = newAmount;
-            if (validation.projectNumber && validation.projectNumber !== existing.projectNumber) existing.projectNumber = validation.projectNumber;
-            if (validation.title && validation.title !== existing.title) existing.title = validation.title;
-            if (validation.client && validation.client !== existing.client) existing.client = validation.client;
-            if (amountChanged || merged.length !== kvListFrom(before).length) {
-              existing.modified = Date.now(); ensureKvStructure(existing);
-              logs.push({ event: 'update', source: existing.source || validation.source || 'erp', before, after: existing, kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason: 'legacy_bulk_update' });
-              updated++; changed = true;
-            } else {
-              logs.push({ event: 'skip', source: existing.source || validation.source || 'erp', kv: existing.kv, kvList: existing.kvNummern, projectNumber: existing.projectNumber, title: existing.title, client: existing.client, reason: 'legacy_bulk_no_change' });
-              skipped++;
-            }
-          }
-        }
-        if (changed) {
-          try { await saveEntries(items, cur.sha, `bulk import ${created}C ${updated}U ${skipped}S ${errors}E`); }
-          catch (e) { if (String(e).includes('sha') || String(e).includes('conflict')) { console.warn("Retrying legacy bulk due to SHA conflict", e); return respond({ error: "Save conflict. Please retry import.", details: e.message }, 409, env); } else { throw e; } }
-        }
-        await logJSONL(env, logs);
-        return respond({ ok: true, created, updated, skipped, errors, saved: changed }, 200, env);
-      }
-
-      /* ===== NEU: Entries POST /entries/bulk-v2 (Full Object Bulk) ===== */
-      if (pathname === "/entries/bulk-v2" && request.method === "POST") {
-        console.log("Processing /entries/bulk-v2");
-        let payload; try { payload = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
-        const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-        if (!rows.length) return respond({ created: 0, updated: 0, skipped: 0, errors: 0, message: 'rows empty' }, 200, env);
-        const cur = await ghGetFile(env, ghPath, branch);
-        const items = cur.items || []; const logs = []; let created = 0, updated = 0, skipped = 0, errors = 0; let changed = false;
-        const hubspotUpdates = [];
-        const itemsById = new Map(items.map(item => [item.id, item]));
-        const itemsByKV = new Map(); items.forEach(item => { const kvs = kvListFrom(item); kvs.forEach(kv => { if (kv && !itemsByKV.has(kv)) { itemsByKV.set(kv, item.id); } }); if (item.projectType === 'rahmen' && Array.isArray(item.transactions)) { item.transactions.forEach(t => { const tkvList = kvListFrom(t); tkvList.forEach(tkv => { if (tkv && !itemsByKV.has(tkv)) { itemsByKV.set(tkv, item.id); } }); }); } });
-        const kvsAddedInThisBatch = new Set();
-
-        for (const row of rows) {
-          try {
-            const kvList = kvListFrom(row);
-            const isNew = !row.id || !itemsById.has(row.id);
-            if (isNew) {
-              if (!kvList.length && !isFullEntry(row)) { skipped++; logs.push({ event: 'skip', reason: 'missing_kv', ...fieldsOf(row) }); continue; }
-              const conflictKv = kvList.find(kv => itemsByKV.has(kv) || kvsAddedInThisBatch.has(kv));
-              if (conflictKv) { skipped++; logs.push({ event: 'skip', source: row.source || 'erp', kv: conflictKv, kvList, projectNumber: row.projectNumber, title: row.title, client: row.client, reason: itemsByKV.has(conflictKv) ? 'duplicate_kv_existing' : 'duplicate_kv_batch', detail: `KV '${conflictKv}' present.` }); console.warn(`Skipping create (duplicate KV): ${conflictKv}`); continue; }
-              const newId = row.id || rndId('entry_');
-              const entry = ensureKvStructure({ ...row, id: newId, ts: row.ts || Date.now(), modified: undefined });
-              if (Array.isArray(entry.transactions)) { entry.transactions = entry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-              items.push(entry); itemsById.set(newId, entry); kvList.forEach(kv => { if (kv) { kvsAddedInThisBatch.add(kv); itemsByKV.set(kv, newId); } });
-              indexTransactionKvs(entry, newId, kvsAddedInThisBatch, itemsByKV);
-              await syncCalloffDealsForEntry(null, entry, env, logs);
-              created++; changed = true; const f = fieldsOf(entry); logs.push({ event: 'create', source: entry.source || 'erp', after: entry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason: 'bulk_import_new' });
-            } else {
-              const existingEntry = itemsById.get(row.id); if (!existingEntry) { errors++; logs.push({ event: 'error', source: row.source || 'erp', entryId: row.id, reason: 'update_id_not_found' }); console.error(`Update failed: ID ${row.id} not found.`); continue; }
-              const newKvList = kvList.length ? kvList : kvListFrom(existingEntry);
-              const conflictKv = newKvList.find(kv => { const owner = itemsByKV.get(kv); return owner && owner !== row.id; });
-              if (conflictKv) { skipped++; logs.push({ event: 'skip', source: row.source || 'erp', kv: conflictKv, kvList: newKvList, projectNumber: row.projectNumber, title: row.title, client: row.client, reason: 'duplicate_kv_existing', detail: `KV '${conflictKv}' belongs to ${itemsByKV.get(conflictKv)}` }); continue; }
-              const before = JSON.parse(JSON.stringify(existingEntry));
-              const updatedEntry = ensureKvStructure({ ...existingEntry, ...row, id: row.id, modified: Date.now() });
-              if (Array.isArray(updatedEntry.transactions)) { updatedEntry.transactions = updatedEntry.transactions.map(t => ({ id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`, ...t })); }
-              const indexToUpdate = items.findIndex(item => item.id === row.id);
-              if (indexToUpdate !== -1) {
-                items[indexToUpdate] = updatedEntry; itemsById.set(row.id, updatedEntry);
-                const updatedKvs = kvListFrom(updatedEntry);
-                const beforeKvs = kvListFrom(before);
-                beforeKvs.forEach(kv => { if (!updatedKvs.includes(kv)) itemsByKV.delete(kv); });
-                updatedKvs.forEach(kv => { itemsByKV.set(kv, row.id); kvsAddedInThisBatch.add(kv); });
-                indexTransactionKvs(updatedEntry, row.id, kvsAddedInThisBatch, itemsByKV);
-                await syncCalloffDealsForEntry(before, updatedEntry, env, logs);
-                const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
-                if (syncPayload) hubspotUpdates.push(syncPayload);
-                updated++; changed = true; const f = fieldsOf(updatedEntry); logs.push({ event: 'update', source: updatedEntry.source || 'erp', before, after: updatedEntry, kv: f.kv, kvList: f.kvList, projectNumber: f.projectNumber, title: f.title, client: f.client, reason: 'bulk_import_update' });
-              } else { errors++; logs.push({ event: 'error', source: row.source || 'erp', entryId: row.id, reason: 'update_sync_error' }); console.error(`Update sync error: ID ${row.id}`); }
-            }
-          } catch (rowError) { errors++; logs.push({ event: 'error', source: row?.source || 'erp', ...fieldsOf(row), reason: 'processing_error', detail: rowError.message }); console.error("Error processing row:", row, rowError); }
-        } // Ende for
-
-        if (changed) {
-          console.log(`Bulk v2: ${created} created, ${updated} updated. Attempting save.`);
-          try { await saveEntries(items, cur.sha, `bulk v2 import: ${created}C ${updated}U ${skipped}S ${errors}E`); }
-          catch (e) {
-            if (String(e).includes('sha') || String(e).includes('conflict')) {
-              console.error("Bulk v2 save failed (SHA conflict):", e); await logJSONL(env, logs); return respond({ error: "Save conflict. Please retry import.", details: e.message, created, updated, skipped, errors, saved: false }, 409, env);
-            } else { console.error("Bulk v2 save failed (Other):", e); throw e; }
-          }
-        } else { console.log("Bulk v2: No changes detected."); }
-        if (changed && hubspotUpdates.length) {
-          await processHubspotSyncQueue(env, hubspotUpdates, { mode: 'batch', reason: 'entries_bulk_v2' });
-        }
-        await logJSONL(env, logs);
-        return respond({ ok: true, created, updated, skipped, errors, saved: changed }, 200, env);
-      } // Ende /entries/bulk-v2
-
-      /* ===== NEU: Entries POST /entries/bulk-delete ===== */
-      if (pathname === "/entries/bulk-delete" && request.method === "POST") {
-        console.log("Processing /entries/bulk-delete");
-        let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
-        const idsToDelete = Array.isArray(body?.ids) ? body.ids : [];
-        if (!idsToDelete.length) return respond({ ok: true, deletedCount: 0, message: 'No IDs provided' }, 200, env);
-
-        const cur = await ghGetFile(env, ghPath, branch);
-        const items = cur.items || [];
-        const logs = [];
-
-        const idSet = new Set(idsToDelete);
-        const deletedItems = [];
-        const nextItems = items.filter(item => {
-          if (idSet.has(item.id)) {
-            deletedItems.push(item);
-            return false;
-          }
-          return true;
-        });
-
-        const deletedCount = deletedItems.length;
-
-        if (deletedCount > 0) {
-          deletedItems.forEach(before => {
-            const f = fieldsOf(before);
-            logs.push({ event: 'delete', reason: 'bulk_delete', before, ...f });
-          });
-
-          console.log(`Bulk Delete: Removing ${deletedCount} items. Attempting save.`);
-          try {
-            await saveEntries(nextItems, cur.sha, `bulk delete: ${deletedCount} entries`);
-            await logJSONL(env, logs);
-          } catch (e) {
-            if (String(e).includes('sha') || String(e).includes('conflict')) {
-              console.error("Bulk delete failed due to SHA conflict:", e);
-              return respond({ error: "Save conflict. Please retry delete operation.", details: e.message, deletedCount: 0 }, 409, env);
-            } else {
-              console.error("Bulk delete failed with other error:", e);
-              throw e;
-            }
-          }
-        } else {
-          console.log("Bulk Delete: No matching items found to delete.");
-        }
-
-        return respond({ ok: true, deletedCount: deletedCount }, 200, env);
-      } // Ende /entries/bulk-delete
-
-      /* ===== Entries POST /entries/merge ===== */
-      if (pathname === "/entries/merge" && request.method === "POST") {
-        console.log("Processing /entries/merge");
-        let body; try { body = await request.json(); } catch (e) { return respond({ error: "Invalid JSON", details: e.message }, 400, env); }
-        const ids = Array.isArray(body?.ids) ? body.ids.map(String) : [];
-        if (!ids.length || ids.length < 2) return respond({ error: "at least_two_ids_required" }, 400, env);
-        const targetId = body?.targetId ? String(body.targetId) : ids[0];
-        const fieldResolutions = (body && typeof body.fieldResolutions === 'object') ? body.fieldResolutions : {};
-
-        const cur = await ghGetFile(env, ghPath, branch);
-        const items = cur.items || [];
-        const selected = ids.map(id => {
-          const entry = items.find(e => String(e.id) === id);
-          if (!entry) throw new Error(`Entry ${id} not found`);
-          return entry;
-        });
-        const targetEntry = selected.find(e => String(e.id) === targetId) || selected[0];
-        if (!targetEntry) return respond({ error: "target_not_found" }, 404, env);
-
-        const sourceEntries = selected.filter(e => e !== targetEntry);
-        const projectNumbers = new Set(selected.map(e => String(e.projectNumber || '').trim()));
-        if (projectNumbers.size > 1) return respond({ error: "project_number_mismatch", message: "Die Projektnummern stimmen nicht überein" }, 409, env);
-        const invalidType = selected.find(e => (e.projectType && e.projectType !== 'fix'));
-        if (invalidType) return respond({ error: "invalid_project_type", message: "Nur Fixaufträge können zusammengeführt werden" }, 422, env);
-
-        const beforeTarget = JSON.parse(JSON.stringify(targetEntry));
-        const beforeSources = sourceEntries.map(e => JSON.parse(JSON.stringify(e)));
-
-        const mergedAmount = selected.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
-        const mergedKvList = mergeKvLists(...selected.map(kvListFrom));
-        const mergedList = mergeContributionLists(selected, mergedAmount);
-
-        const pickValue = (field, fallback) => {
-          const chosenId = fieldResolutions?.[field];
-          if (!chosenId) return fallback;
-          const candidate = selected.find((item) => String(item.id) === String(chosenId));
-          if (!candidate) return fallback;
-          return candidate[field] !== undefined ? candidate[field] : fallback;
-        };
-
-        const resolvedAmount = pickValue('amount', mergedAmount);
-        targetEntry.amount = Number.isFinite(Number(resolvedAmount)) ? Number(resolvedAmount) : mergedAmount;
-        targetEntry.list = mergedList;
-        targetEntry.modified = Date.now();
-        applyKvList(targetEntry, mergedKvList);
-        ensureDockMetadata(targetEntry);
-        ['title', 'client', 'projectNumber', 'projectType', 'submittedBy', 'source', 'marketTeam', 'businessUnit', 'assessmentOwner', 'flagship_projekt']
-          .forEach((field) => {
-            if (field in targetEntry || field in fieldResolutions) {
-              targetEntry[field] = pickValue(field, targetEntry[field]);
-            }
-          });
-
-        const additiveMerge = (existingList, ...lists) => {
-          const merged = [];
-          const seen = new Set();
-          const createKey = (item) => {
-            if (!item) return null;
-            if (item.id) return String(item.id);
-            // Create a canonical key for objects without an ID by sorting keys.
-            return JSON.stringify(item, Object.keys(item).sort());
-          };
-          const pushItem = (item) => {
-            if (!item) return;
-            const key = createKey(item);
-            if (key === null || seen.has(key)) return;
-            seen.add(key);
-            merged.push({ ...item });
-          };
-          (existingList || []).forEach(pushItem);
-          lists.flat().forEach(pushItem);
-          return merged;
-        };
-
-        const mergedComments = additiveMerge(targetEntry.comments, ...sourceEntries.map((e) => e.comments));
-        const mergedAttachments = additiveMerge(targetEntry.attachments, ...sourceEntries.map((e) => e.attachments));
-        const mergedHistory = additiveMerge(targetEntry.history, ...sourceEntries.map((e) => e.history));
-
-        const mergedAtIso = new Date().toISOString();
-        const mergedSourceSummary = sourceEntries.map((src) => `[ID: ${src.id}${src.title ? `, Titel: '${src.title}'` : ''}]`).join(', ');
-        const systemComment = {
-          id: rndId('comment_'),
-          timestamp: mergedAtIso,
-          author: 'SYSTEM',
-          type: 'system_event',
-          text: `SYSTEM: Diese Karte wurde am ${mergedAtIso} mit ${sourceEntries.length} Karte(n) zusammengeführt. Quell-Karten: ${mergedSourceSummary || 'k.A.'}`,
-        };
-        mergedComments.push(systemComment);
-
-        targetEntry.comments = mergedComments;
-        if (mergedAttachments.length) targetEntry.attachments = mergedAttachments;
-        if (mergedHistory.length) targetEntry.history = mergedHistory;
-        ensureKvStructure(targetEntry);
-
-        const idsToRemove = new Set(sourceEntries.map(e => e.id));
-        const nextItems = items.filter(entry => !idsToRemove.has(entry.id));
-        nextItems[nextItems.findIndex(e => e.id === targetEntry.id)] = targetEntry;
-
-        const logs = [
-          { event: 'merge_target', targetId: targetEntry.id, mergedIds: sourceEntries.map(e => e.id), before: beforeTarget, after: targetEntry, ...fieldsOf(targetEntry), reason: 'merge_fix_orders' },
-          ...beforeSources.map(src => ({
-            event: 'merge_source',
-            sourceId: src.id,
-            mergedInto: targetEntry.id,
-            before: src,
-            after: { ...src, dockFinalAssignment: 'merged', dockFinalAssignmentAt: Date.now(), dockPhase: 4 },
-            ...fieldsOf(src),
-            reason: 'merge_fix_orders',
-          }))
-        ];
-
-        try {
-          await saveEntries(nextItems, cur.sha, `merge entries into ${targetEntry.id}`);
-          await logJSONL(env, logs);
-        } catch (e) {
-          if (String(e).includes('sha') || String(e).includes('conflict')) {
-            console.error("Merge save failed (SHA conflict):", e);
-            return respond({ error: "save_conflict", details: e.message }, 409, env);
-          }
-          throw e;
-        }
-
-        return respond({ ok: true, mergedInto: targetEntry.id, removed: sourceEntries.map(e => e.id), entry: targetEntry }, 200, env);
-      }
-
-
-      /* ===== People Routes (Wiederhergestellt) ===== */
-      if (pathname === "/people" && request.method === "GET") {
-        try {
-          const { items } = await ghGetFile(env, peoplePath, branch);
-          const normalized = Array.isArray(items) ? items.map(normalizePersonRecord) : [];
-          return respond(normalized, 200, env);
-        } catch (err) {
-          const message = String(err || '');
-          if (message.includes('404')) {
-            return respond([], 200, env);
-          }
-          throw err;
-        }
-      }
-
-      // ##### KORRIGIERTER BLOCK START #####
-      if (pathname === "/people" && request.method === "POST") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const name = normalizeString(body.name);
-        const team = normalizeString(body.team);
-        if (!name || !team) return respond({ error: "Name and Team required" }, 400, env);
-
-        // E-Mail-Logik (suggestEmailForName) ist hier entfernt.
-        let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-
-        const cur = await ghGetFile(env, peoplePath, branch);
-        const newPersonRaw = {
-          ...body,
-          id: body.id || rndId('person_'),
-          name,
-          team,
-          createdAt: Date.now(),
-        };
-        if (email) {
-          newPersonRaw.email = email;
-        } else {
-          delete newPersonRaw.email;
-        }
-        const newPerson = normalizePersonRecord(newPersonRaw);
-        const currentItems = Array.isArray(cur.items) ? cur.items.slice() : [];
-        currentItems.push(newPerson);
-        await ghPutFile(env, peoplePath, currentItems.map(normalizePersonRecord), cur.sha, `add person ${name}`);
-        return respond(newPerson, 201, env);
-      }
-      // ##### KORRIGIERTER BLOCK ENDE #####
-
-      if (pathname === "/people" && request.method === "PUT") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        if (!body.id) return respond({ error: "ID missing" }, 400, env);
-        const cur = await ghGetFile(env, peoplePath, branch);
-        const idx = cur.items.findIndex(x => String(x.id) === String(body.id));
-        if (idx < 0) return respond({ error: "not found" }, 404, env);
-        const current = cur.items[idx] || {};
-        const updated = { ...current };
-        if (body.name !== undefined) {
-          updated.name = normalizeString(body.name);
-        }
-        if (body.team !== undefined) {
-          updated.team = normalizeString(body.team);
-        }
-        if (body.email !== undefined) {
-          const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-          if (email) {
-            updated.email = email;
-          } else {
-            delete updated.email;
-          }
-        }
-        updated.updatedAt = Date.now();
-        const normalizedPerson = normalizePersonRecord(updated);
-        const nextItems = Array.isArray(cur.items) ? cur.items.slice() : [];
-        nextItems[idx] = normalizedPerson;
-        await ghPutFile(env, peoplePath, nextItems.map(normalizePersonRecord), cur.sha, `update person ${body.id}`);
-        return respond(normalizedPerson, 200, env);
-      }
-      if (pathname === "/people" && request.method === "DELETE") {
-        let body; try { body = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const idToDelete = body?.id;
-        if (!idToDelete) return respond({ error: "ID missing in request body" }, 400, env);
-        const cur = await ghGetFile(env, peoplePath, branch);
-        const initialLength = cur.items.length;
-        const next = cur.items.filter(x => String(x.id) !== String(idToDelete));
-        if (next.length === initialLength) return respond({ error: "not found" }, 404, env);
-        await ghPutFile(env, peoplePath, next.map(normalizePersonRecord), cur.sha, `delete person ${idToDelete}`);
-        return respond({ ok: true }, 200, env);
-      }
-
-      /* ===== Logs Routes ===== */
-      if (pathname === "/log" && request.method === "POST") {
-        let payload; try { payload = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); }
-        const dateStr = (payload.date || todayStr()); const y = dateStr.slice(0, 4), m = dateStr.slice(5, 7); const root = LOG_DIR(env);
-        const path = `${root.replace(/\/+$/, '')}/${y}-${m}/${dateStr}.jsonl`; const text = (payload.lines || []).map(String).join("\n") + "\n";
-        const result = await appendFile(env, path, text, `log: ${dateStr} (+${(payload.lines || []).length})`);
-        return respond({ ok: true, path, committed: result }, 200, env);
-      }
-      const isMetricsRequest =
-        request.method === "GET" && (pathname === "/log/metrics" || pathname === "/analytics/metrics");
-      if (isMetricsRequest) {
-        const from = url.searchParams.get("from") || undefined;
-        const to = url.searchParams.get("to") || undefined;
-        const team = (url.searchParams.get("team") || "").trim();
-        const root = LOG_DIR(env);
-        const logResult = await readLogEntries(env, root, from, to);
-        const rawLogs = logResult.entries || [];
-        let peopleItems = [];
-        try {
-          const peopleFile = await ghGetFile(env, peoplePath, branch);
-          if (peopleFile && Array.isArray(peopleFile.items)) {
-            peopleItems = peopleFile.items;
-          }
-        } catch (peopleErr) {
-          const msg = String(peopleErr || "");
-          if (!msg.includes("404")) {
-            console.error("Failed to load people for log metrics:", peopleErr);
-          }
-        }
-        const teamMap = new Map();
-        for (const person of peopleItems) {
-          if (!person || typeof person !== 'object') continue;
-          const name = (person.name || '').trim();
-          if (!name) continue;
-          const teamName = (person.team || 'Ohne Team').trim() || 'Ohne Team';
-          teamMap.set(name, teamName);
-        }
-        const metrics = computeLogMetrics(rawLogs, { team, from, to }, teamMap);
-        if (logResult.limited) {
-          metrics.meta = { ...(metrics.meta || {}), rangeLimited: true };
-        }
-        const headers = {
-          ...(
-            pathname === "/log/metrics" ? { "X-Endpoint-Deprecated": "true" } : {}
-          )
-        };
-        if (logResult.limited) {
-          headers['X-Log-Range-Limited'] = 'true';
-        }
-        return respond(metrics, 200, env, headers);
-      }
-      if (pathname === "/log/list" && request.method === "GET") {
-        const from = url.searchParams.get("from"); const to = url.searchParams.get("to"); const out = []; const root = LOG_DIR(env);
-        for (const day of dateRange(from, to)) {
-          const y = day.slice(0, 4), m = day.slice(5, 7); const path = `${root.replace(/\/+$/, '')}/${y}-${m}/${day}.jsonl`;
-          try {
-            const file = await ghGetContent(env, path);
-            if (file && file.content) { for (const line of file.content.split(/\n+/)) { if (!line.trim()) continue; try { out.push(JSON.parse(line)); } catch (parseErr) { console.warn(`Invalid JSON in log ${path}: ${line}`, parseErr); } } }
-          } catch (getFileErr) { if (!String(getFileErr).includes('404')) console.error(`Error reading log file ${path}:`, getFileErr); }
-        }
-        out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-        return respond(out.slice(0, 5000), 200, env);
-      }
-      const logPath = env.GH_LOG_PATH || "data/logs.json";
-      if (pathname === "/logs") {
-        if (request.method === "GET") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch (e) { console.error("Error legacy logs:", e); } return respond((logData.items || []).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)), 200, env); }
-        if (request.method === "POST") { let newLogEntries; try { newLogEntries = await request.json(); } catch { return respond({ error: "Invalid JSON" }, 400, env); } const logsToAdd = Array.isArray(newLogEntries) ? newLogEntries : [newLogEntries]; if (logsToAdd.length === 0) return respond({ success: true, added: 0 }, 200, env); let currentLogs = [], currentSha = null; try { const logData = await ghGetFile(env, logPath, branch); currentLogs = logData.items || []; currentSha = logData.sha; } catch (e) { if (!String(e).includes('404')) console.error("Error legacy logs POST:", e); } let updatedLogs = logsToAdd.concat(currentLogs); if (updatedLogs.length > MAX_LOG_ENTRIES) updatedLogs = updatedLogs.slice(0, MAX_LOG_ENTRIES); try { await ghPutFile(env, logPath, updatedLogs, currentSha, `add ${logsToAdd.length} log entries`); } catch (e) { /* Retry Logic */ } return respond({ success: true, added: logsToAdd.length }, 201, env); }
-        if (request.method === "DELETE") { let logData = { items: [], sha: null }; try { logData = await ghGetFile(env, logPath, branch); } catch (e) { if (String(e).includes('404')) return respond({ success: true, message: "Logs already empty." }, 200, env); else throw e; } await ghPutFile(env, logPath, [], logData.sha, "clear logs"); return respond({ success: true, message: "Logs gelöscht." }, 200, env); }
-      }
-
-      /* ===== HubSpot Webhook ===== */
-      if (pathname === "/hubspot" && request.method === "POST") {
-        const raw = await request.text();
-        const okSig = await verifyHubSpotSignatureV3(request, env, raw).catch(() => false);
-        if (!okSig) return respond({ error: "invalid signature" }, 401, env);
-        let events = [];
-        try { events = JSON.parse(raw); }
-        catch { return respond({ error: "bad payload" }, 400, env); }
-        if (!Array.isArray(events) || events.length === 0) return respond({ ok: true, processed: 0 }, 200, env);
-        const wonIds = new Set(String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || "").split(",").map(s => s.trim()).filter(Boolean));
-        if (wonIds.size === 0) return respond({ ok: true, processed: 0, warning: "No WON stage IDs." }, 200, env);
-        let ghData = await ghGetFile(env, ghPath, branch);
-        let itemsChanged = false;
-        let lastDeal = null;
-        const hubspotLogs = [];
-
-        for (const ev of events) {
-          if (ev.subscriptionType === "object.propertyChange" && ev.propertyName === "dealstage") {
-            const newStage = String(ev.propertyValue || "");
-            const dealId = ev.objectId;
-
-            if (!wonIds.has(newStage)) continue;
-
-            try {
-              console.log(`VERARBEITE "WON" DEAL: ${dealId}`);
-
-              const deal = await hsFetchDeal(dealId, env);
-
-              let companyName = "";
-              const companyAssoc = deal?.associations?.companies?.results?.[0];
-              if (companyAssoc && companyAssoc.id) {
-                companyName = await hsFetchCompany(companyAssoc.id, env);
-                deal.properties.fetched_company_name = companyName;
-              }
-
-              const ownerId = deal?.properties?.hubspot_owner_id;
-              let ownerName = "";
-              if (ownerId) {
-                ownerName = await hsFetchOwner(ownerId, env);
-                deal.properties.fetched_owner_name = ownerName;
-              }
-
-              const collaboratorIds = (deal?.properties?.hs_all_collaborator_owner_ids || "")
-                .split(';')
-                .filter(Boolean);
-
-              const collaboratorPromises = collaboratorIds.map(id => hsFetchOwner(id, env));
-              const collaboratorNames = (await Promise.all(collaboratorPromises)).filter(Boolean);
-              deal.properties.fetched_collaborator_names = collaboratorNames;
-
-              lastDeal = deal;
-              const upsertResult = upsertByHubSpotId(ghData.items, deal);
-              if (upsertResult?.action === 'create' || upsertResult?.action === 'update') {
-                ghData.items = canonicalizeEntries(ghData.items);
-                itemsChanged = true;
-              } else if (upsertResult?.action === 'skip' && upsertResult.reason === 'duplicate_project_kv') {
-                hubspotLogs.push({
-                  event: 'skip',
-                  source: 'hubspot',
-                  reason: upsertResult.reason,
-                  message: 'Deal aus Hubspot wurde abgeblockt, weil Eintrag mit Projektnummer und KV-Nummer bereits vorhanden ist.',
-                  hubspotId: upsertResult.hubspotId || String(dealId),
-                  dealId: String(dealId),
-                  projectNumber: upsertResult.projectNumber,
-                  kvList: upsertResult.kvList,
-                  kv: upsertResult.kvList?.[0] || '',
-                  existingEntryId: upsertResult.conflictingEntryId,
-                });
-              }
-            } catch (hsErr) {
-              console.error(`HubSpot API-Fehler (hsFetchDeal/hsFetchCompany/hsFetchOwner) bei Deal ${dealId}:`, hsErr);
-            }
-          }
-        }
-        if (hubspotLogs.length) {
-          await logJSONL(env, hubspotLogs);
-        }
-        if (itemsChanged) {
-          try {
-            await ghPutFile(env, ghPath, canonicalizeEntries(ghData.items), ghData.sha, "hubspot webhook upsert", branch);
-            console.log(`Änderungen für ${events.length} Events erfolgreich auf GitHub gespeichert.`);
-          } catch (e) {
-            console.error("GitHub PUT (ghPutFile) FEHLER:", e);
-          }
-        }
-        return respond({ ok: true, changed: itemsChanged, lastDeal }, 200, env);
-      }
-
+      if (routeResponse) return routeResponse;
 
       console.log(`Route not found: ${request.method} ${pathname}`);
-      return addCorsToResponse(jsonResponse({ error: "not_found" }, 404, env, request));
-
+      return respond({ error: 'not_found' }, 404);
     } catch (err) {
-      console.error("Worker Error:", err, err.stack);
-      return addCorsToResponse(respond({ error: err.message || String(err) }, 500, env));
+      console.error('Worker Error:', err, err.stack);
+      return respond({ error: err.message || String(err) }, 500);
     }
-  }
+  },
 }; // Ende export default
-
-// Hilfsfunktion dateRange
-function* dateRange(from, to) {
-  const d1 = to ? new Date(to + 'T00:00:00Z') : new Date();
-  const d0 = from ? new Date(from + 'T00:00:00Z') : new Date(d1.getTime() - 13 * 24 * 3600 * 1000);
-  if (d0 > d1) return;
-  const maxRange = 90 * 24 * 3600 * 1000;
-  if (d1.getTime() - d0.getTime() > maxRange) {
-    const limitedStart = new Date(d1.getTime() - (maxRange - 24 * 3600 * 1000));
-    for (let d = new Date(limitedStart); d <= d1; d = new Date(d.getTime() + 24 * 3600 * 1000)) {
-      yield d.toISOString().slice(0, 10);
-    }
-  } else {
-    for (let d = new Date(d0); d <= d1; d = new Date(d.getTime() + 24 * 3600 * 1000)) {
-      yield d.toISOString().slice(0, 10);
-    }
-  }
-}
