@@ -11,8 +11,41 @@ import {
   resolveFreigabedatum,
   computeLogMetrics,
 } from './log-analytics-core.js';
+import {
+  applyKvList,
+  findDuplicateKv,
+  firstNonEmpty,
+  kvListFrom,
+  normalizeString,
+  normalizeTransactionKv,
+  toNumberMaybe,
+  uniqueNormalizedKvList,
+  validateKvNumberUsage,
+  validateProjectNumberUsage,
+} from './utils/validation.js';
+import { sleep, throttle } from './utils/time.js';
+import {
+  ghGetContent,
+  ghGetFile,
+  ghGraphql,
+  ghPutContent,
+  ghPutFile,
+  parseGitHubRepo,
+} from './services/github.js';
+import {
+  collectHubspotSyncPayload,
+  DEFAULT_HUBSPOT_RETRY_BACKOFF_MS,
+  DEFAULT_HUBSPOT_THROTTLE_MS,
+  hsCreateCalloffDeal,
+  hsFetchCompany,
+  hsFetchDeal,
+  hsFetchOwner,
+  hsUpdateDealProperties,
+  HUBSPOT_UPDATE_MAX_ATTEMPTS,
+} from './services/hubspot.js';
+export { normalizeTransactionKv } from './utils/validation.js';
+export { hsFetchDeal } from './services/hubspot.js';
 
-const GH_API = "https://api.github.com";
 const MAX_LOG_ENTRIES = 300; // Für Legacy Logs
 const VALIDATION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
@@ -75,18 +108,6 @@ const jsonResponse = (data, status = 200, env, request, additionalHeaders = {}) 
   return new Response(JSON.stringify(data), { status, headers });
 };
 
-function b64encodeUtf8(str) {
-  try {
-    const latin1String = unescape(encodeURIComponent(str));
-    return btoa(latin1String);
-  } catch (e) {
-    console.error("b64encodeUtf8 failed for part of string:", e);
-    const safeStr = str.replace(/[^\x00-\xFF]/g, '?');
-    try { return btoa(safeStr); }
-    catch (e2) { console.error("btoa fallback failed:", e2); throw new Error("btoa failed even on fallback."); }
-  }
-}
-function b64decodeUtf8(b64) { try { return decodeURIComponent(escape(atob(b64))); } catch { return atob(b64); } }
 function base64ToUint8Array(value) {
   if (!value) return null;
   try {
@@ -101,28 +122,10 @@ function base64ToUint8Array(value) {
     return null;
   }
 }
-function ghHeaders(env) {
-  return {
-    "Authorization": `Bearer ${env.GH_TOKEN || env.GITHUB_TOKEN}`,
-    "Accept": "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "imap-sales-worker/1.8",
-  };
-}
 
 function rndId(prefix = 'item_') { const a = new Uint8Array(16); crypto.getRandomValues(a); return `${prefix}${[...a].map(b => b.toString(16).padStart(2, '0')).join('')}`; }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 const LOG_DIR = (env) => (env.GH_LOG_DIR || "data/logs");
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-async function throttle(delayMs) {
-  const ms = Number(delayMs);
-  if (Number.isFinite(ms) && ms > 0) {
-    await sleep(ms);
-  }
-}
-
-function normKV(v) { return String(v ?? '').trim(); }
-function normalizeString(value) { return String(value ?? '').trim(); }
 
 function normalizePersonRecord(person) {
   if (!person || typeof person !== 'object') return person;
@@ -356,115 +359,6 @@ function isDockEntryActive(entry) {
   return true;
 }
 
-function findDuplicateKv(entries, kvList, selfId) {
-  const normalized = uniqueNormalizedKvList(kvList || []);
-  if (!normalized.length) return null;
-  for (const entry of entries || []) {
-    if (!entry || entry.id === selfId) continue;
-    const current = kvListFrom(entry);
-    if (!current.length) continue;
-    const conflict = normalized.find((kv) => current.includes(kv));
-    if (conflict) {
-      return { conflict, entry };
-    }
-  }
-  return null;
-}
-
-function validateProjectNumberUsage(entries, projectNumber, selfId) {
-  const normalized = normalizeString(projectNumber);
-  if (!normalized) return { valid: true };
-
-  const matches = (entries || []).filter((entry) => {
-    if (!entry || entry.id === selfId) return false;
-    const pn = normalizeString(entry.projectNumber);
-    if (!pn) return false;
-    return pn.toLowerCase() === normalized.toLowerCase();
-  });
-
-  if (!matches.length) return { valid: true };
-
-  const framework = matches.find((item) => normalizeString(item.projectType) === 'rahmen');
-  if (framework) {
-    return {
-      valid: true,
-      warning: {
-        reason: 'RAHMENVERTRAG_FOUND',
-        message: 'Es existiert ein Rahmenvertrag mit der gleichen Projektnummer.',
-        relatedCardId: framework.id,
-      },
-    };
-  }
-
-  const fix = matches.find((item) => normalizeString(item.projectType) !== 'rahmen');
-  if (fix) {
-    return {
-      valid: true,
-      warning: {
-        reason: 'PROJECT_EXISTS',
-        message: 'Es existiert ein Auftrag mit der Projektnummer.',
-        relatedCardId: fix.id,
-      },
-    };
-  }
-
-  return { valid: true };
-}
-
-function validateKvNumberUsage(entries, kvList, selfId) {
-  const normalized = uniqueNormalizedKvList(kvList || []);
-  if (!normalized.length) return { valid: true };
-
-  const result = findDuplicateKv(entries, normalized, selfId);
-  if (!result) return { valid: true };
-
-  return {
-    valid: false,
-    reason: 'DUPLICATE_KV',
-    message: 'Es existiert bereits ein Auftrag mit dieser KV-Nummer.',
-    relatedCardId: result.entry?.id,
-    conflictKv: result.conflict,
-  };
-}
-function splitKvString(value) {
-  const trimmed = String(value ?? '').trim();
-  if (!trimmed) return [];
-  if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return parsed;
-    } catch (e) { /* ignore */ }
-  }
-  return trimmed.split(/[,;|]+/);
-}
-function uniqueNormalizedKvList(list) {
-  const seen = new Set();
-  const out = [];
-  for (const raw of Array.isArray(list) ? list : []) {
-    const kv = normKV(raw);
-    if (!kv) continue;
-    if (!seen.has(kv)) {
-      seen.add(kv);
-      out.push(kv);
-    }
-  }
-  return out;
-}
-
-function firstNonEmpty(...values) {
-  for (const value of values) {
-    if (value == null) continue;
-    if (Array.isArray(value)) {
-      const candidate = value.map(v => normalizeString(v)).find(Boolean);
-      if (candidate) return candidate;
-      continue;
-    }
-    const normalized = normalizeString(value);
-    if (normalized) return normalized;
-  }
-  return "";
-}
-
 function parseHubspotCheckbox(value, fallback = false) {
   if (typeof value === 'boolean') {
     return value;
@@ -484,39 +378,6 @@ function parseHubspotCheckbox(value, fallback = false) {
     }
   }
   return Boolean(fallback);
-}
-function kvListFrom(obj) {
-  if (!obj || typeof obj !== 'object') return [];
-  const arrayFields = ['kvNummern', 'kv_nummern', 'kvNumbers', 'kv_numbers', 'kvList', 'kv_list'];
-  for (const field of arrayFields) {
-    const value = obj[field];
-    if (Array.isArray(value)) {
-      const normalized = uniqueNormalizedKvList(value);
-      if (normalized.length) return normalized;
-    } else if (typeof value === 'string' && value.trim()) {
-      const normalized = uniqueNormalizedKvList(splitKvString(value));
-      if (normalized.length) return normalized;
-    }
-  }
-  const singleFields = ['kv', 'kv_nummer', 'kvNummer', 'KV', 'kvnummer'];
-  for (const field of singleFields) {
-    const value = obj[field];
-    if (Array.isArray(value)) {
-      const normalized = uniqueNormalizedKvList(value);
-      if (normalized.length) return normalized;
-    } else if (value != null && String(value).trim()) {
-      const normalized = uniqueNormalizedKvList(splitKvString(String(value)));
-      if (normalized.length) return normalized;
-    }
-  }
-  return [];
-}
-function applyKvList(entry, kvList) {
-  const normalized = uniqueNormalizedKvList(kvList || []);
-  entry.kvNummern = normalized;
-  entry.kv_nummer = normalized[0] || '';
-  entry.kv = entry.kv_nummer || '';
-  return entry;
 }
 function ensureKvStructure(entry) {
   if (!entry || typeof entry !== 'object') return entry;
@@ -583,22 +444,6 @@ function logCalloffDealEvent(logs, entry, transaction, kv, reason, status, extra
   });
 }
 
-
-export function normalizeTransactionKv(transaction) {
-  if (!transaction || typeof transaction !== 'object') return "";
-
-  const list = kvListFrom(transaction);
-  if (list.length) {
-    return list[0];
-  }
-
-  return firstNonEmpty(
-    transaction.kv_nummer,
-    transaction.kvNummer,
-    transaction.kv,
-    transaction.kvnummer
-  );
-}
 
 function findTransactionsNeedingCalloffDeal(beforeEntry, afterEntry) {
   const results = [];
@@ -735,7 +580,6 @@ function mergeContributionLists(entries, totalAmount) {
 
 
 // Hilfsfunktionen
-function toNumberMaybe(v) { if (v == null || v === '') return null; if (typeof v === 'number' && Number.isFinite(v)) return v; if (typeof v === 'string') { let t = v.trim().replace(/\s/g, ''); if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) { t = t.replace(/\./g, '').replace(',', '.'); } else { t = t.replace(/,/g, ''); } const n = Number(t); return Number.isFinite(n) ? n : null; } return null; }
 function pick(obj, keys) {
   if (!obj || typeof obj !== 'object') {
     return '';
@@ -798,43 +642,6 @@ function validateRow(row) {
   return { ok: true, ...f };
 }
 const isFullEntry = (obj) => !!(obj && (obj.projectType || obj.transactions || Array.isArray(obj.rows) || Array.isArray(obj.list) || Array.isArray(obj.weights)));
-
-/* ------------------------ GitHub I/O ------------------------ */
-async function ghGetFile(env, path, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch || env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { items: [], sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); const content = raw ? b64decodeUtf8(raw) : "[]"; let items = []; try { items = content.trim() ? JSON.parse(content) : []; if (!Array.isArray(items)) items = []; } catch (e) { console.error("Failed to parse JSON from GitHub:", content); throw new Error(`Failed to parse JSON from ${path}: ${e.message}`); } return { items, sha: data.sha }; }
-async function ghPutFile(env, path, items, sha, message, branch) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(JSON.stringify(items, null, 2)), branch: branch || env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
-async function ghGetContent(env, path) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(env.GH_BRANCH)}`; const r = await fetch(url, { headers: ghHeaders(env) }); if (r.status === 404) return { content: "", sha: null }; if (!r.ok) throw new Error(`GitHub GET ${path} failed: ${r.status} ${await r.text()}`); const data = await r.json(); const raw = (data.content || "").replace(/\n/g, ""); return { content: raw ? b64decodeUtf8(raw) : "", sha: data.sha }; }
-async function ghPutContent(env, path, content, sha, message) { const url = `${GH_API}/repos/${env.GH_REPO}/contents/${encodeURIComponent(path)}`; const body = { message: message || `update ${path}`, content: b64encodeUtf8(content), branch: env.GH_BRANCH, ...(sha ? { sha } : {}), }; const r = await fetch(url, { method: "PUT", headers: { ...ghHeaders(env), "Content-Type": "application/json" }, body: JSON.stringify(body), }); if (!r.ok) throw new Error(`GitHub PUT ${path} failed (${r.status}): ${await r.text()}`); return r.json(); }
-
-function parseGitHubRepo(repo) {
-  if (!repo || typeof repo !== 'string') return null;
-  const parts = repo.trim().split('/').filter(Boolean);
-  if (parts.length !== 2) return null;
-  return { owner: parts[0], name: parts[1] };
-}
-
-async function ghGraphql(env, query, variables) {
-  const token = env.GH_TOKEN || env.GITHUB_TOKEN;
-  if (!token) throw new Error('GitHub token missing for GraphQL request');
-  const response = await fetch('https://api.github.com/graphql', {
-    method: 'POST',
-    headers: {
-      ...ghHeaders(env),
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-  const json = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message = json?.errors?.map(err => err?.message).filter(Boolean).join('; ') || `${response.status}`;
-    throw new Error(`GitHub GraphQL error (${message})`);
-  }
-  if (json?.errors?.length) {
-    const message = json.errors.map(err => err?.message).filter(Boolean).join('; ');
-    throw new Error(`GitHub GraphQL error (${message || 'unknown'})`);
-  }
-  return json?.data;
-}
 
 const LOG_MONTH_QUERY = `
   query($owner: String!, $name: String!, $expression: String!) {
@@ -1045,295 +852,6 @@ async function readLogEntries(env, rootDir, from, to) {
 }
 
 /* ------------------------ HubSpot ------------------------ */
-const HUBSPOT_UPDATE_MAX_ATTEMPTS = 5;
-
-function formatHubspotAmount(value) {
-  const numeric = toNumberMaybe(value);
-  if (numeric == null) return null;
-  const rounded = Math.round((numeric + Number.EPSILON) * 100) / 100;
-  return rounded.toFixed(2);
-}
-
-async function hsCreateCalloffDeal(transaction, parentEntry, env) {
-  const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
-  if (!token) throw new Error('HUBSPOT_ACCESS_TOKEN missing');
-
-  if (!transaction || typeof transaction !== 'object') {
-    throw new Error('transaction missing');
-  }
-
-  const kv = normalizeTransactionKv(transaction);
-  if (!kv) {
-    throw new Error('transaction kv_nummer missing');
-  }
-
-  const amountFormatted = formatHubspotAmount(transaction.amount);
-  const projectNumber = firstNonEmpty(
-    transaction.projectNumber,
-    transaction.projektnummer,
-    parentEntry?.projectNumber,
-    parentEntry?.projektnummer
-  );
-
-  const freigabeTs = extractFreigabedatumFromEntry(transaction) ?? extractFreigabedatumFromEntry(parentEntry) ?? Date.now();
-  const closedate = Number.isFinite(Number(freigabeTs)) ? Math.trunc(Number(freigabeTs)) : Date.now();
-
-  const parentTitle = firstNonEmpty(
-    transaction.title,
-    parentEntry?.title,
-    parentEntry?.dealname
-  );
-  const clientName = firstNonEmpty(transaction.client, parentEntry?.client);
-  const dealname = firstNonEmpty(
-    parentTitle && kv ? `${parentTitle} – ${kv}` : '',
-    clientName && kv ? `${clientName} – ${kv}` : '',
-    kv
-  );
-
-  const dealstage = firstNonEmpty(
-    env.HUBSPOT_CALL_OFF_STAGE_ID,
-    env.HUBSPOT_CALL_OFF_DEALSTAGE,
-    String(env.HUBSPOT_CLOSED_WON_STAGE_IDS || '').split(',').map(part => part.trim())
-  );
-
-  const pipeline = firstNonEmpty(
-    env.HUBSPOT_CALL_OFF_PIPELINE,
-    env.HUBSPOT_PIPELINE_ID,
-    env.HUBSPOT_DEFAULT_PIPELINE
-  );
-
-  const ownerId = firstNonEmpty(
-    transaction.hubspotOwnerId,
-    transaction.hubspot_owner_id,
-    parentEntry?.hubspotOwnerId,
-    parentEntry?.hubspot_owner_id,
-    parentEntry?.ownerId,
-    parentEntry?.owner_id
-  );
-
-  const companyId = firstNonEmpty(
-    transaction.hubspotCompanyId,
-    transaction.hubspot_company_id,
-    parentEntry?.hubspotCompanyId,
-    parentEntry?.hubspot_company_id,
-    parentEntry?.companyId,
-    parentEntry?.company_id
-  );
-
-  const properties = {
-    dealname,
-    kvnummer: kv,
-    closedate: String(closedate),
-  };
-
-  if (amountFormatted != null) {
-    properties.amount = amountFormatted;
-  }
-  if (projectNumber) {
-    properties.projektnummer = projectNumber;
-  }
-  if (dealstage) {
-    properties.dealstage = dealstage;
-  }
-  if (pipeline) {
-    properties.pipeline = pipeline;
-  }
-  if (ownerId) {
-    properties.hubspot_owner_id = ownerId;
-  }
-
-  const associations = [];
-  if (companyId) {
-    associations.push({
-      to: { id: companyId },
-      types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }],
-    });
-  }
-
-  const payload = { properties };
-  if (associations.length) {
-    payload.associations = associations;
-  }
-
-  const delayCandidates = [env.HUBSPOT_CALL_DELAY_MS, env.HUBSPOT_THROTTLE_MS, env.THROTTLE_MS];
-  const delayMs = delayCandidates
-    .map(value => Number(value))
-    .find(value => Number.isFinite(value) && value >= 0) ?? 200;
-  await throttle(delayMs);
-
-  const response = await fetch('https://api.hubapi.com/crm/v3/objects/deals', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`HubSpot create deal failed (${response.status}): ${text}`);
-  }
-
-  const data = await response.json();
-  const newId = firstNonEmpty(data.id, data.properties?.hs_object_id);
-  if (!newId) {
-    throw new Error('HubSpot create deal response missing id');
-  }
-
-  return { id: String(newId), raw: data };
-}
-
-function collectHubspotSyncPayload(before, after) {
-  if (!after || typeof after !== 'object') return null;
-
-  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
-  const beforeFields = fieldsOf(before || {});
-  const afterFields = fieldsOf(after || {});
-
-  const previousProjectNumber = normalizeString(beforeFields.projectNumber);
-  const nextProjectNumber = normalizeString(afterFields.projectNumber);
-  const previousKvNummer = normalizeString(beforeFields.kv);
-  const nextKvNummer = normalizeString(afterFields.kv);
-  const previousFreigabeTs = extractFreigabedatumFromEntry(before);
-  const nextFreigabeTs = extractFreigabedatumFromEntry(after);
-  const previousClosedate = previousFreigabeTs != null ? Math.trunc(Number(previousFreigabeTs)) : null;
-  const nextClosedate = nextFreigabeTs != null ? Math.trunc(Number(nextFreigabeTs)) : null;
-
-  const previousAmount = toNumberMaybe(before?.amount ?? beforeFields.amount);
-  const nextAmount = toNumberMaybe(after?.amount ?? afterFields.amount);
-  let amountChanged = false;
-  if (previousAmount == null && nextAmount != null) {
-    amountChanged = true;
-  } else if (previousAmount != null && nextAmount == null) {
-    amountChanged = true;
-  } else if (Number.isFinite(previousAmount) && Number.isFinite(nextAmount)) {
-    amountChanged = Math.abs(previousAmount - nextAmount) >= 0.01;
-  }
-
-  const properties = {};
-  if (previousProjectNumber !== nextProjectNumber) {
-    properties.projektnummer = nextProjectNumber;
-  }
-  if (previousKvNummer !== nextKvNummer) {
-    properties.kvnummer = nextKvNummer;
-  }
-  if (previousClosedate !== nextClosedate) {
-    properties.closedate = nextClosedate;
-  }
-  if (amountChanged && nextAmount != null) {
-    properties.amount = nextAmount;
-    if (!('projektnummer' in properties)) {
-      properties.projektnummer = nextProjectNumber;
-    }
-    if (!('kvnummer' in properties)) {
-      properties.kvnummer = nextKvNummer;
-    }
-  }
-
-  if (!Object.keys(properties).length) {
-    return null;
-  }
-
-  return {
-    dealId,
-    entryId: after.id,
-    source: after.source,
-    previous: {
-      projektnummer: previousProjectNumber,
-      kvnummer: previousKvNummer,
-      amount: previousAmount,
-      closedate: previousClosedate,
-    },
-    next: {
-      projektnummer: nextProjectNumber,
-      kvnummer: nextKvNummer,
-      amount: nextAmount,
-      closedate: nextClosedate,
-    },
-    properties,
-  };
-}
-
-async function hsUpdateDealProperties(dealId, properties, env) {
-  const normalizedDealId = normalizeString(dealId);
-  if (!normalizedDealId) {
-    return { ok: false, error: 'missing_deal_id', attempts: 0, status: null };
-  }
-  const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
-  if (!token) {
-    return { ok: false, error: 'missing_hubspot_access_token', attempts: 0, status: null };
-  }
-
-  const payload = {};
-  if (properties && typeof properties === 'object') {
-    if (properties.projektnummer != null) payload.projektnummer = normalizeString(properties.projektnummer);
-    if (properties.kvnummer != null) payload.kvnummer = normalizeString(properties.kvnummer);
-    if ('closedate' in properties) {
-      const ts = toEpochMillis(properties.closedate);
-      payload.closedate = ts != null ? String(Math.trunc(ts)) : null;
-    }
-    if (properties.amount != null) {
-      const formattedAmount = formatHubspotAmount(properties.amount);
-      if (formattedAmount != null) {
-        payload.amount = formattedAmount;
-      }
-    }
-  }
-
-  if (!Object.keys(payload).length) {
-    return { ok: true, skipped: true, attempts: 0, status: null };
-  }
-
-  const backoffRaw = Number(env.HUBSPOT_RETRY_BACKOFF_MS ?? env.RETRY_BACKOFF_MS);
-  const backoffMs = Number.isFinite(backoffRaw) && backoffRaw > 0 ? backoffRaw : DEFAULT_HUBSPOT_RETRY_BACKOFF_MS;
-  let attempt = 0;
-  let lastStatus = null;
-  let lastError = '';
-
-  while (attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
-    attempt++;
-    if (attempt > 1) {
-      const delay = backoffMs * Math.pow(2, attempt - 2);
-      await sleep(delay);
-    }
-    try {
-      const response = await fetch(`https://api.hubapi.com/crm/v3/objects/deals/${encodeURIComponent(normalizedDealId)}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ properties: payload }),
-      });
-
-      lastStatus = response.status;
-      const responseText = await response.text();
-
-      if (response.ok) {
-        return { ok: true, status: response.status, attempts: attempt };
-      }
-
-      lastError = responseText || `HTTP ${response.status}`;
-      if ((response.status === 429 || response.status >= 500) && attempt < HUBSPOT_UPDATE_MAX_ATTEMPTS) {
-        continue;
-      }
-
-      return { ok: false, status: response.status, attempts: attempt, error: lastError };
-    } catch (err) {
-      lastError = String(err);
-      if (attempt >= HUBSPOT_UPDATE_MAX_ATTEMPTS) {
-        return { ok: false, status: lastStatus, attempts: attempt, error: lastError };
-      }
-    }
-  }
-
-  return { ok: false, status: lastStatus, attempts: HUBSPOT_UPDATE_MAX_ATTEMPTS, error: lastError || 'unknown_error' };
-}
-
-const DEFAULT_HUBSPOT_THROTTLE_MS = 1100;
-const DEFAULT_HUBSPOT_RETRY_BACKOFF_MS = 3000;
-
 function chunkArray(items, size) {
   const chunks = [];
   for (let i = 0; i < items.length; i += size) {
@@ -1721,60 +1239,6 @@ async function verifyHubSpotSignatureV3(request, env, rawBody) {
   const expectedPreview = attempted.length ? btoa(String.fromCharCode(...attempted[0])).slice(0, 8) : "";
   console.error("HubSpot signature mismatch", { expectedPreview, providedPreview, triedCandidates: candidates.length });
   return false;
-}
-export async function hsFetchDeal(dealId, env) {
-  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing");
-
-  const properties = [
-    "dealname", "amount", "dealstage", "closedate", "hs_object_id", "pipeline",
-    "hubspot_owner_id",
-    "hs_all_collaborator_owner_ids",
-    "flagship_projekt",
-  ];
-
-  const associations = "company";
-
-  const url = `https://api.hubapi.com/crm/v3/objects/deals/${dealId}?properties=${properties.join(",")}&associations=${associations}`;
-
-  const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
-  if (!r.ok) throw new Error(`HubSpot GET deal ${dealId} failed: ${r.status} ${await r.text()}`);
-  return r.json();
-}
-
-async function hsFetchCompany(companyId, env) {
-  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for company fetch");
-  if (!companyId) return "";
-  try {
-    const url = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name`;
-    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
-    if (!r.ok) {
-      console.error(`HubSpot GET company ${companyId} failed: ${r.status}`);
-      return "";
-    }
-    const data = await r.json();
-    return data?.properties?.name || "";
-  } catch (e) {
-    console.error(`Error fetching company ${companyId}:`, e);
-    return "";
-  }
-}
-
-async function hsFetchOwner(ownerId, env) {
-  if (!env.HUBSPOT_ACCESS_TOKEN) throw new Error("HUBSPOT_ACCESS_TOKEN missing for owner fetch");
-  if (!ownerId) return "";
-  try {
-    const url = `https://api.hubapi.com/crm/v3/owners/${ownerId}`;
-    const r = await fetch(url, { headers: { "Authorization": `Bearer ${env.HUBSPOT_ACCESS_TOKEN}` } });
-    if (!r.ok) {
-      console.error(`HubSpot GET owner ${ownerId} failed: ${r.status}`);
-      return "";
-    }
-    const data = await r.json();
-    return `${data.firstName || ''} ${data.lastName || ''}`.trim();
-  } catch (e) {
-    console.error(`Error fetching owner ${ownerId}:`, e);
-    return "";
-  }
 }
 
 export function upsertByHubSpotId(entries, deal) {
