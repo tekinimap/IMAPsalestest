@@ -49,7 +49,7 @@ envsubst < public/config.template.json > public/config.json
     throttleMs: Number("${env.THROTTLE_MS}") || undefined
   };
 </script>
-<script type="module" src="public/js/app.js"></script>
+<script type="module" src="public/js/main.js"></script>
 ```
 
 Der Inline-Block muss _vor_ dem Laden der Anwendungsskripte injiziert werden.
