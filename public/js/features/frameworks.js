@@ -60,6 +60,13 @@ const moveValidationSummary = document.getElementById('moveValidationSummary');
 const moveTargetFramework = document.getElementById('moveTargetFramework');
 
 const entries = getEntries();
+let frameworksInitialized = false;
+
+export function initFrameworks() {
+  if (frameworksInitialized) return;
+  frameworksInitialized = true;
+  renderFrameworkContracts();
+}
 
 function totals(rows) {
   return rows.reduce(
