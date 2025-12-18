@@ -20,13 +20,13 @@ import {
   hideBatchProgress,
 } from './ui/feedback.js';
 import { people, loadSession, loadPeople, findPersonByName, findPersonByEmail } from './features/people.js';
-import { initErfassung, initFromState } from './features/erfassung.js';
+import { initFromState } from './features/erfassung.js';
 import { compute } from './features/compute.js';
 import { initAdminModule, handleAdminClick as handleAdminDataLoad, populateAdminTeamOptions } from './features/admin.js';
 import { clampDockRewardFactor, DOCK_WEIGHTING_DEFAULT } from './features/calculations.js';
 import { initNavigation, isViewVisible, showView } from './features/navigation.js';
 import { initCommonEvents } from './features/common-events.js';
-import { initPortfolio, renderPortfolio } from './features/portfolio.js';
+import { renderPortfolio } from './features/portfolio.js';
 import {
   autoComplete,
   filtered,
@@ -36,27 +36,21 @@ import {
   loadHistory,
   renderHistory,
 } from './features/history.js';
-import { clearDockSelection, getPendingDockAbrufAssignment, setPendingDockAbrufAssignment } from './state/dock-state.js';
 import {
-  initDockBoard,
   renderDockBoard,
-  queueDockAutoCheck,
-  findDockKvConflict,
-  finalizeDockAbruf,
   hideManualPanel,
   requestDockEntryDialogClose,
-  openFrameworkVolumeDialog,
   showManualPanel,
   clearInputFields,
-  getFrameworkVolume,
   dockEntryDialog,
 } from './features/dock-board.js';
-import { renderFrameworkContracts, renderRahmenDetails, openEditTransactionModal } from './features/frameworks.js';
+import { renderFrameworkContracts, renderRahmenDetails } from './features/frameworks.js';
 import {
   getPendingDelete,
   setPendingDelete,
   resetPendingDelete,
 } from './state/history-state.js';
+import { clearDockSelection } from './state/dock-state.js';
 import {
   getCurrentFrameworkEntryId,
   setCurrentFrameworkEntryId,
@@ -739,47 +733,6 @@ async function handleLegacySalesImport() {
     fileInput.value = '';
   }
 }
-
-const erfassungDeps = {
-  clampDockRewardFactor,
-  dockWeightingDefault: DOCK_WEIGHTING_DEFAULT,
-  findDockKvConflict,
-  queueDockAutoCheck,
-  loadHistory,
-  renderHistory,
-  renderDockBoard,
-  renderFrameworkContracts,
-  finalizeDockAbruf,
-  hideManualPanel,
-  showView,
-  getPendingDockAbrufAssignment,
-};
-
-initDockBoard({ renderFrameworkContracts, renderRahmenDetails, onEditEntry: editEntry });
-
-initErfassung(erfassungDeps);
-initPortfolio({ 
-  openEditTransactionModal, 
-  openFrameworkVolumeDialog,
-  onUpdateFrameworkVolume: async (entry, vol) => {
-    try {
-      showLoader();
-      const res = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frameworkVolume: vol })
-      });
-      if (!res.ok) throw new Error(await res.text());
-      showToast('Volumen aktualisiert', 'ok');
-      await loadHistory(true);
-    } catch(e) {
-      console.error(e);
-      showToast('Fehler beim Speichern: ' + e.message, 'bad');
-    } finally {
-      hideLoader();
-    }
-  }
-});
 
 export function initializeCommonEvents() {
   initCommonEvents({
