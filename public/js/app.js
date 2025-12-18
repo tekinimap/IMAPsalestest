@@ -31,6 +31,7 @@ import {
   parseAmountInput,
   escapeHtml,
 } from './utils/format.js';
+import { getDockPhase } from './utils/dock-helpers.js';
 import {
   showLoader,
   hideLoader,
