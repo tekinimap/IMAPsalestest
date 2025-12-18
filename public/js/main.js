@@ -1,12 +1,11 @@
-import './app.js';
-
 import { fetchWithRetry } from './api.js';
-import { DEFAULT_WEIGHTS, WORKER_BASE } from './config.js';
-import { getEntries } from './entries-state.js';
+import { DEFAULT_WEIGHTS, WORKER_BASE, CONFIG_WARNINGS, CONFIG_ERRORS } from './config.js';
+import { getEntries, findEntryById, upsertEntry, removeEntryById } from './entries-state.js';
 import { loadState, saveState, getHasUnsavedChanges, setHasUnsavedChanges, getIsBatchRunning } from './state.js';
-import { getPendingDockAbrufAssignment } from './state/dock-state.js';
+import { getPendingDockAbrufAssignment, clearDockSelection } from './state/dock-state.js';
+import { getPendingDelete, resetPendingDelete, setPendingDelete } from './state/history-state.js';
 import { initNavigation, showView } from './features/navigation.js';
-import { initHistory, loadHistory, renderHistory } from './features/history.js';
+import { autoComplete, filtered, getSelectedFixIds, initHistory, loadHistory, renderHistory } from './features/history.js';
 import {
   initDockBoard,
   renderDockBoard,
@@ -33,11 +32,50 @@ import { loadSession, loadPeople } from './features/people.js';
 import { initCommonEvents } from './features/common-events.js';
 import { handleAdminClick, initAdminModule } from './features/admin.js';
 import { clampDockRewardFactor, DOCK_WEIGHTING_DEFAULT } from './features/calculations.js';
-import { showToast, hideBatchProgress, showLoader, hideLoader } from './ui/feedback.js';
+import { initImporter } from './features/importer.js';
+import {
+  showToast,
+  hideBatchProgress,
+  showLoader,
+  hideLoader,
+  showBatchProgress,
+  updateBatchProgress,
+} from './ui/feedback.js';
 import { formatDateForInput } from './utils/format.js';
 
 const VALID_VIEWS = new Set(['erfassung', 'portfolio', 'analytics', 'admin']);
 const DEFAULT_VIEW = 'erfassung';
+
+function showConfigMessages() {
+  const hasConfigWarnings = CONFIG_WARNINGS.length > 0;
+  const hasConfigErrors = CONFIG_ERRORS.length > 0;
+
+  if (hasConfigWarnings && typeof console !== 'undefined') {
+    console.groupCollapsed?.('Konfiguration – Hinweise');
+    CONFIG_WARNINGS.forEach((msg) => console.warn(msg));
+    console.groupEnd?.();
+  }
+
+  if (hasConfigErrors && typeof console !== 'undefined') {
+    console.groupCollapsed?.('Konfiguration – Fehler');
+    CONFIG_ERRORS.forEach((msg) => console.error(msg));
+    console.groupEnd?.();
+  }
+
+  if (hasConfigErrors) {
+    showToast(
+      `Konfiguration konnte nicht vollständig geladen werden (${CONFIG_ERRORS.length} Fehler). Es werden Standardwerte verwendet. Siehe Konsole für Details.`,
+      'bad',
+      9000
+    );
+  } else if (hasConfigWarnings) {
+    const summary =
+      CONFIG_WARNINGS.length === 1
+        ? CONFIG_WARNINGS[0]
+        : `Konfiguration geladen mit ${CONFIG_WARNINGS.length} Hinweis(en). Siehe Konsole für Details.`;
+    showToast(summary, 'warn', 7000);
+  }
+}
 
 function getInitialView() {
   const hash = (window.location.hash || '').replace('#', '').trim().toLowerCase();
@@ -111,6 +149,133 @@ async function updateFrameworkVolume(entry, volume) {
   } finally {
     hideLoader();
   }
+}
+
+function setupBatchDeleteButton() {
+  const btnBatchDelete = document.getElementById('btnBatchDelete');
+  if (!btnBatchDelete) return;
+
+  btnBatchDelete.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+
+    setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
+    const title = document.getElementById('confirmDlgTitle');
+    const text = document.getElementById('confirmDlgText');
+    const dialog = document.getElementById('confirmDlg');
+
+    if (title) title.textContent = 'Einträge löschen';
+    if (text) text.textContent = `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+    dialog?.showModal();
+  });
+}
+
+function setupXlsxExport() {
+  const btnXlsx = document.getElementById('btnXlsx');
+  if (!btnXlsx) return;
+
+  btnXlsx.addEventListener('click', () => {
+    const exportRows = filtered('fix').map((entry) => ({
+      Projektnummer: entry.projectNumber || '',
+      Titel: entry.title || '',
+      Auftraggeber: entry.client || '',
+      Quelle: entry.source || '',
+      Status: autoComplete(entry) ? 'vollständig' : 'unvollständig',
+      Wert_EUR: entry.amount || 0,
+      Abschlussdatum: entry.freigabedatum
+        ? new Date(entry.freigabedatum).toISOString().split('T')[0]
+        : entry.ts
+          ? new Date(entry.ts).toISOString().split('T')[0]
+          : '',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fixaufträge');
+    XLSX.writeFile(workbook, 'fixauftraege_export.xlsx');
+  });
+}
+
+function setupConfirmDialogHandlers() {
+  const dialog = document.getElementById('confirmDlg');
+  const btnNo = document.getElementById('btnNo');
+  const btnYes = document.getElementById('btnYes');
+
+  btnNo?.addEventListener('click', () => dialog?.close());
+
+  if (!btnYes) return;
+
+  btnYes.addEventListener('click', async () => {
+    const { id, ids, type, parentId, fromDock } = getPendingDelete();
+    dialog?.close();
+
+    showLoader();
+    try {
+      if (type === 'entry') {
+        if (!id) return;
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text());
+        showToast('Eintrag gelöscht.', 'ok');
+        removeEntryById(id);
+        renderHistory();
+        renderFrameworkContracts();
+        renderPortfolio();
+      } else if (type === 'batch-entry') {
+        if (!ids || ids.length === 0) return;
+        hideLoader();
+        showBatchProgress(`Lösche ${ids.length} Einträge...`, 1);
+
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
+        updateBatchProgress(1, 1);
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: 'Unbekannter Fehler beim Löschen' }));
+          throw new Error(errData.error || `Serverfehler ${response.status}`);
+        }
+
+        const result = await response.json();
+        showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
+        await loadHistory();
+        renderHistory();
+        if (fromDock) {
+          clearDockSelection();
+          renderDockBoard();
+        }
+        renderPortfolio();
+      } else if (type === 'transaction') {
+        if (!id || !parentId) return;
+        const entry = findEntryById(parentId);
+        if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+        const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
+        entry.transactions = entry.transactions.filter((transaction) => transaction.id !== id);
+        entry.modified = Date.now();
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry),
+        });
+        if (!response.ok) {
+          entry.transactions = originalTransactions;
+          throw new Error(await response.text());
+        }
+        showToast('Abruf gelöscht.', 'ok');
+        upsertEntry(entry);
+        renderRahmenDetails(parentId);
+        renderPortfolio();
+      }
+    } catch (error) {
+      showToast('Aktion fehlgeschlagen.', 'bad');
+      console.error(error);
+    } finally {
+      hideLoader();
+      hideBatchProgress();
+      resetPendingDelete();
+    }
+  });
 }
 
 function initFeatureModules() {
@@ -205,11 +370,18 @@ function setupNavigation() {
 }
 
 async function bootstrap() {
+  showConfigMessages();
+
   initCommonEvents({
     dockEntryDialog,
     onDockDialogCloseRequest: requestDockEntryDialogClose,
     onDockDialogClosed: () => clearInputFields(),
   });
+
+  setupConfirmDialogHandlers();
+  setupBatchDeleteButton();
+  setupXlsxExport();
+  initImporter();
 
   initFeatureModules();
   initAdminModule();
