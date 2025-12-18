@@ -13,8 +13,8 @@ import { getDockPhase } from '../utils/dock-helpers.js';
 import { clampDockRewardFactor, DOCK_WEIGHTING_DEFAULT, getEntryRewardFactor } from './calculations.js';
 import { showToast } from '../ui/feedback.js';
 import { getAnalyticsData, setAnalyticsData, getTrendData, setTrendData } from '../state/analytics-state.js';
-import { getFrameworkVolume } from './frameworks.js';
 import { people } from './people.js';
+import { getFrameworkVolume } from './dock-board.js';
 
 const anaYear = document.getElementById('anaYear');
 const anaStartDate = document.getElementById('anaStartDate');
