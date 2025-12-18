@@ -2,6 +2,7 @@ import { WORKER_BASE } from '../config.js';
 import { getEntries, setEntries } from '../entries-state.js';
 import { fetchWithRetry } from '../api.js';
 import { fmtCurr2, fmtCurr0, escapeHtml } from '../utils/format.js';
+import { normalizeDockString, getDockPhase } from '../utils/dock-helpers.js';
 import { showLoader, hideLoader, showToast } from '../ui/feedback.js';
 import {
   getCurrentSort,
@@ -32,23 +33,6 @@ let deps = {
   onEditEntry: null,
 };
 let isHistoryInitialized = false;
-
-function normalizeDockString(value) {
-  if (value === null || value === undefined) return '';
-  return String(value).trim();
-}
-
-function getDockPhase(entry) {
-  if (!entry || typeof entry !== 'object') return 1;
-  const raw = Number(entry.dockPhase);
-  if (Number.isFinite(raw) && raw >= 1) {
-    return Math.min(3, Math.max(1, raw));
-  }
-  if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
-    return 1;
-  }
-  return 3;
-}
 
 function hasPositiveDistribution(list = [], amount = 0) {
   if (!Array.isArray(list) || list.length === 0) return { sum: 0, hasPositive: false };

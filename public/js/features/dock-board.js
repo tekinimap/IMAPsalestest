@@ -10,6 +10,7 @@ import {
   parseAmountInput,
   escapeHtml,
 } from '../utils/format.js';
+import { normalizeDockString, getDockPhase } from '../utils/dock-helpers.js';
 import { showLoader, hideLoader, showToast } from '../ui/feedback.js';
 import { openWizard } from './erfassung.js';
 import { getEntryRewardFactor } from './calculations.js';
@@ -261,11 +262,6 @@ let dockAutoDowngradeRunning = isDockAutoDowngradeRunning();
 
 function normalizeProjectNumber(value) {
   return normalizeDockString(value).toLowerCase();
-}
-
-function normalizeDockString(value) {
-  if (value === null || value === undefined) return '';
-  return String(value).trim();
 }
 
 function requestDockBoardRerender() {
@@ -666,18 +662,6 @@ function getEntryKvList(entry) {
   if (Array.isArray(entry.kv_list) && entry.kv_list.length) return entry.kv_list;
   const single = entry.kv_nummer || entry.kv;
   return normalizeDockString(single) ? [normalizeDockString(single)] : [];
-}
-
-function getDockPhase(entry) {
-  if (!entry || typeof entry !== 'object') return 1;
-  const raw = Number(entry.dockPhase);
-  if (Number.isFinite(raw) && raw >= 1) {
-    return Math.min(3, Math.max(1, raw));
-  }
-  if (normalizeDockString(entry.source).toLowerCase() === 'hubspot') {
-    return 1;
-  }
-  return 3;
 }
 
 function computeDockChecklist(entry) {
