@@ -278,6 +278,133 @@ function setupConfirmDialogHandlers() {
 }
 }
 
+function setupBatchDeleteButton() {
+  const btnBatchDelete = document.getElementById('btnBatchDelete');
+  if (!btnBatchDelete) return;
+
+  btnBatchDelete.addEventListener('click', () => {
+    const selectedIds = getSelectedFixIds();
+    if (selectedIds.length === 0) return;
+
+    setPendingDelete({ ids: selectedIds, type: 'batch-entry' });
+    const title = document.getElementById('confirmDlgTitle');
+    const text = document.getElementById('confirmDlgText');
+    const dialog = document.getElementById('confirmDlg');
+
+    if (title) title.textContent = 'Einträge löschen';
+    if (text) text.textContent = `Wollen Sie die ${selectedIds.length} markierten Einträge wirklich löschen?`;
+    dialog?.showModal();
+  });
+}
+
+function setupXlsxExport() {
+  const btnXlsx = document.getElementById('btnXlsx');
+  if (!btnXlsx) return;
+
+  btnXlsx.addEventListener('click', () => {
+    const exportRows = filtered('fix').map((entry) => ({
+      Projektnummer: entry.projectNumber || '',
+      Titel: entry.title || '',
+      Auftraggeber: entry.client || '',
+      Quelle: entry.source || '',
+      Status: autoComplete(entry) ? 'vollständig' : 'unvollständig',
+      Wert_EUR: entry.amount || 0,
+      Abschlussdatum: entry.freigabedatum
+        ? new Date(entry.freigabedatum).toISOString().split('T')[0]
+        : entry.ts
+          ? new Date(entry.ts).toISOString().split('T')[0]
+          : '',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fixaufträge');
+    XLSX.writeFile(workbook, 'fixauftraege_export.xlsx');
+  });
+}
+
+function setupConfirmDialogHandlers() {
+  const dialog = document.getElementById('confirmDlg');
+  const btnNo = document.getElementById('btnNo');
+  const btnYes = document.getElementById('btnYes');
+
+  btnNo?.addEventListener('click', () => dialog?.close());
+
+  if (!btnYes) return;
+
+  btnYes.addEventListener('click', async () => {
+    const { id, ids, type, parentId, fromDock } = getPendingDelete();
+    dialog?.close();
+
+    showLoader();
+    try {
+      if (type === 'entry') {
+        if (!id) return;
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(await response.text());
+        showToast('Eintrag gelöscht.', 'ok');
+        removeEntryById(id);
+        renderHistory();
+        renderFrameworkContracts();
+        renderPortfolio();
+      } else if (type === 'batch-entry') {
+        if (!ids || ids.length === 0) return;
+        hideLoader();
+        showBatchProgress(`Lösche ${ids.length} Einträge...`, 1);
+
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
+        updateBatchProgress(1, 1);
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ error: 'Unbekannter Fehler beim Löschen' }));
+          throw new Error(errData.error || `Serverfehler ${response.status}`);
+        }
+
+        const result = await response.json();
+        showToast(`${result.deletedCount || 0} Einträge erfolgreich gelöscht.`, 'ok');
+        await loadHistory();
+        renderHistory();
+        if (fromDock) {
+          clearDockSelection();
+          renderDockBoard();
+        }
+        renderPortfolio();
+      } else if (type === 'transaction') {
+        if (!id || !parentId) return;
+        const entry = findEntryById(parentId);
+        if (!entry || !Array.isArray(entry.transactions)) throw new Error('Parent entry or transactions not found');
+        const originalTransactions = JSON.parse(JSON.stringify(entry.transactions));
+        entry.transactions = entry.transactions.filter((transaction) => transaction.id !== id);
+        entry.modified = Date.now();
+        const response = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(parentId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry),
+        });
+        if (!response.ok) {
+          entry.transactions = originalTransactions;
+          throw new Error(await response.text());
+        }
+        showToast('Abruf gelöscht.', 'ok');
+        upsertEntry(entry);
+        renderRahmenDetails(parentId);
+        renderPortfolio();
+      }
+    } catch (error) {
+      showToast('Aktion fehlgeschlagen.', 'bad');
+      console.error(error);
+    } finally {
+      hideLoader();
+      hideBatchProgress();
+      resetPendingDelete();
+    }
+  });
+}
+
 function initFeatureModules() {
   initDockBoard({ renderFrameworkContracts, renderRahmenDetails, onEditEntry: handleEditEntry });
   initErfassung({
