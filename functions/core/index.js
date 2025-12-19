@@ -1501,7 +1501,7 @@ export default {
       const peoplePath = env.GH_PEOPLE_PATH || 'data/people.json';
       const branch = env.GH_BRANCH;
       const saveEntries = async (items, sha, message) => {
-        const payload = canonicalizeEntries(items);
+        const payload = { items: canonicalizeEntries(items) };
         return ghPutFile(env, ghPath, payload, sha, message, branch);
       };
 
