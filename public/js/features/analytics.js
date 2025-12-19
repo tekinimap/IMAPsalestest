@@ -414,7 +414,7 @@ function renderAnalytics() {
   const startOfYear = getTimestamp(`${year}-01-01`);
   const endOfYear = getTimestamp(`${year}-12-31T23:59:59.999`);
 
-  const byNameTeam = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p.team || '']));
+  const personMap = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p]));
   const personStats = new Map();
   const teamStats = new Map();
   const entryBreakdown = [];
@@ -423,17 +423,18 @@ function renderAnalytics() {
   let rahmenTotal = 0;
   let rahmenWeightedTotal = 0;
 
-  const addPersonStat = (rawName, amount, factor) => {
+  const addPersonStat = (rawName, amount, factor, dateTimestamp) => {
     const money = Number(amount) || 0;
     if (money <= 0) return;
     const ratio = clampDockRewardFactor(factor);
     const name = rawName || 'Unbekannt';
     const weighted = money * ratio;
-    const teamName = byNameTeam.get(name) || 'Ohne Team';
+    const personObj = personMap.get(name);
+    const teamName = getTeamForPerson(personObj, dateTimestamp) || 'Ohne Team';
     const person = personStats.get(name) || { name, team: teamName, actual: 0, weighted: 0 };
     person.actual += money;
     person.weighted += weighted;
-    person.team = person.team || teamName;
+    person.team = teamName || person.team;
     personStats.set(name, person);
     const team = teamStats.get(teamName) || { name: teamName, actual: 0, weighted: 0 };
     team.actual += money;
@@ -470,7 +471,7 @@ function renderAnalytics() {
       });
       if (Array.isArray(entry.list)) {
         entry.list.forEach((contributor) => {
-          addPersonStat(contributor?.name || 'Unbekannt', contributor?.money || 0, factor);
+          addPersonStat(contributor?.name || 'Unbekannt', contributor?.money || 0, factor, datum);
         });
       }
     } else if (entry.projectType === 'rahmen') {
@@ -480,6 +481,7 @@ function renderAnalytics() {
       });
 
       transactions.forEach((trans) => {
+        const transDate = trans.freigabedatum || trans.ts || 0;
         const amount = Number(trans.amount) || 0;
         if (amount <= 0) return;
         const transactionFactor = clampDockRewardFactor(
@@ -502,17 +504,17 @@ function renderAnalytics() {
           (entry.list || []).forEach((founder) => {
             const pct = Number(founder?.pct) || 0;
             const money = amount * (pct / 100);
-            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor, transDate);
           });
         } else if (trans.type === 'hunter') {
           const founderShareAmount = amount * (FOUNDER_SHARE_PCT / 100);
           (entry.list || []).forEach((founder) => {
             const pct = Number(founder?.pct) || 0;
             const money = founderShareAmount * (pct / 100);
-            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor, transDate);
           });
           (trans.list || []).forEach((hunter) => {
-            addPersonStat(hunter?.name || 'Unbekannt', hunter?.money || 0, transactionFactor);
+            addPersonStat(hunter?.name || 'Unbekannt', hunter?.money || 0, transactionFactor, transDate);
           });
         }
       });
