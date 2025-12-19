@@ -10,7 +10,7 @@ import {
   extractFreigabedatumFromEntry,
   resolveFreigabedatum,
   computeLogMetrics,
-} from './log-analytics-core.js';
+} from '../log-analytics-core.js';
 import {
   applyKvList,
   findDuplicateKv,
@@ -22,8 +22,8 @@ import {
   uniqueNormalizedKvList,
   validateKvNumberUsage,
   validateProjectNumberUsage,
-} from './utils/validation.js';
-import { sleep, throttle } from './utils/time.js';
+} from '../utils/validation.js';
+import { sleep, throttle } from '../utils/time.js';
 import {
   ghGetContent,
   ghGetFile,
@@ -31,7 +31,7 @@ import {
   ghPutContent,
   ghPutFile,
   parseGitHubRepo,
-} from './services/github.js';
+} from '../services/github.js';
 import {
   collectHubspotSyncPayload,
   DEFAULT_HUBSPOT_RETRY_BACKOFF_MS,
@@ -42,9 +42,9 @@ import {
   hsFetchOwner,
   hsUpdateDealProperties,
   HUBSPOT_UPDATE_MAX_ATTEMPTS,
-} from './services/hubspot.js';
-export { normalizeTransactionKv } from './utils/validation.js';
-export { hsFetchDeal } from './services/hubspot.js';
+} from '../services/hubspot.js';
+export { normalizeTransactionKv } from '../utils/validation.js';
+export { hsFetchDeal } from '../services/hubspot.js';
 import { createRouter, normalizePathname } from './router.js';
 import { registerSessionRoutes } from './controllers/session.js';
 import { registerValidationRoutes } from './controllers/validation.js';
