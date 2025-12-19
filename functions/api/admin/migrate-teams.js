@@ -84,41 +84,56 @@ export async function onRequest({ request, env }) {
     }
   });
 
-  // --- FIX START: Restore missing top-level team properties ---
+  // --- FIX START: Robuste Reparatur für ALLE Einträge ---
   if (entries && entries.length > 0) {
     console.log('Starte Reparatur der Team-Zuordnungen...');
     let fixedCount = 0;
 
     entries.forEach((entry) => {
-      // Prüfen, ob eine Liste vorhanden ist, aber das Top-Level-Team fehlt oder leer ist
+      let teamFound = null;
+
+      // 1. Versuchen, das Team aus der Liste zu retten (wie zuvor)
       if (entry.list && entry.list.length > 0) {
-        // Wir suchen den Eintrag mit dem höchsten Prozentanteil (pct)
-        // Falls es mehrere gibt, gewinnt der erste nach Sortierung
         const dominantItem = [...entry.list].sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
-
         if (dominantItem && dominantItem.savedTeam) {
-          let changed = false;
-
-          // Setze marketTeam, falls es fehlt
-          if (!entry.marketTeam) {
-            entry.marketTeam = dominantItem.savedTeam;
-            changed = true;
-          }
-
-          // Setze team, falls es fehlt (für Kompatibilität)
-          if (!entry.team) {
-            entry.team = dominantItem.savedTeam;
-            changed = true;
-          }
-
-          if (changed) {
-            fixedCount += 1;
-          }
+          teamFound = dominantItem.savedTeam;
         }
+      }
+
+      // 2. Sicherheits-Check: Eigenschaften MÜSSEN existieren
+      let changed = false;
+
+      // Wenn wir ein Team gefunden haben, setzen wir es.
+      // WICHTIG: Wenn KEINS gefunden wurde, aber die Eigenschaft komplett fehlt,
+      // setzen wir sie auf einen leeren String "", damit das Frontend nicht crasht.
+      if (teamFound) {
+        if (entry.marketTeam !== teamFound) {
+          entry.marketTeam = teamFound;
+          changed = true;
+        }
+        if (entry.team !== teamFound) {
+          entry.team = teamFound;
+          changed = true;
+        }
+      } else {
+        // Fallback für manuelle Einträge ohne Liste:
+        // Existiert der Key gar nicht? Dann setze ihn auf ""
+        if (typeof entry.marketTeam === 'undefined') {
+          entry.marketTeam = '';
+          changed = true;
+        }
+        if (typeof entry.team === 'undefined') {
+          entry.team = '';
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        fixedCount += 1;
       }
     });
 
-    console.log(`Reparatur abgeschlossen: ${fixedCount} Einträge wurden korrigiert.`);
+    console.log(`Reparatur abgeschlossen: ${fixedCount} Einträge wurden (neu) initialisiert.`);
   }
   // --- FIX END ---
 
