@@ -22,19 +22,15 @@ export function registerEntryRoutes(
     syncCalloffDealsForEntry,
   },
 ) {
-  const normalizeItems = (file) => (Array.isArray(file) ? file : (file?.items || []));
-
   router.get('/entries', async ({ env, respond, ghPath, branch }) => {
-    const file = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(file);
+    const { items } = await ghGetFile(env, ghPath, branch);
     const normalized = canonicalizeEntries(items);
     return respond(normalized);
   });
 
   router.get('/entries/:id', async ({ env, respond, ghPath, branch, params }) => {
     const id = decodeURIComponent(params.id);
-    const file = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(file);
+    const { items } = await ghGetFile(env, ghPath, branch);
     const found = items.find((entry) => String(entry.id) === id);
     if (!found) return respond({ error: 'not found' }, 404);
     return respond(ensureKvStructure({ ...found }));
@@ -49,7 +45,7 @@ export function registerEntryRoutes(
     }
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
+    const items = cur.items || [];
     let entry;
     let status = 201;
     let skipSave = false;
@@ -190,14 +186,18 @@ export function registerEntryRoutes(
         await saveEntries(items, cur.sha, `upsert entry: ${entry.kv || entry.id}`);
       } catch (e) {
         if (String(e).includes('sha') || String(e).includes('conflict')) {
+          console.warn('Retrying PUT due to SHA conflict...');
           await new Promise((r) => setTimeout(r, 600));
           const ref = await ghGetFile(env, ghPath, branch);
-          const refItems = normalizeItems(ref);
+          const refItems = ref.items || [];
           const refIdx = refItems.findIndex((item) => item.id === entry.id);
           if (status === 201 && refIdx === -1) {
             refItems.push(entry);
           } else if (status === 200 && refIdx > -1) {
             refItems[refIdx] = entry;
+          } else {
+            console.error('Cannot cleanly retry after SHA conflict.');
+            throw new Error('SHA conflict, unresolved.');
           }
           ensureKvStructure(entry);
           await saveEntries(refItems, ref.sha, `upsert entry (retry): ${entry.kv || entry.id}`);
@@ -223,47 +223,12 @@ export function registerEntryRoutes(
     }
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
-    const idx = items.findIndex((entry) => String(entry.id) === id);
-    const hubspotUpdates = [];
+    const idx = cur.items.findIndex((entry) => String(entry.id) === id);
+    if (idx < 0) return respond({ error: 'not found' }, 404);
 
-    // --- UPSERT LOGIC START ---
-    if (idx < 0) {
-      const newEntry = {
-        id: id,
-        ...body,
-        ts: body.ts || Date.now(),
-        modified: Date.now()
-      };
-      if (Array.isArray(newEntry.transactions)) {
-        newEntry.transactions = newEntry.transactions.map((t) => ({
-          id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          ...t,
-        }));
-      }
-      ensureKvStructure(newEntry);
-      ensureDockMetadata(newEntry);
-      items.push(newEntry);
-      
-      await saveEntries(items, cur.sha, `create entry via put: ${id}`);
-      const f = fieldsOf(newEntry);
-      await logJSONL(env, [{
-        event: 'create',
-        source: newEntry.source || 'manuell',
-        after: newEntry,
-        kv: f.kv,
-        kvList: f.kvList,
-        projectNumber: f.projectNumber,
-        title: f.title,
-        client: f.client,
-        reason: 'manual_upsert'
-      }]);
-      return respond(newEntry, 201);
-    }
-    // --- UPSERT LOGIC END ---
-
-    const before = JSON.parse(JSON.stringify(items[idx]));
+    const before = JSON.parse(JSON.stringify(cur.items[idx]));
     let updatedEntry;
+    const hubspotUpdates = [];
 
     if (isFullEntry(body)) {
       if (Array.isArray(body.transactions)) {
@@ -275,10 +240,10 @@ export function registerEntryRoutes(
       const merged = mergeEntryWithKvOverride(before, { ...body, id, modified: Date.now() });
       updatedEntry = ensureKvStructure(merged);
       ensureDockMetadata(updatedEntry);
-      items[idx] = updatedEntry;
+      cur.items[idx] = updatedEntry;
       const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
       if (syncPayload) hubspotUpdates.push(syncPayload);
-      await saveEntries(items, cur.sha, `update entry (full): ${id}`);
+      await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
       const f = fieldsOf(updatedEntry);
       await logJSONL(env, [{
         event: 'update',
@@ -301,10 +266,10 @@ export function registerEntryRoutes(
       const merged = mergeEntryWithKvOverride(before, { ...body, amount: validation.amount, modified: Date.now() });
       updatedEntry = ensureKvStructure(merged);
       ensureDockMetadata(updatedEntry);
-      items[idx] = updatedEntry;
+      cur.items[idx] = updatedEntry;
       const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
       if (syncPayload) hubspotUpdates.push(syncPayload);
-      await saveEntries(items, cur.sha, `update entry (narrow): ${id}`);
+      await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);
 
       const f = fieldsOf(updatedEntry);
       const changes = {};
@@ -317,11 +282,18 @@ export function registerEntryRoutes(
       if (changes.freigabedatum == null && updatedEntry.freigabedatum != null) {
         changes.freigabedatum = updatedEntry.freigabedatum;
       }
-      
+      const beforeSnapshot = { amount: before.amount };
+      if (before.freigabedatum != null) beforeSnapshot.freigabedatum = before.freigabedatum;
+      for (const key of Object.keys(changes)) {
+        if (key === 'amount') continue;
+        if (before[key] != null) {
+          beforeSnapshot[key] = before[key];
+        }
+      }
       await logJSONL(env, [{
         event: 'update',
         ...f,
-        before: { amount: before.amount },
+        before: beforeSnapshot,
         after: changes,
       }]);
     }
@@ -335,10 +307,9 @@ export function registerEntryRoutes(
   router.delete('/entries/:id', async ({ env, respond, ghPath, branch, params, saveEntries }) => {
     const id = decodeURIComponent(params.id);
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
-    const before = items.find((entry) => String(entry.id) === id);
+    const before = cur.items.find((entry) => String(entry.id) === id);
     if (!before) return respond({ ok: true, message: 'already deleted?' });
-    const next = items.filter((entry) => String(entry.id) !== id);
+    const next = cur.items.filter((entry) => String(entry.id) !== id);
     await saveEntries(next, cur.sha, `delete entry: ${id}`);
     const f = fieldsOf(before);
     await logJSONL(env, [{
@@ -367,7 +338,7 @@ export function registerEntryRoutes(
     if (!rows.length) return respond({ ok: false, message: 'rows empty' }, 400);
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
+    const items = cur.items || [];
     const byKV = new Map(items.filter((item) => item && kvListFrom(item).length).flatMap((item) => kvListFrom(item).map((kv) => [kv, item])));
     const logs = [];
     let created = 0;
@@ -484,7 +455,7 @@ export function registerEntryRoutes(
     if (!rows.length) return respond({ created: 0, updated: 0, skipped: 0, errors: 0, message: 'rows empty' });
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
+    const items = cur.items || [];
     const logs = [];
     let created = 0;
     let updated = 0;
@@ -699,7 +670,7 @@ export function registerEntryRoutes(
     if (!idsToDelete.length) return respond({ ok: true, deletedCount: 0, message: 'No IDs provided' });
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
+    const items = cur.items || [];
     const logs = [];
 
     const idSet = new Set(idsToDelete);
@@ -757,7 +728,7 @@ export function registerEntryRoutes(
     const fieldResolutions = body && typeof body.fieldResolutions === 'object' ? body.fieldResolutions : {};
 
     const cur = await ghGetFile(env, ghPath, branch);
-    const items = normalizeItems(cur);
+    const items = cur.items || [];
     const selected = ids.map((id) => {
       const entry = items.find((e) => String(e.id) === id);
       if (!entry) throw new Error(`Entry ${id} not found`);
