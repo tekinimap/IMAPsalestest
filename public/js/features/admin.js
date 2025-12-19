@@ -115,7 +115,8 @@ async function handleAdminAction(ev) {
         showToast('Name darf nicht leer sein.', 'bad');
         return;
       }
-      const payload = { id, name, team };
+      const existingPerson = people.find((person) => person.id === id);
+      const payload = { ...(existingPerson || {}), id, name, team };
       const r = await fetchWithRetry(`${WORKER_BASE}/people`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
