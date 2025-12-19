@@ -84,6 +84,44 @@ export async function onRequest({ request, env }) {
     }
   });
 
+  // --- FIX START: Restore missing top-level team properties ---
+  if (entries && entries.length > 0) {
+    console.log('Starte Reparatur der Team-Zuordnungen...');
+    let fixedCount = 0;
+
+    entries.forEach((entry) => {
+      // Prüfen, ob eine Liste vorhanden ist, aber das Top-Level-Team fehlt oder leer ist
+      if (entry.list && entry.list.length > 0) {
+        // Wir suchen den Eintrag mit dem höchsten Prozentanteil (pct)
+        // Falls es mehrere gibt, gewinnt der erste nach Sortierung
+        const dominantItem = [...entry.list].sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
+
+        if (dominantItem && dominantItem.savedTeam) {
+          let changed = false;
+
+          // Setze marketTeam, falls es fehlt
+          if (!entry.marketTeam) {
+            entry.marketTeam = dominantItem.savedTeam;
+            changed = true;
+          }
+
+          // Setze team, falls es fehlt (für Kompatibilität)
+          if (!entry.team) {
+            entry.team = dominantItem.savedTeam;
+            changed = true;
+          }
+
+          if (changed) {
+            fixedCount += 1;
+          }
+        }
+      }
+    });
+
+    console.log(`Reparatur abgeschlossen: ${fixedCount} Einträge wurden korrigiert.`);
+  }
+  // --- FIX END ---
+
   // WICHTIG: Speichern als OBJEKT { items: ... }
   // Das verhindert, dass die Datei beim nächsten Mal kaputt geht.
   await ghPutFile(
