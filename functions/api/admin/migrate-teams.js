@@ -37,19 +37,19 @@ export async function onRequest({ request, env }) {
     ghGetFile(env, peoplePath, branch),
   ]);
 
-  // --- SICHERHEITS-CHECK & FORMAT-ERKENNUNG ---
+  // --- SICHERHEITS-CHECK & FORMAT-TOLERANZ ---
   let entries = [];
   if (entriesFile && Array.isArray(entriesFile.items)) {
-    entries = entriesFile.items; 
+    entries = entriesFile.items; // Korrektes Format { items: [...] }
   } else if (Array.isArray(entriesFile)) {
-    entries = entriesFile; 
-    console.log("Warnung: Altes Array-Format erkannt. Wird korrigiert.");
+    entries = entriesFile; // Altes Array-Format [...]
+    console.log("MIGRATION: Array-Format erkannt, werde es korrigieren.");
   }
 
   if (!entries || entries.length === 0) {
+    // Wenn wirklich leer, lieber abbrechen statt leere Datei zu speichern
     return new Response('ABORT: Keine Einträge gefunden! Speicherung verhindert.', { status: 400 });
   }
-  // ---------------------------------------------
 
   const peopleItems = Array.isArray(peopleFile.items) ? peopleFile.items : [];
   const teamByName = new Map(
@@ -58,7 +58,7 @@ export async function onRequest({ request, env }) {
 
   let updatedTotal = 0;
   entries.forEach((entry) => {
-    // 1. Fixaufträge sichtbar machen
+    // 1. Fixaufträge sichtbar machen (Dock & Portfolio)
     if (entry.projectType === 'fix' || entry.source === 'erp') {
        if (!entry.dockPhase) entry.dockPhase = 4;
        if (!entry.phase) entry.phase = 4;
@@ -67,7 +67,7 @@ export async function onRequest({ request, env }) {
          updatedTotal++; 
        }
     }
-    // 2. Rahmenverträge sichtbar machen
+    // 2. Rahmenverträge sichtbar machen (Start Dock)
     if (entry.projectType === 'rahmen' && !entry.dockPhase) {
        entry.dockPhase = 1;
        entry.phase = 1;
@@ -84,15 +84,16 @@ export async function onRequest({ request, env }) {
     }
   });
 
-  // Speichern - IMMER als Objekt verpackt { items: ... }
+  // WICHTIG: Speichern als OBJEKT { items: ... }
+  // Das verhindert, dass die Datei beim nächsten Mal kaputt geht.
   await ghPutFile(
     env,
     entriesPath,
-    { items: entries },
+    { items: entries }, 
     entriesFile.sha,
     `MIGRATION: Saved teams & visibility (${updatedTotal} updates)`,
     branch,
   );
   
-  return new Response(`ERFOLG: ${entries.length} Einträge geprüft, ${updatedTotal} Zuweisungen/Reparaturen durchgeführt.`, { status: 200 });
+  return new Response(`ERFOLG: ${entries.length} Einträge geprüft/korrigiert.`, { status: 200 });
 }
