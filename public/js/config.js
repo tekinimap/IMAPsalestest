@@ -1,5 +1,5 @@
 const DEFAULT_CONFIG = Object.freeze({
-  workerBase: 'https://imap-sales-worker.tekin-6af.workers.dev',
+  workerBase: '/api',
   teams: [
     'Vielfalt+',
     'Evaluation und Beteiligung',
