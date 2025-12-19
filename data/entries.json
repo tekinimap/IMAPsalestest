@@ -3,7 +3,7 @@
     "id": "entry_1766142932317_4zkah58cj",
     "title": "",
     "client": "",
-    "amount": 0,
+    "amount": 500000,
     "projectNumber": "",
     "freigabedatum": 1766102400000,
     "dockRewardFactor": 1,
@@ -215,12 +215,6 @@
       },
       {
         "name": "Rimma Kadyrbayeva",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "Sara Kaufmann",
         "cs": 0,
         "konzept": 0,
         "pitch": 0
@@ -521,13 +515,13 @@
         "key": "Constanze Aka",
         "name": "Constanze Aka",
         "pct": 50,
-        "money": 0
+        "money": 250000
       },
       {
         "key": "Laetitia Arndt",
         "name": "Laetitia Arndt",
         "pct": 30,
-        "money": 0
+        "money": 150000
       },
       {
         "key": "Leonie Athanasiadis",
@@ -1011,8 +1005,8 @@
     },
     "source": "wizard",
     "dockPhase": 1,
-    "ts": 1766142932317,
-    "modified": 1766142932592,
+    "ts": 1766143019969,
+    "modified": 1766143020032,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
