@@ -1,20 +1,24 @@
-export async function onRequest(context, next) {
-  const emailHeader = context.request.headers.get('CF-Access-Authenticated-User-Email');
-  const jwtHeader = context.request.headers.get('CF-Access-Jwt-Assertion');
+export async function onRequest(context) {
+  try {
+    // 1. Initialisierung prüfen
+    if (!context) throw new Error("Context ist undefined");
+    const request = context.request;
+    const next = context.next;
 
-  const email = emailHeader && emailHeader.trim()
-    ? emailHeader.trim()
-    : 'dev@local.test';
-  const name = emailHeader && emailHeader.trim()
-    ? email
-    : 'Local Dev';
+    // 2. Daten-Objekt vorbereiten (falls nicht vorhanden)
+    if (!context.data) context.data = {};
 
-  context.data ||= {};
-  context.data.user = {
-    email,
-    name,
-    jwt: jwtHeader ? jwtHeader.trim() : '',
-  };
+    // 3. User-Daten sicher auslesen (mit ?. Operator um Abstürze zu verhindern)
+    const email = request.headers?.get("CF-Access-Authenticated-User-Email");
+    const name = request.headers?.get("CF-Access-Authenticated-User-Name");
 
-  return next();
+    // 4. In Context speichern
+    context.data.user = { email, name };
+
+    // 5. Weiter zur nächsten Funktion
+    return await next();
+  } catch (err) {
+    // WICHTIG: Statt abzustürzen (1101), geben wir den Fehlertext zurück!
+    return new Response(`CRITICAL MIDDLEWARE ERROR: ${err.message}\nStack: ${err.stack}`);
+  }
 }
