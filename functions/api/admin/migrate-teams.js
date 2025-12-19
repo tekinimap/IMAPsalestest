@@ -1,4 +1,4 @@
-import { ghGetFile, ghPutFile } from '../../services/github.js';
+import { ghGetFile, ghPutFile } from '../../core/services/github.js';
 
 function normalizeName(value) {
   return String(value || '').trim().toLowerCase();
@@ -9,23 +9,17 @@ function applySavedTeam(list, teamByName) {
   let updated = 0;
   list.forEach((item) => {
     if (!item || typeof item !== 'object') return;
-    // Nur setzen, wenn noch nicht vorhanden (History Baking)
-    if (item.savedTeam) return;
-    
+    if (item.savedTeam) return; 
     const name = item.name || item.person || item.personName || '';
     const team = teamByName.get(normalizeName(name));
     if (!team) return;
-    
     item.savedTeam = team;
     updated += 1;
   });
   return updated;
 }
 
-// WICHTIG: "onRequest" (ohne Get) fängt ALLE Methoden ab. 
-// Das löst das 405 Problem garantiert.
 export async function onRequest({ request, env }) {
-  // 1. Auth Check via URL Parameter (?secret=...)
   const url = new URL(request.url);
   const secretParam = url.searchParams.get('secret');
   const envSecret = env.ADMIN_SECRET || env.ADMIN_TOKEN;
@@ -34,7 +28,6 @@ export async function onRequest({ request, env }) {
     return new Response('Forbidden: Falsches Secret', { status: 403 });
   }
 
-  // 2. Daten laden
   const entriesPath = env.GH_PATH || 'data/entries.json';
   const peoplePath = env.GH_PEOPLE_PATH || 'data/people.json';
   const branch = env.GH_BRANCH || 'main';
@@ -44,43 +37,62 @@ export async function onRequest({ request, env }) {
     ghGetFile(env, peoplePath, branch),
   ]);
 
-  // 3. Mapping bauen (Person -> Aktuelles Team)
+  // --- SICHERHEITS-CHECK & FORMAT-ERKENNUNG ---
+  let entries = [];
+  if (entriesFile && Array.isArray(entriesFile.items)) {
+    entries = entriesFile.items; 
+  } else if (Array.isArray(entriesFile)) {
+    entries = entriesFile; 
+    console.log("Warnung: Altes Array-Format erkannt. Wird korrigiert.");
+  }
+
+  if (!entries || entries.length === 0) {
+    return new Response('ABORT: Keine Einträge gefunden! Speicherung verhindert.', { status: 400 });
+  }
+  // ---------------------------------------------
+
   const peopleItems = Array.isArray(peopleFile.items) ? peopleFile.items : [];
   const teamByName = new Map(
     peopleItems.map((person) => [normalizeName(person?.name), person?.team || '']),
   );
 
-  // 4. Einträge aktualisieren ("Baken")
-  const entries = Array.isArray(entriesFile.items) ? entriesFile.items : [];
   let updatedTotal = 0;
-  let entriesModified = 0;
-
   entries.forEach((entry) => {
-    const startCount = updatedTotal;
+    // 1. Fixaufträge sichtbar machen
+    if (entry.projectType === 'fix' || entry.source === 'erp') {
+       if (!entry.dockPhase) entry.dockPhase = 4;
+       if (!entry.phase) entry.phase = 4;
+       if (!entry.dockFinalAssignment) {
+         entry.dockFinalAssignment = 'fix';
+         updatedTotal++; 
+       }
+    }
+    // 2. Rahmenverträge sichtbar machen
+    if (entry.projectType === 'rahmen' && !entry.dockPhase) {
+       entry.dockPhase = 1;
+       entry.phase = 1;
+       updatedTotal++;
+    }
+
+    // 3. Teams zuweisen
     updatedTotal += applySavedTeam(entry?.list, teamByName);
     updatedTotal += applySavedTeam(entry?.rows, teamByName);
-    
     if (Array.isArray(entry?.transactions)) {
       entry.transactions.forEach((transaction) => {
         updatedTotal += applySavedTeam(transaction?.list, teamByName);
       });
     }
-    
-    if (updatedTotal > startCount) entriesModified++;
   });
 
-  // 5. Speichern
-  if (updatedTotal > 0) {
-    await ghPutFile(
-      env,
-      entriesPath,
-      { items: entries },
-      entriesFile.sha,
-      `MIGRATION: Saved teams baked into history (${updatedTotal} changes)`,
-      branch,
-    );
-    return new Response(`ERFOLG: ${updatedTotal} Zuweisungen in ${entriesModified} Einträgen festgeschrieben.`, { status: 200 });
-  } else {
-    return new Response('INFO: Keine Änderungen nötig. Alle Einträge haben bereits ein savedTeam.', { status: 200 });
-  }
+  // Speichern - IMMER als Objekt verpackt { items: ... }
+  await ghPutFile(
+    env,
+    entriesPath,
+    { items: entries },
+    entriesFile.sha,
+    `MIGRATION: Saved teams & visibility (${updatedTotal} updates)`,
+    branch,
+  );
+  
+  return new Response(`ERFOLG: ${entries.length} Einträge geprüft, ${updatedTotal} Zuweisungen/Reparaturen durchgeführt.`, { status: 200 });
 }
