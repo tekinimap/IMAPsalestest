@@ -1,4 +1,4 @@
-import { ghGetFile, ghPutFile } from '../../core/services/github.js';
+import { ghGetFile, ghPutFile } from '../../services/github.js';
 
 function normalizeName(value) {
   return String(value || '').trim().toLowerCase();
