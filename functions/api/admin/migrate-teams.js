@@ -84,6 +84,59 @@ export async function onRequest({ request, env }) {
     }
   });
 
+  // --- FIX START: Robuste Reparatur für ALLE Einträge ---
+  if (entries && entries.length > 0) {
+    console.log('Starte Reparatur der Team-Zuordnungen...');
+    let fixedCount = 0;
+
+    entries.forEach((entry) => {
+      let teamFound = null;
+
+      // 1. Versuchen, das Team aus der Liste zu retten (wie zuvor)
+      if (entry.list && entry.list.length > 0) {
+        const dominantItem = [...entry.list].sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
+        if (dominantItem && dominantItem.savedTeam) {
+          teamFound = dominantItem.savedTeam;
+        }
+      }
+
+      // 2. Sicherheits-Check: Eigenschaften MÜSSEN existieren
+      let changed = false;
+
+      // Wenn wir ein Team gefunden haben, setzen wir es.
+      // WICHTIG: Wenn KEINS gefunden wurde, aber die Eigenschaft komplett fehlt,
+      // setzen wir sie auf einen leeren String "", damit das Frontend nicht crasht.
+      if (teamFound) {
+        if (entry.marketTeam !== teamFound) {
+          entry.marketTeam = teamFound;
+          changed = true;
+        }
+        if (entry.team !== teamFound) {
+          entry.team = teamFound;
+          changed = true;
+        }
+      } else {
+        // Fallback für manuelle Einträge ohne Liste:
+        // Existiert der Key gar nicht? Dann setze ihn auf ""
+        if (typeof entry.marketTeam === 'undefined') {
+          entry.marketTeam = '';
+          changed = true;
+        }
+        if (typeof entry.team === 'undefined') {
+          entry.team = '';
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        fixedCount += 1;
+      }
+    });
+
+    console.log(`Reparatur abgeschlossen: ${fixedCount} Einträge wurden (neu) initialisiert.`);
+  }
+  // --- FIX END ---
+
   // WICHTIG: Speichern als OBJEKT { items: ... }
   // Das verhindert, dass die Datei beim nächsten Mal kaputt geht.
   await ghPutFile(
