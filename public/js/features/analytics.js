@@ -120,6 +120,26 @@ function getSelectedMarketTeams() {
     .filter(Boolean);
 }
 
+function getTeamForPerson(person, dateTimestamp) {
+  if (!person) return 'Unbekannt';
+  const history = Array.isArray(person.teamHistory) ? person.teamHistory : null;
+  const saleDate = new Date(dateTimestamp);
+  const saleDateString = Number.isNaN(saleDate.getTime())
+    ? null
+    : saleDate.toISOString().slice(0, 10);
+
+  if (history && saleDateString) {
+    for (const entry of history) {
+      if (!entry || !entry.until) continue;
+      if (saleDateString <= entry.until) {
+        return entry.team;
+      }
+    }
+  }
+
+  return person.team || 'Ohne Team';
+}
+
 export function initAnalytics() {
   const currentYear = new Date().getFullYear();
   anaYear.innerHTML = '';
