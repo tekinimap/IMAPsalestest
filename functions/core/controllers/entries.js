@@ -186,7 +186,6 @@ export function registerEntryRoutes(
         await saveEntries(items, cur.sha, `upsert entry: ${entry.kv || entry.id}`);
       } catch (e) {
         if (String(e).includes('sha') || String(e).includes('conflict')) {
-          console.warn('Retrying PUT due to SHA conflict...');
           await new Promise((r) => setTimeout(r, 600));
           const ref = await ghGetFile(env, ghPath, branch);
           const refItems = ref.items || [];
@@ -195,9 +194,6 @@ export function registerEntryRoutes(
             refItems.push(entry);
           } else if (status === 200 && refIdx > -1) {
             refItems[refIdx] = entry;
-          } else {
-            console.error('Cannot cleanly retry after SHA conflict.');
-            throw new Error('SHA conflict, unresolved.');
           }
           ensureKvStructure(entry);
           await saveEntries(refItems, ref.sha, `upsert entry (retry): ${entry.kv || entry.id}`);
@@ -224,11 +220,45 @@ export function registerEntryRoutes(
 
     const cur = await ghGetFile(env, ghPath, branch);
     const idx = cur.items.findIndex((entry) => String(entry.id) === id);
-    if (idx < 0) return respond({ error: 'not found' }, 404);
+    const hubspotUpdates = [];
+
+    // --- UPSERT LOGIC START ---
+    if (idx < 0) {
+      const newEntry = {
+        id: id,
+        ...body,
+        ts: body.ts || Date.now(),
+        modified: Date.now()
+      };
+      if (Array.isArray(newEntry.transactions)) {
+        newEntry.transactions = newEntry.transactions.map((t) => ({
+          id: t.id || `trans_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+          ...t,
+        }));
+      }
+      ensureKvStructure(newEntry);
+      ensureDockMetadata(newEntry);
+      cur.items.push(newEntry);
+      
+      await saveEntries(cur.items, cur.sha, `create entry via put: ${id}`);
+      const f = fieldsOf(newEntry);
+      await logJSONL(env, [{
+        event: 'create',
+        source: newEntry.source || 'manuell',
+        after: newEntry,
+        kv: f.kv,
+        kvList: f.kvList,
+        projectNumber: f.projectNumber,
+        title: f.title,
+        client: f.client,
+        reason: 'manual_upsert'
+      }]);
+      return respond(newEntry, 201);
+    }
+    // --- UPSERT LOGIC END ---
 
     const before = JSON.parse(JSON.stringify(cur.items[idx]));
     let updatedEntry;
-    const hubspotUpdates = [];
 
     if (isFullEntry(body)) {
       if (Array.isArray(body.transactions)) {
@@ -282,18 +312,11 @@ export function registerEntryRoutes(
       if (changes.freigabedatum == null && updatedEntry.freigabedatum != null) {
         changes.freigabedatum = updatedEntry.freigabedatum;
       }
-      const beforeSnapshot = { amount: before.amount };
-      if (before.freigabedatum != null) beforeSnapshot.freigabedatum = before.freigabedatum;
-      for (const key of Object.keys(changes)) {
-        if (key === 'amount') continue;
-        if (before[key] != null) {
-          beforeSnapshot[key] = before[key];
-        }
-      }
+      
       await logJSONL(env, [{
         event: 'update',
         ...f,
-        before: beforeSnapshot,
+        before: { amount: before.amount },
         after: changes,
       }]);
     }
