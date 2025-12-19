@@ -22,30 +22,9 @@ export function registerEntryRoutes(
     syncCalloffDealsForEntry,
   },
 ) {
-router.get('/entries', async ({ env, respond, ghPath, branch }) => {
+  router.get('/entries', async ({ env, respond, ghPath, branch }) => {
     const { items } = await ghGetFile(env, ghPath, branch);
-
-    // --- NOTFALL-FIX START: Daten für das Frontend reparieren ---
-    const safeItems = (items || []).map(entry => {
-      // Wir stellen sicher, dass 'marketTeam' existiert, auch wenn die DB alt ist
-      if (typeof entry.marketTeam === 'undefined' || entry.marketTeam === null) {
-        entry.marketTeam = ""; 
-      }
-      
-      // Wir stellen sicher, dass 'team' existiert (falls das Frontend das nutzt)
-      if (typeof entry.team === 'undefined' || entry.team === null) {
-        entry.team = ""; 
-      }
-
-      // Falls das Frontend "rows" oder "list" als Array erwartet, stellen wir das auch sicher
-      if (!Array.isArray(entry.list)) entry.list = [];
-      if (!Array.isArray(entry.rows)) entry.rows = [];
-
-      return entry;
-    });
-    // --- NOTFALL-FIX ENDE ---
-
-    const normalized = canonicalizeEntries(safeItems);
+    const normalized = canonicalizeEntries(items);
     return respond(normalized);
   });
 

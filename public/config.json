@@ -1,5 +1,5 @@
 {
-  "workerBase": "/api",
+  "workerBase": "https://imap-sales-worker.tekin-6af.workers.dev",
   "teams": [
     "Vielfalt+",
     "Evaluation und Beteiligung",

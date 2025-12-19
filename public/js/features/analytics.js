@@ -403,14 +403,13 @@ function renderAnalytics() {
   let rahmenTotal = 0;
   let rahmenWeightedTotal = 0;
 
-  const addPersonStat = (rawName, amount, factor, savedTeam) => {
+  const addPersonStat = (rawName, amount, factor) => {
     const money = Number(amount) || 0;
     if (money <= 0) return;
     const ratio = clampDockRewardFactor(factor);
     const name = rawName || 'Unbekannt';
     const weighted = money * ratio;
-    const teamFallback = byNameTeam.get(name) || 'Ohne Team';
-    const teamName = savedTeam || teamFallback;
+    const teamName = byNameTeam.get(name) || 'Ohne Team';
     const person = personStats.get(name) || { name, team: teamName, actual: 0, weighted: 0 };
     person.actual += money;
     person.weighted += weighted;
@@ -451,12 +450,7 @@ function renderAnalytics() {
       });
       if (Array.isArray(entry.list)) {
         entry.list.forEach((contributor) => {
-          addPersonStat(
-            contributor?.name || 'Unbekannt',
-            contributor?.money || 0,
-            factor,
-            contributor?.savedTeam || entry?.savedTeam,
-          );
+          addPersonStat(contributor?.name || 'Unbekannt', contributor?.money || 0, factor);
         });
       }
     } else if (entry.projectType === 'rahmen') {
@@ -488,32 +482,17 @@ function renderAnalytics() {
           (entry.list || []).forEach((founder) => {
             const pct = Number(founder?.pct) || 0;
             const money = amount * (pct / 100);
-            addPersonStat(
-              founder?.name || 'Unbekannt',
-              money,
-              transactionFactor,
-              founder?.savedTeam || entry?.savedTeam,
-            );
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
           });
         } else if (trans.type === 'hunter') {
           const founderShareAmount = amount * (FOUNDER_SHARE_PCT / 100);
           (entry.list || []).forEach((founder) => {
             const pct = Number(founder?.pct) || 0;
             const money = founderShareAmount * (pct / 100);
-            addPersonStat(
-              founder?.name || 'Unbekannt',
-              money,
-              transactionFactor,
-              founder?.savedTeam || entry?.savedTeam,
-            );
+            addPersonStat(founder?.name || 'Unbekannt', money, transactionFactor);
           });
           (trans.list || []).forEach((hunter) => {
-            addPersonStat(
-              hunter?.name || 'Unbekannt',
-              hunter?.money || 0,
-              transactionFactor,
-              hunter?.savedTeam || trans?.savedTeam,
-            );
+            addPersonStat(hunter?.name || 'Unbekannt', hunter?.money || 0, transactionFactor);
           });
         }
       });
