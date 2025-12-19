@@ -65,6 +65,22 @@ export function registerPeopleRoutes(router, { ghGetFile, ghPutFile, normalizePe
     if (body.team !== undefined) {
       updated.team = normalizeString(body.team);
     }
+    if (body.team !== undefined) {
+      const currentTeam = normalizeString(current.team);
+      const incomingTeam = normalizeString(updated.team);
+      if (currentTeam && incomingTeam && currentTeam !== incomingTeam) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().slice(0, 10);
+        const existingHistory = Array.isArray(body.teamHistory)
+          ? body.teamHistory.slice()
+          : Array.isArray(current.teamHistory)
+            ? current.teamHistory.slice()
+            : [];
+        existingHistory.push({ team: currentTeam, until: yesterdayString });
+        updated.teamHistory = existingHistory;
+      }
+    }
     if (body.email !== undefined) {
       let email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
       if (email) {
