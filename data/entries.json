@@ -11383,9 +11383,21 @@
         "name": "Abdi Tekin",
         "money": 0,
         "pct": 0
+      },
+      {
+        "key": "hubspot_user_IMAP GmbH",
+        "name": "IMAP GmbH",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Annica Bartsch",
+        "name": "Annica Bartsch",
+        "money": 0,
+        "pct": 0
       }
     ],
-    "updatedAt": 1766410046944,
+    "updatedAt": 1766410610893,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -11396,7 +11408,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1766410045988,
+    "freigabedatum": 1766410609669,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
