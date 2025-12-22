@@ -11389,15 +11389,9 @@
         "name": "IMAP GmbH",
         "money": 0,
         "pct": 0
-      },
-      {
-        "key": "hubspot_user_Annica Bartsch",
-        "name": "Annica Bartsch",
-        "money": 0,
-        "pct": 0
       }
     ],
-    "updatedAt": 1766419946392,
+    "updatedAt": 1766420674416,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -11408,7 +11402,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1766419945304,
+    "freigabedatum": 1766420673001,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
