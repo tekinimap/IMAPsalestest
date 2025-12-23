@@ -11849,5 +11849,37 @@
     "dockPhaseHistory": {
       "1": 1766500723333
     }
+  },
+  {
+    "id": "hubspot_a44b09262bcf5fac8d99c36dd90f7fb6",
+    "hubspotId": "52466897815",
+    "title": "RV BMBF Personalentwicklungsprogramm für Referent*innen 2026 – KV-2025-0345",
+    "amount": 42000,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500724072,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1765321200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500724072
+    }
   }
 ]
