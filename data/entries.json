@@ -13434,5 +13434,37 @@
     "dockPhaseHistory": {
       "1": 1766498252762
     }
+  },
+  {
+    "id": "hubspot_9af4a309eae25bd96cbc7461c13b361c",
+    "hubspotId": "52470254604",
+    "title": "Alice Bauer  - FK Rahmenvertrag 3. FZ Leitlinienprozess (Kopie) (Kopie) – KV-2025-0233",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498253792,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1758146400000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498253792
+    }
   }
 ]
