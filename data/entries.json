@@ -12329,5 +12329,37 @@
     "dockPhaseHistory": {
       "1": 1766500735377
     }
+  },
+  {
+    "id": "hubspot_7353de142aa038479bf604919087c698",
+    "hubspotId": "52469564482",
+    "title": "Q1 + Q2 2026 RV Förderkreise (mit Kienbaum) Los 4 A20065 – KV-2025-0309",
+    "amount": 7800,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500735958,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1762988400000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500735958
+    }
   }
 ]
