@@ -12649,5 +12649,37 @@
     "dockPhaseHistory": {
       "1": 1766500743162
     }
+  },
+  {
+    "id": "hubspot_41983489ae71c1d88d92b8ca52cfd3eb",
+    "hubspotId": "52466870654",
+    "title": "Nov/2025 - RV Organisation und Durchführung Teamklausuren – KV-2025-0313",
+    "amount": 1250,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500744058,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1763334000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500744058
+    }
   }
 ]
