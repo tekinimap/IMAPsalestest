@@ -665,7 +665,10 @@ function getEntryKvList(entry) {
 }
 
 function computeDockChecklist(entry) {
-  const amount = Number(entry?.amount) > 0;
+  const rawAmount = entry?.amount;
+  const parsedAmount = Number(rawAmount);
+  const amount =
+    rawAmount != null && !(typeof rawAmount === 'string' && rawAmount.trim() === '') && Number.isFinite(parsedAmount) && parsedAmount >= 0;
   const hasClient = !!normalizeDockString(entry?.client);
   const hasProjectNumber = !!normalizeDockString(entry?.projectNumber);
   const kvList = getEntryKvList(entry);
@@ -1257,7 +1260,10 @@ function buildDockCard(item) {
     card.appendChild(badgeRow);
   }
 
-  const amountText = Number(entry.amount) > 0 ? fmtCurr0.format(entry.amount) : '–';
+  const amountParsed = Number(entry.amount);
+  const hasAmountValue =
+    entry.amount != null && !(typeof entry.amount === 'string' && entry.amount.trim() === '') && Number.isFinite(amountParsed);
+  const amountText = hasAmountValue && amountParsed >= 0 ? fmtCurr0.format(entry.amount) : '–';
   const kvText = kvList.length ? kvList.join(', ') : '–';
   const meta = createDockElement('p', { className: 'dock-card-meta' });
   const metaRows = [
