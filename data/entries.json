@@ -11375,7 +11375,7 @@
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "",
-    "client": "drv-rheinland.de",
+    "client": "Deutsche Rentenversicherung Rheinland",
     "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
     "list": [
       {
@@ -11468,7 +11468,7 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1766485416569,
-    "modified": 1766485418507
+    "ts": 1766486142828,
+    "modified": 1766486144804
   }
 ]
