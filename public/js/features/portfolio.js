@@ -5,6 +5,7 @@ import { showView } from './navigation.js';
 
 let currentFilter = 'all';
 let deps = {};
+let showArchivedFrameworks = false;
 const PORTFOLIO_SORT_DEFAULTS = {
   type: 'asc',
   projectNumber: 'asc',
@@ -41,6 +42,15 @@ export function initPortfolio(portfolioDeps = {}) {
   const searchInput = document.getElementById('portfolioSearch');
   if (searchInput) {
     searchInput.addEventListener('input', () => {
+      renderPortfolio();
+    });
+  }
+
+  const showArchivedToggle = document.getElementById('portfolioShowArchived');
+  if (showArchivedToggle) {
+    showArchivedFrameworks = !!showArchivedToggle.checked;
+    showArchivedToggle.addEventListener('change', () => {
+      showArchivedFrameworks = !!showArchivedToggle.checked;
       renderPortfolio();
     });
   }
@@ -207,7 +217,9 @@ export function renderPortfolio() {
   const entries = getEntries() || [];
   const searchInput = document.getElementById('portfolioSearch');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  let filteredEntries = entries;
+  let filteredEntries = entries.filter(
+    (e) => showArchivedFrameworks || e.projectType !== 'rahmen' || !e.isArchived
+  );
 
   if (currentFilter === 'fix') {
     filteredEntries = filteredEntries.filter((e) => (e.projectType || 'fix') === 'fix');
