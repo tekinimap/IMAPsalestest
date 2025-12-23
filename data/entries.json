@@ -11376,11 +11376,11 @@
     "projectType": "fix",
     "projectNumber": "",
     "client": "IMAP GmbH",
-    "submittedBy": "Bülent Arslan",
+    "submittedBy": "Abdi Tekin",
     "list": [
       {
-        "key": "hubspot_user_Bülent Arslan",
-        "name": "Bülent Arslan",
+        "key": "hubspot_user_Abdi Tekin",
+        "name": "Abdi Tekin",
         "money": 0,
         "pct": 0
       },
@@ -11391,7 +11391,7 @@
         "pct": 0
       }
     ],
-    "updatedAt": 1766482236574,
+    "updatedAt": 1766482489913,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -11402,7 +11402,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1766482235548,
+    "freigabedatum": 1766482488528,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
