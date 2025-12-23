@@ -12361,5 +12361,37 @@
     "dockPhaseHistory": {
       "1": 1766500735958
     }
+  },
+  {
+    "id": "hubspot_206a810c2d102fb708f3517b1f27a8a6",
+    "hubspotId": "52470585498",
+    "title": "Qualifizierung kompakt – KV-2025-0172",
+    "amount": 35550,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500736835,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1753747200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500736835
+    }
   }
 ]
