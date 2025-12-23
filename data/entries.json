@@ -11371,7 +11371,7 @@
     "id": "hubspot_aad34d8f65e3d36611ef336bde2f6294",
     "hubspotId": "52076497168",
     "title": "test",
-    "amount": 50,
+    "amount": 500000,
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "",
@@ -11391,7 +11391,7 @@
         "pct": 0
       }
     ],
-    "updatedAt": 1766478980488,
+    "updatedAt": 1766479211547,
     "marketTeam": "",
     "market_team": "",
     "businessUnit": "",
@@ -11402,7 +11402,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1766478979426,
+    "freigabedatum": 1766479210549,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
