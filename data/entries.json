@@ -12857,5 +12857,545 @@
     },
     "dockBuApproved": false,
     "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250315",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stiftung BSW",
+    "title": "Begleitung der Vielfaltsstrategie durch Workshops in Hannover und Berlin",
+    "projectNumber": "ST BSW-11-001",
+    "kv_nummer": "KV-2025-0315",
+    "amount": 3575,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763334000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0315"
+    ],
+    "kv": "KV-2025-0315",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250317",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "StädteRegion Aachen",
+    "title": "Hauptmoderation des KIM-Fachtags der Städteregion Aachen",
+    "projectNumber": "ST R Aachen-04-001",
+    "kv_nummer": "KV-2025-0317",
+    "amount": 1200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763334000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0317"
+    ],
+    "kv": "KV-2025-0317",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20230141",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesamt für Migration und Flüchtlinge BAMF",
+    "title": "BAMF VAMOS 2.0 - Fortsetzung 2026 (Q1)",
+    "projectNumber": "BAMF-09-004",
+    "kv_nummer": "KV-2023-0141",
+    "amount": 44608,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763334000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2023-0141"
+    ],
+    "kv": "KV-2023-0141",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250354",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Kreis Soest",
+    "title": "Moderation und Beratung zum Einsatz von Projektmanagementmethoden im KIM",
+    "projectNumber": "KRS-01-001",
+    "kv_nummer": "KV-2025-0354",
+    "amount": 3250,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1765926000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0354"
+    ],
+    "kv": "KV-2025-0354",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250324",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Leadership Camps 2026 und 2027",
+    "projectNumber": "GIZ-62-001",
+    "kv_nummer": "KV-2025-0324",
+    "amount": 46050,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763420400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0324"
+    ],
+    "kv": "KV-2025-0324",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250362",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Barmer GEK",
+    "title": "Prepare2Lead – Next Level Talententwicklungsmodul für erfahrene Teamleitungen",
+    "projectNumber": "Barmer-08-001",
+    "kv_nummer": "KV-2025-0362",
+    "amount": 6300,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766012400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0362"
+    ],
+    "kv": "KV-2025-0362",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250361",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Barmer GEK",
+    "title": "Prepare2Lead - Talententwicklungsmodul für angehende Führungskräfte",
+    "projectNumber": "Barmer-07-001",
+    "kv_nummer": "KV-2025-0361",
+    "amount": 10500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766012400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0361"
+    ],
+    "kv": "KV-2025-0361",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250360",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Bundesministerium für Forschung, Technologie und Raumfahrt",
+    "title": "Pilotprojekt „Qualifizierung von 20 Mitarbeitenden zu Active Bystandern“",
+    "projectNumber": "BMBF-04-001",
+    "kv_nummer": "KV-2025-0360",
+    "amount": 12599,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0360"
+    ],
+    "kv": "KV-2025-0360",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250359",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Tegel Projekt GmbH",
+    "title": "Beratung DEI-Strategie",
+    "projectNumber": "TPG-01-001",
+    "kv_nummer": "KV-2025-0359",
+    "amount": 81600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0359"
+    ],
+    "kv": "KV-2025-0359",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250358",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Gießen",
+    "title": "Führungskräftequalifikation 2028",
+    "projectNumber": "LAG-02-001",
+    "kv_nummer": "KV-2025-0358",
+    "amount": 29700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0358"
+    ],
+    "kv": "KV-2025-0358",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250357",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Gießen",
+    "title": "Führungskräftequalifikation 2027",
+    "projectNumber": "LAG-02-001",
+    "kv_nummer": "KV-2025-0357",
+    "amount": 29700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0357"
+    ],
+    "kv": "KV-2025-0357",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250356",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Gießen",
+    "title": "Führungskräftequalifikation 2026",
+    "projectNumber": "LAG-02-001",
+    "kv_nummer": "KV-2025-0356",
+    "amount": 29700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0356"
+    ],
+    "kv": "KV-2025-0356",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250320",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Helios HEK01 Entwicklungscoaching Führung und Team - 85% Honorar",
+    "projectNumber": "ChangePartner-44-001",
+    "kv_nummer": "KV-2025-0320",
+    "amount": 2762.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763679600000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0320"
+    ],
+    "kv": "KV-2025-0320",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250319",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Eucon EUM07 Coaching Fr Karthaus - 85% Honorar",
+    "projectNumber": "ChangePartner-43-001",
+    "kv_nummer": "KV-2025-0319",
+    "amount": 3060,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763679600000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0319"
+    ],
+    "kv": "KV-2025-0319",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250318",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Eucon EUM06 Coaching Fr Jupe - 85% Honorar",
+    "projectNumber": "ChangePartner-42-001",
+    "kv_nummer": "KV-2025-0318",
+    "amount": 3060,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1763679600000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0318"
+    ],
+    "kv": "KV-2025-0318",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250329",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "ToT Ethical Leadership",
+    "projectNumber": "GIZ-63-001",
+    "kv_nummer": "KV-2025-0329",
+    "amount": 63500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1764284400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0329"
+    ],
+    "kv": "KV-2025-0329",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250328",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Forschungszentrum Jülich GmbH",
+    "title": "Support for succession process - Institute of Biological Information Processing / Institute for Bioelectronics",
+    "projectNumber": "FZJ-03-001",
+    "kv_nummer": "KV-2025-0328",
+    "amount": 3237.5,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1764284400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0328"
+    ],
+    "kv": "KV-2025-0328",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914733_kv20250326",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Herne",
+    "title": "Vorbereitung, Durchführung und Nachbereitung eines halbtägigen Strategieworkshops",
+    "projectNumber": "Stadt Herne-07-001",
+    "kv_nummer": "KV-2025-0326",
+    "amount": 900,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914733,
+    "freigabedatum": 1764284400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914733,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0326"
+    ],
+    "kv": "KV-2025-0326",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500923815
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
   }
 ]
