@@ -13574,5 +13574,50 @@
     },
     "dockBuApproved": false,
     "dockBuApprovedAt": null
+  },
+  {
+    "id": "hubspot_babda3d653c035a0460d0aafbbc5dd8f",
+    "hubspotId": "52076497168",
+    "title": "test",
+    "amount": 1,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "IMAP GmbH",
+    "submittedBy": "Abdi Tekin",
+    "list": [
+      {
+        "key": "hubspot_user_Abdi Tekin",
+        "name": "Abdi Tekin",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_IMAP GmbH",
+        "name": "IMAP GmbH",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1766504694425,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Abdi Tekin",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": true,
+    "freigabedatum": 1766504693158,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766504694425
+    }
   }
 ]
