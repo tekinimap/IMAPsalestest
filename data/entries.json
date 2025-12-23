@@ -13978,5 +13978,37 @@
     "dockPhaseHistory": {
       "1": 1766498267007
     }
+  },
+  {
+    "id": "hubspot_f67a163b02b14a24dfc627dcc8a7ef9f",
+    "hubspotId": "52343801401",
+    "title": "Q1/2026 Rahmenvertrag Moderation von Führungskräfteveranstaltungen – KV-2025-0352",
+    "amount": 4500,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498267632,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1765753200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498267632
+    }
   }
 ]
