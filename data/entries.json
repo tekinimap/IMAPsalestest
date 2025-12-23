@@ -9323,7 +9323,7 @@
     "title": "Einzelcoaching Daniel Schmidt",
     "projectNumber": "BG Verkehr-04-001",
     "kv_nummer": "KV-2025-0190",
-    "amount": 2940,
+    "amount": 2695,
     "list": [
       {
         "key": "Bundes- und Landesbehörden Mitarbeiter:in",
@@ -9362,7 +9362,7 @@
       "konzept": 0,
       "pitch": 0
     },
-    "modified": 1761667755282,
+    "modified": 1766504459137,
     "kvNummern": [
       "KV-2025-0190"
     ],
@@ -9565,7 +9565,7 @@
     "title": "Workshops Change Management und Transformation",
     "projectNumber": "DRV-18-001",
     "kv_nummer": "KV-2025-0198",
-    "amount": 12500,
+    "amount": 10000,
     "list": [],
     "rows": [],
     "weights": [],
@@ -9577,7 +9577,8 @@
     ],
     "kv": "KV-2025-0198",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "modified": 1766504459137
   },
   {
     "id": "entry_1761664649067_KV20250199",
@@ -11582,7 +11583,7 @@
     "title": "Okt/25 Praxisbegleitung für Führungsverantwortliche",
     "projectNumber": "BG Verkehr-03-001",
     "kv_nummer": "KV-2025-0282",
-    "amount": 19250,
+    "amount": 33250,
     "list": [],
     "rows": [],
     "weights": [],
@@ -11594,7 +11595,8 @@
     ],
     "kv": "KV-2025-0282",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "modified": 1766504459137
   },
   {
     "id": "entry_1762772744458_KV20250285",
