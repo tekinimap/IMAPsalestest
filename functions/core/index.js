@@ -1417,6 +1417,7 @@ registerValidationRoutes(router, {
 });
 registerEntryRoutes(router, {
   ghGetFile,
+  ghPutFile,
   kvListFrom,
   canonicalizeEntries,
   ensureKvStructure,
