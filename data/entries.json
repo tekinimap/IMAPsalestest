@@ -12073,5 +12073,37 @@
     "dockPhaseHistory": {
       "1": 1766500730140
     }
+  },
+  {
+    "id": "hubspot_f70dee35fb2aec90fa2172df0cc22e53",
+    "hubspotId": "52463170428",
+    "title": "Q2/26 Rahmenvertrag Teamentwicklung – KV-2025-0340",
+    "amount": 1600,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500730768,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1765321200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500730768
+    }
   }
 ]
