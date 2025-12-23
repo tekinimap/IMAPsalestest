@@ -12905,5 +12905,37 @@
     "dockPhaseHistory": {
       "1": 1766500749455
     }
+  },
+  {
+    "id": "hubspot_78fc7e42f5d5c17be564c81c96247187",
+    "hubspotId": "52470350413",
+    "title": "Changemanagement und Führungs-Beratungsleistungen – KV-2025-0116",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500750280,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1762772745165,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500750280
+    }
   }
 ]
