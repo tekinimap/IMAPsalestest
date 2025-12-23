@@ -11,7 +11,8 @@ import {
 } from '../utils/format.js';
 import { getDockPhase } from '../utils/dock-helpers.js';
 import { clampDockRewardFactor, DOCK_WEIGHTING_DEFAULT, getEntryRewardFactor } from './calculations.js';
-import { showToast } from '../ui/feedback.js';
+import { showLoader, hideLoader, showToast } from '../ui/feedback.js';
+import { fetchWithRetry } from '../api.js';
 import { getAnalyticsData, setAnalyticsData, getTrendData, setTrendData } from '../state/analytics-state.js';
 import { people } from './people.js';
 import { getFrameworkVolume } from './dock-board.js';
@@ -409,10 +410,35 @@ function getTimestamp(dateStr) {
   } catch { return 0; }
 }
 
-function renderAnalytics() {
+function getCombinedAnalyticsEntries(year, archiveEntries = []) {
+  const archivedFixes = Array.isArray(archiveEntries) ? archiveEntries : [];
+  const liveFrameworks = getEntries().filter((entry) => entry.projectType === 'rahmen');
+  return [...archivedFixes, ...liveFrameworks];
+}
+
+async function renderAnalytics() {
   const year = Number(anaYear.value);
+  const currentYear = new Date().getFullYear();
   const startOfYear = getTimestamp(`${year}-01-01`);
   const endOfYear = getTimestamp(`${year}-12-31T23:59:59.999`);
+  let sourceEntries = getEntries();
+
+  if (Number.isFinite(year) && year < currentYear) {
+    try {
+      showLoader();
+      const response = await fetchWithRetry(`/data/archive/${year}.json`, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Archivantwort ${response.status}`);
+      }
+      const archiveEntries = await response.json();
+      sourceEntries = getCombinedAnalyticsEntries(year, archiveEntries);
+    } catch (err) {
+      console.error(err);
+      showToast(`Archivdaten für ${year} konnten nicht geladen werden.`, 'bad');
+    } finally {
+      hideLoader();
+    }
+  }
 
   const personMap = new Map((Array.isArray(people) ? people : []).map((p) => [p.name, p]));
   const personStats = new Map();
@@ -442,7 +468,7 @@ function renderAnalytics() {
     teamStats.set(teamName, team);
   };
 
-  const eligibleEntries = getEntries().filter((entry) => {
+  const eligibleEntries = sourceEntries.filter((entry) => {
     const finalAssignment = String(entry?.dockFinalAssignment || '').toLowerCase();
     const hasDockProcess = entry?.dockPhase != null || Boolean(finalAssignment);
     if (!hasDockProcess) return true;
