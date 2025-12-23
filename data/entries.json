@@ -13498,5 +13498,37 @@
     "dockPhaseHistory": {
       "1": 1766498254396
     }
+  },
+  {
+    "id": "hubspot_60c05fa6a7bb798d3ed1adf7583df81b",
+    "hubspotId": "52466402685",
+    "title": "Melanie Ihlenfeld (67) - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0289",
+    "amount": 1680,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498255033,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1761606000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498255033
+    }
   }
 ]
