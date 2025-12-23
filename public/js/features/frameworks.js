@@ -55,6 +55,7 @@ const rahmenSearch = document.getElementById('rahmenSearch');
 const btnMoveToFramework = document.getElementById('btnMoveToFramework');
 const rahmenBody = document.getElementById('rahmenBody');
 const rahmenTransaktionenBody = document.getElementById('rahmenTransaktionenBody');
+const rahmenDetailsCard = document.getElementById('viewRahmenDetails');
 const moveToFrameworkDlg = document.getElementById('moveToFrameworkDlg');
 const moveValidationSummary = document.getElementById('moveValidationSummary');
 const moveTargetFramework = document.getElementById('moveTargetFramework');
@@ -247,8 +248,32 @@ document.getElementById('backToRahmen')?.addEventListener('click', () => showVie
 
 export function renderRahmenDetails(id) {
   const entry = entries.find((e) => e.id === id);
-  if (!entry) return;
+
+  const header = rahmenDetailsCard?.querySelector('.hd');
+  let archiveBtn = document.getElementById('rahmenArchiveBtn');
+
+  if (!archiveBtn && header) {
+    archiveBtn = document.createElement('button');
+    archiveBtn.id = 'rahmenArchiveBtn';
+    archiveBtn.classList.add('btn');
+    archiveBtn.style.marginLeft = 'auto';
+    archiveBtn.addEventListener('click', toggleArchiveStatus);
+    header.appendChild(archiveBtn);
+  }
+
+  if (!entry) {
+    archiveBtn?.classList.add('hide');
+    return;
+  }
+
   setCurrentFrameworkEntryId(id);
+
+  if (archiveBtn) {
+    archiveBtn.classList.remove('hide');
+    archiveBtn.textContent = entry.isArchived ? 'Reaktivieren' : 'Vertrag archivieren';
+    archiveBtn.className = `btn ${entry.isArchived ? 'ok' : 'warn'}`;
+    archiveBtn.dataset.entryId = entry.id;
+  }
 
   document.getElementById('rahmenDetailsTitle').textContent = entry.title;
 
@@ -317,6 +342,35 @@ rahmenTransaktionenBody?.addEventListener('click', (ev) => {
     openEditTransactionModal(transaction, parentEntry);
   }
 });
+
+async function toggleArchiveStatus() {
+  const entry = entries.find((e) => e.id === getCurrentFrameworkEntryId());
+  if (!entry) return;
+
+  entry.isArchived = !entry.isArchived;
+  entry.modified = Date.now();
+
+  showLoader();
+  try {
+    const r = await fetchWithRetry(`${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    });
+    if (!r.ok) throw new Error(await r.text());
+
+    showToast(entry.isArchived ? 'Rahmenvertrag archiviert' : 'Rahmenvertrag reaktiviert', 'ok');
+    loadHistory().then(() => {
+      renderFrameworkContracts();
+      renderRahmenDetails(getCurrentFrameworkEntryId());
+    });
+  } catch (e) {
+    showToast('Update fehlgeschlagen', 'bad');
+    console.error(e);
+  } finally {
+    hideLoader();
+  }
+}
 
 if (btnMoveToFramework) {
   btnMoveToFramework.addEventListener('click', () => {
