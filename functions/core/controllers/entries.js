@@ -151,8 +151,11 @@ export function registerEntryRoutes(
           ensureKvStructure(existing);
           ensureDockMetadata(existing);
           existing.modified = Date.now();
-          const syncPayload = collectHubspotSyncPayload(before, existing);
-          if (syncPayload) hubspotUpdates.push(syncPayload);
+          const source = existing.source || validation.source || body.source;
+          if (source !== 'erp-import') {
+            const syncPayload = collectHubspotSyncPayload(before, existing);
+            if (syncPayload) hubspotUpdates.push(syncPayload);
+          }
           await logJSONL(env, [{
             event: 'update',
             source: existing.source || validation.source || 'erp',
@@ -241,8 +244,11 @@ export function registerEntryRoutes(
       updatedEntry = ensureKvStructure(merged);
       ensureDockMetadata(updatedEntry);
       cur.items[idx] = updatedEntry;
-      const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
-      if (syncPayload) hubspotUpdates.push(syncPayload);
+      const source = updatedEntry.source || body.source;
+      if (source !== 'erp-import') {
+        const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
+        if (syncPayload) hubspotUpdates.push(syncPayload);
+      }
       await saveEntries(cur.items, cur.sha, `update entry (full): ${id}`);
       const f = fieldsOf(updatedEntry);
       await logJSONL(env, [{
@@ -267,8 +273,11 @@ export function registerEntryRoutes(
       updatedEntry = ensureKvStructure(merged);
       ensureDockMetadata(updatedEntry);
       cur.items[idx] = updatedEntry;
-      const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
-      if (syncPayload) hubspotUpdates.push(syncPayload);
+      const source = updatedEntry.source || body.source;
+      if (source !== 'erp-import') {
+        const syncPayload = collectHubspotSyncPayload(before, updatedEntry);
+        if (syncPayload) hubspotUpdates.push(syncPayload);
+      }
       await saveEntries(cur.items, cur.sha, `update entry (narrow): ${id}`);
 
       const f = fieldsOf(updatedEntry);
