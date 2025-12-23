@@ -377,6 +377,7 @@ function populateAbrufAssignmentDialog(frameworks, preselectId) {
   select.innerHTML = '<option value="">-- Bitte Rahmenvertrag wählen --</option>';
   let hasPreselect = false;
   frameworks
+    .filter((fw) => !fw.isArchived)
     .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
     .forEach((fw) => {
       const opt = document.createElement('option');
