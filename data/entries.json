@@ -13402,5 +13402,37 @@
     "dockPhaseHistory": {
       "1": 1766498251356
     }
+  },
+  {
+    "id": "hubspot_6c585801fd9c27d0e70729767f126c36",
+    "hubspotId": "52466337465",
+    "title": "Anna Fischbach - FK Rahmenvertrag 3. FZ Leitlinienprozess (Kopie) (Kopie) – KV-2025-0301",
+    "amount": 1560,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498252762,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1762815600000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498252762
+    }
   }
 ]
