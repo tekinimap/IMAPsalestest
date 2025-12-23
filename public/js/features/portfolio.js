@@ -1,7 +1,6 @@
 import { getEntries, findEntryById } from '../entries-state.js';
 import { setPendingDelete } from '../state/history-state.js';
 import { openWizard } from './erfassung.js';
-import { showView } from './navigation.js';
 
 let currentFilter = 'all';
 let deps = {};
@@ -101,36 +100,24 @@ function handlePortfolioClick(e, tableBody) {
       }
     } else if (action === 'edit-volume') {
       e.preventDefault();
-      e.stopPropagation(); // Stop event from bubbling to row handler
+      e.stopPropagation(); 
 
       const id = actBtn.dataset.id;
-      if (!id) {
-        console.warn('Portfolio: edit-volume clicked but no ID found');
-        return;
-      }
+      if (!id) return;
 
-      console.log('Portfolio: edit-volume clicked', id);
       const entry = findEntryById(id);
+      if (!entry) return;
 
-      if (!entry) {
-        console.error('Portfolio: Entry not found for ID', id);
-        return;
-      }
-
-      if (typeof deps.openFrameworkVolumeDialog !== 'function') {
-        console.error('Portfolio: openFrameworkVolumeDialog dep is missing', deps);
-        return;
-      }
-
-      // Safe invocation
-      try {
-        deps.openFrameworkVolumeDialog(entry, (vol) => {
-          if (typeof deps.onUpdateFrameworkVolume === 'function') {
-            deps.onUpdateFrameworkVolume(entry, vol);
-          }
-        });
-      } catch (err) {
-        console.error('Portfolio: Error opening dialog:', err);
+      if (typeof deps.openFrameworkVolumeDialog === 'function') {
+        try {
+          deps.openFrameworkVolumeDialog(entry, (vol) => {
+            if (typeof deps.onUpdateFrameworkVolume === 'function') {
+              deps.onUpdateFrameworkVolume(entry, vol);
+            }
+          });
+        } catch (err) {
+          console.error('Portfolio: Error opening dialog:', err);
+        }
       }
       return;
     } else if (action === 'del') {
@@ -219,15 +206,12 @@ export function renderPortfolio() {
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   
   let filteredEntries = entries.filter((e) => {
-    // 1. DOCK FILTER: Einträge ausblenden, die noch im Dock sind
-    const isGraduated = !!e.dockFinalAssignment; // Hat den Dock verlassen (zugewiesen)
+    // 1. DOCK FILTER
+    const isGraduated = !!e.dockFinalAssignment; 
     const isHubSpot = (e.source || '').trim().toLowerCase() === 'hubspot';
     const hasDockPhase = e.dockPhase != null;
-    
-    // Ein Eintrag ist "im Dock", wenn er NICHT zugewiesen ist UND (aus HubSpot kommt ODER eine Dock-Phase hat)
     const isInDock = !isGraduated && (isHubSpot || hasDockPhase);
     
-    // Wenn er im Dock ist, NICHT im Portfolio anzeigen
     if (isInDock) return false;
     
     // 2. ARCHIV FILTER
