@@ -12014,5 +12014,37 @@
     "dockPhaseHistory": {
       "1": 1766493516368
     }
+  },
+  {
+    "id": "hubspot_806bd43f35c49db1857bff45e729f117",
+    "hubspotId": "52453742106",
+    "title": "3. FZ Leitlinienprozess 2022-2026 – KV-2025-0289",
+    "amount": 1680,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766493516987,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1761609600000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766493516987
+    }
   }
 ]
