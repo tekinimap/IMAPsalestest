@@ -1158,9 +1158,31 @@
         "amount": 14370,
         "ts": 1762772744525,
         "freigabedatum": 1759795200000
+      },
+      {
+        "id": "trans_1766500188406_s4kbtsgpj",
+        "kv_nummer": "KV-2025-0292",
+        "type": "founder",
+        "parentId": "manuell_drv_bund_mod_fuehr_veranst",
+        "amount": 33590,
+        "ts": 1766500188406,
+        "freigabedatum": 1762297200000,
+        "title": "Nov/2025 Rahmenvertrag Moderation von Führungskräfteveranstaltungen",
+        "client": "Deutsche Rentenversicherung Bund"
+      },
+      {
+        "id": "trans_1766500188407_jayod0z9a",
+        "kv_nummer": "KV-2025-0352",
+        "type": "founder",
+        "parentId": "manuell_drv_bund_mod_fuehr_veranst",
+        "amount": 4500,
+        "ts": 1766500188407,
+        "freigabedatum": 1765753200000,
+        "title": "Q1/2026 Rahmenvertrag Moderation von Führungskräfteveranstaltungen",
+        "client": "Deutsche Rentenversicherung Bund"
       }
     ],
-    "modified": 1762772793365,
+    "modified": 1766500227346,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
