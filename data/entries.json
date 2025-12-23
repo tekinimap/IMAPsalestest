@@ -14074,5 +14074,37 @@
     "dockPhaseHistory": {
       "1": 1766498269712
     }
+  },
+  {
+    "id": "hubspot_982372990c69f40ec7f8b6b34d223fb8",
+    "hubspotId": "52400757371",
+    "title": "FKE 2024 – KV-2025-0095",
+    "amount": 4200,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498270234,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1744675200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498270234
+    }
   }
 ]
