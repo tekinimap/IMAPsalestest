@@ -11411,5 +11411,62 @@
     "dockPhaseHistory": {
       "1": 1766073329201
     }
+  },
+  {
+    "id": "hubspot_dded5b71c6ec9a4b9b115adf765c1fa1",
+    "hubspotId": "52224618849",
+    "title": "Rahmenvertrag Durchführung von moderierten Workshops",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "drv-rheinland.de",
+    "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
+    "list": [
+      {
+        "key": "hubspot_user_Sara Kaufmann (geb. Shekoomand)",
+        "name": "Sara Kaufmann (geb. Shekoomand)",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Christopher van den Hövel",
+        "name": "Christopher van den Hövel",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Eva Wollschläger",
+        "name": "Eva Wollschläger",
+        "money": 0,
+        "pct": 0
+      },
+      {
+        "key": "hubspot_user_Nina Stephan",
+        "name": "Nina Stephan",
+        "money": 0,
+        "pct": 0
+      }
+    ],
+    "updatedAt": 1766481361413,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "Sara Kaufmann (geb. Shekoomand)",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1766481360322,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766481361413
+    }
   }
 ]
