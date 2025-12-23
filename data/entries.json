@@ -11785,5 +11785,37 @@
     "dockPhaseHistory": {
       "1": 1766500721741
     }
+  },
+  {
+    "id": "hubspot_28312b6ede15bf523304d74c77429bf4",
+    "hubspotId": "52466643620",
+    "title": "Konzeption für 2026 – KV-2025-0295",
+    "amount": 4200,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500722793,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1762383600000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500722793
+    }
   }
 ]
