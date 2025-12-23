@@ -147,6 +147,7 @@ async function handleErpImport() {
               id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
               kv_nummer: kvNummer,
               type: 'founder',
+              parentId: parentFramework.id,
               amount,
               ts: Date.now(),
               freigabedatum: freigabeTimestamp,
@@ -175,7 +176,10 @@ async function handleErpImport() {
             weights: [],
             ts: Date.now(),
             freigabedatum: freigabeTimestamp,
-            complete: false,
+            dockFinalAssignment: 'fix',
+            dockFinalAssignmentAt: Date.now(),
+            dockPhase: 4,
+            complete: true,
           };
           allEntriesCopy.push(newFixEntry);
           kvIndex.set(kvNummer, { type: 'fix', entry: newFixEntry });
