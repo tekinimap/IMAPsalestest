@@ -467,29 +467,57 @@ function renderPreviewModal(buckets) {
   }
 }
 
-// --- Batch Sending Helper ---
+// --- Batch Sending Helper (mit Chunking gegen Timeouts) ---
 
 async function sendBatch(rows, label) {
+  if (!rows || rows.length === 0) return;
+
+  // Wir senden maximal 20 Einträge pro Anfrage, um den Server nicht zu überlasten (Timeout 500)
+  const CHUNK_SIZE = 20; 
+  const total = rows.length;
+  let processed = 0;
+
+  // UI Initialisieren
   showLoader();
+  showBatchProgress(`Speichere ${label}...`, 0);
+
   try {
-    const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows }),
-    });
-    
-    const result = await response.json();
-    if (!response.ok || !result.ok) {
-      throw new Error(result.message || 'Server Error');
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+      const chunk = rows.slice(i, i + CHUNK_SIZE);
+      
+      // Fortschritt anzeigen
+      const currentEnd = Math.min(processed + chunk.length, total);
+      const percent = processed / total;
+      updateBatchProgress(percent, `${label}: ${processed + 1} bis ${currentEnd} von ${total}`);
+
+      // Chunk senden
+      const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows: chunk }),
+      });
+      
+      const result = await response.json();
+      if (!response.ok || (result && !result.ok)) {
+        throw new Error(result.message || result.error || 'Unbekannter Server-Fehler');
+      }
+      
+      processed += chunk.length;
     }
     
+    // Abschluss
+    updateBatchProgress(1, 'Speichern erfolgreich!');
     showToast(`${label} erfolgreich gespeichert!`, 'ok');
-    await loadHistory(); // Reload local state
+    await loadHistory(); // Daten neu laden
   } catch (err) {
     console.error(err);
-    showToast(`Fehler beim Speichern von ${label}: ${err.message}`, 'bad');
+    showToast(`Fehler beim Speichern (Batch ${processed}): ${err.message}`, 'bad');
   } finally {
-    hideLoader();
+    // Kurze Pause, damit man die 100% sieht
+    setTimeout(() => {
+      hideBatchProgress();
+      hideLoader();
+    }, 1000);
   }
 }
 
