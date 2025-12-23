@@ -12334,5 +12334,37 @@
     "dockPhaseHistory": {
       "1": 1766493523875
     }
+  },
+  {
+    "id": "hubspot_af025d0c2cff55c9f8d0e9552748cd5d",
+    "hubspotId": "52344946224",
+    "title": "Organisation und Durchführung Teamklausuren – KV-2025-0184",
+    "amount": 950,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766493524449,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1754524800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766493524449
+    }
   }
 ]
