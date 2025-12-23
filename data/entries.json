@@ -2205,9 +2205,20 @@
         "amount": 0,
         "ts": 1762772745165,
         "freigabedatum": 1762772745165
+      },
+      {
+        "id": "trans_1766500188406_p87spnvgx",
+        "kv_nummer": "KV-2025-0321",
+        "type": "founder",
+        "parentId": "manuell_dataport_teamentw",
+        "amount": 975,
+        "ts": 1766500188406,
+        "freigabedatum": 1764025200000,
+        "title": "Moderation Team-Workshop LA3",
+        "client": "Dataport AöR"
       }
     ],
-    "modified": 1762772813403,
+    "modified": 1766500220334,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
