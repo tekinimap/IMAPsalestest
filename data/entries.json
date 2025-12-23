@@ -13274,5 +13274,37 @@
     "dockPhaseHistory": {
       "1": 1766498248142
     }
+  },
+  {
+    "id": "hubspot_2eec76262377a2b1f3b579cf4a4e7f97",
+    "hubspotId": "52466356889",
+    "title": "Florian Sevenig - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0257",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498248924,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1760479200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498248924
+    }
   }
 ]
