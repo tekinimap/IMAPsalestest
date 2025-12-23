@@ -4,7 +4,7 @@ import { showLoader, hideLoader, showToast, showBatchProgress, updateBatchProgre
 import { loadHistory } from './history.js';
 import { getEntries } from '../entries-state.js';
 
-// --- Hilfsfunktionen für Normalisierung und Parsing ---
+// --- Hilfsfunktionen ---
 
 function normKey(str) {
   return String(str || '').toLowerCase().trim();
@@ -80,7 +80,6 @@ async function analyzeErpFile(file) {
   const sheetName = workbook.SheetNames[0];
   const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-  // Indizes aufbauen
   const kvIndex = new Map();
   const frameworkIndex = new Map();
 
@@ -93,7 +92,6 @@ async function analyzeErpFile(file) {
       e.transactions.forEach(t => {
         if (t.kv_nummer) kvIndex.set(normKey(t.kv_nummer), { type: 'trans', entry: e, transaction: t });
       });
-      // Framework Index (Nur echte Rahmenverträge!)
       if (e.projectNumber) {
         frameworkIndex.set(normKey(e.projectNumber), e);
       }
@@ -156,20 +154,23 @@ async function analyzeErpFile(file) {
     const framework = frameworkIndex.get(pNrNorm);
 
     if (framework) {
-      // Prüfen ob wir diesen Rahmenvertrag schon im Batch haben
       let fwEntry = buckets.frameworksToUpdate.get(framework.id);
       if (!fwEntry) {
-        // Klonen für Modifikation
         fwEntry = JSON.parse(JSON.stringify(framework));
         if (!Array.isArray(fwEntry.transactions)) fwEntry.transactions = [];
+        
+        // FIX: Sicherstellen, dass der Rahmenvertrag im Portfolio landet/bleibt
+        fwEntry.dockFinalAssignment = 'fix'; 
+        fwEntry.dockPhase = 4;
+        fwEntry.complete = true;
+        
         buckets.frameworksToUpdate.set(framework.id, fwEntry);
       }
 
-      // Neuen Abruf hinzufügen
       const newTrans = {
         id: `trans_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
         kv_nummer: kvRaw,
-        type: 'founder', // oder hunter, je nach Logik
+        type: 'founder',
         parentId: fwEntry.id,
         amount: amount,
         ts: Date.now(),
@@ -204,6 +205,7 @@ async function analyzeErpFile(file) {
       list: [], rows: [], weights: [],
       ts: Date.now(),
       freigabedatum: ts,
+      // FIX: Direkt ins Portfolio
       dockFinalAssignment: 'fix',
       dockFinalAssignmentAt: Date.now(),
       dockPhase: 4,
@@ -238,26 +240,24 @@ function renderPreviewModal(buckets) {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   `;
 
-  // Header
   const header = document.createElement('div');
   header.innerHTML = `
     <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">ERP Import Analyse (Maximum Safety)</h2>
+      <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">ERP Import (Safe Mode)</h2>
       <button id="close-erp-modal" style="background:transparent; border:none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
     </div>
   `;
   content.appendChild(header);
 
-  // Body
   const body = document.createElement('div');
   body.style.cssText = `padding: 20px; overflow-y: auto; flex: 1;`;
 
-  // --- Sektion 1: UPDATES ---
+  // UPDATES
   if (buckets.updates.length > 0) {
     body.innerHTML += `
       <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-          <h3 style="margin:0; color: #f59e0b;">⚠️ Abweichungen in bestehenden Aufträgen (${buckets.updates.length})</h3>
+          <h3 style="margin:0; color: #f59e0b;">⚠️ Abweichungen (${buckets.updates.length})</h3>
           <button id="btn-exec-updates" class="action-btn" style="background: #f59e0b; color: #000;">Aktualisieren</button>
         </div>
          <div style="max-height: 200px; overflow: auto;">
@@ -280,17 +280,17 @@ function renderPreviewModal(buckets) {
     `;
   }
 
-  // --- Sektion 2: CALL-OFFS ---
+  // CALL-OFFS
   if (buckets.calloffs.length > 0) {
     body.innerHTML += `
       <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-          <h3 style="margin:0; color: #38bdf8;">🏗 Neue Abrufe zu Rahmenverträgen (${buckets.calloffs.length})</h3>
+          <h3 style="margin:0; color: #38bdf8;">🏗 Neue Abrufe (${buckets.calloffs.length})</h3>
           <button id="btn-exec-calloffs" class="action-btn" style="background: #38bdf8; color: #000;">Zuordnen</button>
         </div>
         <div style="max-height: 200px; overflow: auto;">
           <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
-            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV (Neu)</th><th>Projekt Nr.</th><th>Titel</th><th>Rahmenvertrag</th></tr></thead>
+            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV</th><th>Projekt</th><th>Titel</th><th>Rahmenvertrag</th></tr></thead>
             <tbody>
               ${buckets.calloffs.map(c => `
                 <tr style="border-bottom: 1px solid #334155;">
@@ -307,7 +307,7 @@ function renderPreviewModal(buckets) {
     `;
   }
 
-  // --- Sektion 3: NEUE FIXAUFTRÄGE ---
+  // NEW FIX
   if (buckets.newFix.length > 0) {
     body.innerHTML += `
       <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
@@ -317,7 +317,7 @@ function renderPreviewModal(buckets) {
         </div>
         <div style="max-height: 200px; overflow: auto;">
            <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
-            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV</th><th>Projekt Nr.</th><th>Titel</th><th>Kunde</th><th>Betrag</th></tr></thead>
+            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV</th><th>Projekt</th><th>Titel</th><th>Kunde</th><th>Betrag</th></tr></thead>
             <tbody>
               ${buckets.newFix.map(f => `
                 <tr style="border-bottom: 1px solid #334155;">
@@ -336,21 +336,19 @@ function renderPreviewModal(buckets) {
   }
 
   if (buckets.skipped.length > 0) {
-     body.innerHTML += `<div style="opacity:0.6; margin-top:10px;">👻 ${buckets.skipped.length} ohne Änderung übersprungen</div>`;
+     body.innerHTML += `<div style="opacity:0.6; margin-top:10px;">👻 ${buckets.skipped.length} übersprungen</div>`;
   }
 
   content.appendChild(body);
   backdrop.appendChild(content);
   document.body.appendChild(backdrop);
 
-  // Styles
   const style = document.createElement('style');
   style.innerHTML = `.action-btn { border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: filter 0.2s; } .action-btn:hover { filter: brightness(1.1); } .action-btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.7; }`;
   document.head.appendChild(style);
 
   document.getElementById('close-erp-modal').onclick = () => { backdrop.remove(); _importBuckets = null; document.getElementById('erpFile').value = ''; };
 
-  // Handlers
   const btnUpd = document.getElementById('btn-exec-updates');
   if (btnUpd) btnUpd.onclick = async () => {
     if(!confirm('Updates speichern?')) return;
@@ -383,13 +381,13 @@ function renderPreviewModal(buckets) {
   };
 }
 
-// --- Batch Sending Helper (ULTRA SICHER: 1 Eintrag, 2 Sek Pause) ---
+// --- Batch Sending Helper (SINGLE MODE) ---
 
 async function sendBatch(rows, label) {
   if (!rows || rows.length === 0) return;
 
-  const CHUNK_SIZE = 1; // Sicher ist sicher
-  const DELAY_MS = 2000; // 2 Sekunden Pause zwischen jedem Eintrag
+  const CHUNK_SIZE = 1; // Sicherster Modus
+  const DELAY_MS = 2000; // 2 Sekunden Pause
 
   const total = rows.length;
   let processed = 0;
@@ -416,10 +414,7 @@ async function sendBatch(rows, label) {
       }
       processed += chunk.length;
       
-      // PAUSE für Cloudflare Free Tier
-      if(processed < total) {
-          await new Promise(r => setTimeout(r, DELAY_MS));
-      }
+      if(processed < total) await new Promise(r => setTimeout(r, DELAY_MS));
     }
     updateBatchProgress(1, 'Fertig!');
     showToast(`${label} erfolgreich!`, 'ok');
