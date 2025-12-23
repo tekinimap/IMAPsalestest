@@ -449,7 +449,9 @@ function renderAnalytics() {
 
     const phase = getDockPhase(entry);
     const isFinal = ['fix', 'rahmen', 'abruf'].includes(finalAssignment);
-    return phase === 3 && isFinal;
+    if (!isFinal) return false;
+
+    return phase >= 3;
   });
 
   eligibleEntries.forEach((entry) => {
