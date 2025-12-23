@@ -11371,7 +11371,7 @@
     "id": "hubspot_dded5b71c6ec9a4b9b115adf765c1fa1",
     "hubspotId": "52224618849",
     "title": "Rahmenvertrag Durchführung von moderierten Workshops",
-    "amount": 1,
+    "amount": 0,
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "",
@@ -11468,7 +11468,7 @@
       "konzept": 0,
       "pitch": 0
     },
-    "ts": 1766486142828,
-    "modified": 1766486144804
+    "ts": 1766486875502,
+    "modified": 1766486877399
   }
 ]
