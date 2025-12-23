@@ -11822,5 +11822,37 @@
     "dockPhaseHistory": {
       "1": 1766497135714
     }
+  },
+  {
+    "id": "hubspot_5dd31b26e060c09432063056ef182817",
+    "hubspotId": "52469323380",
+    "title": "Teamentwicklung – KV-2025-0182",
+    "amount": 1200,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766497136717,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1754265600000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766497136717
+    }
   }
 ]
