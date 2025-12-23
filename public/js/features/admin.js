@@ -9,6 +9,8 @@ let admTeam;
 let admBody;
 let adminSearch;
 let adminInitialized = false;
+let archiveYearSelect;
+let archiveButton;
 
 function getElements() {
   admName = document.getElementById('adm_name');
@@ -16,6 +18,92 @@ function getElements() {
   admBody = document.getElementById('adm_body');
   adminSearch = document.getElementById('adminSearch');
   return Boolean(admName && admTeam && admBody && adminSearch);
+}
+
+function createArchiveSection() {
+  const adminCardBody = document.querySelector('#viewAdmin .ct');
+  if (!adminCardBody || document.getElementById('archiveSection')) return;
+
+  const section = document.createElement('div');
+  section.id = 'archiveSection';
+  section.innerHTML = `
+    <div class="hr"></div>
+    <div class="card" style="box-shadow:none;padding:0;">
+      <div class="hd" style="padding:0 0 8px 0;">
+        <h3>Daten-Archivierung</h3>
+        <p class="note" style="margin-bottom:0;">Verschiebt abgeschlossene Fixaufträge ins Archiv. Rahmenverträge bleiben erhalten.</p>
+      </div>
+      <div class="ct" style="padding:0;">
+        <div class="grid-admin" style="align-items:flex-end;">
+          <div>
+            <label for="archiveYear">Jahr wählen</label>
+            <select id="archiveYear" class="ipt"></select>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end;">
+            <button class="btn warn" id="archiveSubmit">Jahr abschließen & archivieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  adminCardBody.appendChild(section);
+  archiveYearSelect = section.querySelector('#archiveYear');
+  archiveButton = section.querySelector('#archiveSubmit');
+
+  populateArchiveYears();
+  archiveButton?.addEventListener('click', handleArchiveSubmit);
+}
+
+function populateArchiveYears() {
+  if (!archiveYearSelect) return;
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, idx) => currentYear - 1 - idx);
+
+  archiveYearSelect.innerHTML = '';
+  years.forEach((year, index) => {
+    const option = document.createElement('option');
+    option.value = String(year);
+    option.textContent = String(year);
+    if (index === 0) option.selected = true;
+    archiveYearSelect.appendChild(option);
+  });
+}
+
+async function handleArchiveSubmit() {
+  if (!archiveYearSelect || !archiveButton) return;
+  const year = archiveYearSelect.value;
+  if (!year) {
+    showToast('Bitte ein Jahr auswählen.', 'bad');
+    return;
+  }
+
+  const confirmArchive = window.confirm('Wirklich archivieren?');
+  if (!confirmArchive) return;
+
+  const originalText = archiveButton.textContent;
+  archiveButton.disabled = true;
+  archiveButton.textContent = 'Archivierung läuft...';
+  showLoader();
+
+  try {
+    const r = await fetchWithRetry('/api/entries/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year: Number(year) }),
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+    showToast('Erfolgreich archiviert', 'ok');
+    window.location.reload();
+  } catch (err) {
+    console.error('Archive request failed', err);
+    showToast('Archivierung fehlgeschlagen.', 'bad');
+  } finally {
+    archiveButton.disabled = false;
+    archiveButton.textContent = originalText;
+    hideLoader();
+  }
 }
 
 export function populateAdminTeamOptions() {
@@ -157,6 +245,7 @@ export function initAdminModule() {
   adminSearch?.addEventListener('input', renderPeopleAdmin);
   admBody?.addEventListener('click', handleAdminAction);
   populateAdminTeamOptions();
+  createArchiveSection();
   adminInitialized = true;
 }
 
