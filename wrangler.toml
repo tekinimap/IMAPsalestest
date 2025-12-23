@@ -18,6 +18,10 @@ GH_PATH = "data/entries.json"
 GH_PEOPLE_PATH = "data/people.json"
 GH_LOG_DIR = "data/logs"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "imap-db-sales"
+database_id = "b9babfd0-49f0-42a2-a143-4e8d306c1aba"
 # Cloudflare Secrets (bereits auf Cloudflare konfiguriert)
 # Die Secrets werden von Cloudflare verwaltet über:
 # - Cloudflare Dashboard → Settings → Environment Variables
