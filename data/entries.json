@@ -12201,5 +12201,37 @@
     "dockPhaseHistory": {
       "1": 1766500732706
     }
+  },
+  {
+    "id": "hubspot_c07ef89081ff13981a34961c1bbf3aaa",
+    "hubspotId": "52466474836",
+    "title": "Führungskräfteentwicklungsprogramm Los 1 – KV-2025-0092",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500733336,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1762772745325,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500733336
+    }
   }
 ]
