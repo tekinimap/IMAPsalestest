@@ -491,6 +491,8 @@ function findTransactionsNeedingCalloffDeal(beforeEntry, afterEntry) {
 async function syncCalloffDealsForEntry(beforeEntry, updatedEntry, env, logs) {
   if (!updatedEntry || typeof updatedEntry !== 'object') return;
   if (normalizeString(updatedEntry.projectType || '') !== 'rahmen') return;
+  const normalizedSource = normalizeString(updatedEntry.source).toLowerCase();
+  if (normalizedSource !== 'hubspot') return;
 
   const candidates = findTransactionsNeedingCalloffDeal(beforeEntry, updatedEntry);
   if (!candidates.length) return;
@@ -874,12 +876,51 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
   const logs = [];
   let successCount = 0;
   let skippedMissingId = 0;
+  let skippedNonHubspotSource = 0;
   let failureCount = 0;
+
+  const filteredUpdates = [];
+  for (const update of updates) {
+    const normalizedSource = normalizeString(update?.source).toLowerCase();
+    if (normalizedSource !== 'hubspot') {
+      const properties = update?.properties && typeof update.properties === 'object' ? { ...update.properties } : {};
+      skippedNonHubspotSource++;
+      logs.push({
+        event: 'hubspot_update',
+        mode,
+        reason,
+        status: 'skipped',
+        skipReason: 'non_hubspot_source',
+        entryId: update?.entryId,
+        source: update?.source || 'worker',
+        properties,
+        previous: update?.previous,
+        next: update?.next,
+      });
+      continue;
+    }
+    filteredUpdates.push(update);
+  }
+
+  if (!filteredUpdates.length) {
+    logs.push({
+      event: 'hubspot_update_summary',
+      mode,
+      reason,
+      total: updates.length,
+      successCount,
+      skippedMissingId,
+      skippedNonHubspotSource,
+      failureCount,
+    });
+    await logJSONL(env, logs);
+    return;
+  }
 
   if (mode === 'batch') {
     const token = normalizeString(env.HUBSPOT_ACCESS_TOKEN);
     if (!token) {
-      failureCount += updates.length;
+      failureCount += filteredUpdates.length;
       logs.push({
         event: 'hubspot_update',
         mode,
@@ -894,6 +935,7 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
         total: updates.length,
         successCount,
         skippedMissingId,
+        skippedNonHubspotSource,
         failureCount,
       });
       await logJSONL(env, logs);
@@ -901,7 +943,7 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
     }
 
     const aggregated = new Map();
-    for (const update of updates) {
+    for (const update of filteredUpdates) {
       if (!update || typeof update !== 'object') continue;
       const properties = update.properties && typeof update.properties === 'object' ? { ...update.properties } : {};
       if (!Object.keys(properties).length) continue;
@@ -1088,7 +1130,7 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
 
     }
   } else {
-    for (const update of updates) {
+    for (const update of filteredUpdates) {
       if (!update || typeof update !== 'object') continue;
       const properties = update.properties && typeof update.properties === 'object' ? { ...update.properties } : {};
       if (!Object.keys(properties).length) continue;
@@ -1162,6 +1204,7 @@ async function processHubspotSyncQueue(env, updates, options = {}) {
     total: updates.length,
     successCount,
     skippedMissingId,
+    skippedNonHubspotSource,
     failureCount,
   });
 

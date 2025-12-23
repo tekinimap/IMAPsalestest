@@ -152,6 +152,11 @@ export async function hsCreateCalloffDeal(transaction, parentEntry, env) {
 export function collectHubspotSyncPayload(before, after) {
   if (!after || typeof after !== 'object') return null;
 
+  const normalizedSource = normalizeString(after.source).toLowerCase();
+  if (normalizedSource !== 'hubspot') {
+    return null;
+  }
+
   const dealId = normalizeString(after.hubspotId || after.hs_object_id);
   const previousProjectNumber = normalizeString(before?.projectNumber);
   const nextProjectNumber = normalizeString(after?.projectNumber);
