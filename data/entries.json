@@ -12105,5 +12105,37 @@
     "dockPhaseHistory": {
       "1": 1766500730768
     }
+  },
+  {
+    "id": "hubspot_98390f1540b3dc381016ef24818d6b82",
+    "hubspotId": "52466711718",
+    "title": "Projekt- und Terminmanagement – KV-2025-0339",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500731311,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1765321200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500731311
+    }
   }
 ]
