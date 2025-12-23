@@ -13338,5 +13338,37 @@
     "dockPhaseHistory": {
       "1": 1766498249947
     }
+  },
+  {
+    "id": "hubspot_09a7099f62942c102dd8e5bd7e5aebda",
+    "hubspotId": "52343484447",
+    "title": "Mona Jansen  - FK Rahmenvertrag 3. FZ Leitlinienprozess (Kopie) – KV-2025-0217",
+    "amount": 0,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498250607,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1757368800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498250607
+    }
   }
 ]
