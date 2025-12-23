@@ -15,6 +15,7 @@ import { showLoader, hideLoader, showToast } from '../ui/feedback.js';
 import { openWizard } from './erfassung.js';
 import { getEntryRewardFactor } from './calculations.js';
 import { showView } from './navigation.js';
+import { renderPortfolio } from './portfolio.js';
 import {
   getDockFilterState,
   updateDockFilterState,
@@ -201,6 +202,52 @@ export function openFrameworkVolumeDialog(entry, onSubmit) {
   }
   const existingVolume = getFrameworkVolume(entry);
   frameworkVolumeInput.value = existingVolume != null ? formatAmountInput(existingVolume) : '';
+
+  const btnArchive = document.getElementById('btnArchiveFrameworkVolume');
+  if (btnArchive) {
+    const isArchived = !!entry?.isArchived;
+    btnArchive.textContent = isArchived ? 'Wiederherstellen' : 'Archivieren';
+    btnArchive.className = isArchived ? 'btn primary' : 'btn warn';
+    btnArchive.onclick = async () => {
+      const targetStatus = !entry.isArchived;
+      entry.isArchived = targetStatus;
+      showLoader();
+      btnArchive.disabled = true;
+      try {
+        const response = await fetchWithRetry(
+          `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...entry, isArchived: targetStatus }),
+          }
+        );
+        if (!response.ok) throw new Error(await response.text());
+
+        const toastMessage = targetStatus ? 'Vertrag archiviert.' : 'Vertrag wiederhergestellt.';
+        showToast(toastMessage, 'ok');
+        closeFrameworkVolumeDialog();
+        await loadHistory();
+        if (typeof renderPortfolio === 'function') {
+          try {
+            renderPortfolio();
+          } catch (err) {
+            console.error('Portfolio-Rendering nach Archivierung fehlgeschlagen', err);
+            window.location.reload();
+          }
+        } else {
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error('Archiv-Status konnte nicht gespeichert werden.', err);
+        entry.isArchived = !targetStatus;
+        showToast('Archiv-Status konnte nicht gespeichert werden.', 'bad');
+      } finally {
+        btnArchive.disabled = false;
+        hideLoader();
+      }
+    };
+  }
 
   if (typeof frameworkVolumeDialog.showModal === 'function') {
     frameworkVolumeDialog.showModal();
