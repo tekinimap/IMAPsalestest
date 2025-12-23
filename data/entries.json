@@ -13690,5 +13690,37 @@
     "dockPhaseHistory": {
       "1": 1766498259460
     }
+  },
+  {
+    "id": "hubspot_56b158f0745a88946ec12abf53401fa4",
+    "hubspotId": "52402809168",
+    "title": "Moderation Team-Workshop LA3 – KV-2025-0321",
+    "amount": 975,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498260585,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1764025200000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498260585
+    }
   }
 ]
