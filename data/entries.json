@@ -1408,9 +1408,20 @@
         "amount": 4425,
         "ts": 1761664649070,
         "freigabedatum": 1761091200000
+      },
+      {
+        "id": "trans_1766500188406_iv26a93eb",
+        "kv_nummer": "KV-2025-0307",
+        "type": "founder",
+        "parentId": "manuell_drv_rheinland_mod_workshops",
+        "amount": 2325,
+        "ts": 1766500188406,
+        "freigabedatum": 1762988400000,
+        "title": "Workshopreihe – „Prüfung der Optionen zur Bündelung der IT-Themen\" im Rahmen der Neugründung einer Abteilung Rehabilitation",
+        "client": "Deutsche Rentenversicherung Rheinland"
       }
     ],
-    "modified": 1761664685831,
+    "modified": 1766500213004,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
