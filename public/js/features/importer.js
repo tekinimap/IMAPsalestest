@@ -1,458 +1,534 @@
-import { WORKER_BASE, DEFAULT_WEIGHTS } from '../config.js';
+import { WORKER_BASE } from '../config.js';
 import { fetchWithRetry, throttle } from '../api.js';
-import { parseAmountInput } from '../utils/format.js';
 import { showLoader, hideLoader, showToast, showBatchProgress, updateBatchProgress, hideBatchProgress } from '../ui/feedback.js';
-import { filtered, autoComplete, loadHistory } from './history.js';
-import { compute } from './compute.js';
+import { loadHistory } from './history.js';
 import { getEntries } from '../entries-state.js';
 
-function getVal(row, keyName) {
-  const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const keys = Object.keys(row);
-  const foundKey = keys.find((key) => key.toLowerCase().replace(/[^a-z0-9]/g, '').includes(normalizedKeyName));
-  return foundKey ? row[foundKey] : undefined;
+// --- Hilfsfunktionen für Normalisierung und Parsing ---
+
+function normKey(str) {
+  return String(str || '').toLowerCase().trim();
+}
+
+function parseAmountInput(v) {
+  if (v == null || v === '') return 0;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    let t = v.trim().replace(/\s/g, '');
+    // Erkennt deutsches Format (1.000,00) vs englisches Format (1000.00)
+    if (t.includes(',') && (!t.includes('.') || /\.\d{3},\d{1,2}$/.test(t))) {
+      t = t.replace(/\./g, '').replace(',', '.');
+    } else {
+      t = t.replace(/,/g, '');
+    }
+    const n = Number(t);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
 }
 
 function parseExcelDate(excelDate) {
-  if (typeof excelDate === 'number') {
-    if (excelDate > 0) {
-      return new Date((excelDate - 25569) * 86400 * 1000);
-    }
+  // Nummerisches Excel-Datum
+  if (typeof excelDate === 'number' && excelDate > 25569) {
+    try {
+      const jsTimestamp = (excelDate - 25569) * 86400 * 1000;
+      const d = new Date(jsTimestamp);
+      // Grobe Zeitzonen-Korrektur
+      if (d.getFullYear() > 2000) {
+        return new Date(d.getTime() + (d.getTimezoneOffset() * 60000));
+      }
+    } catch (e) { console.warn("Date parse error (num)", e); }
   }
+  // String Datum
   if (typeof excelDate === 'string') {
-    const parsed = new Date(excelDate);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
+    const dateString = excelDate.trim();
+    // Format: 12.12.2025
+    const deMatch = dateString.match(/^(\d{1,2})\s*\.\s*(\d{1,2})\s*\.\s*(\d{4})$/);
+    if (deMatch) {
+      return new Date(deMatch[3], deMatch[2] - 1, deMatch[1]);
     }
-    const parts = excelDate.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
-    if (parts) {
-      let date = new Date(parts[3], parts[2] - 1, parts[1]);
-      if (!Number.isNaN(date.getTime())) return date;
-      date = new Date(parts[3], parts[1] - 1, parts[2]);
-      if (!Number.isNaN(date.getTime())) return date;
+    // Format: 2025-12-12
+    const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      return new Date(isoMatch[1], isoMatch[2] - 1, isoMatch[3]);
     }
   }
-  return null;
+  return new Date(); // Fallback: Heute
 }
+
+// Sucht flexibel nach Spaltennamen (ignoriert Groß/Kleinschreibung und Sonderzeichen)
+function getVal(row, possibleKeys) {
+  if (!row || typeof row !== 'object') return undefined;
+  if (!Array.isArray(possibleKeys)) possibleKeys = [possibleKeys];
+  
+  const keys = Object.keys(row);
+  for (const searchKey of possibleKeys) {
+    const nKey = searchKey.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const found = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === nKey);
+    if (found) return row[found];
+  }
+  return undefined;
+}
+
+// Extrahiert Kunde aus Projektnummer (alles vor dem ersten Bindestrich) als Fallback
+function extractClientFromProjectNumber(pNr) {
+  if (!pNr || typeof pNr !== 'string') return '';
+  const parts = pNr.split('-');
+  if (parts.length > 1) {
+    return parts[0].trim();
+  }
+  return '';
+}
+
+const fmtEUR = (n) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(n);
+
+
+// --- Hauptlogik Analyse ---
+
+let _importBuckets = null; // Globaler Zwischenspeicher für den Modal-Zustand
+
+async function analyzeErpFile(file) {
+  await loadHistory();
+  const entries = getEntries(); // Aktueller Stand aus dem State
+  
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer);
+  const sheetName = workbook.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+  // Indizes aufbauen für schnellen Zugriff
+  const kvIndex = new Map();
+  const frameworkIndex = new Map();
+
+  entries.forEach(e => {
+    // KV Index für Fixaufträge
+    if (e.kv_nummer && e.projectType !== 'rahmen') {
+      kvIndex.set(normKey(e.kv_nummer), { type: 'fix', entry: e });
+    }
+    // KV Index für Transactions in Rahmenverträgen
+    if (e.projectType === 'rahmen' && Array.isArray(e.transactions)) {
+      e.transactions.forEach(t => {
+        if (t.kv_nummer) kvIndex.set(normKey(t.kv_nummer), { type: 'trans', entry: e, transaction: t });
+      });
+      // Framework Index (nach Projektnummer)
+      if (e.projectNumber) {
+        frameworkIndex.set(normKey(e.projectNumber), e);
+      }
+    }
+  });
+
+  const buckets = {
+    updates: [],     // Bestehende KVs mit neuem Betrag
+    calloffs: [],    // Neue KVs zu bestehendem Rahmenvertrag
+    newFix: [],      // Ganz neue Fixaufträge
+    skipped: [],     // Keine Änderung oder Fehler
+    frameworksToUpdate: new Map() // Hilfsstruktur um Calloffs zu bündeln
+  };
+
+  for (const row of rows) {
+    // 1. Daten auslesen (mit Fehlertoleranz bei Spaltennamen)
+    const kvRaw = getVal(row, ['Kostenvoranschlagsnummer', 'KV-Nummer', 'KV']);
+    const pNrRaw = getVal(row, ['Projekt Projektnummer', 'Projektnummer']);
+    const amount = parseAmountInput(getVal(row, ['Agenturleistung netto', 'Betrag', 'Wert', 'Summe']));
+    const title = getVal(row, ['Titel', 'Bezeichnung', 'Thema']) || '';
+    
+    // Kunde: Erst Spalte prüfen, dann Fallback auf Projektnummer
+    let client = getVal(row, ['Projekt Etat Kunde Name', 'Kunde', 'Auftraggeber']);
+    if (!client && pNrRaw) {
+      client = extractClientFromProjectNumber(pNrRaw);
+    }
+    client = client || '';
+
+    const dateVal = getVal(row, ['Freigabedatum', 'Abschlussdatum', 'Datum']);
+    
+    if (!kvRaw) continue; // Zeilen ohne KV ignorieren
+
+    const kvNorm = normKey(kvRaw);
+    const pNrNorm = normKey(pNrRaw);
+    const dateObj = parseExcelDate(dateVal);
+    const ts = dateObj.getTime();
+
+    const existing = kvIndex.get(kvNorm);
+
+    // --- FALL 1: KV Existiert -> Prüfen ob Update nötig ---
+    if (existing) {
+      let currentAmount = 0;
+      let isTrans = (existing.type === 'trans');
+      if (isTrans) currentAmount = Number(existing.transaction.amount || 0);
+      else currentAmount = Number(existing.entry.amount || 0);
+
+      // Vergleich mit Toleranz (1 Cent)
+      if (Math.abs(currentAmount - amount) > 0.01) {
+        buckets.updates.push({
+          kv: kvRaw,
+          title: isTrans ? (existing.transaction.title || title) : (existing.entry.title || title),
+          client: existing.entry.client || client,
+          oldAmount: currentAmount,
+          newAmount: amount,
+          type: isTrans ? 'Abruf Korrektur' : 'Fixauftrag Korrektur',
+          // Referenz für späteres Speichern
+          targetId: existing.entry.id,
+          transId: isTrans ? existing.transaction.id : null,
+          originalEntry: existing.entry
+        });
+      } else {
+        buckets.skipped.push({ kv: kvRaw, reason: 'Betrag identisch', amount });
+      }
+      continue;
+    }
+
+    // --- FALL 2: KV Neu -> Prüfen ob Rahmenvertrag existiert ---
+    const framework = frameworkIndex.get(pNrNorm);
+    if (framework) {
+      // Prüfen ob wir diesen Rahmenvertrag in diesem Batch schon bearbeitet haben
+      let fwEntry = buckets.frameworksToUpdate.get(framework.id);
+      if (!fwEntry) {
+        // Tiefe Kopie erstellen, damit wir im Speicher arbeiten können
+        fwEntry = JSON.parse(JSON.stringify(framework));
+        if (!Array.isArray(fwEntry.transactions)) fwEntry.transactions = [];
+        buckets.frameworksToUpdate.set(framework.id, fwEntry);
+      }
+
+      // Neuen Abruf (Transaction) hinzufügen
+      const newTrans = {
+        id: `trans_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,
+        kv_nummer: kvRaw,
+        type: 'founder',
+        parentId: fwEntry.id,
+        amount: amount,
+        ts: Date.now(),
+        freigabedatum: ts,
+        title: title,
+        client: client || fwEntry.client // Fallback auf Framework Kunde
+      };
+      
+      fwEntry.transactions.push(newTrans);
+      fwEntry.modified = Date.now();
+
+      buckets.calloffs.push({
+        kv: kvRaw,
+        projectNumber: pNrRaw,
+        title,
+        amount,
+        parentTitle: fwEntry.title
+      });
+      continue;
+    }
+
+    // --- FALL 3: Ganz neu -> Fixauftrag (Direkt ins Portfolio) ---
+    const newEntry = {
+      id: `entry_${Date.now()}_${kvNorm.replace(/[^a-z0-9]/g,'')}`,
+      source: 'erp-import',
+      projectType: 'fix',
+      client,
+      title,
+      projectNumber: pNrRaw,
+      kv_nummer: kvRaw,
+      amount,
+      list: [], rows: [], weights: [],
+      ts: Date.now(),
+      freigabedatum: ts,
+      // WICHTIG: Flags um Dock zu überspringen
+      dockFinalAssignment: 'fix',
+      dockFinalAssignmentAt: Date.now(),
+      dockPhase: 4,
+      complete: true,
+      modified: Date.now()
+    };
+    buckets.newFix.push(newEntry);
+  }
+
+  return buckets;
+}
+
+// --- UI Rendering (Das Modal) ---
+
+function renderPreviewModal(buckets) {
+  // Alten Modal entfernen falls vorhanden
+  const old = document.getElementById('erp-importer-modal');
+  if (old) old.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'erp-importer-modal';
+  backdrop.style.cssText = `
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.85); z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    font-family: 'Inter', sans-serif; color: #e2e8f0;
+  `;
+
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: #0f172a; border: 1px solid #1e293b; border-radius: 12px;
+    width: 90%; max-width: 1200px; max-height: 90vh; display: flex; flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  `;
+
+  // Header
+  const header = document.createElement('div');
+  header.innerHTML = `
+    <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">ERP Import Analyse (v2.0)</h2>
+      <button id="close-erp-modal" style="background:transparent; border:none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+  `;
+  content.appendChild(header);
+
+  // Body (Scrollable)
+  const body = document.createElement('div');
+  body.style.cssText = `padding: 20px; overflow-y: auto; flex: 1;`;
+
+  // --- Sektion 1: UPDATES ---
+  if (buckets.updates.length > 0) {
+    body.innerHTML += `
+      <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <h3 style="margin:0; color: #f59e0b;">⚠️ Abweichungen in bestehenden Aufträgen (${buckets.updates.length})</h3>
+          <button id="btn-exec-updates" class="action-btn" style="background: #f59e0b; color: #000;">
+            Alle Beträge aktualisieren
+          </button>
+        </div>
+        <div style="max-height: 200px; overflow: auto;">
+          <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV</th><th>Titel</th><th>Alt</th><th>Neu</th><th>Differenz</th></tr></thead>
+            <tbody>
+              ${buckets.updates.map(u => `
+                <tr style="border-bottom: 1px solid #334155;">
+                  <td style="padding: 6px;">${u.kv}</td>
+                  <td style="padding: 6px;">${u.title}</td>
+                  <td style="padding: 6px;">${fmtEUR(u.oldAmount)}</td>
+                  <td style="padding: 6px; font-weight:bold;">${fmtEUR(u.newAmount)}</td>
+                  <td style="padding: 6px; color: ${u.newAmount > u.oldAmount ? '#4ade80' : '#f87171'}">
+                    ${fmtEUR(u.newAmount - u.oldAmount)}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Sektion 2: CALL-OFFS (Rahmenverträge) ---
+  if (buckets.calloffs.length > 0) {
+    body.innerHTML += `
+      <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <h3 style="margin:0; color: #38bdf8;">🏗 Neue Abrufe zu Rahmenverträgen (${buckets.calloffs.length})</h3>
+          <button id="btn-exec-calloffs" class="action-btn" style="background: #38bdf8; color: #000;">
+            Abrufe zuordnen
+          </button>
+        </div>
+        <div style="max-height: 200px; overflow: auto;">
+          <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV (Neu)</th><th>Projekt Nr.</th><th>Titel</th><th>Betrag</th><th>Zu Rahmenvertrag</th></tr></thead>
+            <tbody>
+              ${buckets.calloffs.map(c => `
+                <tr style="border-bottom: 1px solid #334155;">
+                  <td style="padding: 6px;">${c.kv}</td>
+                  <td style="padding: 6px;">${c.projectNumber}</td>
+                  <td style="padding: 6px;">${c.title}</td>
+                  <td style="padding: 6px;">${fmtEUR(c.amount)}</td>
+                  <td style="padding: 6px; font-style: italic;">${c.parentTitle}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Sektion 3: NEUE FIXAUFTRÄGE ---
+  if (buckets.newFix.length > 0) {
+    body.innerHTML += `
+      <div style="margin-bottom: 30px; background: #1e293b50; padding: 15px; border-radius: 8px; border: 1px solid #334155;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <h3 style="margin:0; color: #4ade80;">✨ Neue Fixaufträge (${buckets.newFix.length})</h3>
+          <button id="btn-exec-fix" class="action-btn" style="background: #4ade80; color: #000;">
+            Im Portfolio anlegen
+          </button>
+        </div>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-top:-5px;">Diese Aufträge landen direkt im Portfolio (Dock übersprungen).</p>
+        <div style="max-height: 200px; overflow: auto;">
+          <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead style="text-align:left; color:#94a3b8;"><tr><th>KV</th><th>Projekt Nr.</th><th>Titel</th><th>Kunde</th><th>Betrag</th></tr></thead>
+            <tbody>
+              ${buckets.newFix.map(f => `
+                <tr style="border-bottom: 1px solid #334155;">
+                  <td style="padding: 6px;">${f.kv_nummer}</td>
+                  <td style="padding: 6px;">${f.projectNumber}</td>
+                  <td style="padding: 6px;">${f.title}</td>
+                  <td style="padding: 6px; color: ${f.client ? 'inherit' : '#f87171'}">${f.client || '(fehlt)'}</td>
+                  <td style="padding: 6px;">${fmtEUR(f.amount)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Sektion 4: SKIPPED ---
+  if (buckets.skipped.length > 0) {
+    body.innerHTML += `
+      <div style="margin-bottom: 10px; opacity: 0.6;">
+        <h4 style="margin:0; font-size: 0.9rem;">👻 ${buckets.skipped.length} Einträge ohne Änderung übersprungen (Betrag identisch)</h4>
+      </div>
+    `;
+  }
+
+  if (buckets.updates.length === 0 && buckets.calloffs.length === 0 && buckets.newFix.length === 0) {
+    body.innerHTML += `<div style="text-align:center; padding: 40px;">Alles auf dem neuesten Stand! Keine Aktionen erforderlich.</div>`;
+  }
+
+  content.appendChild(body);
+  backdrop.appendChild(content);
+  document.body.appendChild(backdrop);
+
+  // Styles für Buttons
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .action-btn { border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: filter 0.2s; }
+    .action-btn:hover { filter: brightness(1.1); }
+    .action-btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.7; }
+  `;
+  document.head.appendChild(style);
+
+  // --- Event Listeners für Buttons ---
+
+  document.getElementById('close-erp-modal').onclick = () => {
+    backdrop.remove();
+    _importBuckets = null; 
+    document.getElementById('erpFile').value = ''; 
+  };
+
+  // 1. UPDATES AUSFÜHREN
+  const btnUpd = document.getElementById('btn-exec-updates');
+  if (btnUpd) {
+    btnUpd.onclick = async () => {
+      if (!confirm(`Sicher ${buckets.updates.length} Beträge aktualisieren?`)) return;
+      btnUpd.disabled = true;
+      btnUpd.textContent = 'Speichere...';
+      
+      const payload = buckets.updates.map(u => {
+        // Wir senden den kompletten Eintrag mit aktualisiertem Betrag
+        const entryCopy = JSON.parse(JSON.stringify(u.originalEntry));
+        if (u.transId) {
+          // Es ist eine Transaction
+          const t = entryCopy.transactions.find(tx => tx.id === u.transId);
+          if (t) {
+            t.amount = u.newAmount;
+            t.modified = Date.now();
+          }
+          entryCopy.modified = Date.now();
+        } else {
+          // Es ist ein Fixauftrag
+          entryCopy.amount = u.newAmount;
+          entryCopy.modified = Date.now();
+        }
+        return entryCopy;
+      });
+
+      await sendBatch(payload, 'Updates');
+      btnUpd.textContent = 'Erledigt ✔';
+    };
+  }
+
+  // 2. CALL-OFFS AUSFÜHREN
+  const btnCall = document.getElementById('btn-exec-calloffs');
+  if (btnCall) {
+    btnCall.onclick = async () => {
+      if (!confirm(`Sicher ${buckets.calloffs.length} neue Abrufe zu Rahmenverträgen hinzufügen?`)) return;
+      btnCall.disabled = true;
+      btnCall.textContent = 'Speichere...';
+
+      // Wir senden die modifizierten Rahmenvertrags-Objekte (die jetzt mehr Transactions haben)
+      const payload = Array.from(buckets.frameworksToUpdate.values());
+      
+      await sendBatch(payload, 'Call-offs');
+      btnCall.textContent = 'Erledigt ✔';
+    };
+  }
+
+  // 3. FIXAUFTRÄGE AUSFÜHREN
+  const btnFix = document.getElementById('btn-exec-fix');
+  if (btnFix) {
+    btnFix.onclick = async () => {
+      if (!confirm(`Sicher ${buckets.newFix.length} neue Fixaufträge im Portfolio anlegen?`)) return;
+      btnFix.disabled = true;
+      btnFix.textContent = 'Speichere...';
+
+      await sendBatch(buckets.newFix, 'Neue Fixaufträge');
+      btnFix.textContent = 'Erledigt ✔';
+    };
+  }
+}
+
+// --- Batch Sending Helper ---
+
+async function sendBatch(rows, label) {
+  showLoader();
+  try {
+    const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows }),
+    });
+    
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || 'Server Error');
+    }
+    
+    showToast(`${label} erfolgreich gespeichert!`, 'ok');
+    await loadHistory(); // Reload local state
+  } catch (err) {
+    console.error(err);
+    showToast(`Fehler beim Speichern von ${label}: ${err.message}`, 'bad');
+  } finally {
+    hideLoader();
+  }
+}
+
+// --- Entry Point ---
 
 async function handleErpImport() {
   const fileInput = document.getElementById('erpFile');
-  const importResult = document.getElementById('importResult');
   if (!fileInput || fileInput.files.length === 0) {
     showToast('Bitte eine Datei auswählen.', 'bad');
     return;
   }
-
-  const file = fileInput.files[0];
+  
   showLoader();
-  importResult?.classList.add('hide');
-
   try {
-    await loadHistory();
-    const entries = getEntries();
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheetName = workbook.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    let updatedCount = 0;
-    let addedToFrameworkCount = 0;
-    let newFixCount = 0;
-    let skippedCount = 0;
-
-    const allEntriesCopy = JSON.parse(JSON.stringify(entries));
-    const changesToPush = [];
-
-    const kvIndex = new Map();
-    allEntriesCopy.forEach((entry) => {
-      if (entry.kv_nummer) {
-        kvIndex.set(entry.kv_nummer, { type: 'fix', entry });
-      }
-      if (entry.projectType === 'rahmen' && Array.isArray(entry.transactions)) {
-        entry.transactions.forEach((trans) => {
-          if (trans.kv_nummer) {
-            kvIndex.set(trans.kv_nummer, { type: 'transaction', entry, transaction: trans });
-          }
-        });
-      }
-    });
-
-    const frameworkProjectIndex = new Map();
-    allEntriesCopy.forEach((entry) => {
-      if (entry.projectType === 'rahmen' && entry.projectNumber) {
-        frameworkProjectIndex.set(entry.projectNumber, entry);
-      }
-    });
-
-    for (const row of rows) {
-      const kvNummer = String(getVal(row, 'KV-Nummer') || '').trim();
-      if (!kvNummer) {
-        skippedCount++;
-        continue;
-      }
-
-      const projektNummer = String(getVal(row, 'Projekt Projektnummer') || '').trim();
-      const amountRaw = getVal(row, 'Agenturleistung netto');
-      const amount = parseAmountInput(amountRaw);
-
-      const clientName = getVal(row, 'Projekt Etat Kunde Name') || '';
-      const title = getVal(row, 'Titel') || '';
-
-      let freigabeTimestamp = Date.now();
-      const excelDate = getVal(row, 'Abschlussdatum') || getVal(row, 'Freigabedatum');
-      if (excelDate) {
-        const parsedDate = parseExcelDate(excelDate);
-        if (parsedDate) {
-          freigabeTimestamp = parsedDate.getTime();
-        } else {
-          console.warn(`Ungültiges Abschlussdatum in Zeile mit KV ${kvNummer}: ${excelDate}`);
-        }
-      } else {
-        console.warn(`Kein Abschlussdatum in Zeile mit KV ${kvNummer} gefunden, verwende Importdatum.`);
-      }
-
-      const existing = kvIndex.get(kvNummer);
-
-      if (existing) {
-        let currentAmount;
-        if (existing.type === 'transaction') {
-          currentAmount = existing.transaction.amount;
-        } else {
-          currentAmount = existing.entry.amount;
-        }
-
-        if (Math.abs(currentAmount - amount) > 0.001) {
-          if (existing.type === 'transaction') {
-            existing.transaction.amount = amount;
-          } else {
-            existing.entry.amount = amount;
-          }
-          existing.entry.modified = Date.now();
-          if (!changesToPush.some((item) => item.id === existing.entry.id)) {
-            changesToPush.push(existing.entry);
-          }
-          updatedCount++;
-        } else {
-          skippedCount++;
-        }
-      } else {
-        const parentFramework = frameworkProjectIndex.get(projektNummer);
-
-        if (parentFramework) {
-          if (!Array.isArray(parentFramework.transactions)) {
-            parentFramework.transactions = [];
-          }
-          if (!parentFramework.transactions.some((transaction) => transaction.kv_nummer === kvNummer)) {
-            parentFramework.transactions.push({
-              id: `trans_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-              kv_nummer: kvNummer,
-              type: 'founder',
-              parentId: parentFramework.id,
-              amount,
-              ts: Date.now(),
-              freigabedatum: freigabeTimestamp,
-            });
-            parentFramework.modified = Date.now();
-            if (!changesToPush.some((item) => item.id === parentFramework.id)) {
-              changesToPush.push(parentFramework);
-            }
-            addedToFrameworkCount++;
-          } else {
-            skippedCount++;
-            console.warn(`KV ${kvNummer} bereits in Rahmenvertrag ${parentFramework.id} gefunden, obwohl nicht im Index.`);
-          }
-        } else {
-          const newFixEntry = {
-            id: `entry_${Date.now()}_${kvNummer.replace(/\W/g, '')}`,
-            source: 'erp-import',
-            projectType: 'fix',
-            client: clientName,
-            title,
-            projectNumber: projektNummer,
-            kv_nummer: kvNummer,
-            amount,
-            list: [],
-            rows: [],
-            weights: [],
-            ts: Date.now(),
-            freigabedatum: freigabeTimestamp,
-            dockFinalAssignment: 'fix',
-            dockFinalAssignmentAt: Date.now(),
-            dockPhase: 4,
-            complete: true,
-          };
-          allEntriesCopy.push(newFixEntry);
-          kvIndex.set(kvNummer, { type: 'fix', entry: newFixEntry });
-          changesToPush.push(newFixEntry);
-          newFixCount++;
-        }
-      }
-    }
-
-    hideLoader();
-    if (changesToPush.length > 0) {
-      showBatchProgress('Speichere Import-Änderungen...', changesToPush.length);
-      let count = 0;
-      for (const entry of changesToPush) {
-        count++;
-        updateBatchProgress(count, changesToPush.length);
-
-        const originalEntryExists = entries.some((originalEntry) => originalEntry.id === entry.id);
-        const url = !originalEntryExists
-          ? `${WORKER_BASE}/entries`
-          : `${WORKER_BASE}/entries/${encodeURIComponent(entry.id)}`;
-        const method = !originalEntryExists ? 'POST' : 'PUT';
-
-        if (method === 'PUT' && !entry.id) {
-          throw new Error(`Versuch, Eintrag ohne ID zu aktualisieren (KV: ${entry.kv_nummer || 'unbekannt'})`);
-        }
-
-        console.log(`Sending ${method} request to ${url} for KV ${entry.kv_nummer}`);
-
-        const response = await fetchWithRetry(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(entry),
-        });
-        if (!response.ok) {
-          throw new Error(
-            `Fehler (${method} ${url}) für Eintrag ${entry.id || `(neu mit KV ${entry.kv_nummer})`}: ${await response.text()}`
-          );
-        }
-        await throttle();
-      }
-    }
-
-    const resultMsg = `Import abgeschlossen: ${updatedCount} Einträge aktualisiert, ${addedToFrameworkCount} neue Abrufe zu Rahmenverträgen hinzugefügt, ${newFixCount} neue Fixaufträge erstellt. ${skippedCount} Zeilen übersprungen (keine Änderungen oder fehlende KV-Nummer).`;
-    if (importResult) {
-      importResult.innerHTML = resultMsg;
-      importResult.classList.remove('hide');
-    }
-    showToast('ERP-Daten erfolgreich importiert', 'ok');
-    await loadHistory();
+    const buckets = await analyzeErpFile(fileInput.files[0]);
+    _importBuckets = buckets; // Store for access
+    renderPreviewModal(buckets);
   } catch (error) {
-    showToast('Fehler beim Importieren der Datei.', 'bad');
     console.error(error);
-    if (importResult) {
-      importResult.textContent = `Fehler: ${error.message}`;
-      importResult.classList.remove('hide');
-    }
+    showToast('Fehler beim Analysieren der Datei.', 'bad');
   } finally {
     hideLoader();
-    hideBatchProgress();
   }
 }
 
-async function handleLegacySalesImport() {
-  const fileInput = document.getElementById('legacySalesFile');
-  const importResult = document.getElementById('legacyImportResult');
-  if (!fileInput || fileInput.files.length === 0) {
-    showToast('Bitte eine Datei für den Legacy-Import auswählen.', 'bad');
-    return;
-  }
-  const file = fileInput.files[0];
-  showLoader();
-  importResult?.classList.add('hide');
-
-  const columnToPersonMap = {
-    '% Evaluation und Beteiligung': 'Evaluation und Beteiligung Mitarbeiter:in',
-    '% Vielfalt+': 'Vielfalt+ Mitarbeiter:in',
-    '% Nachhaltigkeit': 'Nachhaltigkeit Mitarbeiter:in',
-    '% Sozial- und Krankenversicherungen': 'Sozial- und Krankenversicherungen Mitarbeiter:in',
-    '% ChangePartner': 'ChangePartner Mitarbeiter:in',
-    '% Bundes- & Landesbehörden': 'Bundes- und Landesbehörden Mitarbeiter:in',
-    '% Kommunalverwaltungen': 'Kommunalverwaltungen Mitarbeiter:in',
-    '% Internationale Zusammenarbeit': 'Internationale Zusammenarbeit Mitarbeiter:in',
-    '% BU OE': 'BU Lead OE',
-    '% BU PI': 'BU Lead PI',
-  };
-  const percentageColumns = Object.keys(columnToPersonMap);
-  const legacyWeights = [
-    { key: 'cs', weight: 100 },
-    { key: 'konzept', weight: 0 },
-    { key: 'pitch', weight: 0 },
-  ];
-
-  try {
-    await loadHistory();
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheetName = workbook.SheetNames[0];
-    const excelRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    let skippedCount = 0;
-
-    const allEntriesCopy = JSON.parse(JSON.stringify(getEntries()));
-    const changesToPush = [];
-
-    const kvIndex = new Map();
-    allEntriesCopy.forEach((entry) => {
-      if (entry.kv_nummer && entry.projectType !== 'rahmen') {
-        kvIndex.set(entry.kv_nummer.trim(), { type: 'fix', entry });
-      }
-      if (entry.kv && entry.projectType !== 'rahmen') {
-        kvIndex.set(entry.kv.trim(), { type: 'fix', entry });
-      }
-    });
-
-    for (const row of excelRows) {
-      const newSalesRows = [];
-      let totalPoints = 0;
-      for (const colName of percentageColumns) {
-        const percentageValue = parseFloat(getVal(row, colName) || 0);
-        if (percentageValue > 0) {
-          const personName = columnToPersonMap[colName];
-          const points = percentageValue * 100;
-          newSalesRows.push({ name: personName, cs: points, konzept: 0, pitch: 0 });
-          totalPoints += points;
-        }
-      }
-
-      if (newSalesRows.length === 0) continue;
-
-      if (Math.abs(totalPoints - 100) > 0.1) {
-        console.warn(`Übersprungen (Vorb.): Zeile mit KV ${getVal(row, 'KV-Nummer')} hat Summe ${totalPoints}.`);
-        skippedCount++;
-        continue;
-      }
-
-      const kvString = String(getVal(row, 'KV-Nummer') || '').trim();
-      if (!kvString) continue;
-
-      const kvList = kvString
-        .split(',')
-        .map((kv) => kv.trim())
-        .filter((kv) => kv.length > 0);
-
-      const firstFullKv = kvList.find((kv) => kv.toLowerCase().startsWith('kv-')) || kvList[0];
-      let kvPrefix = '';
-      if (firstFullKv && firstFullKv.includes('-')) {
-        kvPrefix = firstFullKv.substring(0, firstFullKv.lastIndexOf('-') + 1);
-      }
-
-      for (const kv of kvList) {
-        let kvToUpdate = kv;
-        if (!kvToUpdate.toLowerCase().startsWith('kv-') && kvPrefix) {
-          kvToUpdate = kvPrefix + kvToUpdate;
-        } else if (!kvToUpdate.toLowerCase().startsWith('kv-') && !kvPrefix) {
-          console.warn(`Konnte Präfix für Suffix ${kv} nicht bestimmen (Zeile: ${kvString}). Überspringe.`);
-          skippedCount++;
-          continue;
-        }
-
-        const existing = kvIndex.get(kvToUpdate);
-
-        if (existing && existing.type === 'fix') {
-          const entryToUpdate = existing.entry;
-
-          if (changesToPush.some((item) => item.id === entryToUpdate.id)) {
-            console.log(`Eintrag ${entryToUpdate.id} bereits für Update vorgemerkt.`);
-            continue;
-          }
-
-          entryToUpdate.rows = newSalesRows;
-          entryToUpdate.weights = legacyWeights;
-          entryToUpdate.totals = { cs: 100, konzept: 0, pitch: 0 };
-          const resultData = compute(newSalesRows, legacyWeights, entryToUpdate.amount || 0);
-          entryToUpdate.list = resultData.list;
-          entryToUpdate.complete = autoComplete(entryToUpdate);
-          entryToUpdate.modified = Date.now();
-
-          changesToPush.push(entryToUpdate);
-        } else if (!existing) {
-          console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} nicht gefunden.`);
-          skippedCount++;
-        } else {
-          console.warn(`Übersprungen (Vorb.): KV ${kvToUpdate} ist Transaktion, kein Fixauftrag.`);
-          skippedCount++;
-        }
-      }
-    }
-
-    hideLoader();
-
-    if (changesToPush.length === 0) {
-      if (importResult) {
-        importResult.innerHTML = `Legacy-Import: Keine Einträge gefunden oder alle übersprungen. ${skippedCount} Zeilen/KVs übersprungen.`;
-        importResult.classList.remove('hide');
-      }
-      showToast('Legacy-Import: Nichts zu aktualisieren.', 'warn');
-      fileInput.value = '';
-      return;
-    }
-
-    showBatchProgress(`Speichere ${changesToPush.length} Legacy-Änderungen...`, 1);
-
-    try {
-      const bulkPayload = { rows: changesToPush };
-      const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bulkPayload),
-      });
-
-      updateBatchProgress(1, 1);
-      const result = await response.json();
-
-      if (!response.ok || !result.ok) {
-        const errorMsg = result.message || result.error || `Serverfehler ${response.status}`;
-        throw new Error(`Bulk save failed: ${errorMsg} (Details: ${result.details || 'N/A'})`);
-      }
-
-      const resultMsg = `Legacy-Import abgeschlossen: ${result.updated} Einträge erfolgreich aktualisiert. ${skippedCount} Zeilen/KVs in Vorbereitung übersprungen, ${result.skipped} beim Speichern übersprungen. ${result.errors} Fehler beim Speichern.`;
-      if (importResult) {
-        importResult.innerHTML = resultMsg;
-        importResult.classList.remove('hide');
-      }
-      showToast('Sales-Daten (Altdaten) Import beendet.', result.errors > 0 ? 'warn' : 'ok');
-      await loadHistory();
-    } catch (error) {
-      hideLoader();
-      hideBatchProgress();
-      showToast('Fehler beim Speichern der Legacy-Daten.', 'bad');
-      console.error(error);
-      if (importResult) {
-        importResult.textContent = `Fehler beim Speichern: ${error.message}`;
-        importResult.classList.remove('hide');
-      }
-    } finally {
-      hideLoader();
-      hideBatchProgress();
-      fileInput.value = '';
-    }
-  } catch (error) {
-    hideLoader();
-    hideBatchProgress();
-    showToast('Fehler beim Verarbeiten der Datei.', 'bad');
-    console.error(error);
-    if (importResult) {
-      importResult.textContent = `Fehler bei Dateiverarbeitung: ${error.message}`;
-      importResult.classList.remove('hide');
-    }
-  } finally {
-    hideLoader();
-    hideBatchProgress();
-    if (fileInput) {
-      fileInput.value = '';
-    }
-  }
-}
-
-function setupErpImportListener() {
-  const btnErpImport = document.getElementById('btnErpImport');
-  if (btnErpImport) {
-    btnErpImport.addEventListener('click', handleErpImport);
-  }
-}
-
-function setupLegacyImportListener() {
-  const btnLegacySalesImport = document.getElementById('btnLegacySalesImport');
-  if (btnLegacySalesImport) {
-    btnLegacySalesImport.addEventListener('click', handleLegacySalesImport);
-  }
-}
+// --- Init ---
 
 export function initImporter() {
-  setupErpImportListener();
-  setupLegacyImportListener();
+  const btn = document.getElementById('btnErpImport');
+  if (btn) {
+    // Alten Listener sicher entfernen durch Klonen
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', handleErpImport);
+  }
+  
+  // Legacy Import Listener, falls noch benötigt (kannst du auch auskommentieren)
+  const btnLegacy = document.getElementById('btnLegacySalesImport');
+  if (btnLegacy) {
+    // btnLegacy.addEventListener('click', ...); 
+  }
 }
