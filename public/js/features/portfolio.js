@@ -217,7 +217,20 @@ export function renderPortfolio() {
   const entries = getEntries() || [];
   const searchInput = document.getElementById('portfolioSearch');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
   let filteredEntries = entries.filter((e) => {
+    // 1. DOCK FILTER: Einträge ausblenden, die noch im Dock sind
+    const isGraduated = !!e.dockFinalAssignment; // Hat den Dock verlassen (zugewiesen)
+    const isHubSpot = (e.source || '').trim().toLowerCase() === 'hubspot';
+    const hasDockPhase = e.dockPhase != null;
+    
+    // Ein Eintrag ist "im Dock", wenn er NICHT zugewiesen ist UND (aus HubSpot kommt ODER eine Dock-Phase hat)
+    const isInDock = !isGraduated && (isHubSpot || hasDockPhase);
+    
+    // Wenn er im Dock ist, NICHT im Portfolio anzeigen
+    if (isInDock) return false;
+    
+    // 2. ARCHIV FILTER
     const isArchived = e.isArchived === true;
     if (!showArchivedFrameworks && isArchived) return false;
 
