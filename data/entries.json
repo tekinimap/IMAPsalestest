@@ -12265,5 +12265,37 @@
     "dockPhaseHistory": {
       "1": 1766500734023
     }
+  },
+  {
+    "id": "hubspot_17bd769d678856fea227a2dd58ce82a5",
+    "hubspotId": "52331841064",
+    "title": "Förderkreise Los 4 (mit Kienbaum) A20065 – KV-2025-0011",
+    "amount": 9737,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500734547,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1736208000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500734547
+    }
   }
 ]
