@@ -11379,28 +11379,28 @@
     "submittedBy": "Sara Kaufmann (geb. Shekoomand)",
     "list": [
       {
-        "key": "hubspot_user_Sara Kaufmann (geb. Shekoomand)",
+        "key": "Sara Kaufmann (geb. Shekoomand)",
         "name": "Sara Kaufmann (geb. Shekoomand)",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Christopher van den Hövel",
+        "key": "Christopher van den Hövel",
         "name": "Christopher van den Hövel",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Eva Wollschläger",
+        "key": "Eva Wollschläger",
         "name": "Eva Wollschläger",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_Nina Stephan",
+        "key": "Nina Stephan",
         "name": "Nina Stephan",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1766483879455,
@@ -11414,7 +11414,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": false,
-    "freigabedatum": 1766483878610,
+    "freigabedatum": 1766448000000,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
@@ -11422,6 +11422,53 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1766481361413
-    }
+    },
+    "rows": [
+      {
+        "name": "Sara Kaufmann (geb. Shekoomand)",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Christopher van den Hövel",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Eva Wollschläger",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "Nina Stephan",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "ts": 1766485402542,
+    "modified": 1766485404522
   }
 ]
