@@ -11657,5 +11657,605 @@
     },
     "ts": 1766492380867,
     "modified": 1766492382563
+  },
+  {
+    "id": "entry_1766500914731_kv20250334",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "Skills4Alliance - Jahreskonferenz Plattform Wiederaufbau Ukraine",
+    "projectNumber": "GIZ-64-001",
+    "kv_nummer": "KV-2025-0334",
+    "amount": 2200,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765148400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0334"
+    ],
+    "kv": "KV-2025-0334",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250332",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "ChangePartner AG",
+    "title": "Knauf KNB07 Neuordnung internat Retail Vertrieb",
+    "projectNumber": "ChangePartner-46-001",
+    "kv_nummer": "KV-2025-0332",
+    "amount": 9600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765234800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0332"
+    ],
+    "kv": "KV-2025-0332",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250333",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Amt Löcknitz-Penkun",
+    "title": "S&R-Analyse 2026",
+    "projectNumber": "AML-01-001",
+    "kv_nummer": "KV-2025-0333",
+    "amount": 6050,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765234800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0333"
+    ],
+    "kv": "KV-2025-0333",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250335",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Vorpommern-Greifswald",
+    "title": "S&R-Analyse 2025",
+    "projectNumber": "LAV-01-001",
+    "kv_nummer": "KV-2025-0335",
+    "amount": 4500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765234800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0335"
+    ],
+    "kv": "KV-2025-0335",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250308",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "GASAG AG",
+    "title": "Workshop Beschwerdeprozess u. Vielfaltskommunikation",
+    "projectNumber": "GAA-01-001",
+    "kv_nummer": "KV-2025-0308",
+    "amount": 7800,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1762729200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0308"
+    ],
+    "kv": "KV-2025-0308",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250344",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Pasewalk",
+    "title": "S&R-Analyse Pasewalk 2025",
+    "projectNumber": "ST2-01-001",
+    "kv_nummer": "KV-2025-0344",
+    "amount": 8991.6,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765321200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0344"
+    ],
+    "kv": "KV-2025-0344",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250341",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "CLAIM Allianz",
+    "title": "Bedarfs­er­hebung und -analyse für die Entwicklung einer bundes­zen­tralen Infra­struktur im Themenfeld Rassismus",
+    "projectNumber": "CLAIM-03-001",
+    "kv_nummer": "KV-2025-0341",
+    "amount": 33055,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765321200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0341"
+    ],
+    "kv": "KV-2025-0341",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250338",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "CLAIM Allianz",
+    "title": "Fachveranstaltung: Antimuslimischer Rassismus in Behörden: Herausforderungen und Handlungsperspektiven. Impulse und Praxisansätze - eine rassismussensible Verwaltung",
+    "projectNumber": "CLAIM-02-001",
+    "kv_nummer": "KV-2025-0338",
+    "amount": 336.13,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765321200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0338"
+    ],
+    "kv": "KV-2025-0338",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250304",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Teach First Deutschland gGmbH",
+    "title": "Strategieentwicklung Paperplane",
+    "projectNumber": "TFD-02-001",
+    "kv_nummer": "KV-2025-0304",
+    "amount": 1300,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1762902000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0304"
+    ],
+    "kv": "KV-2025-0304",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250349",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Wolgast",
+    "title": "S&R-Analyse 2025",
+    "projectNumber": "STW-01-001",
+    "kv_nummer": "KV-2025-0349",
+    "amount": 5042.02,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1765494000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0349"
+    ],
+    "kv": "KV-2025-0349",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250343",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Hessisches Ministerium für Soziales und Integration",
+    "title": "Referentinnentätigkeit zum Projekt „Kommunale Allianzen & Strategien gegen Rassismus und Hass",
+    "projectNumber": "HMSI-13-001",
+    "kv_nummer": "KV-2025-0343",
+    "amount": 252.1,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1760479200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0343"
+    ],
+    "kv": "KV-2025-0343",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250003",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "greenstorming GmbH",
+    "title": "13. - 14.03.2025 in Berlin - Workshop „Migration entwicklungspolitisch gestalten“",
+    "projectNumber": "GS GmbH-03-001",
+    "kv_nummer": "KV-2025-0003",
+    "amount": 3850,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1734562800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0003"
+    ],
+    "kv": "KV-2025-0003",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250355",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Stadt Mönchengladbach",
+    "title": "Digitales Führungskräftecoaching",
+    "projectNumber": "MGladbach-06-002",
+    "kv_nummer": "KV-2025-0355",
+    "amount": 156.26,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1766098800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0355"
+    ],
+    "kv": "KV-2025-0355",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250004",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "pro familia Bundesverband",
+    "title": "Best-Practice – Wie funktioniert ein datenbasiertes Projekt",
+    "projectNumber": "profamilia-02-001",
+    "kv_nummer": "KV-2025-0004",
+    "amount": 6475,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1734649200000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0004"
+    ],
+    "kv": "KV-2025-0004",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914731_kv20250322",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Zentrum Informationsarbeit der Bundeswehr",
+    "title": "KI in der Informationsarbeit",
+    "projectNumber": "ZID-01-001",
+    "kv_nummer": "KV-2025-0322",
+    "amount": 11700,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914731,
+    "freigabedatum": 1763938800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914731,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0322"
+    ],
+    "kv": "KV-2025-0322",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914732_kv20250327",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Landkreis Nordwestmecklenburg",
+    "title": "Organisationsuntersuchung der Ausländerbehörde Aufstockung",
+    "projectNumber": "LK NWM-01-001",
+    "kv_nummer": "KV-2025-0327",
+    "amount": 4500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914732,
+    "freigabedatum": 1764284400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914732,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0327"
+    ],
+    "kv": "KV-2025-0327",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914732_kv20250325",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Amt Usedom-Süd",
+    "title": "S&R-Analyse 2025",
+    "projectNumber": "AMU-01-001",
+    "kv_nummer": "KV-2025-0325",
+    "amount": 3500,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914732,
+    "freigabedatum": 1764284400000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914732,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0325"
+    ],
+    "kv": "KV-2025-0325",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914732_kv20250104",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "StudienInstitut NiederrheiN",
+    "title": "Seminar zum Thema Generationsmanagement",
+    "projectNumber": "S.I.N.N.-04-001",
+    "kv_nummer": "KV-2025-0104",
+    "amount": 0,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914732,
+    "freigabedatum": 1746136800000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914732,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0104"
+    ],
+    "kv": "KV-2025-0104",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914732_kv20250348",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "PG 2026 Gruppe 2: Mongolei/Vietnam",
+    "projectNumber": "GIZ-66-001",
+    "kv_nummer": "KV-2025-0348",
+    "amount": 60600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914732,
+    "freigabedatum": 1764630000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914732,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0348"
+    ],
+    "kv": "KV-2025-0348",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
+  },
+  {
+    "id": "entry_1766500914732_kv20250347",
+    "source": "erp-import",
+    "projectType": "fix",
+    "client": "Deutsche Gesellschaft für Internationale Zusammenarbeit GIZ GmbH",
+    "title": "PG 2026 Gruppe 1 - Ägypten",
+    "projectNumber": "GIZ-65-001",
+    "kv_nummer": "KV-2025-0347",
+    "amount": 60600,
+    "list": [],
+    "rows": [],
+    "weights": [],
+    "ts": 1766500914732,
+    "freigabedatum": 1764630000000,
+    "dockFinalAssignment": "fix",
+    "dockFinalAssignmentAt": 1766500914732,
+    "dockPhase": 4,
+    "complete": true,
+    "kvNummern": [
+      "KV-2025-0347"
+    ],
+    "kv": "KV-2025-0347",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "4": 1766500919237
+    },
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null
   }
 ]
