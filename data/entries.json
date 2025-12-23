@@ -13466,5 +13466,37 @@
     "dockPhaseHistory": {
       "1": 1766498253792
     }
+  },
+  {
+    "id": "hubspot_2f11d45b664158cff7e0e5eaf422dd20",
+    "hubspotId": "52425526409",
+    "title": "Josefine de Buhr - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0193",
+    "amount": 1680,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766498254396,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1756072800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766498254396
+    }
   }
 ]
