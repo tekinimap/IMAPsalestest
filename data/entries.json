@@ -11721,5 +11721,37 @@
     "dockPhaseHistory": {
       "1": 1766500244037
     }
+  },
+  {
+    "id": "hubspot_65d1a0e9bdff4b6cb02eedb2bb1899c1",
+    "hubspotId": "52466684003",
+    "title": "2026 Erbringung von unternehmensweiten systemischen und psychodynamischen Beratungs-, Coaching-, Supervisions- und Moderationsleistungen – KV-2025-0363",
+    "amount": 16400,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500244647,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1766358000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500244647
+    }
   }
 ]
