@@ -12425,5 +12425,37 @@
     "dockPhaseHistory": {
       "1": 1766500737310
     }
+  },
+  {
+    "id": "hubspot_25b036a6f6af19422dbc98fc590dd243",
+    "hubspotId": "52466695521",
+    "title": "Rahmenvertrag Qualifizierung kompakt für neue Führungskräfte – KV-2025-0353",
+    "amount": 25050,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500738189,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1765839600000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500738189
+    }
   }
 ]
