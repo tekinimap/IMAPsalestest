@@ -4,7 +4,7 @@ import { showLoader, hideLoader, showToast, showBatchProgress, updateBatchProgre
 import { loadHistory } from './history.js';
 import { getEntries } from '../entries-state.js';
 
-// --- Hilfsfunktionen ---
+// --- Hilfsfunktionen für Normalisierung und Parsing ---
 
 function normKey(str) {
   return String(str || '').toLowerCase().trim();
@@ -80,6 +80,7 @@ async function analyzeErpFile(file) {
   const sheetName = workbook.SheetNames[0];
   const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+  // Indizes aufbauen
   const kvIndex = new Map();
   const frameworkIndex = new Map();
 
@@ -382,14 +383,14 @@ function renderPreviewModal(buckets) {
   };
 }
 
-// --- Batch Sending Helper (EXTREM SICHER: CHUNK=1, DELAY=1500ms) ---
+// --- Batch Sending Helper (BALANCIERT: CHUNK=5, DELAY=1000ms) ---
 
 async function sendBatch(rows, label) {
   if (!rows || rows.length === 0) return;
 
-  // WICHTIG: Cloudflare Free Tier Schutz
-  const CHUNK_SIZE = 1; // Immer nur EINEN Eintrag gleichzeitig senden
-  const DELAY_MS = 1500; // 1,5 Sekunden Pause zwischen Anfragen
+  // OPTIMALE EINSTELLUNG FÜR FREE TIER:
+  const CHUNK_SIZE = 5; // 5 Einträge pro Request (verhindert CPU-Absturz)
+  const DELAY_MS = 1000; // 1 Sekunde Pause (verhindert Rate-Limit-Blockade)
 
   const total = rows.length;
   let processed = 0;
@@ -402,7 +403,7 @@ async function sendBatch(rows, label) {
       const chunk = rows.slice(i, i + CHUNK_SIZE);
       const currentEnd = Math.min(processed + chunk.length, total);
       const percent = processed / total;
-      updateBatchProgress(percent, `${label}: ${processed + 1} von ${total}`);
+      updateBatchProgress(percent, `${label}: ${processed + 1} bis ${currentEnd} von ${total}`);
 
       const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
         method: 'POST',
@@ -416,7 +417,7 @@ async function sendBatch(rows, label) {
       }
       processed += chunk.length;
       
-      // PAUSE einlegen, wenn noch nicht fertig
+      // PAUSE einlegen
       if(processed < total) {
           await new Promise(r => setTimeout(r, DELAY_MS));
       }
