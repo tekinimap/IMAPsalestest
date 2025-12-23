@@ -11950,5 +11950,37 @@
     "dockPhaseHistory": {
       "1": 1766497138753
     }
+  },
+  {
+    "id": "hubspot_b463f49bb694872c5a802acbbde850ab",
+    "hubspotId": "52384000558",
+    "title": "Führungskräftequalifizierung II A21083 – KV-2025-0109",
+    "amount": 3600,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766497140012,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1746576000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766497140012
+    }
   }
 ]
