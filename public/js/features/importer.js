@@ -242,7 +242,7 @@ function renderPreviewModal(buckets) {
   const header = document.createElement('div');
   header.innerHTML = `
     <div style="padding: 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">ERP Import Analyse (Safe Batch)</h2>
+      <h2 style="margin:0; font-size: 1.25rem; font-weight: 600;">ERP Import Analyse (Maximum Safety)</h2>
       <button id="close-erp-modal" style="background:transparent; border:none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
     </div>
   `;
@@ -383,14 +383,13 @@ function renderPreviewModal(buckets) {
   };
 }
 
-// --- Batch Sending Helper (BALANCIERT: CHUNK=5, DELAY=1000ms) ---
+// --- Batch Sending Helper (ULTRA SICHER: 1 Eintrag, 2 Sek Pause) ---
 
 async function sendBatch(rows, label) {
   if (!rows || rows.length === 0) return;
 
-  // OPTIMALE EINSTELLUNG FÜR FREE TIER:
-  const CHUNK_SIZE = 5; // 5 Einträge pro Request (verhindert CPU-Absturz)
-  const DELAY_MS = 1000; // 1 Sekunde Pause (verhindert Rate-Limit-Blockade)
+  const CHUNK_SIZE = 1; // Sicher ist sicher
+  const DELAY_MS = 2000; // 2 Sekunden Pause zwischen jedem Eintrag
 
   const total = rows.length;
   let processed = 0;
@@ -403,7 +402,7 @@ async function sendBatch(rows, label) {
       const chunk = rows.slice(i, i + CHUNK_SIZE);
       const currentEnd = Math.min(processed + chunk.length, total);
       const percent = processed / total;
-      updateBatchProgress(percent, `${label}: ${processed + 1} bis ${currentEnd} von ${total}`);
+      updateBatchProgress(percent, `${label}: ${processed + 1} von ${total}`);
 
       const response = await fetchWithRetry(`${WORKER_BASE}/entries/bulk-v2`, {
         method: 'POST',
@@ -417,7 +416,7 @@ async function sendBatch(rows, label) {
       }
       processed += chunk.length;
       
-      // PAUSE einlegen
+      // PAUSE für Cloudflare Free Tier
       if(processed < total) {
           await new Promise(r => setTimeout(r, DELAY_MS));
       }
