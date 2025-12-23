@@ -12713,5 +12713,37 @@
     "dockPhaseHistory": {
       "1": 1766500744594
     }
+  },
+  {
+    "id": "hubspot_bd41050034c5e94fd8ef9d8c453e7921",
+    "hubspotId": "52456782108",
+    "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung – KV-2025-0094",
+    "amount": 91062.5,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766500745581,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1745280000000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766500745581
+    }
   }
 ]
