@@ -2,6 +2,7 @@ export function registerEntryRoutes(
   router,
   {
     ghGetFile,
+    ghPutFile,
     kvListFrom,
     canonicalizeEntries,
     ensureKvStructure,
@@ -721,6 +722,80 @@ export function registerEntryRoutes(
     }
 
     return respond({ ok: true, deletedCount });
+  });
+
+  router.post('/entries/archive', async ({ env, respond, ghPath, branch, request, saveEntries }) => {
+    console.log('Processing /entries/archive');
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return respond({ error: 'Invalid JSON', details: e.message }, 400);
+    }
+
+    const year = Number(body?.year);
+    if (!Number.isInteger(year)) {
+      return respond({ error: 'invalid_year', message: 'Bitte ein gültiges Jahr angeben.' }, 400);
+    }
+
+    const { items, sha } = await ghGetFile(env, ghPath, branch);
+    const archiveData = [];
+    const activeData = [];
+
+    const extractYear = (entry) => {
+      const candidate = entry?.freigabedatum ?? entry?.ts ?? entry?.timestamp ?? entry?.createdAt;
+      if (!candidate) return null;
+      const date = new Date(candidate);
+      if (!Number.isFinite(date.getTime())) return null;
+      return date.getFullYear();
+    };
+
+    for (const entry of items || []) {
+      const isRahmen = entry?.projectType === 'rahmen';
+      const entryYear = extractYear(entry);
+      const isInYear = entryYear === year;
+
+      if (!isRahmen && isInYear) {
+        archiveData.push(entry);
+      } else {
+        activeData.push(entry);
+      }
+    }
+
+    const archivePath = `data/archive/${year}.json`;
+
+    try {
+      await ghPutFile(
+        env,
+        archivePath,
+        canonicalizeEntries(archiveData),
+        null,
+        `archive ${archiveData.length} entries for ${year}`,
+        branch,
+      );
+
+      await saveEntries(
+        activeData,
+        sha,
+        `refresh entries after archiving ${archiveData.length} items for ${year}`,
+      );
+
+      await logJSONL(env, [
+        {
+          event: 'archive',
+          year,
+          archived: archiveData.length,
+          remaining: activeData.length,
+          archivePath,
+        },
+      ]);
+    } catch (e) {
+      console.error('Archiving entries failed:', e);
+      return respond({ error: 'archive_failed', details: e.message }, 500);
+    }
+
+    console.log(`Archived ${archiveData.length} entries for ${year}. Active remaining: ${activeData.length}`);
+    return respond({ archived: archiveData.length, year });
   });
 
   router.post('/entries/merge', async ({ env, respond, ghPath, branch, request, saveEntries }) => {
