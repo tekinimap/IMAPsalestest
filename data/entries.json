@@ -2,7 +2,7 @@
   {
     "id": "manuell_barmer_gek_fke_2024",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Barmer GEK",
     "title": "FKE 2024",
     "amount": 0,
@@ -45,7 +45,7 @@
         "id": "trans_1761664649063_KV20250126",
         "kv_nummer": "KV-2025-0126",
         "type": "founder",
-        "amount": 3850,
+        "amount": 4900.0,
         "ts": 1761664649063,
         "freigabedatum": 1749081600000
       },
@@ -69,7 +69,7 @@
         "id": "trans_1761664649061_KV20250028",
         "kv_nummer": "KV-2025-0028",
         "type": "founder",
-        "amount": 4725,
+        "amount": 5075.0,
         "ts": 1761664649061,
         "freigabedatum": 1736899200000
       },
@@ -77,16 +77,38 @@
         "id": "trans_1762772744916_KV20250159",
         "kv_nummer": "KV-2025-0159",
         "type": "founder",
-        "amount": 0,
+        "amount": 2100.0,
         "ts": 1762772744916,
         "freigabedatum": 1762772744916
+      },
+      {
+        "id": "trans_1766502104616_527",
+        "kv_nummer": "KV-2025-0295",
+        "type": "founder",
+        "amount": 4200.0,
+        "ts": 1766502104616,
+        "freigabedatum": 1766502104616,
+        "title": "Konzeption für 2026",
+        "client": "Barmer GEK"
+      },
+      {
+        "id": "trans_1766502104620_526",
+        "kv_nummer": "KV-2025-0363",
+        "type": "founder",
+        "amount": 16400.0,
+        "ts": 1766502104620,
+        "freigabedatum": 1766502104620,
+        "title": "2026 Erbringung von unternehmensweiten systemischen und psychodynamischen Beratungs-, Coaching-, Supervisions- und Moderationsleistungen",
+        "client": "Barmer GEK"
       }
     ],
     "modified": 1762772809953,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
@@ -179,7 +201,7 @@
   {
     "id": "manuell_bmbf_pe_referenten",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Bundesministerium für Bildung und Forschung",
     "title": "Personalentwicklungsprogramm für Referent*innen",
     "amount": 0,
@@ -209,16 +231,29 @@
     "projectNumber": "BMBF-01-002",
     "kv_nummer": "",
     "ts": 1761032940003,
-    "transactions": [],
+    "transactions": [
+      {
+        "id": "trans_1766502104617_389",
+        "kv_nummer": "KV-2025-0345",
+        "type": "founder",
+        "amount": 42000.0,
+        "ts": 1766502104617,
+        "freigabedatum": 1766502104617,
+        "title": "RV BMBF Personalentwicklungsprogramm für Referent*innen 2026",
+        "client": "Bundesministerium für Forschung, Technologie und Raumfahrt"
+      }
+    ],
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_bmdv_teamklausuren",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Bundesministerium für Digitales und Verkehr",
     "title": "Organisation und Durchführung Teamklausuren",
     "amount": 0,
@@ -269,7 +304,7 @@
         "id": "trans_1761664649063_KV20250097",
         "kv_nummer": "KV-2025-0097",
         "type": "founder",
-        "amount": 3800,
+        "amount": 3780.0,
         "ts": 1761664649063,
         "freigabedatum": 1745798400000
       },
@@ -301,7 +336,7 @@
         "id": "trans_1761664649065_KV20250184",
         "kv_nummer": "KV-2025-0184",
         "type": "founder",
-        "amount": 1150,
+        "amount": 950.0,
         "ts": 1761664649065,
         "freigabedatum": 1754524800000
       },
@@ -312,13 +347,25 @@
         "amount": 8400,
         "ts": 1761664649069,
         "freigabedatum": 1759795200000
+      },
+      {
+        "id": "trans_1766502104619_934",
+        "kv_nummer": "KV-2025-0313",
+        "type": "founder",
+        "amount": 1250.0,
+        "ts": 1766502104619,
+        "freigabedatum": 1766502104619,
+        "title": "Nov/2025 - RV Organisation und Durchführung Teamklausuren",
+        "client": "Bundesministerium für Verkehr"
       }
     ],
     "modified": 1761664685831,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_dlr_schulung_prozess",
@@ -401,7 +448,7 @@
   {
     "id": "manuell_drv_bawü_training",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Deutsche Rentenversicherung Baden-Württemberg",
     "title": "Trainingsleistungen im Bereich Team- und Führungskräfteentwicklung",
     "amount": 0,
@@ -444,7 +491,7 @@
         "id": "trans_1761664649062_KV20250074",
         "kv_nummer": "KV-2025-0074",
         "type": "founder",
-        "amount": 11599,
+        "amount": 10374.0,
         "ts": 1761664649062,
         "freigabedatum": 1743033600000
       },
@@ -452,7 +499,7 @@
         "id": "trans_1761664649063_KV20250094",
         "kv_nummer": "KV-2025-0094",
         "type": "founder",
-        "amount": 91062.5,
+        "amount": 88912.5,
         "ts": 1761664649063,
         "freigabedatum": 1745280000000
       },
@@ -468,7 +515,7 @@
         "id": "trans_1761664649068_KV20250225",
         "kv_nummer": "KV-2025-0225",
         "type": "founder",
-        "amount": 1400,
+        "amount": 2800.0,
         "ts": 1761664649068,
         "freigabedatum": 1757289600000
       },
@@ -479,13 +526,25 @@
         "amount": 0,
         "ts": 1762772745336,
         "freigabedatum": 1762772745336
+      },
+      {
+        "id": "trans_1766502104619_606",
+        "kv_nummer": "KV-2025-0316",
+        "type": "founder",
+        "amount": 8400.0,
+        "ts": 1766502104619,
+        "freigabedatum": 1766502104619,
+        "title": "Moderation Klausurtagung in Bad Böll vom 13. – 14. Januar 2026",
+        "client": "Deutsche Rentenversicherung Baden-Württemberg"
       }
     ],
     "modified": 1762772817562,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
@@ -629,7 +688,7 @@
         "id": "trans_1761664649069_KV20250247",
         "kv_nummer": "KV-2025-0247",
         "type": "founder",
-        "amount": 55740.63,
+        "amount": 112321.26,
         "ts": 1761664649069,
         "freigabedatum": 1759795200000
       }
@@ -692,7 +751,7 @@
   {
     "id": "manuell_drv_bund_foerderkreise",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Förderkreise Los 4 (mit Kienbaum) A20065",
     "amount": 0,
@@ -735,16 +794,28 @@
         "id": "trans_1761664649064_KV20250157",
         "kv_nummer": "KV-2025-0157",
         "type": "founder",
-        "amount": 4035.2,
+        "amount": 10034.7,
         "ts": 1761664649064,
         "freigabedatum": 1752105600000
+      },
+      {
+        "id": "trans_1766502104618_259",
+        "kv_nummer": "KV-2025-0309",
+        "type": "founder",
+        "amount": 7800.0,
+        "ts": 1766502104618,
+        "freigabedatum": 1766502104618,
+        "title": "Q1 + Q2 2026 RV Förderkreise (mit Kienbaum) Los 4 A20065",
+        "client": "Deutsche Rentenversicherung Bund"
       }
     ],
     "modified": 1761664685831,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_next_campus",
@@ -798,7 +869,7 @@
   {
     "id": "manuell_drv_bund_teamentw",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Deutsche Rentenversicherung Bund",
     "title": "Teamentwicklung",
     "amount": 0,
@@ -849,7 +920,7 @@
         "id": "trans_1761664649061_KV20250039",
         "kv_nummer": "KV-2025-0039",
         "type": "founder",
-        "amount": 4800,
+        "amount": 0.0,
         "ts": 1761664649061,
         "freigabedatum": 1739145600000
       },
@@ -900,13 +971,35 @@
         "amount": 10800,
         "ts": 1761664649069,
         "freigabedatum": 1760313600000
+      },
+      {
+        "id": "trans_1766502104617_103",
+        "kv_nummer": "KV-2025-0340",
+        "type": "founder",
+        "amount": 1600.0,
+        "ts": 1766502104617,
+        "freigabedatum": 1766502104617,
+        "title": "Q2/26 Rahmenvertrag Teamentwicklung",
+        "client": "Deutsche Rentenversicherung Bund"
+      },
+      {
+        "id": "trans_1766502104617_119",
+        "kv_nummer": "KV-2025-0339",
+        "type": "founder",
+        "amount": 0.0,
+        "ts": 1766502104617,
+        "freigabedatum": 1766502104617,
+        "title": "Projekt- und Terminmanagement",
+        "client": "Deutsche Rentenversicherung Bund"
       }
     ],
     "modified": 1761664685831,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
@@ -1034,7 +1127,7 @@
         "id": "trans_1761664649070_KV20250279",
         "kv_nummer": "KV-2025-0279",
         "type": "founder",
-        "amount": 5345.63,
+        "amount": 18040.52,
         "ts": 1761664649070,
         "freigabedatum": 1761264000000
       }
@@ -1147,7 +1240,7 @@
         "id": "trans_1761664649068_KV20250223",
         "kv_nummer": "KV-2025-0223",
         "type": "founder",
-        "amount": 18650,
+        "amount": 21650.0,
         "ts": 1761664649068,
         "freigabedatum": 1757635200000
       },
@@ -1155,7 +1248,7 @@
         "id": "trans_1761664649069_KV20250250",
         "kv_nummer": "KV-2025-0250",
         "type": "founder",
-        "amount": 14370,
+        "amount": 15870.0,
         "ts": 1762772744525,
         "freigabedatum": 1759795200000
       },
@@ -1258,7 +1351,7 @@
         "id": "trans_1761664649069_KV20250271",
         "kv_nummer": "KV-2025-0271",
         "type": "founder",
-        "amount": 3600,
+        "amount": 3000.0,
         "ts": 1761664649069,
         "freigabedatum": 1760918400000
       },
@@ -1427,7 +1520,7 @@
         "id": "trans_1761664649070_KV20250273",
         "kv_nummer": "KV-2025-0273",
         "type": "founder",
-        "amount": 4425,
+        "amount": 5025.0,
         "ts": 1761664649070,
         "freigabedatum": 1761091200000
       },
@@ -1667,7 +1760,7 @@
   {
     "id": "manuell_kommone_fke_los1",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Komm.ONE AöR",
     "title": "Führungskräfteentwicklungsprogramm Los 1",
     "amount": 0,
@@ -1710,7 +1803,7 @@
         "id": "trans_1762772744696_KV20250208",
         "kv_nummer": "KV-2025-0208",
         "type": "founder",
-        "amount": 0,
+        "amount": 9775.0,
         "ts": 1762772744696,
         "freigabedatum": 1762772744696
       },
@@ -1721,13 +1814,25 @@
         "amount": 0,
         "ts": 1762772745325,
         "freigabedatum": 1762772745325
+      },
+      {
+        "id": "trans_1766502104618_759",
+        "kv_nummer": "KV-2025-0310",
+        "type": "founder",
+        "amount": 52900.0,
+        "ts": 1766502104618,
+        "freigabedatum": 1766502104618,
+        "title": "Führungsreisen - Führungskräfteentwicklungsprogramm",
+        "client": "Komm.ONE Anstalt des öffentlichen Rechts"
       }
     ],
     "modified": 1762772804943,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_stadt_bochum_teamentw",
@@ -1791,7 +1896,7 @@
         "id": "trans_1761664649069_KV20250260",
         "kv_nummer": "KV-2025-0260",
         "type": "founder",
-        "amount": 67200,
+        "amount": 60800.0,
         "ts": 1761664649069,
         "freigabedatum": 1759968000000
       },
@@ -1856,7 +1961,7 @@
         "id": "trans_1762772744508_KV20250252",
         "kv_nummer": "KV-2025-0252",
         "type": "founder",
-        "amount": 1555.73,
+        "amount": 2675.73,
         "ts": 1762772744508,
         "freigabedatum": 1762772744508
       }
@@ -1929,7 +2034,7 @@
         "id": "trans_1761665317621_KV20250152",
         "kv_nummer": "KV-2025-0152",
         "type": "founder",
-        "amount": 360,
+        "amount": 1740.0,
         "ts": 1761665317621,
         "freigabedatum": 1751414400000
       },
@@ -1937,7 +2042,7 @@
         "id": "trans_1761665325294_KV20250178",
         "kv_nummer": "KV-2025-0178",
         "type": "founder",
-        "amount": 1440,
+        "amount": 1680.0,
         "ts": 1761665325294,
         "freigabedatum": 1754006400000
       },
@@ -1977,7 +2082,7 @@
         "id": "trans_1761667834980_KV20250210",
         "kv_nummer": "KV-2025-0210",
         "type": "founder",
-        "amount": 252,
+        "amount": 0.0,
         "ts": 1761667834980,
         "freigabedatum": 1756857600000
       },
@@ -2249,7 +2354,7 @@
   {
     "id": "manuell_stadt_koeln_quali_kompakt",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "Stadt Köln",
     "title": "Qualifizierung kompakt",
     "amount": 0,
@@ -2295,13 +2400,25 @@
         "amount": 0,
         "ts": 1762772745171,
         "freigabedatum": 1762772745171
+      },
+      {
+        "id": "trans_1766502104619_702",
+        "kv_nummer": "KV-2025-0353",
+        "type": "founder",
+        "amount": 25050.0,
+        "ts": 1766502104619,
+        "freigabedatum": 1766502104619,
+        "title": "Rahmenvertrag Qualifizierung kompakt für neue Führungskräfte",
+        "client": "Stadt Köln"
       }
     ],
     "modified": 1762772799265,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_steb_koeln_change",
@@ -2428,7 +2545,7 @@
   {
     "id": "manuell_wdr_change_fuehrung",
     "source": "manuell",
-    "complete": false,
+    "complete": true,
     "client": "WDR",
     "title": "Changemanagement und Führungs-Beratungsleistungen",
     "amount": 0,
@@ -2482,13 +2599,25 @@
         "amount": 0,
         "ts": 1762772745165,
         "freigabedatum": 1762772745165
+      },
+      {
+        "id": "trans_1766502104620_524",
+        "kv_nummer": "KV-2025-0364",
+        "type": "founder",
+        "amount": 1400.0,
+        "ts": 1766502104620,
+        "freigabedatum": 1766502104620,
+        "title": "Führungsmodelle: kollegiales Sparring",
+        "client": "Westdeutscher Rundfunk Köln"
       }
     ],
     "modified": 1762772803283,
     "kvNummern": [],
     "kv": "",
     "dockRewardFactor": 1,
-    "dockRewardComment": ""
+    "dockRewardComment": "",
+    "dockPhase": 4,
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_giz_ewfl_de_en",
