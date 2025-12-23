@@ -217,9 +217,12 @@ export function renderPortfolio() {
   const entries = getEntries() || [];
   const searchInput = document.getElementById('portfolioSearch');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  let filteredEntries = entries.filter(
-    (e) => showArchivedFrameworks || e.projectType !== 'rahmen' || !e.isArchived
-  );
+  let filteredEntries = entries.filter((e) => {
+    const isArchived = e.isArchived === true;
+    if (!showArchivedFrameworks && isArchived) return false;
+
+    return showArchivedFrameworks || e.projectType !== 'rahmen' || !isArchived;
+  });
 
   if (currentFilter === 'fix') {
     filteredEntries = filteredEntries.filter((e) => (e.projectType || 'fix') === 'fix');
