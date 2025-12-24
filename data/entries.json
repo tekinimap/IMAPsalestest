@@ -13576,7 +13576,7 @@
     "id": "hubspot_e4f68738b0adf6e0dcd1976329a9f872",
     "hubspotId": "52076497168",
     "title": "test",
-    "amount": 1,
+    "amount": 100,
     "source": "hubspot",
     "projectType": "fix",
     "projectNumber": "",
@@ -13584,16 +13584,16 @@
     "submittedBy": "Abdi Tekin",
     "list": [
       {
-        "key": "hubspot_user_Abdi Tekin",
+        "key": "Abdi Tekin",
         "name": "Abdi Tekin",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       },
       {
-        "key": "hubspot_user_IMAP GmbH",
+        "key": "IMAP GmbH",
         "name": "IMAP GmbH",
-        "money": 0,
-        "pct": 0
+        "pct": 0,
+        "money": 0
       }
     ],
     "updatedAt": 1766614273275,
@@ -13607,7 +13607,7 @@
     "dockFinalAssignmentAt": null,
     "dockPhase": 1,
     "flagship_projekt": true,
-    "freigabedatum": 1766614271972,
+    "freigabedatum": 1766534400000,
     "kvNummern": [],
     "kv_nummer": "",
     "kv": "",
@@ -13615,6 +13615,41 @@
     "dockRewardComment": "",
     "dockPhaseHistory": {
       "1": 1766614273275
-    }
+    },
+    "rows": [
+      {
+        "name": "Abdi Tekin",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      },
+      {
+        "name": "IMAP GmbH",
+        "cs": 0,
+        "konzept": 0,
+        "pitch": 0
+      }
+    ],
+    "weights": [
+      {
+        "key": "cs",
+        "weight": 50
+      },
+      {
+        "key": "konzept",
+        "weight": 30
+      },
+      {
+        "key": "pitch",
+        "weight": 20
+      }
+    ],
+    "totals": {
+      "cs": 0,
+      "konzept": 0,
+      "pitch": 0
+    },
+    "ts": 1766618514123,
+    "modified": 1766618514524
   }
 ]
