@@ -4,10 +4,10 @@ import {
   normalizeString,
   firstNonEmpty,
   applyKvList,
-} from '../utils/validation.js';
+} from '../../utils/validation.js';
 import {
   toEpochMillis,
-} from '../log-analytics-core.js';
+} from '../../log-analytics-core.js';
 
 // We duplicate unpackProject/packProject as they are local to the module and not exported/passed easily.
 const unpackProject = (row) => {
