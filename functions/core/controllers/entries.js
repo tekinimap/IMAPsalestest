@@ -246,12 +246,57 @@ export function registerEntryRoutes(
     const rows = payload.rows || [];
     if (!rows.length) return respond({ ok: true, message: 'empty' });
 
+    // 1. Pre-fetch existing projects by Project Number to handle "Missing ID" scenario
+    // This allows identifying if an imported row (without ID) is an update to an existing Framework (Call-off)
+    // or an update to an existing Fix Project.
+    const lookupNumbers = new Set();
+    for (const r of rows) {
+        if (r.projectNumber && typeof r.projectNumber === 'string' && !r.id && !r.parentId && !r.project_id) {
+            lookupNumbers.add(r.projectNumber);
+        }
+    }
+
+    const numberMap = new Map();
+    if (lookupNumbers.size > 0) {
+        const allNumbers = Array.from(lookupNumbers);
+        const CHUNK_SIZE = 50;
+        for (let i = 0; i < allNumbers.length; i += CHUNK_SIZE) {
+            const chunk = allNumbers.slice(i, i + CHUNK_SIZE);
+            if (!chunk.length) continue;
+            const placeholders = chunk.map(() => '?').join(',');
+            try {
+                // We need projectType to distinguish between Framework (attach transaction) and Fix (update project)
+                const { results } = await env.DB.prepare(
+                    `SELECT id, projectNumber, projectType FROM projects WHERE projectNumber IN (${placeholders})`
+                ).bind(...chunk).all();
+                for (const res of results) {
+                    numberMap.set(res.projectNumber, res);
+                }
+            } catch (err) {
+                console.error("Lookup error in bulk-v2", err);
+            }
+        }
+    }
+
     const statements = [];
     const logs = [];
     let created = 0; 
     let updated = 0;
 
     for (const row of rows) {
+        // ID Resolution: If no ID but Project Number exists, check if we found a match.
+        if (!row.id && !row.parentId && !row.project_id && row.projectNumber && numberMap.has(row.projectNumber)) {
+            const match = numberMap.get(row.projectNumber);
+            // If it's a Framework, we assume this row is a Transaction (Call-off) for that Framework
+            // UNLESS the row explicitly has 'projectType' set to 'rahmen' (then it might be a project update)
+            if (match.projectType === 'rahmen' && row.projectType !== 'rahmen') {
+                row.parentId = match.id;
+            } else {
+                // Otherwise (Fix Project or explicit Framework update), we treat it as an Update to the Project
+                row.id = match.id;
+            }
+        }
+
         // Prüfen: Ist es eine Transaction (hat parentId) oder ein Projekt?
         // Im Importer setzen wir "parentId" bei Call-Offs im JSON aber die DB nutzt 'project_id'
         // Wir müssen erkennen, was reinkommt.
@@ -281,6 +326,14 @@ export function registerEntryRoutes(
         else if (!row.parentId && !row.project_id) {
             // Check ob ID existiert (Update) oder nicht (Insert)
             // SQL "INSERT OR REPLACE" ist hier Gold wert
+
+            // FORCE dockPhase = 4 for new imports if not explicitly set
+            // The user requested that imported deals should go directly to Portfolio (Phase 4).
+            // We assume if 'dockPhase' is missing or null, it's a new import intended for Portfolio.
+            if (row.dockPhase == null) {
+                row.dockPhase = 4;
+            }
+
             const p = packProject(row);
             statements.push(env.DB.prepare(
                "INSERT OR REPLACE INTO projects (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"

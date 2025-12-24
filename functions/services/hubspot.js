@@ -153,11 +153,11 @@ export function collectHubspotSyncPayload(before, after) {
   if (!after || typeof after !== 'object') return null;
 
   const normalizedSource = normalizeString(after.source).toLowerCase();
-  if (normalizedSource !== 'hubspot') {
+  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
+
+  if (normalizedSource !== 'hubspot' && !dealId) {
     return null;
   }
-
-  const dealId = normalizeString(after.hubspotId || after.hs_object_id);
   const previousProjectNumber = normalizeString(before?.projectNumber);
   const nextProjectNumber = normalizeString(after?.projectNumber);
   const previousKvNummer = normalizeString(firstNonEmpty(before?.kv, before?.kv_nummer));
