@@ -1505,6 +1505,12 @@ registerHubspotRoutes(router, {
   ghPutFile,
   canonicalizeEntries,
   logJSONL,
+  deriveBusinessUnitFromTeamName,
+  ensureDockMetadata,
+  ensureKvStructure,
+  fieldsOf,
+  parseHubspotCheckbox,
+  rndId,
 });
 
 export default {
