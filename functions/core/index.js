@@ -1571,7 +1571,12 @@ export default {
       if (routeResponse) return routeResponse;
 
       console.log(`Route not found: ${request.method} ${pathname}`);
-      return respond({ error: 'not_found' }, 404);
+      return respond({
+        error: 'not_found',
+        path: pathname,
+        method: request.method,
+        originalUrl: request.url
+      }, 404);
     } catch (err) {
       console.error('Worker Error:', err, err.stack);
       return respond({ error: err.message || String(err) }, 500);
