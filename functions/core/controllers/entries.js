@@ -189,33 +189,64 @@ export function registerEntryRoutes(
     }
   });
 
-  // 4. PUT (UPDATE)
+  // 4. PUT (UPDATE) - Now Supports Upsert (Create if ID missing)
   router.put('/entries/:id', async ({ env, respond, request, params, ctx }) => {
     const id = decodeURIComponent(params.id);
     let body;
     try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
 
-    // Existiert es? Load FULL object for Sync Diff
+    // Check if it exists
     const existingRow = await env.DB.prepare("SELECT * FROM projects WHERE id = ?").bind(id).first();
-    if (!existingRow) return respond({ error: 'not found' }, 404);
 
+    // --- CREATE PATH (UPSERT) ---
+    if (!existingRow) {
+        const p = packProject({ ...body, id });
+        const statements = [];
+
+        // Insert Project
+        statements.push(env.DB.prepare(
+          "INSERT INTO projects (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).bind(p.id, p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data));
+
+        // Insert Transactions
+        if (Array.isArray(body.transactions)) {
+          for (const t of body.transactions) {
+            const tr = packTransaction(t, p.id);
+            statements.push(env.DB.prepare(
+              "INSERT INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
+          }
+        }
+
+        try {
+            await env.DB.batch(statements);
+            // Log (Background)
+            const logPromise = logJSONL(env, [{ event: 'create', source: body.source||'manuell', id: p.id, title: p.title }]);
+            if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
+            else await logPromise;
+
+            // Note: New creations via manual PUT do NOT sync to HubSpot (as per req), unless ID matched existing (but this is CREATE).
+
+            return respond({ ...body, id: p.id }, 201);
+        } catch (e) {
+            return respond({ error: 'Database error', details: e.message }, 500);
+        }
+    }
+
+    // --- UPDATE PATH ---
     const existingEntry = unpackProject(existingRow);
-    const p = packProject({ ...body, id }); // ID sicherstellen
+    const p = packProject({ ...body, id }); // Ensure ID matches URL
     
     const statements = [];
 
-    // Projekt Update
+    // Update Project
     statements.push(env.DB.prepare(
       "UPDATE projects SET projectType=?, client=?, title=?, projectNumber=?, amount=?, dockPhase=?, dockFinalAssignment=?, ts=?, freigabedatum=?, data=? WHERE id=?"
     ).bind(p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data, id));
 
-    // Transaktionen: Strategie "Delete & Re-Insert" ist am sichersten für volle Konsistenz bei PUT
-    // Aber um Daten nicht zu verlieren, prüfen wir, ob Transactions im Body sind.
+    // Transactions: Delete & Re-Insert
     if (Array.isArray(body.transactions)) {
-        // Lösche alte Transaktionen dieses Projekts
         statements.push(env.DB.prepare("DELETE FROM transactions WHERE project_id = ?").bind(id));
-        
-        // Füge neue ein
         for (const t of body.transactions) {
             const tr = packTransaction(t, id);
             statements.push(env.DB.prepare(
@@ -232,9 +263,7 @@ export function registerEntryRoutes(
 
       // HubSpot Sync Trigger
       if (body.source !== 'erp-import' && collectHubspotSyncPayload && processHubspotSyncQueue) {
-         const newEntry = unpackProject(p); // Re-unpack to get clean object
-         // Note: Transactions are not easily diffed here unless we fetched old transactions too.
-         // For now, assuming Project-level sync (amount/kv in project data).
+         const newEntry = unpackProject(p);
          const payload = collectHubspotSyncPayload(existingEntry, newEntry);
          if (payload) {
              promises.push(processHubspotSyncQueue(env, [payload], { mode: 'single', reason: 'update_entry' }));
