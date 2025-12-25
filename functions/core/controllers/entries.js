@@ -150,7 +150,7 @@ export function registerEntryRoutes(
   });
 
   // 3. POST (CREATE)
-  router.post('/entries', async ({ env, respond, request }) => {
+  router.post('/entries', async ({ env, respond, request, ctx }) => {
     let body;
     try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
 
@@ -177,8 +177,10 @@ export function registerEntryRoutes(
     try {
       await env.DB.batch(statements);
       
-      // Log
-      await logJSONL(env, [{ event: 'create', source: body.source||'manuell', id: p.id, title: p.title }]);
+      // Log (Background)
+      const logPromise = logJSONL(env, [{ event: 'create', source: body.source||'manuell', id: p.id, title: p.title }]);
+      if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
+      else await logPromise;
       
       // Return full object
       return respond({ ...body, id: p.id }, 201);
@@ -188,15 +190,16 @@ export function registerEntryRoutes(
   });
 
   // 4. PUT (UPDATE)
-  router.put('/entries/:id', async ({ env, respond, request, params }) => {
+  router.put('/entries/:id', async ({ env, respond, request, params, ctx }) => {
     const id = decodeURIComponent(params.id);
     let body;
     try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
 
-    // Existiert es?
-    const existing = await env.DB.prepare("SELECT id FROM projects WHERE id = ?").bind(id).first();
-    if (!existing) return respond({ error: 'not found' }, 404);
+    // Existiert es? Load FULL object for Sync Diff
+    const existingRow = await env.DB.prepare("SELECT * FROM projects WHERE id = ?").bind(id).first();
+    if (!existingRow) return respond({ error: 'not found' }, 404);
 
+    const existingEntry = unpackProject(existingRow);
     const p = packProject({ ...body, id }); // ID sicherstellen
     
     const statements = [];
@@ -224,13 +227,23 @@ export function registerEntryRoutes(
     try {
       await env.DB.batch(statements);
       
-      // HubSpot Sync Trigger (optional)
-      if (body.source !== 'erp-import') {
-         // Hier könnte man fetch old vs new logic einbauen, für D1 vereinfacht:
-         // await processHubspotSyncQueue... 
+      const promises = [];
+      promises.push(logJSONL(env, [{ event: 'update', id: id, title: p.title }]));
+
+      // HubSpot Sync Trigger
+      if (body.source !== 'erp-import' && collectHubspotSyncPayload && processHubspotSyncQueue) {
+         const newEntry = unpackProject(p); // Re-unpack to get clean object
+         // Note: Transactions are not easily diffed here unless we fetched old transactions too.
+         // For now, assuming Project-level sync (amount/kv in project data).
+         const payload = collectHubspotSyncPayload(existingEntry, newEntry);
+         if (payload) {
+             promises.push(processHubspotSyncQueue(env, [payload], { mode: 'single', reason: 'update_entry' }));
+         }
       }
 
-      await logJSONL(env, [{ event: 'update', id: id, title: p.title }]);
+      if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.all(promises));
+      else await Promise.all(promises);
+
       return respond({ ...body, id });
     } catch (e) {
       return respond({ error: 'Database error', details: e.message }, 500);
@@ -238,7 +251,7 @@ export function registerEntryRoutes(
   });
 
   // 5. BULK V2 (IMPORTER - OPTIMIZED FOR SQL)
-  router.post('/entries/bulk-v2', async ({ env, respond, request }) => {
+  router.post('/entries/bulk-v2', async ({ env, respond, request, ctx }) => {
     console.log('Processing /entries/bulk-v2 (SQL D1)');
     let payload;
     try { payload = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
@@ -368,12 +381,15 @@ export function registerEntryRoutes(
         }
     }
 
-    await logJSONL(env, logs);
+    const logPromise = logJSONL(env, logs);
+    if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
+    else await logPromise;
+
     return respond({ ok: true, created, updated });
   });
 
   // 6. DELETE
-  router.delete('/entries/:id', async ({ env, respond, params }) => {
+  router.delete('/entries/:id', async ({ env, respond, params, ctx }) => {
     const id = decodeURIComponent(params.id);
     
     // Lösche Projekt UND zugehörige Transaktionen
@@ -382,7 +398,10 @@ export function registerEntryRoutes(
         env.DB.prepare("DELETE FROM projects WHERE id = ?").bind(id)
     ]);
     
-    await logJSONL(env, [{ event: 'delete', id }]);
+    const logPromise = logJSONL(env, [{ event: 'delete', id }]);
+    if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
+    else await logPromise;
+
     return respond({ ok: true });
   });
 
