@@ -13,306 +13,241 @@ const PORTFOLIO_SORT_DEFAULTS = {
   budget: 'desc',
   status: 'desc',
 };
-let sortState = { key: 'title', direction: PORTFOLIO_SORT_DEFAULTS.title };
 
-export function initPortfolio(portfolioDeps = {}) {
-  deps = portfolioDeps;
+let portfolioSortState = { ...PORTFOLIO_SORT_DEFAULTS };
 
-  const filterContainer = document.getElementById('portfolioFilters');
-  if (filterContainer) {
-    filterContainer.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-filter]');
-      if (!btn) return;
-      currentFilter = btn.dataset.filter;
-      Array.from(filterContainer.querySelectorAll('button')).forEach((b) =>
-        b.classList.remove('accent', 'ok', 'warn')
-      );
-      if (currentFilter === 'all') {
-        btn.classList.add('accent');
-      } else if (currentFilter === 'critical') {
-        btn.classList.add('warn');
-      } else {
-        btn.classList.add('accent');
-      }
-      renderPortfolio();
-    });
+function getSortValue(entry, key) {
+  switch (key) {
+    case 'type':
+      return (entry.projectType || '').toLowerCase();
+    case 'projectNumber':
+      return (entry.projectNumber || '').toLowerCase();
+    case 'title':
+      return (entry.title || '').toLowerCase();
+    case 'client':
+      return (entry.client || '').toLowerCase();
+    case 'budget':
+      return Number(entry.amount || entry.budget || 0);
+    case 'status':
+      return entry.complete ? 1 : 0;
+    default:
+      return '';
   }
-
-  const searchInput = document.getElementById('portfolioSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      renderPortfolio();
-    });
-  }
-
-  const showArchivedToggle = document.getElementById('portfolioShowArchived');
-  if (showArchivedToggle) {
-    showArchivedFrameworks = !!showArchivedToggle.checked;
-    showArchivedToggle.addEventListener('change', () => {
-      showArchivedFrameworks = !!showArchivedToggle.checked;
-      renderPortfolio();
-    });
-  }
-
-  document.querySelectorAll('#viewPortfolio th.sortable').forEach((th) => {
-    th.addEventListener('click', () => {
-      const key = th.dataset.sort;
-      if (!key) return;
-      if (sortState.key === key) {
-        sortState = { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' };
-      } else {
-        const defaultDirection = PORTFOLIO_SORT_DEFAULTS[key] || 'asc';
-        sortState = { key, direction: defaultDirection };
-      }
-      renderPortfolio();
-    });
-  });
-
-  const tableBody = document.getElementById('portfolioBody');
-  const portfolioView = document.getElementById('viewPortfolio');
-  const clickTarget = tableBody || portfolioView;
-  if (clickTarget) {
-    clickTarget.addEventListener('click', (event) => handlePortfolioClick(event, tableBody));
-  }
-}
-
-function handlePortfolioClick(e, tableBody) {
-  const targetRow = e.target.closest('tr');
-  if (!targetRow || (tableBody && !tableBody.contains(targetRow))) return;
-  const isTransactionRow = targetRow.dataset.parentId;
-  const entryId = targetRow.dataset.id;
-  const transId = targetRow.dataset.transId;
-  const actBtn = e.target.closest('[data-act]');
-
-  if (actBtn) {
-    const action = actBtn.dataset.act;
-    const id = actBtn.dataset.id;
-    if (action === 'edit') {
-      if (isTransactionRow) {
-        const parentId = targetRow.dataset.parentId;
-        const parentEntry = findEntryById(parentId);
-        if (!parentEntry) return;
-        const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
-        if (!transaction) return;
-        deps.openEditTransactionModal?.(transaction, parentEntry);
-      } else {
-        editEntryById(id);
-      }
-    } else if (action === 'edit-volume') {
-      e.preventDefault();
-      e.stopPropagation(); 
-
-      const id = actBtn.dataset.id;
-      if (!id) return;
-
-      const entry = findEntryById(id);
-      if (!entry) return;
-
-      if (typeof deps.openFrameworkVolumeDialog === 'function') {
-        try {
-          deps.openFrameworkVolumeDialog(entry, (vol) => {
-            if (typeof deps.onUpdateFrameworkVolume === 'function') {
-              deps.onUpdateFrameworkVolume(entry, vol);
-            }
-          });
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    } else if (action === 'del') {
-      const id = actBtn.dataset.id;
-      const parentId = targetRow.dataset.parentId;
-      if (isTransactionRow && parentId && transId) {
-        const parentEntry = findEntryById(parentId);
-        if (!parentEntry) return;
-        const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
-        if (!transaction) return;
-        deps.openDeleteTransactionModal?.(transaction, parentEntry);
-      } else {
-        const entry = findEntryById(id);
-        if (!entry) return;
-        setPendingDelete(entry);
-      }
-    }
-  } else if (entryId) {
-    if (isTransactionRow) {
-      const parentId = targetRow.dataset.parentId;
-      const parentEntry = findEntryById(parentId);
-      if (!parentEntry) return;
-      const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
-      if (!transaction) return;
-      deps.openEditTransactionModal?.(transaction, parentEntry);
-    } else {
-      editEntryById(entryId);
-    }
-  }
-}
-
-function editEntryById(id) {
-  const entry = findEntryById(id);
-  if (!entry) return;
-  openWizard(entry);
-}
-
-function fmtCurr2(amount) {
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
-}
-
-function fmtInt(amount) {
-  return new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(amount || 0);
-}
-
-function getFrameworkUsage(entry) {
-  const total = Number(entry.amount || 0);
-  const transactions = entry.transactions || [];
-  const used = transactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  return { total, used };
-}
-
-function updatePortfolioSortIcons() {
-  document.querySelectorAll('#viewPortfolio th.sortable').forEach((th) => {
-    th.classList.remove('sorted-asc', 'sorted-desc');
-    const key = th.dataset.sort;
-    if (key && sortState.key === key) {
-      th.classList.add(sortState.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
-    }
-  });
 }
 
 function sortEntries(entries) {
-  const { key, direction } = sortState;
-  const dir = direction === 'asc' ? 1 : -1;
+  const sortKeys = Object.keys(portfolioSortState);
 
-  return [...entries].sort((a, b) => {
-    let va = a[key];
-    let vb = b[key];
-    if (key === 'budget') {
-      va = Number(a.amount || 0);
-      vb = Number(b.amount || 0);
+  return entries.sort((a, b) => {
+    for (const key of sortKeys) {
+      const dir = portfolioSortState[key];
+      if (!dir) continue;
+      const va = getSortValue(a, key);
+      const vb = getSortValue(b, key);
+      if (va < vb) return dir === 'asc' ? -1 : 1;
+      if (va > vb) return dir === 'asc' ? 1 : -1;
     }
-    if (key === 'status') {
-      va = a.dockFinalAssignment || '';
-      vb = b.dockFinalAssignment || '';
-    }
-
-    if (va == null && vb == null) return 0;
-    if (va == null) return -1 * dir;
-    if (vb == null) return 1 * dir;
-    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
-    return String(va).localeCompare(String(vb), 'de') * dir;
+    return 0;
   });
 }
 
-function renderPortfolioRow(e, fragment) {
-  const tr = document.createElement('tr');
-  tr.dataset.id = e.id;
+function entryMatchesSearch(entry, query) {
+  if (!query) return true;
+  const haystack = [
+    entry.projectNumber,
+    entry.title,
+    entry.client,
+    entry.kv_nummer,
+    entry.kvNummer,
+    entry.kv,
+    entry.source,
+  ]
+    .filter(Boolean)
+    .map((x) => String(x).toLowerCase());
 
-  const typeLabel =
-    e.projectType === 'rahmen' ? 'Rahmenvertrag' : e.projectType === 'abruf' ? 'Abruf' : 'Fix';
-  const projectNumber = e.projectNumber || '–';
-  const title = e.title || '–';
-  const client = e.client || '–';
-  const amount = Number(e.amount || 0);
-  const status = e.dockFinalAssignment ? e.dockFinalAssignment : 'Portfolio';
+  return haystack.some((x) => x.includes(query));
+}
 
-  const amountCell =
-    e.projectType === 'rahmen'
-      ? (() => {
-          const { total, used } = getFrameworkUsage(e);
-          const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
-          return `${fmtCurr2(used)} / ${fmtCurr2(total)} (${pct}%)`;
-        })()
-      : fmtCurr2(amount);
+function renderSortButtons() {
+  const container = document.getElementById('portfolioSort');
+  if (!container) return;
 
-  const actions = `
-    <button class="iconbtn" data-act="edit" data-id="${e.id}" title="Bearbeiten">✏️</button>
-    ${
-      e.projectType === 'rahmen'
-        ? `<button class="iconbtn" data-act="edit-volume" data-id="${e.id}" title="Volumen ändern">📦</button>`
-        : ''
+  const setBtnState = (btn, state) => {
+    btn.classList.toggle('active', Boolean(state));
+    btn.setAttribute('aria-pressed', Boolean(state));
+    const label = btn.getAttribute('data-label') || btn.textContent;
+    btn.textContent = state ? `${label} ${state === 'asc' ? '↑' : '↓'}` : label;
+  };
+
+  container.querySelectorAll('button[data-sort]').forEach((btn) => {
+    const key = btn.getAttribute('data-sort');
+    setBtnState(btn, portfolioSortState[key]);
+  });
+}
+
+function toggleSort(key) {
+  const current = portfolioSortState[key];
+  const next = current === 'asc' ? 'desc' : current === 'desc' ? null : 'asc';
+  portfolioSortState[key] = next;
+  renderPortfolio();
+}
+
+function attachSortListeners() {
+  const container = document.getElementById('portfolioSort');
+  if (!container) return;
+
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-sort]');
+    if (!btn) return;
+    const key = btn.getAttribute('data-sort');
+    if (!key) return;
+    toggleSort(key);
+  });
+}
+
+function renderFilterButtons() {
+  const btnAll = document.getElementById('btnPortfolioAll');
+  const btnFix = document.getElementById('btnPortfolioFix');
+  const btnRahmen = document.getElementById('btnPortfolioRahmen');
+
+  if (btnAll) btnAll.classList.toggle('active', currentFilter === 'all');
+  if (btnFix) btnFix.classList.toggle('active', currentFilter === 'fix');
+  if (btnRahmen) btnRahmen.classList.toggle('active', currentFilter === 'rahmen');
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  renderPortfolio();
+}
+
+function attachFilterListeners() {
+  document.getElementById('btnPortfolioAll')?.addEventListener('click', () => setFilter('all'));
+  document.getElementById('btnPortfolioFix')?.addEventListener('click', () => setFilter('fix'));
+  document.getElementById('btnPortfolioRahmen')?.addEventListener('click', () => setFilter('rahmen'));
+
+  const toggleArchive = document.getElementById('toggleArchiveFrameworks');
+  if (toggleArchive) {
+    toggleArchive.addEventListener('change', (e) => {
+      showArchivedFrameworks = Boolean(e.target.checked);
+      renderPortfolio();
+    });
+  }
+}
+
+function attachSearchListener() {
+  document.getElementById('portfolioSearch')?.addEventListener('input', () => renderPortfolio());
+}
+
+function renderPortfolioTable(entries) {
+  const tbody = document.getElementById('portfolioTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  entries.forEach((entry) => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = entry.id;
+
+    const typeLabel = entry.projectType === 'rahmen' ? 'Rahmen' : 'Fix';
+    const budget = Number(entry.amount || entry.budget || 0);
+    const budgetText = budget ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(budget) : '—';
+    const status = entry.complete ? 'vollständig' : 'unvollständig';
+    const title = entry.title || '—';
+    const client = entry.client || '—';
+    const pn = entry.projectNumber || '—';
+
+    tr.innerHTML = `
+      <td>${typeLabel}</td>
+      <td>${pn}</td>
+      <td>${title}</td>
+      <td>${client}</td>
+      <td>${budgetText}</td>
+      <td>${status}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm port-open">Öffnen</button>
+        <button class="btn btn-sm warn port-del">Löschen</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+function attachTableListeners() {
+  const tbody = document.getElementById('portfolioTableBody');
+  if (!tbody) return;
+
+  tbody.addEventListener('click', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    const id = tr.getAttribute('data-id');
+    if (!id) return;
+
+    if (e.target.closest('.port-open')) {
+      const entry = findEntryById(id);
+      if (entry) openWizard(entry);
+      return;
     }
-    <button class="iconbtn" data-act="del" data-id="${e.id}" title="Löschen">🗑️</button>
-  `;
 
-  tr.innerHTML = `
-    <td>${typeLabel}</td>
-    <td>${projectNumber}</td>
-    <td>${title}</td>
-    <td>${client}</td>
-    <td class="text-right">${amountCell}</td>
-    <td>${status}</td>
-    <td class="cell-actions">${actions}</td>
-  `;
+    if (e.target.closest('.port-del')) {
+      const entry = findEntryById(id);
+      if (!entry) return;
+      setPendingDelete(entry);
+      document.getElementById('confirmDlgTitle').textContent = 'Eintrag löschen';
+      document.getElementById('confirmDlgText').textContent = `Wollen Sie "${entry.title || entry.projectNumber || entry.id}" wirklich löschen?`;
+      document.getElementById('confirmDlg').showModal();
+    }
+  });
+}
 
-  fragment.appendChild(tr);
+export function initPortfolio(initDeps = {}) {
+  deps = initDeps || {};
+  attachFilterListeners();
+  attachSearchListener();
+  attachSortListeners();
 }
 
 export function renderPortfolio() {
-  const entries = getEntries() || [];
+  const entries = (getEntries() || []).slice();
+
   const searchInput = document.getElementById('portfolioSearch');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  
+
   let filteredEntries = entries.filter((e) => {
     // 1. DOCK FILTER
-    const isGraduated = !!e.dockFinalAssignment; 
+    const isGraduated = !!e.dockFinalAssignment;
     const isHubSpot = (e.source || '').trim().toLowerCase() === 'hubspot';
-    const phase = Number(e.dockPhase);
-    const isPortfolioPhase = Number.isFinite(phase) && phase >= 4;
-    const hasDockPhase = e.dockPhase != null;
-    const isInDock = !isGraduated && !isPortfolioPhase && (isHubSpot || hasDockPhase);
-    
+
+    const phaseNum = Number(e.dockPhase);
+    const isActiveDockPhase = Number.isFinite(phaseNum) && phaseNum >= 1 && phaseNum <= 3;
+
+    // "Im Dock" bedeutet nur: HubSpot-Deals (ohne Phase 4) oder explizit Phase 1-3.
+    // Phase 4+ soll im Portfolio bleiben.
+    const isInDock = !isGraduated && (isActiveDockPhase || (isHubSpot && e.dockPhase == null));
+
     if (isInDock) return false;
-    
+
     // 2. ARCHIV FILTER
     const isArchived = e.isArchived === true;
     if (!showArchivedFrameworks && isArchived) return false;
 
-    return showArchivedFrameworks || e.projectType !== 'rahmen' || !isArchived;
+    return true;
   });
 
+  // Filter (all/fix/rahmen)
   if (currentFilter === 'fix') {
     filteredEntries = filteredEntries.filter((e) => (e.projectType || 'fix') === 'fix');
   } else if (currentFilter === 'rahmen') {
     filteredEntries = filteredEntries.filter((e) => e.projectType === 'rahmen');
-  } else if (currentFilter === 'critical') {
-    filteredEntries = filteredEntries.filter((e) => {
-      if (e.projectType !== 'rahmen') return false;
-      const { total, used } = getFrameworkUsage(e);
-      return total > 0 && used / total > 0.8;
-    });
   }
 
-  if (query) {
-    filteredEntries = filteredEntries.filter((e) => {
-      const fields = [e.title || '', e.client || '', e.projectNumber || '', e.kv_nummer || ''].join(' ').toLowerCase();
-      let transFields = '';
-      if (e.transactions && e.transactions.length) {
-        transFields = e.transactions
-          .map((t) => `${t.kv_nummer || ''} ${t.title || ''}`)
-          .join(' ')
-          .toLowerCase();
-      }
-      return fields.includes(query) || transFields.includes(query);
-    });
-  }
+  // Search
+  filteredEntries = filteredEntries.filter((e) => entryMatchesSearch(e, query));
 
-  filteredEntries = sortEntries(filteredEntries);
+  // Sort
+  sortEntries(filteredEntries);
 
-  const tbody = document.getElementById('portfolioBody');
-  const emptyState = document.getElementById('portfolioEmptyState');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  if (filteredEntries.length === 0) {
-    if (emptyState) emptyState.classList.remove('hide');
-    updatePortfolioSortIcons();
-    return;
-  }
-
-  if (emptyState) emptyState.classList.add('hide');
-
-  const fragment = document.createDocumentFragment();
-  filteredEntries.forEach((e) => renderPortfolioRow(e, fragment));
-  tbody.appendChild(fragment);
-  updatePortfolioSortIcons();
+  renderFilterButtons();
+  renderSortButtons();
+  renderPortfolioTable(filteredEntries);
+  attachTableListeners();
 }
