@@ -14035,5 +14035,37 @@
     "dockPhaseHistory": {
       "1": 1766848730943
     }
+  },
+  {
+    "id": "hubspot_dad1b1fbb0c037153a356e08b58ceaee",
+    "hubspotId": "52674863930",
+    "title": "Maike Steinbach - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0256",
+    "amount": 1860,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766848731923,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1759960800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766848731923
+    }
   }
 ]
