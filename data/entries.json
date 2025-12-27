@@ -13843,5 +13843,37 @@
     "dockPhaseHistory": {
       "1": 1766848725046
     }
+  },
+  {
+    "id": "hubspot_ee399f24f268ce02af36649cb936ec86",
+    "hubspotId": "52673637005",
+    "title": "Josje Mooibroek - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0255",
+    "amount": 1500,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766848727561,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1759960800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766848727561
+    }
   }
 ]
