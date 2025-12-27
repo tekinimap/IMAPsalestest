@@ -990,3 +990,44 @@ export function findDockKvConflict(entryId) {
 export async function finalizeDockAbruf(entryId) {
   await finalizeDockAssignment(entryId, 'abruf');
 }
+// ------------------------------------------------------------
+// Missing export for analytics.js
+// ------------------------------------------------------------
+export function getFrameworkVolume(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+
+  // direkte Felder (häufigste Varianten)
+  const candidates = [
+    entry.frameworkVolume,
+    entry.framework_volume,
+    entry.rahmenVolume,
+    entry.rahmenvolumen,
+    entry.rahmenVolumen,
+    entry.rahmenvertragVolumen,
+    entry.volume,
+    entry.maxVolume,
+    entry.max_volume,
+  ];
+
+  for (const v of candidates) {
+    const n = typeof v === 'string' ? parseAmountInput(v) : Number(v);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+
+  // verschachtelte Felder (meta/details/data)
+  const nestedKeys = ['meta', 'details', 'data'];
+  for (const k of nestedKeys) {
+    const obj = entry[k];
+    if (!obj || typeof obj !== 'object') continue;
+    for (const [key, value] of Object.entries(obj)) {
+      if (!/volumen|volume|max/i.test(key)) continue;
+      const n = typeof value === 'string' ? parseAmountInput(value) : Number(value);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+  }
+
+  return null;
+}
+
+// optional: wird manchmal auch so erwartet
+export const getFrameworkVolumen = getFrameworkVolume;
