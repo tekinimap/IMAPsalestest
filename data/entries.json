@@ -13939,5 +13939,37 @@
     "dockPhaseHistory": {
       "1": 1766848728809
     }
+  },
+  {
+    "id": "hubspot_d51a53918c6ac70c2efb24e56afa6ea4",
+    "hubspotId": "52601125273",
+    "title": "William Wolfgramm  - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0194",
+    "amount": 1440,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766848729506,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1756072800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766848729506
+    }
   }
 ]
