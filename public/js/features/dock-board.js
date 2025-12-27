@@ -924,8 +924,22 @@ function scheduleDockAutoDowngrade(entry) {
 
 function scheduleDockAutoCheck(entry) {
   if (!entry?.id) return;
-  dockAutoCheckQueue.push({ id: entry.id });
+
+  // Wenn es ein Array ist:
+  if (Array.isArray(dockAutoCheckQueue)) {
+    dockAutoCheckQueue.push({ id: entry.id });
+    return;
+  }
+
+  // Wenn es eine Map ist:
+  if (dockAutoCheckQueue && typeof dockAutoCheckQueue.set === 'function') {
+    dockAutoCheckQueue.set(entry.id, { id: entry.id, queuedAt: Date.now() });
+    return;
+  }
+
+  // Fallback: nichts tun
 }
+
 
 function scheduleDockAutomation(items) {
   items.forEach((item) => {
