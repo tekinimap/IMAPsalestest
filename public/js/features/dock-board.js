@@ -5,8 +5,6 @@ import { fetchWithRetry } from '../api.js';
 import {
   fmtCurr0,
   formatAmountInput,
-  getTodayDate,
-  formatDateForInput,
   parseAmountInput,
   escapeHtml,
 } from '../utils/format.js';
@@ -41,7 +39,6 @@ import {
   setPendingDockAbrufAssignment,
 } from '../state/dock-state.js';
 import { setPendingDelete } from '../state/history-state.js';
-import { getCurrentFrameworkEntryId } from '../state/framework-state.js';
 import { loadHistory } from './history.js';
 
 /* ============================================================
@@ -106,12 +103,6 @@ if (btnDockBatchDelete && !btnDockBatchDelete.dataset.baseLabel) {
   btnDockBatchDelete.dataset.baseLabel = btnDockBatchDelete.textContent.trim();
 }
 
-let deps = {
-  renderFrameworkContracts: null,
-  renderRahmenDetails: null,
-  onEditEntry: null,
-};
-
 let isInitialized = false;
 
 /* ============================================================
@@ -133,13 +124,6 @@ function safeStoreSet(store, key, value) {
   if (typeof store === 'object') {
     store[key] = value; // plain object
   }
-}
-
-function safeStoreHas(store, key) {
-  if (!store) return false;
-  if (typeof store.has === 'function') return store.has(key); // Map/Set
-  if (typeof store === 'object') return Object.prototype.hasOwnProperty.call(store, key);
-  return false;
 }
 
 function normalizeIdItem(value) {
@@ -214,12 +198,9 @@ function queuePop(queue) {
 function formatCurrency0(amount) {
   const n = Number(amount || 0);
   try {
-    // fmtCurr0 kann NumberFormat sein
     if (fmtCurr0 && typeof fmtCurr0.format === 'function') return fmtCurr0.format(n);
-    // oder Funktion
     if (typeof fmtCurr0 === 'function') return fmtCurr0(n);
   } catch {}
-  // Fallback
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
 
@@ -295,7 +276,6 @@ function closeFrameworkVolumeDialog() {
 export function openFrameworkVolumeDialog(entry, onSubmit) {
   if (typeof onSubmit !== 'function') return;
 
-  // Wenn Dialog fehlt, fallback prompt
   if (!frameworkVolumeDialog || !frameworkVolumeInput) {
     const current = getFrameworkVolume(entry);
     const initial = current != null ? String(current).replace('.', ',') : '';
@@ -321,9 +301,9 @@ export function openFrameworkVolumeDialog(entry, onSubmit) {
     if (typeof frameworkVolumeDialog.showModal === 'function') frameworkVolumeDialog.showModal();
     else frameworkVolumeDialog.setAttribute('open', 'open');
   } catch {
-    // fallback prompt wenn modal nicht geht
     const input = window.prompt('Höchstabrufsvolumen (EUR):', frameworkVolumeInput.value || '');
     if (input == null) return;
+
     const parsed = parseAmountInput(input);
     if (!Number.isFinite(parsed) || parsed <= 0) {
       showToast('Ungültiges Volumen. Bitte eine positive Zahl eingeben.', 'bad');
@@ -375,11 +355,6 @@ function firstNonEmptyString(values) {
     if (normalized) return normalized;
   }
   return '';
-}
-
-function normalizeDockString(value) {
-  if (value === null || value === undefined) return '';
-  return String(value).trim();
 }
 
 function deriveBusinessUnitFromTeam(marketTeam) {
@@ -441,10 +416,9 @@ function computeDockChecklist(entry) {
     return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
   });
 
-  const hasSubmittedBy = !!normalizeDockString(entry?.submittedBy);
   const isComplete = Boolean(entry?.complete) || (amount && hasProjectNumber && hasKv && hasSalesContributions);
 
-  return { amount, hasClient, hasProjectNumber, hasKv, hasSalesContributions, hasSubmittedBy, isComplete };
+  return { amount, hasClient, hasProjectNumber, hasKv, hasSalesContributions, isComplete };
 }
 
 function isPhaseTwoReady(checklist) {
@@ -895,7 +869,6 @@ async function initializeDockBoard() {
       const ok = confirm(`Wirklich ${count} Deals löschen?`);
       if (!ok) return;
 
-      // lösche "eins" -> history workflow übernimmt den Rest
       const first = dockSelection.values().next().value;
       const entry = first ? findEntryById(first) : null;
       if (entry) setPendingDelete(entry);
@@ -990,7 +963,7 @@ async function runDockAutoChecks(items) {
   }
 }
 
-async function runDockAutoAdvance() {
+async function runDockAutoAdvance(items) {
   if (isDockAutoAdvanceRunning()) return;
   if (!queueHas(dockAutoAdvanceQueue)) return;
 
@@ -1021,7 +994,7 @@ async function runDockAutoAdvance() {
   }
 }
 
-async function runDockAutoDowngrade() {
+async function runDockAutoDowngrade(items) {
   if (isDockAutoDowngradeRunning()) return;
   if (!queueHas(dockAutoDowngradeQueue)) return;
 
@@ -1089,8 +1062,8 @@ export async function renderDockBoard() {
     scheduleDockAutomation(items);
 
     await runDockAutoChecks(items);
-    await runDockAutoAdvance();
-    await runDockAutoDowngrade();
+    await runDockAutoAdvance(items);
+    await runDockAutoDowngrade(items);
 
     updateManualDealButtons();
   } catch (err) {
@@ -1101,14 +1074,13 @@ export async function renderDockBoard() {
   }
 }
 
-export function initDockBoard(dockDeps = {}) {
-  deps = dockDeps;
+export function initDockBoard() {
   if (isInitialized) return;
   initializeDockBoard();
 }
 
 /* ============================================================
-   Finalize / Abruf / Create manual deal
+   Finalize / Create manual deal / Compatibility exports
 ============================================================ */
 export async function finalizeDockAssignment(entryId, assignment, extraUpdates = {}) {
   const entry = findEntryById(entryId);
@@ -1131,31 +1103,6 @@ export async function finalizeDockAssignment(entryId, assignment, extraUpdates =
 
   renderPortfolio();
   await renderDockBoard();
-}
-
-export async function finalizeAsAbruf(entryId, parentFrameworkId) {
-  if (!entryId) return;
-  setPendingDockAbrufAssignment({ entryId, parentFrameworkId });
-  showView('frameworks');
-}
-
-export async function confirmAbrufAssignment(frameworkEntry) {
-  const pending = getPendingDockAbrufAssignment();
-  if (!pending?.entryId || !frameworkEntry?.id) return;
-
-  try {
-    await finalizeDockAssignment(pending.entryId, 'abruf', {
-      dockAbrufFrameworkId: frameworkEntry.id,
-      dockAbrufFrameworkProjectNumber: frameworkEntry.projectNumber || '',
-    });
-  } finally {
-    setPendingDockAbrufAssignment(null);
-  }
-}
-
-export async function finalizeDockAbruf(entryId) {
-  // simpler shortcut
-  await finalizeDockAssignment(entryId, 'abruf');
 }
 
 export async function createManualDeal(payload) {
@@ -1187,12 +1134,7 @@ export async function createManualDeal(payload) {
   return saved;
 }
 
-/* ============================================================
-   Compatibility exports (werden von anderen Dateien importiert)
-============================================================ */
-export function clearInputFields() {
-  // Legacy Stub: Wizard verwaltet Inputs selbst.
-}
+export function clearInputFields() {}
 
 export function showManualPanel(entryId = null) {
   const entryObj = entryId ? findEntryById(entryId) : null;
