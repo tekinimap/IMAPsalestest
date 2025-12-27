@@ -1,477 +1,637 @@
+// functions/core/controllers/entries.js
+/**
+ * Entries API (Projects + Transactions) backed by Cloudflare D1 (env.DB).
+ *
+ * ✅ Speichert NUR in D1 (env.DB) – entries.json wird hier nicht verwendet.
+ * ✅ Unterstützt /entries/* UND legacy /api/entries/* (falls Frontend noch alte Pfade nutzt).
+ */
+
+const PORTFOLIO_PHASE = 4;
+
+function toLowerSafe(v) {
+  return (v ?? '').toString().trim().toLowerCase();
+}
+
+function isDockPhase123(v) {
+  const n = Number(v);
+  return n === 1 || n === 2 || n === 3;
+}
+
+function jsonParseSafe(str, fallback = {}) {
+  try {
+    if (str == null || str === '') return fallback;
+    const obj = JSON.parse(str);
+    return obj && typeof obj === 'object' ? obj : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function makeFallbackId(prefix = 'entry') {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function numOr(value, fallback) {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function packProject(entry) {
+  const {
+    id,
+    projectType,
+    client,
+    title,
+    projectNumber,
+    amount,
+    dockPhase,
+    dockFinalAssignment,
+    ts,
+    freigabedatum,
+    transactions,
+    ...rest
+  } = entry || {};
+
+  const packed = {
+    id: (id ?? '').toString(),
+    projectType: (projectType ?? 'fix').toString() || 'fix',
+    client: (client ?? '').toString(),
+    title: (title ?? '').toString(),
+    projectNumber: (projectNumber ?? '').toString(),
+    amount: numOr(amount, 0),
+    dockPhase: dockPhase == null || dockPhase === '' ? null : numOr(dockPhase, null),
+    dockFinalAssignment:
+      dockFinalAssignment == null || dockFinalAssignment === '' ? null : dockFinalAssignment.toString(),
+    ts: numOr(ts, Date.now()),
+    freigabedatum: numOr(freigabedatum, 0),
+    data: JSON.stringify(rest || {}),
+  };
+
+  const tx = Array.isArray(transactions) ? transactions : null;
+
+  return { project: packed, transactions: tx };
+}
+
+function unpackTransaction(row) {
+  if (!row) return null;
+  const data = jsonParseSafe(row.data, {});
+  return {
+    id: row.id,
+    parentId: row.project_id,
+    kv_nummer: row.kv_nummer ?? '',
+    type: row.type ?? '',
+    amount: row.amount ?? 0,
+    title: row.title ?? '',
+    client: row.client ?? '',
+    ts: row.ts ?? 0,
+    freigabedatum: row.freigabedatum ?? 0,
+    ...data,
+  };
+}
+
+function packTransaction(tx, fallbackProjectId) {
+  const {
+    id,
+    parentId,
+    project_id,
+    projectId,
+    kv_nummer,
+    type,
+    amount,
+    title,
+    client,
+    ts,
+    freigabedatum,
+    ...rest
+  } = tx || {};
+
+  const resolvedProjectId = parentId ?? project_id ?? projectId ?? fallbackProjectId;
+
+  return {
+    id: (id ?? '').toString(),
+    project_id: (resolvedProjectId ?? '').toString(),
+    kv_nummer: (kv_nummer ?? '').toString(),
+    type: (type ?? '').toString(),
+    amount: numOr(amount, 0),
+    title: (title ?? '').toString(),
+    client: (client ?? '').toString(),
+    ts: numOr(ts, Date.now()),
+    freigabedatum: numOr(freigabedatum, 0),
+    data: JSON.stringify(rest || {}),
+  };
+}
+
+function unpackProject(projectRow, txRows) {
+  if (!projectRow) return null;
+  const data = jsonParseSafe(projectRow.data, {});
+  const tx = Array.isArray(txRows) ? txRows.map(unpackTransaction).filter(Boolean) : [];
+  return {
+    id: projectRow.id,
+    projectType: projectRow.projectType ?? 'fix',
+    client: projectRow.client ?? '',
+    title: projectRow.title ?? '',
+    projectNumber: projectRow.projectNumber ?? '',
+    amount: projectRow.amount ?? 0,
+    dockPhase: projectRow.dockPhase ?? null,
+    dockFinalAssignment: projectRow.dockFinalAssignment ?? null,
+    ts: projectRow.ts ?? 0,
+    freigabedatum: projectRow.freigabedatum ?? 0,
+    transactions: tx,
+    ...data,
+  };
+}
+
+async function runBatched(env, statements, chunkSize = 50) {
+  for (let i = 0; i < statements.length; i += chunkSize) {
+    const slice = statements.slice(i, i + chunkSize);
+    await env.DB.batch(slice);
+  }
+}
+
+async function readBodyJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchProjectRow(env, id) {
+  return await env.DB.prepare('SELECT * FROM projects WHERE id = ?').bind(id).first();
+}
+
+async function fetchTransactionsRows(env, projectId) {
+  const res = await env.DB.prepare('SELECT * FROM transactions WHERE project_id = ? ORDER BY ts ASC')
+    .bind(projectId)
+    .all();
+  return res?.results || [];
+}
+
+async function fetchFullEntry(env, id) {
+  const p = await fetchProjectRow(env, id);
+  if (!p) return null;
+  const tx = await fetchTransactionsRows(env, id);
+  return unpackProject(p, tx);
+}
+
+function applyImportPortfolioRules(entry, { force = false } = {}) {
+  const source = toLowerSafe(entry?.source);
+  if (!force && source !== 'erp-import' && source !== 'excel-import') return entry;
+
+  const next = { ...entry };
+
+  // Immer ins Portfolio (Phase 4)
+  next.dockPhase = PORTFOLIO_PHASE;
+
+  // Sicherstellen, dass das Frontend den Deal NICHT mehr als "Dock" behandelt.
+  if (!next.dockFinalAssignment) {
+    const pt = toLowerSafe(next.projectType);
+    next.dockFinalAssignment = pt === 'rahmen' ? 'rahmen' : pt === 'abruf' ? 'abruf' : 'fix';
+    if (!next.dockFinalAssignmentAt) next.dockFinalAssignmentAt = Date.now();
+  }
+
+  return next;
+}
+
+function shouldSyncToHubspot(entry) {
+  // Nur HubSpot Deals syncen – und niemals solange sie in Dock (Phase 1-3) sind.
+  const isHubspot = toLowerSafe(entry?.source) === 'hubspot';
+  if (!isHubspot) return false;
+
+  if (isDockPhase123(entry?.dockPhase)) return false;
+
+  return true;
+}
+
 export function registerEntryRoutes(
   router,
-  {
-    rndId,
-    logJSONL,
-    isFullEntry,
-    kvListFrom,
-    fieldsOf,
-    processHubspotSyncQueue,
-    collectHubspotSyncPayload,
-    // Die GitHub-Funktionen werden hier nicht mehr benötigt!
-  },
+  { processHubspotSyncQueue, collectHubspotSyncPayload, logJSONL, rndId } = {}
 ) {
-  // --- HILFSFUNKTIONEN FÜR D1 ---
+  const idFactory = (prefix) => (typeof rndId === 'function' ? rndId(prefix) : makeFallbackId(prefix));
 
-  // Wandelt eine SQL-Zeile (mit 'data' JSON-String) zurück in das volle Objekt
-  const unpackProject = (row) => {
-    if (!row) return null;
-    let extra = {};
-    try {
-      extra = row.data ? JSON.parse(row.data) : {};
-    } catch (e) { console.error("JSON parse error", e); }
-    
-    // Basis-Objekt aus SQL-Spalten + extra Daten
-    const entry = {
-      ...extra,
-      id: row.id,
-      projectType: row.projectType,
-      client: row.client,
-      title: row.title,
-      projectNumber: row.projectNumber,
-      amount: row.amount,
-      dockPhase: row.dockPhase,
-      dockFinalAssignment: row.dockFinalAssignment,
-      ts: row.ts,
-      freigabedatum: row.freigabedatum,
-      transactions: [] // Wird separat gefüllt
-    };
-    return entry;
-  };
+  function mount(prefix = '') {
+    const p = prefix ? prefix.replace(/\/+$/, '') : '';
+    const path = (suffix) => `${p}${suffix}`;
 
-  const unpackTransaction = (row) => {
-    if (!row) return null;
-    let extra = {};
-    try {
-      extra = row.data ? JSON.parse(row.data) : {};
-    } catch (e) { console.error("JSON parse error transaction", e); }
-    
-    return {
-      ...extra,
-      id: row.id,
-      project_id: row.project_id, // Interner FK
-      kv_nummer: row.kv_nummer,
-      type: row.type,
-      amount: row.amount,
-      title: row.title,
-      client: row.client,
-      ts: row.ts,
-      freigabedatum: row.freigabedatum
-    };
-  };
+    // 1) GET all entries
+    router.get(path('/entries'), async ({ env, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
 
-  // Bereitet ein Objekt für das Speichern in D1 vor
-  const packProject = (entry) => {
-    // 1. Extrahiere die Hauptspalten
-    const { 
-      id, projectType, client, title, projectNumber, amount, 
-      dockPhase, dockFinalAssignment, ts, freigabedatum, 
-      transactions, ...rest 
-    } = entry;
+      try {
+        const projectsRes = await env.DB.prepare('SELECT * FROM projects ORDER BY ts DESC').all();
+        const txRes = await env.DB.prepare('SELECT * FROM transactions ORDER BY ts ASC').all();
 
-    // 2. Der Rest kommt ins JSON-Feld
-    const dataJson = JSON.stringify(rest || {});
+        const txByProject = new Map();
+        for (const tx of txRes?.results || []) {
+          const pid = tx.project_id;
+          if (!txByProject.has(pid)) txByProject.set(pid, []);
+          txByProject.get(pid).push(tx);
+        }
 
-    return {
-      id: id || rndId('entry_'),
-      projectType: projectType || 'fix',
-      client: client || '',
-      title: title || '',
-      projectNumber: projectNumber || '',
-      amount: Number(amount) || 0,
-      dockPhase: typeof dockPhase === 'number' ? dockPhase : null,
-      dockFinalAssignment: dockFinalAssignment || null,
-      ts: Number(ts) || Date.now(),
-      freigabedatum: Number(freigabedatum) || 0,
-      data: dataJson
-    };
-  };
+        const entries = (projectsRes?.results || []).map((pRow) =>
+          unpackProject(pRow, txByProject.get(pRow.id) || [])
+        );
 
-  const packTransaction = (trans, parentId) => {
-    const { 
-      id, kv_nummer, type, amount, title, client, ts, freigabedatum, 
-      ...rest 
-    } = trans;
-
-    return {
-      id: id || rndId('trans_'),
-      project_id: parentId,
-      kv_nummer: kv_nummer || '',
-      type: type || 'founder',
-      amount: Number(amount) || 0,
-      title: title || '',
-      client: client || '',
-      ts: Number(ts) || Date.now(),
-      freigabedatum: Number(freigabedatum) || 0,
-      data: JSON.stringify(rest || {})
-    };
-  };
-
-  // --- ROUTEN ---
-
-  // 1. GET ALL
-  router.get('/entries', async ({ env, respond }) => {
-    // Hole Projekte
-    const { results: projRows } = await env.DB.prepare("SELECT * FROM projects").all();
-    // Hole Transaktionen
-    const { results: transRows } = await env.DB.prepare("SELECT * FROM transactions").all();
-
-    // Map aufbauen
-    const projects = projRows.map(unpackProject);
-    const transactions = transRows.map(unpackTransaction);
-
-    // Transaktionen zuordnen
-    const projMap = new Map(projects.map(p => [p.id, p]));
-    
-    for (const t of transactions) {
-      if (t.project_id && projMap.has(t.project_id)) {
-        projMap.get(t.project_id).transactions.push(t);
+        return respond(entries);
+      } catch (err) {
+        return respond({ error: 'Failed to load entries', details: err?.message || String(err) }, 500);
       }
-    }
+    });
 
-    return respond(projects);
-  });
+    // 2) GET single entry
+    router.get(path('/entries/:id'), async ({ env, respond, params }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
 
-  // 2. GET SINGLE
-  router.get('/entries/:id', async ({ env, respond, params }) => {
-    const id = decodeURIComponent(params.id);
-    
-    const projStmt = env.DB.prepare("SELECT * FROM projects WHERE id = ?").bind(id);
-    const transStmt = env.DB.prepare("SELECT * FROM transactions WHERE project_id = ?").bind(id);
-    
-    const [projRes, transRes] = await Promise.all([projStmt.first(), transStmt.all()]);
+      const id = params?.id;
+      if (!id) return respond({ error: 'Missing id' }, 400);
 
-    if (!projRes) return respond({ error: 'not found' }, 404);
-
-    const entry = unpackProject(projRes);
-    entry.transactions = (transRes.results || []).map(unpackTransaction);
-
-    return respond(entry);
-  });
-
-  // 3. POST (CREATE)
-  router.post('/entries', async ({ env, respond, request, ctx }) => {
-    let body;
-    try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
-
-    const p = packProject(body);
-    
-    // DB Batch vorbereiten
-    const statements = [];
-    
-    // Projekt Insert
-    statements.push(env.DB.prepare(
-      "INSERT INTO projects (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).bind(p.id, p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data));
-
-    // Transactions Insert
-    if (Array.isArray(body.transactions)) {
-      for (const t of body.transactions) {
-        const tr = packTransaction(t, p.id);
-        statements.push(env.DB.prepare(
-          "INSERT INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
+      try {
+        const entry = await fetchFullEntry(env, id);
+        if (!entry) return respond({ error: 'Not found' }, 404);
+        return respond(entry);
+      } catch (err) {
+        return respond({ error: 'Failed to load entry', details: err?.message || String(err) }, 500);
       }
-    }
+    });
 
-    try {
-      await env.DB.batch(statements);
-      
-      // Log (Background)
-      const logPromise = logJSONL(env, [{ event: 'create', source: body.source||'manuell', id: p.id, title: p.title }]);
-      if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
-      else await logPromise;
-      
-      // Return full object
-      return respond({ ...body, id: p.id }, 201);
-    } catch (e) {
-      return respond({ error: 'Database error', details: e.message }, 500);
-    }
-  });
+    // 3) POST create entry (manual deals)
+    router.post(path('/entries'), async ({ env, request, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
 
-  // 4. PUT (UPDATE) - Now Supports Upsert (Create if ID missing)
-  router.put('/entries/:id', async ({ env, respond, request, params, ctx }) => {
-    const id = decodeURIComponent(params.id);
-    let body;
-    try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
+      const body = await readBodyJson(request);
+      if (!body || typeof body !== 'object') return respond({ error: 'Invalid JSON body' }, 400);
 
-    // Check if it exists
-    const existingRow = await env.DB.prepare("SELECT * FROM projects WHERE id = ?").bind(id).first();
+      const id = body.id ? body.id.toString() : idFactory('entry');
 
-    // --- CREATE PATH (UPSERT) ---
-    if (!existingRow) {
-        const p = packProject({ ...body, id });
-        const statements = [];
+      // Falls ein Import doch über POST kommt: Import-Regeln anwenden
+      const entryToStore = applyImportPortfolioRules({ ...body, id });
 
-        // Insert Project
-        statements.push(env.DB.prepare(
-          "INSERT INTO projects (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).bind(p.id, p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data));
+      const { project, transactions } = packProject(entryToStore);
 
-        // Insert Transactions
-        if (Array.isArray(body.transactions)) {
-          for (const t of body.transactions) {
-            const tr = packTransaction(t, p.id);
-            statements.push(env.DB.prepare(
-              "INSERT INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
+      const stmts = [];
+
+      // Upsert project
+      stmts.push(
+        env.DB.prepare(
+          `INSERT OR REPLACE INTO projects
+           (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          project.id,
+          project.projectType,
+          project.client,
+          project.title,
+          project.projectNumber,
+          project.amount,
+          project.dockPhase,
+          project.dockFinalAssignment,
+          project.ts,
+          project.freigabedatum,
+          project.data
+        )
+      );
+
+      // Replace transactions
+      stmts.push(env.DB.prepare('DELETE FROM transactions WHERE project_id = ?').bind(project.id));
+
+      const txList = Array.isArray(transactions) ? transactions : [];
+      for (const tx of txList) {
+        const packedTx = packTransaction(
+          { ...tx, parentId: tx.parentId ?? project.id, id: tx.id ?? idFactory('tx') },
+          project.id
+        );
+        stmts.push(
+          env.DB.prepare(
+            `INSERT OR REPLACE INTO transactions
+             (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            packedTx.id,
+            packedTx.project_id,
+            packedTx.kv_nummer,
+            packedTx.type,
+            packedTx.amount,
+            packedTx.title,
+            packedTx.client,
+            packedTx.ts,
+            packedTx.freigabedatum,
+            packedTx.data
+          )
+        );
+      }
+
+      try {
+        await runBatched(env, stmts);
+
+        // Logging darf NIE den Request kaputt machen
+        if (typeof logJSONL === 'function') {
+          try {
+            await logJSONL(env, {
+              kind: 'entry_create',
+              id: project.id,
+              ts: Date.now(),
+              source: entryToStore.source ?? null,
+            });
+          } catch {}
+        }
+
+        const stored = await fetchFullEntry(env, project.id);
+        return respond(stored || { ok: true, id: project.id }, 201);
+      } catch (err) {
+        return respond({ error: 'Failed to create entry', details: err?.message || String(err) }, 500);
+      }
+    });
+
+    // 4) PUT upsert entry (updates + "create if missing")
+    router.put(path('/entries/:id'), async ({ env, request, respond, params }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const id = params?.id;
+      if (!id) return respond({ error: 'Missing id' }, 400);
+
+      const body = await readBodyJson(request);
+      if (!body || typeof body !== 'object') return respond({ error: 'Invalid JSON body' }, 400);
+
+      try {
+        const before = await fetchFullEntry(env, id);
+
+        // Merge: Partial updates dürfen keine Felder "leer machen"
+        const mergedRaw = {
+          ...(before || {}),
+          ...body,
+          id,
+          transactions: Object.prototype.hasOwnProperty.call(body, 'transactions')
+            ? Array.isArray(body.transactions)
+              ? body.transactions
+              : []
+            : before?.transactions || [],
+        };
+
+        // Falls ein Import über PUT kommt: Import-Regeln anwenden
+        const merged = applyImportPortfolioRules(mergedRaw);
+
+        const { project, transactions } = packProject(merged);
+
+        const stmts = [];
+
+        // Upsert project
+        stmts.push(
+          env.DB.prepare(
+            `INSERT OR REPLACE INTO projects
+             (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            project.id,
+            project.projectType,
+            project.client,
+            project.title,
+            project.projectNumber,
+            project.amount,
+            project.dockPhase,
+            project.dockFinalAssignment,
+            project.ts,
+            project.freigabedatum,
+            project.data
+          )
+        );
+
+        // Replace transactions (weil wir sie gemerged haben)
+        stmts.push(env.DB.prepare('DELETE FROM transactions WHERE project_id = ?').bind(project.id));
+
+        const txList = Array.isArray(transactions) ? transactions : [];
+        for (const tx of txList) {
+          const packedTx = packTransaction(
+            { ...tx, parentId: tx.parentId ?? project.id, id: tx.id ?? idFactory('tx') },
+            project.id
+          );
+          stmts.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO transactions
+               (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              packedTx.id,
+              packedTx.project_id,
+              packedTx.kv_nummer,
+              packedTx.type,
+              packedTx.amount,
+              packedTx.title,
+              packedTx.client,
+              packedTx.ts,
+              packedTx.freigabedatum,
+              packedTx.data
+            )
+          );
+        }
+
+        await runBatched(env, stmts);
+
+        const after = await fetchFullEntry(env, id);
+
+        // HubSpot Sync darf NIE die Speicherung blockieren – und wird stark eingeschränkt
+        if (
+          after &&
+          shouldSyncToHubspot(after) &&
+          typeof collectHubspotSyncPayload === 'function' &&
+          typeof processHubspotSyncQueue === 'function'
+        ) {
+          try {
+            const payload = collectHubspotSyncPayload(before, after);
+            if (payload) {
+              await processHubspotSyncQueue(env, [payload], { reason: 'entry_update' });
+            }
+          } catch {}
+        }
+
+        if (typeof logJSONL === 'function') {
+          try {
+            await logJSONL(env, {
+              kind: before ? 'entry_update' : 'entry_upsert_create',
+              id,
+              ts: Date.now(),
+              source: after?.source ?? merged?.source ?? null,
+            });
+          } catch {}
+        }
+
+        return respond(after || { ok: true, id }, before ? 200 : 201);
+      } catch (err) {
+        return respond({ error: 'Failed to upsert entry', details: err?.message || String(err) }, 500);
+      }
+    });
+
+    // 5) DELETE entry
+    router.delete(path('/entries/:id'), async ({ env, respond, params }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const id = params?.id;
+      if (!id) return respond({ error: 'Missing id' }, 400);
+
+      try {
+        await env.DB.batch([
+          env.DB.prepare('DELETE FROM transactions WHERE project_id = ?').bind(id),
+          env.DB.prepare('DELETE FROM projects WHERE id = ?').bind(id),
+        ]);
+
+        if (typeof logJSONL === 'function') {
+          try {
+            await logJSONL(env, { kind: 'entry_delete', id, ts: Date.now() });
+          } catch {}
+        }
+
+        return respond({ ok: true, id });
+      } catch (err) {
+        return respond({ error: 'Failed to delete entry', details: err?.message || String(err) }, 500);
+      }
+    });
+
+    // 6) Bulk delete
+    router.post(path('/entries/bulk-delete'), async ({ env, request, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const body = await readBodyJson(request);
+      const ids = Array.isArray(body?.ids) ? body.ids.map((v) => v?.toString()).filter(Boolean) : null;
+      if (!ids || ids.length === 0) return respond({ error: 'Missing ids[]' }, 400);
+
+      const stmts = [];
+      for (const id of ids) {
+        stmts.push(env.DB.prepare('DELETE FROM transactions WHERE project_id = ?').bind(id));
+        stmts.push(env.DB.prepare('DELETE FROM projects WHERE id = ?').bind(id));
+      }
+
+      try {
+        await runBatched(env, stmts);
+        return respond({ ok: true, deleted: ids.length });
+      } catch (err) {
+        return respond({ error: 'Bulk delete failed', details: err?.message || String(err) }, 500);
+      }
+    });
+
+    // 7) Bulk upsert (Excel / ERP import)
+    router.post(path('/entries/bulk-v2'), async ({ env, request, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const body = await readBodyJson(request);
+      if (!body || typeof body !== 'object') return respond({ error: 'Invalid JSON body' }, 400);
+
+      const rows = Array.isArray(body.rows) ? body.rows : Array.isArray(body.items) ? body.items : [];
+      const dryRun = body.dryRun === true;
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return respond({ ok: true, rows: 0, dryRun, upserted: 0 });
+      }
+
+      let upserted = 0;
+      const stmts = [];
+
+      for (const raw of rows) {
+        if (!raw || typeof raw !== 'object') continue;
+
+        const id = raw.id ? raw.id.toString() : idFactory('entry');
+
+        // Bulk-V2 ist Import: Regeln IMMER erzwingen (Phase 4 + Portfolio)
+        const row = applyImportPortfolioRules({ ...raw, id }, { force: true });
+
+        const { project, transactions } = packProject(row);
+
+        if (!dryRun) {
+          stmts.push(
+            env.DB.prepare(
+              `INSERT OR REPLACE INTO projects
+               (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              project.id,
+              project.projectType,
+              project.client,
+              project.title,
+              project.projectNumber,
+              project.amount,
+              project.dockPhase,
+              project.dockFinalAssignment,
+              project.ts,
+              project.freigabedatum,
+              project.data
+            )
+          );
+
+          // Transactions nur anfassen, wenn mitgeliefert.
+          if (Array.isArray(transactions)) {
+            stmts.push(env.DB.prepare('DELETE FROM transactions WHERE project_id = ?').bind(project.id));
+            for (const tx of transactions) {
+              const packedTx = packTransaction(
+                { ...tx, parentId: tx.parentId ?? project.id, id: tx.id ?? idFactory('tx') },
+                project.id
+              );
+              stmts.push(
+                env.DB.prepare(
+                  `INSERT OR REPLACE INTO transactions
+                   (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                ).bind(
+                  packedTx.id,
+                  packedTx.project_id,
+                  packedTx.kv_nummer,
+                  packedTx.type,
+                  packedTx.amount,
+                  packedTx.title,
+                  packedTx.client,
+                  packedTx.ts,
+                  packedTx.freigabedatum,
+                  packedTx.data
+                )
+              );
+            }
           }
         }
 
-        try {
-            await env.DB.batch(statements);
-            // Log (Background)
-            const logPromise = logJSONL(env, [{ event: 'create', source: body.source||'manuell', id: p.id, title: p.title }]);
-            if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
-            else await logPromise;
-
-            // Note: New creations via manual PUT do NOT sync to HubSpot (as per req), unless ID matched existing (but this is CREATE).
-
-            return respond({ ...body, id: p.id }, 201);
-        } catch (e) {
-            return respond({ error: 'Database error', details: e.message }, 500);
-        }
-    }
-
-    // --- UPDATE PATH ---
-    const existingEntry = unpackProject(existingRow);
-    const p = packProject({ ...body, id }); // Ensure ID matches URL
-    
-    const statements = [];
-
-    // Update Project
-    statements.push(env.DB.prepare(
-      "UPDATE projects SET projectType=?, client=?, title=?, projectNumber=?, amount=?, dockPhase=?, dockFinalAssignment=?, ts=?, freigabedatum=?, data=? WHERE id=?"
-    ).bind(p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data, id));
-
-    // Transactions: Delete & Re-Insert
-    if (Array.isArray(body.transactions)) {
-        statements.push(env.DB.prepare("DELETE FROM transactions WHERE project_id = ?").bind(id));
-        for (const t of body.transactions) {
-            const tr = packTransaction(t, id);
-            statements.push(env.DB.prepare(
-              "INSERT INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
-        }
-    }
-
-    try {
-      await env.DB.batch(statements);
-      
-      const promises = [];
-      promises.push(logJSONL(env, [{ event: 'update', id: id, title: p.title }]));
-
-      // HubSpot Sync Trigger
-      if (body.source !== 'erp-import' && collectHubspotSyncPayload && processHubspotSyncQueue) {
-         const newEntry = unpackProject(p);
-         const payload = collectHubspotSyncPayload(existingEntry, newEntry);
-         if (payload) {
-             promises.push(processHubspotSyncQueue(env, [payload], { mode: 'single', reason: 'update_entry' }));
-         }
+        upserted += 1;
       }
 
-      if (ctx && ctx.waitUntil) ctx.waitUntil(Promise.all(promises));
-      else await Promise.all(promises);
-
-      return respond({ ...body, id });
-    } catch (e) {
-      return respond({ error: 'Database error', details: e.message }, 500);
-    }
-  });
-
-  // 5. BULK V2 (IMPORTER - OPTIMIZED FOR SQL)
-  router.post('/entries/bulk-v2', async ({ env, respond, request, ctx }) => {
-    console.log('Processing /entries/bulk-v2 (SQL D1)');
-    let payload;
-    try { payload = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
-    
-    const rows = payload.rows || [];
-    if (!rows.length) return respond({ ok: true, message: 'empty' });
-
-    // 1. Pre-fetch existing projects by Project Number to handle "Missing ID" scenario
-    // This allows identifying if an imported row (without ID) is an update to an existing Framework (Call-off)
-    // or an update to an existing Fix Project.
-    const lookupNumbers = new Set();
-    for (const r of rows) {
-        if (r.projectNumber && typeof r.projectNumber === 'string' && !r.id && !r.parentId && !r.project_id) {
-            lookupNumbers.add(r.projectNumber);
-        }
-    }
-
-    const numberMap = new Map();
-    if (lookupNumbers.size > 0) {
-        const allNumbers = Array.from(lookupNumbers);
-        const CHUNK_SIZE = 50;
-        for (let i = 0; i < allNumbers.length; i += CHUNK_SIZE) {
-            const chunk = allNumbers.slice(i, i + CHUNK_SIZE);
-            if (!chunk.length) continue;
-            const placeholders = chunk.map(() => '?').join(',');
-            try {
-                // We need projectType to distinguish between Framework (attach transaction) and Fix (update project)
-                const { results } = await env.DB.prepare(
-                    `SELECT id, projectNumber, projectType FROM projects WHERE projectNumber IN (${placeholders})`
-                ).bind(...chunk).all();
-                for (const res of results) {
-                    numberMap.set(res.projectNumber, res);
-                }
-            } catch (err) {
-                console.error("Lookup error in bulk-v2", err);
-            }
-        }
-    }
-
-    const statements = [];
-    const logs = [];
-    let created = 0; 
-    let updated = 0;
-
-    for (const row of rows) {
-        // ID Resolution: If no ID but Project Number exists, check if we found a match.
-        if (!row.id && !row.parentId && !row.project_id && row.projectNumber && numberMap.has(row.projectNumber)) {
-            const match = numberMap.get(row.projectNumber);
-            // If it's a Framework, we assume this row is a Transaction (Call-off) for that Framework
-            // UNLESS the row explicitly has 'projectType' set to 'rahmen' (then it might be a project update)
-            if (match.projectType === 'rahmen' && row.projectType !== 'rahmen') {
-                row.parentId = match.id;
-            } else {
-                // Otherwise (Fix Project or explicit Framework update), we treat it as an Update to the Project
-                row.id = match.id;
-            }
-        }
-
-        // Prüfen: Ist es eine Transaction (hat parentId) oder ein Projekt?
-        // Im Importer setzen wir "parentId" bei Call-Offs im JSON aber die DB nutzt 'project_id'
-        // Wir müssen erkennen, was reinkommt.
-        
-        // Fall A: Rahmenvertrag Update (enthält transactions array) - kommt oft aus "frameworksToUpdate"
-        if (row.projectType === 'rahmen' && Array.isArray(row.transactions)) {
-            // Wir aktualisieren das Projekt UND fügen neue Transaktionen hinzu
-            // Um Dubletten bei Transaktionen zu vermeiden, nutzen wir INSERT OR IGNORE oder Check
-            
-            const p = packProject(row);
-            statements.push(env.DB.prepare(
-                "UPDATE projects SET amount=?, data=? WHERE id=?" // Minimales Update oft ausreichend
-            ).bind(p.amount, p.data, p.id));
-            updated++;
-
-            for (const t of row.transactions) {
-                // Wir inserten nur, wenn es die Transaction-ID noch nicht gibt (vermeidet Fehler bei Rerun)
-                const tr = packTransaction(t, p.id);
-                statements.push(env.DB.prepare(
-                    "INSERT OR REPLACE INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
-            }
-            logs.push({ event: 'bulk_update_framework', id: row.id });
-        }
-        
-        // Fall B: Neuer Fixauftrag (hat keine transactions oder transactions array ist leer, aber keine parentId)
-        else if (!row.parentId && !row.project_id) {
-            // Check ob ID existiert (Update) oder nicht (Insert)
-            // SQL "INSERT OR REPLACE" ist hier Gold wert
-
-            // FORCE dockPhase = 4 for new imports if not explicitly set
-            // The user requested that imported deals should go directly to Portfolio (Phase 4).
-            // We assume if 'dockPhase' is missing or null, it's a new import intended for Portfolio.
-            if (row.dockPhase == null) {
-                row.dockPhase = 4;
-            }
-
-            const p = packProject(row);
-            statements.push(env.DB.prepare(
-               "INSERT OR REPLACE INTO projects (id, projectType, client, title, projectNumber, amount, dockPhase, dockFinalAssignment, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            ).bind(p.id, p.projectType, p.client, p.title, p.projectNumber, p.amount, p.dockPhase, p.dockFinalAssignment, p.ts, p.freigabedatum, p.data));
-            
-            created++;
-            logs.push({ event: 'bulk_upsert_project', id: row.id });
-        }
-
-        // Fall C: Einzelne Transaction (Call-Off) - falls der Importer nur Transaktionen sendet
-        else if (row.parentId || row.project_id) {
-             const pid = row.parentId || row.project_id;
-             const tr = packTransaction(row, pid);
-             statements.push(env.DB.prepare(
-                "INSERT OR REPLACE INTO transactions (id, project_id, kv_nummer, type, amount, title, client, ts, freigabedatum, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-             ).bind(tr.id, tr.project_id, tr.kv_nummer, tr.type, tr.amount, tr.title, tr.client, tr.ts, tr.freigabedatum, tr.data));
-             updated++;
-             logs.push({ event: 'bulk_upsert_transaction', id: row.id });
-        }
-    }
-
-    // Ausführen in Batches (D1 Limit beachten, aber viel höher als 1)
-    // D1 erlaubt ca 100 Statements im Batch.
-    const BATCH_LIMIT = 50; 
-    for (let i = 0; i < statements.length; i += BATCH_LIMIT) {
-        const batch = statements.slice(i, i + BATCH_LIMIT);
-        try {
-            await env.DB.batch(batch);
-        } catch (e) {
-            console.error("Batch error", e);
-            return respond({ error: 'Batch insert failed', details: e.message }, 500);
-        }
-    }
-
-    const logPromise = logJSONL(env, logs);
-    if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
-    else await logPromise;
-
-    return respond({ ok: true, created, updated });
-  });
-
-  // 6. DELETE
-  router.delete('/entries/:id', async ({ env, respond, params, ctx }) => {
-    const id = decodeURIComponent(params.id);
-    
-    // Lösche Projekt UND zugehörige Transaktionen
-    await env.DB.batch([
-        env.DB.prepare("DELETE FROM transactions WHERE project_id = ?").bind(id),
-        env.DB.prepare("DELETE FROM projects WHERE id = ?").bind(id)
-    ]);
-    
-    const logPromise = logJSONL(env, [{ event: 'delete', id }]);
-    if (ctx && ctx.waitUntil) ctx.waitUntil(logPromise);
-    else await logPromise;
-
-    return respond({ ok: true });
-  });
-
-  // 7. ARCHIVE (D1 Style)
-  router.post('/entries/archive', async ({ env, respond, request }) => {
-      // Archivierung ist in SQL Datenbanken oft nicht nötig (einfach Flag setzen).
-      // Wenn wir wirklich verschieben wollen, bräuchten wir eine 'archive_projects' Tabelle.
-      // Fürs erste: Wir lassen es drin oder setzen ein Flag.
-      // Hier simulieren wir Erfolg, da D1 so schnell ist, dass wir keine alten Jahre auslagern müssen.
-      return respond({ archived: 0, message: "D1 Storage benötigt keine Archivierung." });
-  });
-  
-  // 8. MERGE
-  router.post('/entries/merge', async ({ env, respond, request }) => {
-      // ... Vereinfachte Merge Logik für SQL ...
-      // 1. Transactions von Source auf Target umbiegen (UPDATE transactions SET project_id = target WHERE project_id = source)
-      // 2. Source Project löschen
-      // 3. Target Project Amounts updaten
-      let body;
-      try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
-      const ids = body.ids || [];
-      const targetId = body.targetId || ids[0];
-      
-      if(ids.length < 2) return respond({error:'Need 2 IDs'}, 400);
-      
-      const sourceIds = ids.filter(id => id !== targetId);
-      
-      const statements = [];
-      
-      // Transactions verschieben
-      for (const src of sourceIds) {
-          statements.push(env.DB.prepare("UPDATE transactions SET project_id = ? WHERE project_id = ?").bind(targetId, src));
-          statements.push(env.DB.prepare("DELETE FROM projects WHERE id = ?").bind(src));
+      try {
+        if (!dryRun && stmts.length) await runBatched(env, stmts);
+        return respond({ ok: true, dryRun, rows: rows.length, upserted });
+      } catch (err) {
+        return respond({ error: 'Bulk upsert failed', details: err?.message || String(err) }, 500);
       }
-      
-      // Amount Update im Target müsste man berechnen, hier vereinfacht:
-      // Wir müssten erst lesen, dann schreiben. 
-      // Das sparen wir uns hier für die Kürze, Merge ist komplex.
-      
-      await env.DB.batch(statements);
-      
-      return respond({ ok: true, mergedInto: targetId });
-  });
+    });
+
+    // 8) Archive (D1: bewusst ein No-Op – bleibt für Admin-UI kompatibel)
+    router.post(path('/entries/archive'), async ({ env, request, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const body = await readBodyJson(request);
+      const year = Number(body?.year) || new Date().getFullYear();
+
+      // In D1-Mode wird nicht in eine entries.json "archiviert".
+      return respond({ ok: true, year, archived: 0, message: 'D1 mode: archive is a no-op.' });
+    });
+
+    // 9) Merge (move transactions from fromId -> toId, then delete fromId)
+    router.post(path('/entries/merge'), async ({ env, request, respond }) => {
+      if (!env.DB) return respond({ error: 'DB binding missing' }, 500);
+
+      const body = await readBodyJson(request);
+      const fromId = body?.fromId?.toString();
+      const toId = body?.toId?.toString();
+
+      if (!fromId || !toId) return respond({ error: 'fromId/toId required' }, 400);
+      if (fromId === toId) return respond({ error: 'fromId must differ from toId' }, 400);
+
+      try {
+        await env.DB.batch([
+          env.DB.prepare('UPDATE transactions SET project_id = ? WHERE project_id = ?').bind(toId, fromId),
+          env.DB.prepare('DELETE FROM projects WHERE id = ?').bind(fromId),
+        ]);
+        return respond({ ok: true, fromId, toId });
+      } catch (err) {
+        return respond({ error: 'Merge failed', details: err?.message || String(err) }, 500);
+      }
+    });
+  }
+
+  // Main routes
+  mount('');
+  // Legacy alias
+  mount('/api');
 }
