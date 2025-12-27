@@ -1108,4 +1108,4 @@ export function clearInputFields() {
   // für den Aufruf aus main.js.
 }
 
-export { finalizeDockAbruf, hideManualPanel };
+export { finalizeDockAbruf };
