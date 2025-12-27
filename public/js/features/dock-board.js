@@ -1107,5 +1107,3 @@ export function clearInputFields() {
   // Der neue Wizard verwaltet seine Felder selbst; hier nur Kompatibilität
   // für den Aufruf aus main.js.
 }
-
-export { finalizeDockAbruf };
