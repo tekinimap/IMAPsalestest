@@ -333,7 +333,32 @@ export function registerEntryRoutes(
     return respond({ ok: true });
   });
 
-  // 7. ARCHIVE (D1 Style)
+  // 7. BULK DELETE
+  router.post('/entries/bulk-delete', async ({ env, respond, request }) => {
+      let body;
+      try { body = await request.json(); } catch { return respond({ error: 'Invalid JSON' }, 400); }
+      const ids = Array.isArray(body.ids) ? body.ids.map((id) => decodeURIComponent(id)) : [];
+      if (!ids.length) {
+        return respond({ error: 'No IDs provided' }, 400);
+      }
+      // Lösche alle ausgewählten Einträge und ihre Transaktionen
+      const statements = [];
+      for (const id of ids) {
+        statements.push(env.DB.prepare("DELETE FROM transactions WHERE project_id = ?").bind(id));
+        statements.push(env.DB.prepare("DELETE FROM projects WHERE id = ?").bind(id));
+      }
+      try {
+        await env.DB.batch(statements);
+      } catch (e) {
+        return respond({ error: 'Delete failed', details: e.message }, 500);
+      }
+      // Logge jedes Lösch-Event
+      const logs = ids.map((id) => ({ event: 'delete', id }));
+      await logJSONL(env, logs);
+      return respond({ ok: true, deletedCount: ids.length });
+  });
+
+  // 8. ARCHIVE (D1 Style)
   router.post('/entries/archive', async ({ env, respond, request }) => {
       // Archivierung ist in SQL Datenbanken oft nicht nötig (einfach Flag setzen).
       // Wenn wir wirklich verschieben wollen, bräuchten wir eine 'archive_projects' Tabelle.
@@ -342,7 +367,7 @@ export function registerEntryRoutes(
       return respond({ archived: 0, message: "D1 Storage benötigt keine Archivierung." });
   });
   
-  // 8. MERGE
+  // 9. MERGE
   router.post('/entries/merge', async ({ env, respond, request }) => {
       // ... Vereinfachte Merge Logik für SQL ...
       // 1. Transactions von Source auf Target umbiegen (UPDATE transactions SET project_id = target WHERE project_id = source)
@@ -353,7 +378,7 @@ export function registerEntryRoutes(
       const ids = body.ids || [];
       const targetId = body.targetId || ids[0];
       
-      if(ids.length < 2) return respond({error:'Need 2 IDs'}, 400);
+      if(ids.length < 2) return respond({ error:'Need 2 IDs' }, 400);
       
       const sourceIds = ids.filter(id => id !== targetId);
       
