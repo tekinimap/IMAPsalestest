@@ -13,241 +13,397 @@ const PORTFOLIO_SORT_DEFAULTS = {
   budget: 'desc',
   status: 'desc',
 };
+let sortState = { key: 'title', direction: PORTFOLIO_SORT_DEFAULTS.title };
 
-let portfolioSortState = { ...PORTFOLIO_SORT_DEFAULTS };
+export function initPortfolio(portfolioDeps = {}) {
+  deps = portfolioDeps;
 
-function getSortValue(entry, key) {
-  switch (key) {
-    case 'type':
-      return (entry.projectType || '').toLowerCase();
-    case 'projectNumber':
-      return (entry.projectNumber || '').toLowerCase();
-    case 'title':
-      return (entry.title || '').toLowerCase();
-    case 'client':
-      return (entry.client || '').toLowerCase();
-    case 'budget':
-      return Number(entry.amount || entry.budget || 0);
-    case 'status':
-      return entry.complete ? 1 : 0;
-    default:
-      return '';
-  }
-}
-
-function sortEntries(entries) {
-  const sortKeys = Object.keys(portfolioSortState);
-
-  return entries.sort((a, b) => {
-    for (const key of sortKeys) {
-      const dir = portfolioSortState[key];
-      if (!dir) continue;
-      const va = getSortValue(a, key);
-      const vb = getSortValue(b, key);
-      if (va < vb) return dir === 'asc' ? -1 : 1;
-      if (va > vb) return dir === 'asc' ? 1 : -1;
-    }
-    return 0;
-  });
-}
-
-function entryMatchesSearch(entry, query) {
-  if (!query) return true;
-  const haystack = [
-    entry.projectNumber,
-    entry.title,
-    entry.client,
-    entry.kv_nummer,
-    entry.kvNummer,
-    entry.kv,
-    entry.source,
-  ]
-    .filter(Boolean)
-    .map((x) => String(x).toLowerCase());
-
-  return haystack.some((x) => x.includes(query));
-}
-
-function renderSortButtons() {
-  const container = document.getElementById('portfolioSort');
-  if (!container) return;
-
-  const setBtnState = (btn, state) => {
-    btn.classList.toggle('active', Boolean(state));
-    btn.setAttribute('aria-pressed', Boolean(state));
-    const label = btn.getAttribute('data-label') || btn.textContent;
-    btn.textContent = state ? `${label} ${state === 'asc' ? '↑' : '↓'}` : label;
-  };
-
-  container.querySelectorAll('button[data-sort]').forEach((btn) => {
-    const key = btn.getAttribute('data-sort');
-    setBtnState(btn, portfolioSortState[key]);
-  });
-}
-
-function toggleSort(key) {
-  const current = portfolioSortState[key];
-  const next = current === 'asc' ? 'desc' : current === 'desc' ? null : 'asc';
-  portfolioSortState[key] = next;
-  renderPortfolio();
-}
-
-function attachSortListeners() {
-  const container = document.getElementById('portfolioSort');
-  if (!container) return;
-
-  container.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-sort]');
-    if (!btn) return;
-    const key = btn.getAttribute('data-sort');
-    if (!key) return;
-    toggleSort(key);
-  });
-}
-
-function renderFilterButtons() {
-  const btnAll = document.getElementById('btnPortfolioAll');
-  const btnFix = document.getElementById('btnPortfolioFix');
-  const btnRahmen = document.getElementById('btnPortfolioRahmen');
-
-  if (btnAll) btnAll.classList.toggle('active', currentFilter === 'all');
-  if (btnFix) btnFix.classList.toggle('active', currentFilter === 'fix');
-  if (btnRahmen) btnRahmen.classList.toggle('active', currentFilter === 'rahmen');
-}
-
-function setFilter(filter) {
-  currentFilter = filter;
-  renderPortfolio();
-}
-
-function attachFilterListeners() {
-  document.getElementById('btnPortfolioAll')?.addEventListener('click', () => setFilter('all'));
-  document.getElementById('btnPortfolioFix')?.addEventListener('click', () => setFilter('fix'));
-  document.getElementById('btnPortfolioRahmen')?.addEventListener('click', () => setFilter('rahmen'));
-
-  const toggleArchive = document.getElementById('toggleArchiveFrameworks');
-  if (toggleArchive) {
-    toggleArchive.addEventListener('change', (e) => {
-      showArchivedFrameworks = Boolean(e.target.checked);
+  const filterContainer = document.getElementById('portfolioFilters');
+  if (filterContainer) {
+    filterContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-filter]');
+      if (!btn) return;
+      currentFilter = btn.dataset.filter;
+      Array.from(filterContainer.querySelectorAll('button')).forEach((b) =>
+        b.classList.remove('accent', 'ok', 'warn')
+      );
+      if (currentFilter === 'all') {
+        btn.classList.add('accent');
+      } else if (currentFilter === 'critical') {
+        btn.classList.add('warn');
+      } else {
+        btn.classList.add('accent');
+      }
       renderPortfolio();
     });
   }
-}
 
-function attachSearchListener() {
-  document.getElementById('portfolioSearch')?.addEventListener('input', () => renderPortfolio());
-}
+  const searchInput = document.getElementById('portfolioSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      renderPortfolio();
+    });
+  }
 
-function renderPortfolioTable(entries) {
-  const tbody = document.getElementById('portfolioTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+  const showArchivedToggle = document.getElementById('portfolioShowArchived');
+  if (showArchivedToggle) {
+    showArchivedFrameworks = !!showArchivedToggle.checked;
+    showArchivedToggle.addEventListener('change', () => {
+      showArchivedFrameworks = !!showArchivedToggle.checked;
+      renderPortfolio();
+    });
+  }
 
-  entries.forEach((entry) => {
-    const tr = document.createElement('tr');
-    tr.dataset.id = entry.id;
-
-    const typeLabel = entry.projectType === 'rahmen' ? 'Rahmen' : 'Fix';
-    const budget = Number(entry.amount || entry.budget || 0);
-    const budgetText = budget ? new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(budget) : '—';
-    const status = entry.complete ? 'vollständig' : 'unvollständig';
-    const title = entry.title || '—';
-    const client = entry.client || '—';
-    const pn = entry.projectNumber || '—';
-
-    tr.innerHTML = `
-      <td>${typeLabel}</td>
-      <td>${pn}</td>
-      <td>${title}</td>
-      <td>${client}</td>
-      <td>${budgetText}</td>
-      <td>${status}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn btn-sm port-open">Öffnen</button>
-        <button class="btn btn-sm warn port-del">Löschen</button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
+  document.querySelectorAll('#viewPortfolio th.sortable').forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (!key) return;
+      if (sortState.key === key) {
+        sortState = { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' };
+      } else {
+        const defaultDirection = PORTFOLIO_SORT_DEFAULTS[key] || 'asc';
+        sortState = { key, direction: defaultDirection };
+      }
+      renderPortfolio();
+    });
   });
+
+  const tableBody = document.getElementById('portfolioBody');
+  const portfolioView = document.getElementById('viewPortfolio');
+  const clickTarget = tableBody || portfolioView;
+  if (clickTarget) {
+    clickTarget.addEventListener('click', (event) => handlePortfolioClick(event, tableBody));
+  }
 }
 
-function attachTableListeners() {
-  const tbody = document.getElementById('portfolioTableBody');
-  if (!tbody) return;
+function handlePortfolioClick(e, tableBody) {
+  const targetRow = e.target.closest('tr');
+  if (!targetRow || (tableBody && !tableBody.contains(targetRow))) return;
+  const isTransactionRow = targetRow.dataset.parentId;
+  const entryId = targetRow.dataset.id;
+  const transId = targetRow.dataset.transId;
+  const actBtn = e.target.closest('[data-act]');
 
-  tbody.addEventListener('click', (e) => {
-    const tr = e.target.closest('tr[data-id]');
-    if (!tr) return;
-    const id = tr.getAttribute('data-id');
-    if (!id) return;
+  if (actBtn) {
+    const action = actBtn.dataset.act;
+    const id = actBtn.dataset.id;
+    if (action === 'edit') {
+      if (isTransactionRow) {
+        const parentId = targetRow.dataset.parentId;
+        const parentEntry = findEntryById(parentId);
+        if (!parentEntry) return;
+        const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
+        if (!transaction) return;
+        deps.openEditTransactionModal?.(transaction, parentEntry);
+      } else {
+        editEntryById(id);
+      }
+    } else if (action === 'edit-volume') {
+      e.preventDefault();
+      e.stopPropagation(); 
 
-    if (e.target.closest('.port-open')) {
-      const entry = findEntryById(id);
-      if (entry) openWizard(entry);
-      return;
-    }
+      const id = actBtn.dataset.id;
+      if (!id) return;
 
-    if (e.target.closest('.port-del')) {
       const entry = findEntryById(id);
       if (!entry) return;
-      setPendingDelete(entry);
-      document.getElementById('confirmDlgTitle').textContent = 'Eintrag löschen';
-      document.getElementById('confirmDlgText').textContent = `Wollen Sie "${entry.title || entry.projectNumber || entry.id}" wirklich löschen?`;
-      document.getElementById('confirmDlg').showModal();
-    }
-  });
-}
 
-export function initPortfolio(initDeps = {}) {
-  deps = initDeps || {};
-  attachFilterListeners();
-  attachSearchListener();
-  attachSortListeners();
+      if (typeof deps.openFrameworkVolumeDialog === 'function') {
+        try {
+          deps.openFrameworkVolumeDialog(entry, (vol) => {
+            if (typeof deps.onUpdateFrameworkVolume === 'function') {
+              deps.onUpdateFrameworkVolume(entry, vol);
+            }
+          });
+        } catch (err) {
+          console.error('Portfolio: Error opening dialog:', err);
+        }
+      }
+      return;
+    } else if (action === 'del') {
+      if (isTransactionRow) {
+        const parentId = targetRow.dataset.parentId;
+        setPendingDelete({ id: transId, type: 'transaction', parentId });
+      } else {
+        setPendingDelete({ id: id, type: 'entry', parentId: null });
+      }
+      const confirmDlg = document.getElementById('confirmDlg');
+      const titleEl = document.getElementById('confirmDlgTitle');
+      const textEl = document.getElementById('confirmDlgText');
+      if (titleEl && textEl && confirmDlg) {
+        titleEl.textContent = 'Eintrag löschen';
+        textEl.textContent = `Wollen Sie den ${isTransactionRow ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
+        confirmDlg.showModal();
+      }
+    }
+    e.stopPropagation();
+    return;
+  }
+
+  if (isTransactionRow) {
+    const parentEntry = findEntryById(targetRow.dataset.parentId);
+    const transaction = parentEntry?.transactions?.find((t) => t.id === transId);
+    if (transaction) {
+      deps.openEditTransactionModal?.(transaction, parentEntry);
+    }
+    return;
+  }
+
+  if (!isTransactionRow) {
+    const entry = findEntryById(entryId);
+    if (entry && entry.projectType === 'rahmen' && tableBody) {
+      const alreadyExpanded = targetRow.classList.contains('expanded');
+      if (alreadyExpanded) {
+        const childRows = tableBody.querySelectorAll(`tr[data-parent-id="${entryId}"]`);
+        childRows.forEach((r) => r.remove());
+        targetRow.classList.remove('expanded');
+      } else {
+        if (entry.transactions && entry.transactions.length > 0) {
+          entry.transactions.sort((a, b) => {
+            const dateA = a.freigabedatum || a.ts || 0;
+            const dateB = b.freigabedatum || b.ts || 0;
+            return dateB - dateA;
+          });
+          const fragment = document.createDocumentFragment();
+          entry.transactions.forEach((trans) => {
+            const tr = document.createElement('tr');
+            tr.classList.add('transaction-row', 'clickable');
+            tr.dataset.parentId = entryId;
+            tr.dataset.transId = trans.id;
+            let datum = '–';
+            if (trans.freigabedatum) {
+              datum = new Date(trans.freigabedatum).toLocaleDateString('de-DE');
+            } else if (trans.ts) {
+              datum = new Date(trans.ts).toLocaleDateString('de-DE');
+            }
+            tr.innerHTML = `
+              <td></td>
+              <td>${trans.kv_nummer || '–'}</td>
+              <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
+              <td>${trans.title || '–'}</td>
+              <td class="text-right">${fmtCurr2(trans.amount)}</td>
+              <td class="text-right">${datum}</td>
+              <td class="cell-actions">
+                <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
+              </td>`;
+            fragment.appendChild(tr);
+          });
+          if (targetRow.nextSibling) {
+            tableBody.insertBefore(fragment, targetRow.nextSibling);
+          } else {
+            tableBody.appendChild(fragment);
+          }
+        }
+        targetRow.classList.add('expanded');
+      }
+    }
+  }
 }
 
 export function renderPortfolio() {
-  const entries = (getEntries() || []).slice();
-
+  const entries = getEntries() || [];
   const searchInput = document.getElementById('portfolioSearch');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-
+  
   let filteredEntries = entries.filter((e) => {
     // 1. DOCK FILTER
-    const isGraduated = !!e.dockFinalAssignment;
+    const isGraduated = !!e.dockFinalAssignment; 
     const isHubSpot = (e.source || '').trim().toLowerCase() === 'hubspot';
-
-    const phaseNum = Number(e.dockPhase);
-    const isActiveDockPhase = Number.isFinite(phaseNum) && phaseNum >= 1 && phaseNum <= 3;
-
-    // "Im Dock" bedeutet nur: HubSpot-Deals (ohne Phase 4) oder explizit Phase 1-3.
-    // Phase 4+ soll im Portfolio bleiben.
-    const isInDock = !isGraduated && (isActiveDockPhase || (isHubSpot && e.dockPhase == null));
-
+    const hasDockPhase = e.dockPhase != null;
+    const isInDock = !isGraduated && (isHubSpot || hasDockPhase);
+    
     if (isInDock) return false;
-
+    
     // 2. ARCHIV FILTER
     const isArchived = e.isArchived === true;
     if (!showArchivedFrameworks && isArchived) return false;
 
-    return true;
+    return showArchivedFrameworks || e.projectType !== 'rahmen' || !isArchived;
   });
 
-  // Filter (all/fix/rahmen)
   if (currentFilter === 'fix') {
     filteredEntries = filteredEntries.filter((e) => (e.projectType || 'fix') === 'fix');
   } else if (currentFilter === 'rahmen') {
     filteredEntries = filteredEntries.filter((e) => e.projectType === 'rahmen');
+  } else if (currentFilter === 'critical') {
+    filteredEntries = filteredEntries.filter((e) => {
+      if (e.projectType !== 'rahmen') return false;
+      const { total, used } = getFrameworkUsage(e);
+      return total > 0 && used / total > 0.8;
+    });
   }
 
-  // Search
-  filteredEntries = filteredEntries.filter((e) => entryMatchesSearch(e, query));
+  if (query) {
+    filteredEntries = filteredEntries.filter((e) => {
+      const fields = [e.title || '', e.client || '', e.projectNumber || '', e.kv_nummer || ''].join(' ').toLowerCase();
+      let transFields = '';
+      if (e.transactions && e.transactions.length) {
+        transFields = e.transactions
+          .map((t) => `${t.kv_nummer || ''} ${t.title || ''}`)
+          .join(' ')
+          .toLowerCase();
+      }
+      return fields.includes(query) || transFields.includes(query);
+    });
+  }
 
-  // Sort
-  sortEntries(filteredEntries);
+  const tbody = document.getElementById('portfolioBody');
+  const emptyState = document.getElementById('portfolioEmptyState');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
-  renderFilterButtons();
-  renderSortButtons();
-  renderPortfolioTable(filteredEntries);
-  attachTableListeners();
+  if (filteredEntries.length === 0) {
+    if (emptyState) emptyState.classList.remove('hide');
+    updatePortfolioSortIcons();
+    return;
+  }
+  if (emptyState) emptyState.classList.add('hide');
+
+  filteredEntries.sort(comparePortfolioEntries);
+
+  const frag = document.createDocumentFragment();
+  for (const entry of filteredEntries) {
+    const isFramework = entry.projectType === 'rahmen';
+    const tr = document.createElement('tr');
+    tr.dataset.id = entry.id;
+    tr.classList.add(isFramework ? 'entry-rahmen' : 'entry-fix');
+    if (isFramework) {
+      tr.classList.add('clickable');
+    }
+    const typeSymbol = isFramework ? 'R' : 'F';
+    let budgetCellContent = '';
+    if (isFramework) {
+      const { total, used, pct } = getFrameworkUsage(entry);
+      const ratio = total > 0 ? used / total : 0;
+      const barColorClass = ratio > 1 ? 'bad' : ratio > 0.8 ? 'warn' : 'ok';
+      budgetCellContent = `
+        <div class="progress-bar clickable" data-act="edit-volume" data-id="${entry.id}" title="Volumen anpassen">
+          <div class="progress-fill ${barColorClass}" style="width:${Math.min(pct, 100)}%;"></div>
+        </div>
+        <small>${fmtCurr2(used)} / ${fmtCurr2(total)}</small>`;
+    } else {
+      budgetCellContent = fmtCurr2(entry.amount);
+    }
+    let statusContent = '';
+    if (!isFramework) {
+      const complete = autoComplete(entry);
+      statusContent = `<span class="status-indicator ${complete ? 'ok' : 'bad'}">${complete ? '✓' : '!'}</span>`;
+    } else {
+      const { pct } = getFrameworkUsage(entry);
+      statusContent = `${pct || 0} %`;
+    }
+    tr.innerHTML = `
+      <td>${typeSymbol}</td>
+      <td>${escapeHtml(entry.projectNumber) || '–'}</td>
+      <td>${escapeHtml(entry.title) || '–'}</td>
+      <td>${escapeHtml(entry.client) || '–'}</td>
+      <td class="text-right">${budgetCellContent}</td>
+      <td class="text-right">${statusContent}</td>
+      <td class="cell-actions">
+        <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten">✏️</button>
+        <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen">🗑️</button>
+      </td>`;
+    frag.appendChild(tr);
+  }
+  tbody.appendChild(frag);
+  updatePortfolioSortIcons();
+}
+
+function comparePortfolioEntries(a, b) {
+  const direction = sortState.direction === 'asc' ? 1 : -1;
+  const key = sortState.key;
+  const aVal = getSortValue(a, key);
+  const bVal = getSortValue(b, key);
+
+  if (typeof aVal === 'string' && typeof bVal === 'string') {
+    return aVal.localeCompare(bVal) * direction;
+  }
+  if (aVal === bVal) return 0;
+  return (aVal > bVal ? 1 : -1) * direction;
+}
+
+function getSortValue(entry, key) {
+  switch (key) {
+    case 'type':
+      return entry.projectType === 'rahmen' ? 1 : 0;
+    case 'projectNumber':
+      return (entry.projectNumber || '').toString().toLowerCase();
+    case 'title':
+      return (entry.title || '').toString().toLowerCase();
+    case 'client':
+      return (entry.client || '').toString().toLowerCase();
+    case 'budget':
+      return Number(entry.amount) || 0;
+    case 'status':
+      if (entry.projectType === 'rahmen') {
+        return getFrameworkUsage(entry).pct;
+      }
+      return autoComplete(entry) ? 1 : 0;
+    default:
+      return (entry.title || '').toString().toLowerCase();
+  }
+}
+
+function getFrameworkUsage(entry) {
+  const total = entry.amount || 0;
+  const used = (entry.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
+  const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+  return { total, used, pct };
+}
+
+function updatePortfolioSortIcons() {
+  document.querySelectorAll('#viewPortfolio th.sortable .sort-icon').forEach((icon) => {
+    icon.textContent = '';
+    icon.style.opacity = 0.5;
+  });
+
+  const activeIcon = document.querySelector(`#viewPortfolio th[data-sort="${sortState.key}"] .sort-icon`);
+  if (activeIcon) {
+    activeIcon.textContent = sortState.direction === 'asc' ? '▲' : '▼';
+    activeIcon.style.opacity = 1;
+  }
+}
+
+function escapeHtml(str) {
+  return str
+    ? str.toString().replace(/[&<>"']/g, (s) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s] || s))
+    : '';
+}
+
+function fmtCurr2(value) {
+  const num = Number(value) || 0;
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+  }).format(num);
+}
+
+function autoComplete(e) {
+  if (!(e && e.client && e.title && e.amount > 0)) return false;
+  const list = Array.isArray(e.list) ? e.list : [];
+  if (!list.length) return false;
+  let sumPct = 0;
+  let hasPositive = false;
+  for (const item of list) {
+    let pct = Number(item.pct);
+    const amt = Number(e.amount) || 0;
+    if (!Number.isFinite(pct) && amt > 0) {
+      const money = Number(item.money);
+      if (Number.isFinite(money)) pct = (money / amt) * 100;
+    }
+    if (!Number.isFinite(pct)) pct = 0;
+    if (pct > 0.0001) hasPositive = true;
+    sumPct += pct;
+  }
+  if (!hasPositive) return false;
+  if (sumPct < 99.5) return false;
+  if (!(e.totals && (e.totals.cs || e.totals.konzept || e.totals.pitch))) return false;
+  return true;
+}
+
+function editEntryById(entryId) {
+  const e = findEntryById(entryId);
+  if (!e) return;
+  openWizard(e);
 }

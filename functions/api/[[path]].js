@@ -13,8 +13,8 @@ export async function onRequest(context) {
 
     const url = new URL(context.request.url);
 
-    // "/api" aus dem Pfad entfernen (Case Insensitive)
-    const newPathname = url.pathname.replace(/^\/api/i, '') || '/';
+    // "/api" aus dem Pfad entfernen
+    const newPathname = url.pathname.replace(/^\/api/, '') || '/';
     const newUrl = new URL(newPathname, url.origin).toString();
 
     // Request klonen und anpassen

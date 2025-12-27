@@ -45,7 +45,7 @@
         "id": "trans_1761664649063_KV20250126",
         "kv_nummer": "KV-2025-0126",
         "type": "founder",
-        "amount": 4900,
+        "amount": 4900.0,
         "ts": 1761664649063,
         "freigabedatum": 1749081600000
       },
@@ -69,7 +69,7 @@
         "id": "trans_1761664649061_KV20250028",
         "kv_nummer": "KV-2025-0028",
         "type": "founder",
-        "amount": 5075,
+        "amount": 5075.0,
         "ts": 1761664649061,
         "freigabedatum": 1736899200000
       },
@@ -77,7 +77,7 @@
         "id": "trans_1762772744916_KV20250159",
         "kv_nummer": "KV-2025-0159",
         "type": "founder",
-        "amount": 2100,
+        "amount": 2100.0,
         "ts": 1762772744916,
         "freigabedatum": 1762772744916
       },
@@ -85,7 +85,7 @@
         "id": "trans_1766502104616_527",
         "kv_nummer": "KV-2025-0295",
         "type": "founder",
-        "amount": 4200,
+        "amount": 4200.0,
         "ts": 1766502104616,
         "freigabedatum": 1766502104616,
         "title": "Konzeption für 2026",
@@ -95,7 +95,7 @@
         "id": "trans_1766502104620_526",
         "kv_nummer": "KV-2025-0363",
         "type": "founder",
-        "amount": 16400,
+        "amount": 16400.0,
         "ts": 1766502104620,
         "freigabedatum": 1766502104620,
         "title": "2026 Erbringung von unternehmensweiten systemischen und psychodynamischen Beratungs-, Coaching-, Supervisions- und Moderationsleistungen",
@@ -108,12 +108,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_bgrci_dienstl_beurt",
@@ -241,7 +236,7 @@
         "id": "trans_1766502104617_389",
         "kv_nummer": "KV-2025-0345",
         "type": "founder",
-        "amount": 42000,
+        "amount": 42000.0,
         "ts": 1766502104617,
         "freigabedatum": 1766502104617,
         "title": "RV BMBF Personalentwicklungsprogramm für Referent*innen 2026",
@@ -253,12 +248,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_bmdv_teamklausuren",
@@ -314,7 +304,7 @@
         "id": "trans_1761664649063_KV20250097",
         "kv_nummer": "KV-2025-0097",
         "type": "founder",
-        "amount": 3780,
+        "amount": 3780.0,
         "ts": 1761664649063,
         "freigabedatum": 1745798400000
       },
@@ -346,7 +336,7 @@
         "id": "trans_1761664649065_KV20250184",
         "kv_nummer": "KV-2025-0184",
         "type": "founder",
-        "amount": 950,
+        "amount": 950.0,
         "ts": 1761664649065,
         "freigabedatum": 1754524800000
       },
@@ -362,7 +352,7 @@
         "id": "trans_1766502104619_934",
         "kv_nummer": "KV-2025-0313",
         "type": "founder",
-        "amount": 1250,
+        "amount": 1250.0,
         "ts": 1766502104619,
         "freigabedatum": 1766502104619,
         "title": "Nov/2025 - RV Organisation und Durchführung Teamklausuren",
@@ -375,12 +365,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_dlr_schulung_prozess",
@@ -506,7 +491,7 @@
         "id": "trans_1761664649062_KV20250074",
         "kv_nummer": "KV-2025-0074",
         "type": "founder",
-        "amount": 10374,
+        "amount": 10374.0,
         "ts": 1761664649062,
         "freigabedatum": 1743033600000
       },
@@ -530,7 +515,7 @@
         "id": "trans_1761664649068_KV20250225",
         "kv_nummer": "KV-2025-0225",
         "type": "founder",
-        "amount": 2800,
+        "amount": 2800.0,
         "ts": 1761664649068,
         "freigabedatum": 1757289600000
       },
@@ -546,7 +531,7 @@
         "id": "trans_1766502104619_606",
         "kv_nummer": "KV-2025-0316",
         "type": "founder",
-        "amount": 8400,
+        "amount": 8400.0,
         "ts": 1766502104619,
         "freigabedatum": 1766502104619,
         "title": "Moderation Klausurtagung in Bad Böll vom 13. – 14. Januar 2026",
@@ -559,12 +544,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_grundl_fuehr",
@@ -822,7 +802,7 @@
         "id": "trans_1766502104618_259",
         "kv_nummer": "KV-2025-0309",
         "type": "founder",
-        "amount": 7800,
+        "amount": 7800.0,
         "ts": 1766502104618,
         "freigabedatum": 1766502104618,
         "title": "Q1 + Q2 2026 RV Förderkreise (mit Kienbaum) Los 4 A20065",
@@ -835,12 +815,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_next_campus",
@@ -945,7 +920,7 @@
         "id": "trans_1761664649061_KV20250039",
         "kv_nummer": "KV-2025-0039",
         "type": "founder",
-        "amount": 0,
+        "amount": 0.0,
         "ts": 1761664649061,
         "freigabedatum": 1739145600000
       },
@@ -1001,7 +976,7 @@
         "id": "trans_1766502104617_103",
         "kv_nummer": "KV-2025-0340",
         "type": "founder",
-        "amount": 1600,
+        "amount": 1600.0,
         "ts": 1766502104617,
         "freigabedatum": 1766502104617,
         "title": "Q2/26 Rahmenvertrag Teamentwicklung",
@@ -1011,7 +986,7 @@
         "id": "trans_1766502104617_119",
         "kv_nummer": "KV-2025-0339",
         "type": "founder",
-        "amount": 0,
+        "amount": 0.0,
         "ts": 1766502104617,
         "freigabedatum": 1766502104617,
         "title": "Projekt- und Terminmanagement",
@@ -1024,12 +999,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_drv_bund_zusam_konz_abt21",
@@ -1270,7 +1240,7 @@
         "id": "trans_1761664649068_KV20250223",
         "kv_nummer": "KV-2025-0223",
         "type": "founder",
-        "amount": 21650,
+        "amount": 21650.0,
         "ts": 1761664649068,
         "freigabedatum": 1757635200000
       },
@@ -1278,7 +1248,7 @@
         "id": "trans_1761664649069_KV20250250",
         "kv_nummer": "KV-2025-0250",
         "type": "founder",
-        "amount": 15870,
+        "amount": 15870.0,
         "ts": 1762772744525,
         "freigabedatum": 1759795200000
       },
@@ -1381,7 +1351,7 @@
         "id": "trans_1761664649069_KV20250271",
         "kv_nummer": "KV-2025-0271",
         "type": "founder",
-        "amount": 3000,
+        "amount": 3000.0,
         "ts": 1761664649069,
         "freigabedatum": 1760918400000
       },
@@ -1550,7 +1520,7 @@
         "id": "trans_1761664649070_KV20250273",
         "kv_nummer": "KV-2025-0273",
         "type": "founder",
-        "amount": 5025,
+        "amount": 5025.0,
         "ts": 1761664649070,
         "freigabedatum": 1761091200000
       },
@@ -1833,7 +1803,7 @@
         "id": "trans_1762772744696_KV20250208",
         "kv_nummer": "KV-2025-0208",
         "type": "founder",
-        "amount": 9775,
+        "amount": 9775.0,
         "ts": 1762772744696,
         "freigabedatum": 1762772744696
       },
@@ -1849,7 +1819,7 @@
         "id": "trans_1766502104618_759",
         "kv_nummer": "KV-2025-0310",
         "type": "founder",
-        "amount": 52900,
+        "amount": 52900.0,
         "ts": 1766502104618,
         "freigabedatum": 1766502104618,
         "title": "Führungsreisen - Führungskräfteentwicklungsprogramm",
@@ -1862,12 +1832,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_stadt_bochum_teamentw",
@@ -1931,7 +1896,7 @@
         "id": "trans_1761664649069_KV20250260",
         "kv_nummer": "KV-2025-0260",
         "type": "founder",
-        "amount": 60800,
+        "amount": 60800.0,
         "ts": 1761664649069,
         "freigabedatum": 1759968000000
       },
@@ -2069,7 +2034,7 @@
         "id": "trans_1761665317621_KV20250152",
         "kv_nummer": "KV-2025-0152",
         "type": "founder",
-        "amount": 1740,
+        "amount": 1740.0,
         "ts": 1761665317621,
         "freigabedatum": 1751414400000
       },
@@ -2077,7 +2042,7 @@
         "id": "trans_1761665325294_KV20250178",
         "kv_nummer": "KV-2025-0178",
         "type": "founder",
-        "amount": 1680,
+        "amount": 1680.0,
         "ts": 1761665325294,
         "freigabedatum": 1754006400000
       },
@@ -2117,7 +2082,7 @@
         "id": "trans_1761667834980_KV20250210",
         "kv_nummer": "KV-2025-0210",
         "type": "founder",
-        "amount": 0,
+        "amount": 0.0,
         "ts": 1761667834980,
         "freigabedatum": 1756857600000
       },
@@ -2440,7 +2405,7 @@
         "id": "trans_1766502104619_702",
         "kv_nummer": "KV-2025-0353",
         "type": "founder",
-        "amount": 25050,
+        "amount": 25050.0,
         "ts": 1766502104619,
         "freigabedatum": 1766502104619,
         "title": "Rahmenvertrag Qualifizierung kompakt für neue Führungskräfte",
@@ -2453,12 +2418,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_steb_koeln_change",
@@ -2644,7 +2604,7 @@
         "id": "trans_1766502104620_524",
         "kv_nummer": "KV-2025-0364",
         "type": "founder",
-        "amount": 1400,
+        "amount": 1400.0,
         "ts": 1766502104620,
         "freigabedatum": 1766502104620,
         "title": "Führungsmodelle: kollegiales Sparring",
@@ -2657,12 +2617,7 @@
     "dockRewardFactor": 1,
     "dockRewardComment": "",
     "dockPhase": 4,
-    "dockFinalAssignment": "fix",
-    "dockPhaseHistory": {
-      "4": 1766614273275
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
+    "dockFinalAssignment": "fix"
   },
   {
     "id": "manuell_giz_ewfl_de_en",
@@ -13571,85 +13526,5 @@
     },
     "dockBuApproved": false,
     "dockBuApprovedAt": null
-  },
-  {
-    "id": "hubspot_e4f68738b0adf6e0dcd1976329a9f872",
-    "hubspotId": "52076497168",
-    "title": "test",
-    "amount": 100,
-    "source": "hubspot",
-    "projectType": "fix",
-    "projectNumber": "",
-    "client": "IMAP GmbH",
-    "submittedBy": "Abdi Tekin",
-    "list": [
-      {
-        "key": "Abdi Tekin",
-        "name": "Abdi Tekin",
-        "pct": 0,
-        "money": 0
-      },
-      {
-        "key": "IMAP GmbH",
-        "name": "IMAP GmbH",
-        "pct": 0,
-        "money": 0
-      }
-    ],
-    "updatedAt": 1766614273275,
-    "marketTeam": "",
-    "market_team": "",
-    "businessUnit": "",
-    "assessmentOwner": "Abdi Tekin",
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null,
-    "dockFinalAssignment": "",
-    "dockFinalAssignmentAt": null,
-    "dockPhase": 1,
-    "flagship_projekt": true,
-    "freigabedatum": 1766534400000,
-    "kvNummern": [],
-    "kv_nummer": "",
-    "kv": "",
-    "dockRewardFactor": 1,
-    "dockRewardComment": "",
-    "dockPhaseHistory": {
-      "1": 1766614273275
-    },
-    "rows": [
-      {
-        "name": "Abdi Tekin",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      },
-      {
-        "name": "IMAP GmbH",
-        "cs": 0,
-        "konzept": 0,
-        "pitch": 0
-      }
-    ],
-    "weights": [
-      {
-        "key": "cs",
-        "weight": 50
-      },
-      {
-        "key": "konzept",
-        "weight": 30
-      },
-      {
-        "key": "pitch",
-        "weight": 20
-      }
-    ],
-    "totals": {
-      "cs": 0,
-      "konzept": 0,
-      "pitch": 0
-    },
-    "ts": 1766618514123,
-    "modified": 1766618514524
   }
 ]
