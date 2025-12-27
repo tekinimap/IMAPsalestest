@@ -45,22 +45,9 @@ import { getCurrentFrameworkEntryId } from '../state/framework-state.js';
 import { loadHistory } from './history.js';
 
 const DOCK_PHASES = [
-  {
-    id: 1,
-    title: 'Phase 1 · Eingetroffen von HubSpot',
-    description: 'Neu importierte Deals warten auf die erste Prüfung und das Ergänzen fehlender Angaben.',
-  },
-  {
-    id: 2,
-    title: 'Phase 2 · Vollständig ausgefüllt',
-    description: 'Alle Pflichtfelder sind gepflegt – jetzt muss der BU Lead die Sales-Verteilung prüfen.',
-  },
-  {
-    id: 3,
-    title: 'Phase 3 · BU-Freigabe & Abschluss',
-    description:
-      'Der BU Lead hat freigegeben. Sales finalisiert die Zuordnung oder markiert den Deal als Rahmenvertrag bzw. Abruf.',
-  },
+  { id: 1, title: 'Phase 1 · Eingetroffen von HubSpot', description: 'Neu importierte Deals warten auf die erste Prüfung und das Ergänzen fehlender Angaben.' },
+  { id: 2, title: 'Phase 2 · Vollständig ausgefüllt', description: 'Alle Pflichtfelder sind gepflegt – jetzt muss der BU Lead die Sales-Verteilung prüfen.' },
+  { id: 3, title: 'Phase 3 · BU-Freigabe & Abschluss', description: 'Der BU Lead hat freigegeben. Sales finalisiert die Zuordnung oder markiert den Deal als Rahmenvertrag bzw. Abruf.' },
 ];
 
 const MARKET_TEAM_TO_BU = {
@@ -80,19 +67,16 @@ const DOCK_ASSIGNMENT_LABELS = {
   abruf: 'Abruf aus Rahmenvertrag',
 };
 
+// -------------------- DOM --------------------
 const dockBoardEl = document.getElementById('dockBoard');
 const dockEmptyState = document.getElementById('dockEmptyState');
 export const dockEntryDialog = document.getElementById('app-modal');
-const frameworkVolumeDialog = document.getElementById('frameworkVolumeDialog');
-const frameworkVolumeForm = document.getElementById('frameworkVolumeForm');
-const frameworkVolumeInput = document.getElementById('frameworkVolumeInput');
-const frameworkVolumeError = document.getElementById('frameworkVolumeError');
-const frameworkVolumeCancel = document.getElementById('frameworkVolumeCancel');
-const frameworkVolumeCancelFooter = document.getElementById('frameworkVolumeCancelFooter');
+
 const dockFilterBu = document.getElementById('dockFilterBu');
 const dockFilterMarketTeam = document.getElementById('dockFilterMarketTeam');
 const dockFilterAssessment = document.getElementById('dockFilterAssessment');
 const dockSearchInput = document.getElementById('dockSearch');
+
 const btnManualDeal = document.getElementById('btnManualDeal');
 const btnCloseManualDeal = document.getElementById('btnCloseManualDeal');
 const btnDockBatchDelete = document.getElementById('btnDockBatchDelete');
@@ -108,142 +92,74 @@ let deps = {
 
 let isInitialized = false;
 
-function normalizeFrameworkVolume(value) {
-  if (value == null) return null;
-  if (typeof value === 'number') {
-    return Number.isFinite(value) && value > 0 ? value : null;
-  }
-  if (typeof value === 'string') {
-    const parsed = parseAmountInput(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-  return null;
-}
+// -------------------- Queue helpers (Array/Map/Set kompatibel) --------------------
+function queueAdd(queue, item) {
+  if (!queue) return;
 
-export function getFrameworkVolume(entry) {
-  if (!entry || typeof entry !== 'object') return null;
-
-  const directKeys = [
-    'frameworkVolume',
-    'framework_volume',
-    'rahmenVolume',
-    'rahmenvolumen',
-    'rahmenVolumen',
-    'rahmenvertragVolumen',
-    'volume',
-    'maxVolume',
-    'amount',
-  ];
-
-  for (const key of directKeys) {
-    if (key in entry) {
-      const normalized = normalizeFrameworkVolume(entry[key]);
-      if (normalized != null) {
-        return normalized;
-      }
-    }
-  }
-
-  const nestedKeys = ['meta', 'details', 'data'];
-  for (const nestedKey of nestedKeys) {
-    const nested = entry[nestedKey];
-    if (nested && typeof nested === 'object') {
-      for (const [key, value] of Object.entries(nested)) {
-        if (/volumen|volume/i.test(key)) {
-          const normalized = normalizeFrameworkVolume(value);
-          if (normalized != null) {
-            return normalized;
-          }
-        }
-      }
-    }
-  }
-
-  return null;
-}
-
-let onFrameworkVolumeSubmit = null;
-
-function resetFrameworkVolumeDialog() {
-  onFrameworkVolumeSubmit = null;
-  if (frameworkVolumeError) {
-    frameworkVolumeError.textContent = '';
-  }
-}
-
-function closeFrameworkVolumeDialog() {
-  if (frameworkVolumeDialog) {
-    if (typeof frameworkVolumeDialog.close === 'function') {
-      frameworkVolumeDialog.close();
-    } else {
-      frameworkVolumeDialog.removeAttribute('open');
-    }
-  }
-  resetFrameworkVolumeDialog();
-}
-
-export function openFrameworkVolumeDialog(entry, onSubmit) {
-  if (typeof onSubmit !== 'function') return;
-
-  if (!frameworkVolumeDialog || !frameworkVolumeInput) {
-    const manualInput = prompt('Höchstabrufsvolumen (EUR):');
-    const parsedManual = parseAmountInput(manualInput);
-    if (Number.isFinite(parsedManual) && parsedManual > 0) {
-      onSubmit(parsedManual);
-    } else {
-      showToast('Ungültiges Volumen. Bitte eine positive Zahl eingeben.', 'bad');
-    }
+  // Array
+  if (Array.isArray(queue) && typeof queue.push === 'function') {
+    queue.push(item);
     return;
   }
 
-  resetFrameworkVolumeDialog();
-  onFrameworkVolumeSubmit = onSubmit;
+  // Map -> set(key, item)
+  if (typeof queue.set === 'function') {
+    const key = item?.id || item?.key || item?.entryId || JSON.stringify(item);
+    queue.set(key, item);
+    return;
+  }
 
-  const currentValue = getFrameworkVolume(entry);
-  frameworkVolumeInput.value = currentValue != null ? formatAmountInput(currentValue) : '';
-
-  if (typeof frameworkVolumeDialog.showModal === 'function') {
-    frameworkVolumeDialog.showModal();
-  } else {
-    frameworkVolumeDialog.setAttribute('open', 'open');
+  // Set -> add(item)
+  if (typeof queue.add === 'function') {
+    queue.add(item?.id || item);
+    return;
   }
 }
 
-if (frameworkVolumeCancel) {
-  frameworkVolumeCancel.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeFrameworkVolumeDialog();
-  });
+function queuePop(queue) {
+  if (!queue) return null;
+
+  // Array
+  if (Array.isArray(queue) && typeof queue.shift === 'function') {
+    return queue.shift();
+  }
+
+  // Map
+  if (typeof queue.keys === 'function' && typeof queue.get === 'function' && typeof queue.delete === 'function') {
+    const it = queue.keys().next();
+    if (it.done) return null;
+    const key = it.value;
+    const value = queue.get(key);
+    queue.delete(key);
+    return value;
+  }
+
+  // Set
+  if (typeof queue.values === 'function' && typeof queue.delete === 'function') {
+    const it = queue.values().next();
+    if (it.done) return null;
+    const value = it.value;
+    queue.delete(value);
+    // falls Set nur IDs enthält:
+    if (typeof value === 'string') return { id: value };
+    return value;
+  }
+
+  return null;
 }
 
-if (frameworkVolumeCancelFooter) {
-  frameworkVolumeCancelFooter.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeFrameworkVolumeDialog();
-  });
+function queueHas(queue) {
+  if (!queue) return false;
+
+  if (Array.isArray(queue)) return queue.length > 0;
+
+  // Map / Set
+  if (typeof queue.size === 'number') return queue.size > 0;
+
+  return false;
 }
 
-if (frameworkVolumeForm) {
-  frameworkVolumeForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const value = normalizeFrameworkVolume(frameworkVolumeInput?.value);
-    if (value == null) {
-      if (frameworkVolumeError) {
-        frameworkVolumeError.textContent = 'Bitte ein positives Volumen eingeben.';
-      }
-      return;
-    }
-    const submit = onFrameworkVolumeSubmit;
-    closeFrameworkVolumeDialog();
-    try {
-      submit?.(value);
-    } catch (err) {
-      console.error(err);
-      showToast('Volumen konnte nicht gespeichert werden.', 'bad');
-    }
-  });
-}
-
+// -------------------- Normalizer --------------------
 function firstNonEmptyString(values) {
   for (const value of values) {
     const normalized = normalizeDockString(value);
@@ -292,11 +208,16 @@ function computeDockChecklist(entry) {
   const rawAmount = entry?.amount ?? entry?.budget;
   const parsedAmount = Number(rawAmount);
   const amount =
-    rawAmount != null && !(typeof rawAmount === 'string' && rawAmount.trim() === '') && Number.isFinite(parsedAmount) && parsedAmount >= 0;
+    rawAmount != null &&
+    !(typeof rawAmount === 'string' && rawAmount.trim() === '') &&
+    Number.isFinite(parsedAmount) &&
+    parsedAmount >= 0;
+
   const hasClient = !!normalizeDockString(entry?.client);
   const hasProjectNumber = !!normalizeDockString(entry?.projectNumber);
   const kvList = getEntryKvList(entry);
   const hasKv = kvList.length > 0;
+
   const list = Array.isArray(entry?.list) ? entry.list : [];
   const hasSalesContributions = list.some((item) => {
     if (!item) return false;
@@ -304,8 +225,10 @@ function computeDockChecklist(entry) {
     const money = Number(item.money);
     return (Number.isFinite(pct) && pct > 0) || (Number.isFinite(money) && money > 0);
   });
+
   const hasSubmittedBy = !!normalizeDockString(entry?.submittedBy);
   const isComplete = Boolean(entry?.complete) || (amount && hasProjectNumber && hasKv && hasSalesContributions);
+
   return { amount, hasClient, hasProjectNumber, hasKv, hasSalesContributions, hasSubmittedBy, isComplete };
 }
 
@@ -313,6 +236,7 @@ function isPhaseTwoReady(checklist) {
   return checklist.amount && checklist.hasClient && checklist.hasProjectNumber && checklist.hasKv && checklist.hasSalesContributions;
 }
 
+// Dock anzeigen nur für Phase 1-3 (oder HubSpot ohne Phase), nicht für Phase>=4
 function shouldDisplayInDock(entry) {
   if (!entry || typeof entry !== 'object') return false;
   const source = normalizeDockString(entry.source).toLowerCase();
@@ -320,8 +244,12 @@ function shouldDisplayInDock(entry) {
   const phase = Number(entry.dockPhase);
   if (Number.isFinite(phase) && phase >= 4) return false;
 
-  if (source !== 'hubspot' && entry.dockPhase == null) return false;
   if (entry.dockFinalAssignment) return false;
+
+  // nicht-hubspot: nur wenn explizit dockPhase gesetzt ist
+  if (source !== 'hubspot' && entry.dockPhase == null) return false;
+
+  // hubspot ohne dockPhase -> Phase 1
   return true;
 }
 
@@ -337,22 +265,11 @@ function resolveAssessmentOwner(entry) {
 }
 
 function parseFlagshipValue(value) {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  if (typeof value === 'number') {
-    if (value === 1) return true;
-    if (value === 0) return false;
-  }
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
-    if (!normalized) return false;
-    if (['1', 'true', 'yes', 'ja', 'y', 'on', 'wahr'].includes(normalized)) {
-      return true;
-    }
-    if (['0', 'false', 'no', 'nein', 'n', 'off'].includes(normalized)) {
-      return false;
-    }
+    return ['1', 'true', 'yes', 'ja', 'y', 'on', 'wahr'].includes(normalized);
   }
   return false;
 }
@@ -363,39 +280,22 @@ function isFlagshipProject(entry) {
   return parseFlagshipValue(rawValue);
 }
 
-function augmentDockEntry(entry) {
-  const phase = getDockPhase(entry);
-  const checklist = computeDockChecklist(entry);
-  const marketTeam = normalizeDockString(entry?.marketTeam || entry?.market_team || '');
-  const businessUnit = normalizeDockString(entry?.businessUnit || deriveBusinessUnitFromTeam(marketTeam));
-  const assessmentOwner = resolveAssessmentOwner(entry);
-  const kvList = getEntryKvList(entry);
-  const updatedAt = Number(entry?.modified || entry?.updatedAt || entry?.ts || 0);
-  return {
-    entry,
-    phase,
-    checklist,
-    marketTeam,
-    businessUnit,
-    assessmentOwner,
-    kvList,
-    updatedAt,
-    show: shouldDisplayInDock(entry),
-    conflictHint: dockConflictHints.get(entry.id) || null,
-    isFlagship: isFlagshipProject(entry),
-  };
-}
-
+// -------------------- state handles --------------------
 let dockFilterState = getDockFilterState();
 let dockSelection = getDockSelection();
+
 let dockAutoAdvanceQueue = getDockAutoAdvanceQueue();
 let dockAutoAdvanceProcessed = getDockAutoAdvanceProcessed();
+
 let dockAutoDowngradeQueue = getDockAutoDowngradeQueue();
 let dockAutoDowngradeProcessed = getDockAutoDowngradeProcessed();
+
 let dockAutoCheckQueue = getDockAutoCheckQueue();
 let dockAutoCheckHistory = getDockAutoCheckHistory();
+
 let dockConflictHints = getDockConflictHints();
 
+// -------------------- filtering --------------------
 function matchesDockFilters(item) {
   if (!item.show) return false;
   if (dockFilterState.bu && item.businessUnit !== dockFilterState.bu) return false;
@@ -417,9 +317,10 @@ function matchesDockFilters(item) {
   return true;
 }
 
+// -------------------- UI helpers --------------------
 function updateDockSelectionUi() {
   if (btnDockBatchDelete) {
-    const count = dockSelection.size;
+    const count = dockSelection?.size ?? 0;
     const baseLabel = btnDockBatchDelete.dataset.baseLabel || 'Markierte Löschen';
     btnDockBatchDelete.disabled = count === 0;
     btnDockBatchDelete.textContent = count > 0 ? `${baseLabel} (${count})` : baseLabel;
@@ -428,13 +329,43 @@ function updateDockSelectionUi() {
   dockBoardEl.querySelectorAll('.dock-card').forEach((card) => {
     const id = card.dataset.id;
     if (!id) return;
-    card.classList.toggle('selected', dockSelection.has(id));
+    card.classList.toggle('selected', dockSelection?.has?.(id) || false);
   });
 }
 
 function setDockFilterState(nextState) {
   dockFilterState = nextState;
   updateDockFilterState(nextState);
+}
+
+function showDockEmptyState(show) {
+  if (!dockEmptyState) return;
+  dockEmptyState.classList.toggle('hide', !show);
+}
+
+// -------------------- rendering --------------------
+function augmentDockEntry(entry) {
+  const phase = getDockPhase(entry);
+  const checklist = computeDockChecklist(entry);
+  const marketTeam = normalizeDockString(entry?.marketTeam || entry?.market_team || '');
+  const businessUnit = normalizeDockString(entry?.businessUnit || deriveBusinessUnitFromTeam(marketTeam));
+  const assessmentOwner = resolveAssessmentOwner(entry);
+  const kvList = getEntryKvList(entry);
+  const updatedAt = Number(entry?.modified || entry?.updatedAt || entry?.ts || 0);
+
+  return {
+    entry,
+    phase,
+    checklist,
+    marketTeam,
+    businessUnit,
+    assessmentOwner,
+    kvList,
+    updatedAt,
+    show: shouldDisplayInDock(entry),
+    conflictHint: dockConflictHints?.get?.(entry.id) || null,
+    isFlagship: isFlagshipProject(entry),
+  };
 }
 
 function renderDockFilterOptions(items) {
@@ -461,9 +392,7 @@ function renderDockFilterOptions(items) {
         opt.textContent = value;
         selectEl.appendChild(opt);
       });
-    if (current) {
-      selectEl.value = current;
-    }
+    if (current) selectEl.value = current;
   };
 
   setSelectOptions(dockFilterMarketTeam, marketTeams, 'Alle Market Teams');
@@ -472,10 +401,9 @@ function renderDockFilterOptions(items) {
 }
 
 function createDockColumns() {
-  if (!dockBoardEl) return;
+  if (!dockBoardEl) return null;
   dockBoardEl.innerHTML = '';
 
-  const dockColumns = new Map();
   const dockColumnBodies = new Map();
   const dockColumnCounts = new Map();
 
@@ -494,25 +422,18 @@ function createDockColumns() {
       <div class="dock-column-body" data-phase-body=${phase.id}></div>
     `;
     dockBoardEl.appendChild(column);
-    dockColumns.set(phase.id, column);
     dockColumnBodies.set(phase.id, column.querySelector(`[data-phase-body="${phase.id}"]`));
     dockColumnCounts.set(phase.id, column.querySelector(`[data-phase-count="${phase.id}"]`));
   });
 
-  return { dockColumns, dockColumnBodies, dockColumnCounts };
+  return { dockColumnBodies, dockColumnCounts };
 }
 
 let dockColumnsUi = null;
-
 function ensureDockColumns() {
   if (dockColumnsUi) return dockColumnsUi;
   dockColumnsUi = createDockColumns();
   return dockColumnsUi;
-}
-
-function showDockEmptyState(show) {
-  if (!dockEmptyState) return;
-  dockEmptyState.classList.toggle('hide', !show);
 }
 
 function createDockCard(item) {
@@ -522,7 +443,7 @@ function createDockCard(item) {
   const client = normalizeDockString(entry?.client) || '—';
   const projectNumber = normalizeDockString(entry?.projectNumber) || '—';
 
-  // ✅ FIX: fmtCurr0 ist ein Intl.NumberFormat -> daher .format(...)
+  // fmtCurr0 ist bei euch ein Formatter -> fmtCurr0.format(...)
   const amount = checklist.amount ? fmtCurr0.format(Number(entry.amount || entry.budget || 0)) : '—';
 
   const assessmentOwner = normalizeDockString(item.assessmentOwner) || '—';
@@ -572,7 +493,7 @@ function createDockCard(item) {
 
     <div class="dock-card-actions">
       <button class="btn btn-sm dock-open">Öffnen</button>
-      <button class="btn btn-sm dock-select">${dockSelection.has(entry.id) ? 'Markiert' : 'Markieren'}</button>
+      <button class="btn btn-sm dock-select">${dockSelection?.has?.(entry.id) ? 'Markiert' : 'Markieren'}</button>
       <button class="btn btn-sm dock-delete">Löschen</button>
     </div>
   `;
@@ -585,7 +506,7 @@ function renderDockItems(items) {
   const { dockColumnBodies, dockColumnCounts } = columns;
 
   const filtered = items.filter(matchesDockFilters);
-  const grouped = new Map(DOCK_PHASES.map((phase) => [phase.id, []]));
+  const grouped = new Map(DOCK_PHASES.map((p) => [p.id, []]));
   filtered.forEach((item) => {
     const list = grouped.get(item.phase);
     if (list) list.push(item);
@@ -597,22 +518,18 @@ function renderDockItems(items) {
     if (!body) return;
     body.innerHTML = '';
 
-    const items = grouped.get(phase.id) || [];
-    items
-      .sort((a, b) => b.updatedAt - a.updatedAt)
-      .forEach((item) => {
-        body.appendChild(createDockCard(item));
-      });
+    const phaseItems = grouped.get(phase.id) || [];
+    phaseItems
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+      .forEach((it) => body.appendChild(createDockCard(it)));
 
-    if (countEl) {
-      const amount = grouped.get(phase.id)?.length || 0;
-      countEl.textContent = String(amount);
-    }
+    if (countEl) countEl.textContent = String(phaseItems.length);
   });
 
   showDockEmptyState(filtered.length === 0);
 }
 
+// -------------------- API actions --------------------
 async function saveDockEntry(entryId, updates) {
   const url = `${WORKER_BASE}/entries/${encodeURIComponent(entryId)}`;
   const payload = { ...updates, modified: Date.now() };
@@ -667,20 +584,12 @@ async function handleDockCardClick(e) {
   const id = card.dataset.id;
   if (!id) return;
 
-  if (e.target.closest('.dock-open')) {
-    await handleDockOpen(id);
-    return;
-  }
-  if (e.target.closest('.dock-select')) {
-    await handleDockSelect(id);
-    return;
-  }
-  if (e.target.closest('.dock-delete')) {
-    await handleDockDelete(id);
-    return;
-  }
+  if (e.target.closest('.dock-open')) return handleDockOpen(id);
+  if (e.target.closest('.dock-select')) return handleDockSelect(id);
+  if (e.target.closest('.dock-delete')) return handleDockDelete(id);
 }
 
+// -------------------- filter listeners --------------------
 function syncFilterInputsFromState() {
   if (dockFilterBu) dockFilterBu.value = dockFilterState.bu || '';
   if (dockFilterMarketTeam) dockFilterMarketTeam.value = dockFilterState.marketTeam || '';
@@ -724,68 +633,84 @@ function rerenderDockBoard() {
   }, 50);
 }
 
+// -------------------- init --------------------
 function handleManualDealClick() {
   openWizard(null, { mode: 'manual' });
 }
 
 function handleCloseManualDeal() {
-  if (dockEntryDialog) {
-    if (typeof dockEntryDialog.close === 'function') {
-      dockEntryDialog.close();
-    } else {
-      dockEntryDialog.removeAttribute('open');
-    }
-  }
+  if (!dockEntryDialog) return;
+  try {
+    if (typeof dockEntryDialog.close === 'function') dockEntryDialog.close();
+    else dockEntryDialog.removeAttribute('open');
+  } catch {}
 }
 
 function updateManualDealButtons() {
   if (!btnManualDeal) return;
-  const hasUnsaved = getHasUnsavedChanges?.() || false;
+  const hasUnsaved = (typeof getHasUnsavedChanges === 'function' && getHasUnsavedChanges()) || false;
   btnManualDeal.disabled = hasUnsaved;
 }
 
 async function initializeDockBoard() {
   if (isDockBoardInitialized()) return;
   markDockBoardInitialized();
+
   syncFilterInputsFromState();
   attachFilterListeners();
 
-  if (dockBoardEl) {
-    dockBoardEl.addEventListener('click', (e) => {
-      handleDockCardClick(e);
-    });
-  }
+  if (dockBoardEl) dockBoardEl.addEventListener('click', handleDockCardClick);
 
-  if (btnManualDeal) {
-    btnManualDeal.addEventListener('click', handleManualDealClick);
-  }
-
-  if (btnCloseManualDeal) {
-    btnCloseManualDeal.addEventListener('click', handleCloseManualDeal);
-  }
+  if (btnManualDeal) btnManualDeal.addEventListener('click', handleManualDealClick);
+  if (btnCloseManualDeal) btnCloseManualDeal.addEventListener('click', handleCloseManualDeal);
 
   if (btnDockBatchDelete) {
     btnDockBatchDelete.addEventListener('click', () => {
-      if (dockSelection.size === 0) return;
-      const ok = confirm(`Wirklich ${dockSelection.size} Deals löschen?`);
+      const count = dockSelection?.size ?? 0;
+      if (count === 0) return;
+      const ok = confirm(`Wirklich ${count} Deals löschen?`);
       if (!ok) return;
-      const entries = Array.from(dockSelection)
-        .map((id) => findEntryById(id))
-        .filter(Boolean);
-      if (entries.length) {
-        setPendingDelete(entries[0]);
-      }
+      const firstId = dockSelection.values().next().value;
+      const entry = firstId ? findEntryById(firstId) : null;
+      if (entry) setPendingDelete(entry);
     });
   }
 
   isInitialized = true;
 }
 
-function updateDockEmptyState(items) {
-  const filtered = items.filter(matchesDockFilters);
-  showDockEmptyState(filtered.length === 0);
+// -------------------- automation scheduling --------------------
+function scheduleDockAutoAdvance(entry) {
+  if (!entry?.id) return;
+  queueAdd(dockAutoAdvanceQueue, { id: entry.id, queuedAt: Date.now() });
 }
 
+function scheduleDockAutoDowngrade(entry) {
+  if (!entry?.id) return;
+  queueAdd(dockAutoDowngradeQueue, { id: entry.id, queuedAt: Date.now() });
+}
+
+function scheduleDockAutoCheck(entry) {
+  if (!entry?.id) return;
+  queueAdd(dockAutoCheckQueue, { id: entry.id, queuedAt: Date.now() });
+}
+
+function scheduleDockAutomation(items) {
+  items.forEach((item) => {
+    if (!item?.entry?.id) return;
+
+    if (item.phase === 3) scheduleDockAutoCheck(item.entry);
+
+    const checklist = item.checklist;
+    const checklistComplete = checklist.isComplete;
+
+    if (item.phase === 1 && isPhaseTwoReady(checklist)) scheduleDockAutoAdvance(item.entry);
+
+    if ((item.phase === 2 || item.phase === 3) && !checklistComplete) scheduleDockAutoDowngrade(item.entry);
+  });
+}
+
+// -------------------- automation runners --------------------
 async function checkDockEntryConflicts(item) {
   const { entry, kvList } = item;
   if (!entry?.id) return;
@@ -799,6 +724,8 @@ async function checkDockEntryConflicts(item) {
 
     const dupes = allEntries.filter((other) => {
       if (!other || other.id === entry.id) return false;
+      if (!shouldDisplayInDock(other)) return false;
+
       const otherKvs = getEntryKvList(other);
       return otherKvs.includes(normalizedKv);
     });
@@ -806,55 +733,51 @@ async function checkDockEntryConflicts(item) {
     if (dupes.length) {
       conflicts.push({
         kv: normalizedKv,
-        entries: dupes.map((d) => ({
-          id: d.id,
-          title: d.title,
-          projectNumber: d.projectNumber,
-        })),
+        entries: dupes.map((d) => ({ id: d.id, title: d.title, projectNumber: d.projectNumber })),
       });
     }
   });
 
-  dockConflictHints.set(entry.id, { checkedAt: Date.now(), conflicts });
+  if (dockConflictHints?.set) {
+    dockConflictHints.set(entry.id, { checkedAt: Date.now(), conflicts });
+  }
 }
 
 async function runDockAutoChecks(items) {
-  const queue = dockAutoCheckQueue;
-  if (!queue.length) return;
+  if (!queueHas(dockAutoCheckQueue)) return;
 
   const now = Date.now();
   const maxPerRun = 8;
 
   let processed = 0;
-  while (queue.length && processed < maxPerRun) {
-    const next = queue.shift();
+  while (queueHas(dockAutoCheckQueue) && processed < maxPerRun) {
+    const next = queuePop(dockAutoCheckQueue);
     processed += 1;
     if (!next?.id) continue;
 
-    const already = dockAutoCheckHistory.get(next.id);
+    const already = dockAutoCheckHistory?.get?.(next.id);
     if (already && now - already < 10_000) continue;
 
     const item = items.find((i) => i.entry?.id === next.id);
     if (!item) continue;
     if (item.phase !== 3) continue;
 
-    dockAutoCheckHistory.set(next.id, now);
+    dockAutoCheckHistory?.set?.(next.id, now);
     await checkDockEntryConflicts(item);
   }
 }
 
-async function runDockAutoAdvance(items) {
+async function runDockAutoAdvance() {
   if (isDockAutoAdvanceRunning()) return;
-  const queue = dockAutoAdvanceQueue;
-  if (!queue.length) return;
+  if (!queueHas(dockAutoAdvanceQueue)) return;
 
   setDockAutoAdvanceRunning(true);
   try {
     const now = Date.now();
-    const next = queue.shift();
+    const next = queuePop(dockAutoAdvanceQueue);
     if (!next?.id) return;
 
-    const already = dockAutoAdvanceProcessed.get(next.id);
+    const already = dockAutoAdvanceProcessed?.get?.(next.id);
     if (already && now - already < 10_000) return;
 
     const entry = findEntryById(next.id);
@@ -865,7 +788,7 @@ async function runDockAutoAdvance(items) {
 
     if (phase === 1 && isPhaseTwoReady(checklist)) {
       await saveDockEntry(entry.id, { dockPhase: 2 });
-      dockAutoAdvanceProcessed.set(entry.id, now);
+      dockAutoAdvanceProcessed?.set?.(entry.id, now);
       showToast('Deal automatisch auf Phase 2 gesetzt.', 'ok');
     }
   } catch (err) {
@@ -875,34 +798,32 @@ async function runDockAutoAdvance(items) {
   }
 }
 
-async function runDockAutoDowngrade(items) {
+async function runDockAutoDowngrade() {
   if (isDockAutoDowngradeRunning()) return;
-  const queue = dockAutoDowngradeQueue;
-  if (!queue.length) return;
+  if (!queueHas(dockAutoDowngradeQueue)) return;
 
   setDockAutoDowngradeRunning(true);
   try {
     const now = Date.now();
-    const next = queue.shift();
+    const next = queuePop(dockAutoDowngradeQueue);
     if (!next?.id) return;
 
-    const already = dockAutoDowngradeProcessed.get(next.id);
+    const already = dockAutoDowngradeProcessed?.get?.(next.id);
     if (already && now - already < 10_000) return;
 
     const entry = findEntryById(next.id);
     if (!entry) return;
 
     const checklist = computeDockChecklist(entry);
-    const checklistComplete = checklist.isComplete;
     const phase = getDockPhase(entry);
 
-    if (phase === 2 && !checklistComplete) {
+    if (phase === 2 && !checklist.isComplete) {
       await saveDockEntry(entry.id, { dockPhase: 1 });
-      dockAutoDowngradeProcessed.set(entry.id, now);
+      dockAutoDowngradeProcessed?.set?.(entry.id, now);
       showToast('Deal automatisch zurück auf Phase 1 gesetzt.', 'warn');
-    } else if (phase === 3 && !checklistComplete) {
+    } else if (phase === 3 && !checklist.isComplete) {
       await saveDockEntry(entry.id, { dockPhase: 2 });
-      dockAutoDowngradeProcessed.set(entry.id, now);
+      dockAutoDowngradeProcessed?.set?.(entry.id, now);
       showToast('Deal automatisch zurück auf Phase 2 gesetzt.', 'warn');
     }
   } catch (err) {
@@ -912,58 +833,10 @@ async function runDockAutoDowngrade(items) {
   }
 }
 
-function scheduleDockAutoAdvance(entry) {
-  if (!entry?.id) return;
-  dockAutoAdvanceQueue.push({ id: entry.id });
-}
-
-function scheduleDockAutoDowngrade(entry) {
-  if (!entry?.id) return;
-  dockAutoDowngradeQueue.push({ id: entry.id });
-}
-
-function scheduleDockAutoCheck(entry) {
-  if (!entry?.id) return;
-
-  // Wenn es ein Array ist:
-  if (Array.isArray(dockAutoCheckQueue)) {
-    dockAutoCheckQueue.push({ id: entry.id });
-    return;
-  }
-
-  // Wenn es eine Map ist:
-  if (dockAutoCheckQueue && typeof dockAutoCheckQueue.set === 'function') {
-    dockAutoCheckQueue.set(entry.id, { id: entry.id, queuedAt: Date.now() });
-    return;
-  }
-
-  // Fallback: nichts tun
-}
-
-
-function scheduleDockAutomation(items) {
-  items.forEach((item) => {
-    if (!item?.entry?.id) return;
-
-    if (item.phase === 3) {
-      scheduleDockAutoCheck(item.entry);
-    }
-
-    const checklist = item.checklist;
-    const checklistComplete = checklist.isComplete;
-    if (item.phase === 1 && isPhaseTwoReady(checklist)) {
-      scheduleDockAutoAdvance(item.entry);
-    }
-
-    if ((item.phase === 2 || item.phase === 3) && !checklistComplete) {
-      scheduleDockAutoDowngrade(item.entry);
-    }
-  });
-}
-
+// -------------------- main render --------------------
 function isUnsavedChangesBlocker() {
   try {
-    return getHasUnsavedChanges?.() || false;
+    return (typeof getHasUnsavedChanges === 'function' && getHasUnsavedChanges()) || false;
   } catch {
     return false;
   }
@@ -987,13 +860,12 @@ export async function renderDockBoard() {
     renderDockFilterOptions(items);
     renderDockItems(items);
     updateDockSelectionUi();
-    updateDockEmptyState(items);
 
     scheduleDockAutomation(items);
 
     await runDockAutoChecks(items);
-    await runDockAutoAdvance(items);
-    await runDockAutoDowngrade(items);
+    await runDockAutoAdvance();
+    await runDockAutoDowngrade();
 
     updateManualDealButtons();
   } catch (err) {
@@ -1010,6 +882,7 @@ export function initDockBoard(dockDeps = {}) {
   initializeDockBoard();
 }
 
+// -------------------- Finalize / Abruf --------------------
 export async function finalizeDockAssignment(entryId, assignment, extraUpdates = {}) {
   const entry = findEntryById(entryId);
   if (!entry) return;
@@ -1053,71 +926,67 @@ export async function confirmAbrufAssignment(frameworkEntry) {
   }
 }
 
+// -------------------- Manual deal create --------------------
 export async function createManualDeal(payload) {
-  const now = Date.now();
-  const entry = {
-    ...payload,
-    id: payload?.id || `m_${now}`,
-    ts: payload?.ts || now,
-    modified: now,
-    source: payload?.source || 'manuell',
-  };
-
   const response = await fetchWithRetry(`${WORKER_BASE}/entries`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(entry),
+    body: JSON.stringify(payload || {}),
   });
 
-  if (!response.ok) throw new Error(await response.text());
-  const saved = await response.json();
+  if (!response.ok) {
+    let detail = '';
+    try {
+      detail = await response.text();
+    } catch {}
+    throw new Error(detail || `Manueller Deal konnte nicht erstellt werden (${response.status})`);
+  }
+
+  const created = await response.json();
   saveState({ dirty: true });
-  return saved;
+  return created;
 }
 
-export function requestDockEntryDialogClose() {
-  if (dockEntryDialog) {
-    if (typeof dockEntryDialog.close === 'function') {
-      dockEntryDialog.close();
-    } else {
-      dockEntryDialog.removeAttribute('open');
-    }
-  }
+// -------------------- Compatibility exports (für andere Module) --------------------
+export function clearInputFields() {
+  // legacy stub
+}
+
+export function showManualPanel(entryId = null) {
+  const entryObj = entryId ? findEntryById(entryId) : null;
+  openWizard(entryObj || entryId || null);
 }
 
 export function hideManualPanel() {
-  const panel = document.getElementById('manualPanel');
-  if (panel) panel.classList.add('hide');
+  if (!dockEntryDialog) return;
+  try {
+    if (typeof dockEntryDialog.close === 'function') dockEntryDialog.close();
+    else dockEntryDialog.removeAttribute('open');
+  } catch {}
 }
 
-export function showManualPanel() {
-  const panel = document.getElementById('manualPanel');
-  if (panel) panel.classList.remove('hide');
+export function requestDockEntryDialogClose() {
+  try {
+    if (dockEntryDialog?.open && typeof getHasUnsavedChanges === 'function' && getHasUnsavedChanges()) {
+      const ok = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!ok) return false;
+    }
+  } catch {}
+  hideManualPanel();
+  return true;
 }
 
-export function queueDockAutoCheck(entryId) {
-  if (!entryId) return;
-  dockAutoCheckQueue.push({ id: entryId });
+export function queueDockAutoCheck(id, context = {}) {
+  if (!id) return;
+  queueAdd(dockAutoCheckQueue, { id, ...(context || {}), queuedAt: Date.now() });
 }
 
 export function findDockKvConflict(entryId) {
-  const hint = dockConflictHints.get(entryId);
+  const hint = dockConflictHints?.get?.(entryId);
   if (!hint?.conflicts?.length) return null;
   return hint;
 }
 
-export async function finalizeDockAbruf() {
-  const pending = getPendingDockAbrufAssignment();
-  if (!pending?.entryId) return;
-  const frameworkId = getCurrentFrameworkEntryId();
-  if (!frameworkId) return;
-  await finalizeDockAssignment(pending.entryId, 'abruf', {
-    dockAbrufFrameworkId: frameworkId,
-  });
-  setPendingDockAbrufAssignment(null);
-}
-
-export function clearInputFields() {
-  // Der neue Wizard verwaltet seine Felder selbst; hier nur Kompatibilität
-  // für den Aufruf aus main.js.
+export async function finalizeDockAbruf(entryId) {
+  await finalizeDockAssignment(entryId, 'abruf');
 }
