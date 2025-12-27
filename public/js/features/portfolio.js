@@ -15,189 +15,146 @@ const PORTFOLIO_SORT_DEFAULTS = {
 };
 let sortState = { key: 'title', direction: PORTFOLIO_SORT_DEFAULTS.title };
 
-export function initPortfolio(portfolioDeps = {}) {
-  deps = portfolioDeps;
+export function initPortfolio(options = {}) {
+  deps = options || {};
+  const filterEl = document.getElementById('portfolioFilter');
+  const searchEl = document.getElementById('portfolioSearch');
+  const toggleArchivedEl = document.getElementById('portfolioToggleArchived');
+  const sortSelect = document.getElementById('portfolioSort');
 
-  const filterContainer = document.getElementById('portfolioFilters');
-  if (filterContainer) {
-    filterContainer.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-filter]');
-      if (!btn) return;
-      currentFilter = btn.dataset.filter;
-      Array.from(filterContainer.querySelectorAll('button')).forEach((b) =>
-        b.classList.remove('accent', 'ok', 'warn')
-      );
-      if (currentFilter === 'all') {
-        btn.classList.add('accent');
-      } else if (currentFilter === 'critical') {
-        btn.classList.add('warn');
-      } else {
-        btn.classList.add('accent');
-      }
+  if (filterEl) {
+    filterEl.onchange = () => {
+      currentFilter = filterEl.value;
       renderPortfolio();
-    });
+    };
   }
 
-  const searchInput = document.getElementById('portfolioSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      renderPortfolio();
-    });
+  if (searchEl) {
+    searchEl.oninput = () => renderPortfolio();
   }
 
-  const showArchivedToggle = document.getElementById('portfolioShowArchived');
-  if (showArchivedToggle) {
-    showArchivedFrameworks = !!showArchivedToggle.checked;
-    showArchivedToggle.addEventListener('change', () => {
-      showArchivedFrameworks = !!showArchivedToggle.checked;
+  if (toggleArchivedEl) {
+    toggleArchivedEl.onchange = () => {
+      showArchivedFrameworks = !!toggleArchivedEl.checked;
       renderPortfolio();
-    });
+    };
   }
 
-  document.querySelectorAll('#viewPortfolio th.sortable').forEach((th) => {
-    th.addEventListener('click', () => {
-      const key = th.dataset.sort;
-      if (!key) return;
-      if (sortState.key === key) {
-        sortState = { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' };
-      } else {
-        const defaultDirection = PORTFOLIO_SORT_DEFAULTS[key] || 'asc';
-        sortState = { key, direction: defaultDirection };
-      }
+  if (sortSelect) {
+    sortSelect.onchange = () => {
+      const [key, direction] = (sortSelect.value || 'title:asc').split(':');
+      sortState = { key, direction };
       renderPortfolio();
-    });
-  });
-
-  const tableBody = document.getElementById('portfolioBody');
-  const portfolioView = document.getElementById('viewPortfolio');
-  const clickTarget = tableBody || portfolioView;
-  if (clickTarget) {
-    clickTarget.addEventListener('click', (event) => handlePortfolioClick(event, tableBody));
+    };
   }
 }
 
-function handlePortfolioClick(e, tableBody) {
-  const targetRow = e.target.closest('tr');
-  if (!targetRow || (tableBody && !tableBody.contains(targetRow))) return;
-  const isTransactionRow = targetRow.dataset.parentId;
-  const entryId = targetRow.dataset.id;
-  const transId = targetRow.dataset.transId;
-  const actBtn = e.target.closest('[data-act]');
+function compare(a, b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), 'de');
+}
 
-  if (actBtn) {
-    const action = actBtn.dataset.act;
-    const id = actBtn.dataset.id;
-    if (action === 'edit') {
-      if (isTransactionRow) {
-        const parentId = targetRow.dataset.parentId;
-        const parentEntry = findEntryById(parentId);
-        if (!parentEntry) return;
-        const transaction = (parentEntry.transactions || []).find((t) => t.id === transId);
-        if (!transaction) return;
-        deps.openEditTransactionModal?.(transaction, parentEntry);
-      } else {
-        editEntryById(id);
-      }
-    } else if (action === 'edit-volume') {
-      e.preventDefault();
-      e.stopPropagation(); 
+function sortEntries(entries) {
+  const { key, direction } = sortState || { key: 'title', direction: 'asc' };
+  const dir = direction === 'desc' ? -1 : 1;
+  return [...entries].sort((a, b) => dir * compare(a?.[key], b?.[key]));
+}
 
-      const id = actBtn.dataset.id;
-      if (!id) return;
+function formatType(entry) {
+  const type = (entry.projectType || '').toLowerCase();
+  if (type === 'rahmen') return 'Rahmen';
+  if (type === 'abruf') return 'Abruf';
+  return 'Fix';
+}
 
+function formatStatus(entry) {
+  if (entry.isArchived) return 'Archiv';
+  if (entry.dockFinalAssignment) return String(entry.dockFinalAssignment);
+  return 'Aktiv';
+}
+
+function normalizeString(v) {
+  if (v === null || v === undefined) return '';
+  return String(v).trim();
+}
+
+function entryMatchesSearch(entry, q) {
+  if (!q) return true;
+  const hay = [
+    entry.title,
+    entry.client,
+    entry.projectNumber,
+    entry.kv_nummer,
+    entry.kvNummer,
+    entry.kv,
+    entry.dealId,
+  ].map((v) => normalizeString(v).toLowerCase()).join(' ');
+  return hay.includes(q);
+}
+
+function getTableBody() {
+  return document.querySelector('#portfolioTable tbody');
+}
+
+function clearTableBody(body) {
+  if (!body) return;
+  body.innerHTML = '';
+}
+
+function buildRow(entry) {
+  const tr = document.createElement('tr');
+  tr.dataset.id = entry.id;
+
+  const type = formatType(entry);
+  const status = formatStatus(entry);
+  const client = entry.client || '';
+  const title = entry.title || '';
+  const projectNumber = entry.projectNumber || '';
+  const budget = Number(entry.amount || entry.budget || 0);
+
+  tr.innerHTML = `
+    <td>${type}</td>
+    <td>${projectNumber}</td>
+    <td>${title}</td>
+    <td>${client}</td>
+    <td style="text-align:right;">${budget.toLocaleString('de-DE')}</td>
+    <td>${status}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-sm" data-action="open">Öffnen</button>
+      <button class="btn btn-sm btn-danger" data-action="delete">Löschen</button>
+    </td>
+  `;
+  return tr;
+}
+
+function wireRowActions(body) {
+  if (!body) return;
+  body.onclick = (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const tr = btn.closest('tr');
+    const id = tr?.dataset?.id;
+    if (!id) return;
+
+    if (action === 'open') {
+      openWizard(id);
+      return;
+    }
+
+    if (action === 'delete') {
       const entry = findEntryById(id);
       if (!entry) return;
-
-      if (typeof deps.openFrameworkVolumeDialog === 'function') {
-        try {
-          deps.openFrameworkVolumeDialog(entry, (vol) => {
-            if (typeof deps.onUpdateFrameworkVolume === 'function') {
-              deps.onUpdateFrameworkVolume(entry, vol);
-            }
-          });
-        } catch (err) {
-          console.error('Portfolio: Error opening dialog:', err);
-        }
-      }
+      const ok = window.confirm(`Wirklich löschen? "${entry.title || id}"`);
+      if (!ok) return;
+      setPendingDelete({ id, title: entry.title || '' });
+      if (deps?.onDelete) deps.onDelete(id);
       return;
-    } else if (action === 'del') {
-      if (isTransactionRow) {
-        const parentId = targetRow.dataset.parentId;
-        setPendingDelete({ id: transId, type: 'transaction', parentId });
-      } else {
-        setPendingDelete({ id: id, type: 'entry', parentId: null });
-      }
-      const confirmDlg = document.getElementById('confirmDlg');
-      const titleEl = document.getElementById('confirmDlgTitle');
-      const textEl = document.getElementById('confirmDlgText');
-      if (titleEl && textEl && confirmDlg) {
-        titleEl.textContent = 'Eintrag löschen';
-        textEl.textContent = `Wollen Sie den ${isTransactionRow ? 'Abruf' : 'Eintrag'} wirklich löschen?`;
-        confirmDlg.showModal();
-      }
     }
-    e.stopPropagation();
-    return;
-  }
-
-  if (isTransactionRow) {
-    const parentEntry = findEntryById(targetRow.dataset.parentId);
-    const transaction = parentEntry?.transactions?.find((t) => t.id === transId);
-    if (transaction) {
-      deps.openEditTransactionModal?.(transaction, parentEntry);
-    }
-    return;
-  }
-
-  if (!isTransactionRow) {
-    const entry = findEntryById(entryId);
-    if (entry && entry.projectType === 'rahmen' && tableBody) {
-      const alreadyExpanded = targetRow.classList.contains('expanded');
-      if (alreadyExpanded) {
-        const childRows = tableBody.querySelectorAll(`tr[data-parent-id="${entryId}"]`);
-        childRows.forEach((r) => r.remove());
-        targetRow.classList.remove('expanded');
-      } else {
-        if (entry.transactions && entry.transactions.length > 0) {
-          entry.transactions.sort((a, b) => {
-            const dateA = a.freigabedatum || a.ts || 0;
-            const dateB = b.freigabedatum || b.ts || 0;
-            return dateB - dateA;
-          });
-          const fragment = document.createDocumentFragment();
-          entry.transactions.forEach((trans) => {
-            const tr = document.createElement('tr');
-            tr.classList.add('transaction-row', 'clickable');
-            tr.dataset.parentId = entryId;
-            tr.dataset.transId = trans.id;
-            let datum = '–';
-            if (trans.freigabedatum) {
-              datum = new Date(trans.freigabedatum).toLocaleDateString('de-DE');
-            } else if (trans.ts) {
-              datum = new Date(trans.ts).toLocaleDateString('de-DE');
-            }
-            tr.innerHTML = `
-              <td></td>
-              <td>${trans.kv_nummer || '–'}</td>
-              <td>${trans.type === 'founder' ? 'Passiv' : 'Aktiv'}</td>
-              <td>${trans.title || '–'}</td>
-              <td class="text-right">${fmtCurr2(trans.amount)}</td>
-              <td class="text-right">${datum}</td>
-              <td class="cell-actions">
-                <button class="iconbtn" data-act="del" data-id="${trans.id}" title="Löschen">🗑️</button>
-              </td>`;
-            fragment.appendChild(tr);
-          });
-          if (targetRow.nextSibling) {
-            tableBody.insertBefore(fragment, targetRow.nextSibling);
-          } else {
-            tableBody.appendChild(fragment);
-          }
-        }
-        targetRow.classList.add('expanded');
-      }
-    }
-  }
+  };
 }
 
 export function renderPortfolio() {
@@ -206,12 +163,21 @@ export function renderPortfolio() {
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   
   let filteredEntries = entries.filter((e) => {
-    // 1. DOCK FILTER
-    const isGraduated = !!e.dockFinalAssignment; 
-    const isHubSpot = (e.source || '').trim().toLowerCase() === 'hubspot';
-    const hasDockPhase = e.dockPhase != null;
-    const isInDock = !isGraduated && (isHubSpot || hasDockPhase);
-    
+    if (!e || !e.id) return false;
+
+    // 1. Dock-Deals ausblenden (Portfolio soll nur Portfolio sein)
+    const isGraduated = Boolean(e.dockFinalAssignment);
+
+    const source = (e.source || '').trim().toLowerCase();
+    const isHubSpot = source === 'hubspot';
+    const isErpImport = source === 'erp-import';
+
+    const phase = Number(e.dockPhase);
+    const hasDockPhase = e.dockPhase != null && Number.isFinite(phase);
+    const isPortfolioPhase = hasDockPhase && phase >= 4;
+
+    const isInDock = !isGraduated && !isPortfolioPhase && !isErpImport && (isHubSpot || hasDockPhase);
+
     if (isInDock) return false;
     
     // 2. ARCHIV FILTER
@@ -222,188 +188,28 @@ export function renderPortfolio() {
   });
 
   if (currentFilter === 'fix') {
-    filteredEntries = filteredEntries.filter((e) => (e.projectType || 'fix') === 'fix');
+    filteredEntries = filteredEntries.filter((e) => (e.projectType || '').toLowerCase() === 'fix');
   } else if (currentFilter === 'rahmen') {
-    filteredEntries = filteredEntries.filter((e) => e.projectType === 'rahmen');
-  } else if (currentFilter === 'critical') {
-    filteredEntries = filteredEntries.filter((e) => {
-      if (e.projectType !== 'rahmen') return false;
-      const { total, used } = getFrameworkUsage(e);
-      return total > 0 && used / total > 0.8;
-    });
+    filteredEntries = filteredEntries.filter((e) => (e.projectType || '').toLowerCase() === 'rahmen');
+  } else if (currentFilter === 'abruf') {
+    filteredEntries = filteredEntries.filter((e) => (e.projectType || '').toLowerCase() === 'abruf');
   }
 
   if (query) {
-    filteredEntries = filteredEntries.filter((e) => {
-      const fields = [e.title || '', e.client || '', e.projectNumber || '', e.kv_nummer || ''].join(' ').toLowerCase();
-      let transFields = '';
-      if (e.transactions && e.transactions.length) {
-        transFields = e.transactions
-          .map((t) => `${t.kv_nummer || ''} ${t.title || ''}`)
-          .join(' ')
-          .toLowerCase();
-      }
-      return fields.includes(query) || transFields.includes(query);
-    });
+    filteredEntries = filteredEntries.filter((e) => entryMatchesSearch(e, query));
   }
 
-  const tbody = document.getElementById('portfolioBody');
-  const emptyState = document.getElementById('portfolioEmptyState');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+  filteredEntries = sortEntries(filteredEntries);
 
-  if (filteredEntries.length === 0) {
-    if (emptyState) emptyState.classList.remove('hide');
-    updatePortfolioSortIcons();
-    return;
-  }
-  if (emptyState) emptyState.classList.add('hide');
+  const body = getTableBody();
+  if (!body) return;
 
-  filteredEntries.sort(comparePortfolioEntries);
-
-  const frag = document.createDocumentFragment();
-  for (const entry of filteredEntries) {
-    const isFramework = entry.projectType === 'rahmen';
-    const tr = document.createElement('tr');
-    tr.dataset.id = entry.id;
-    tr.classList.add(isFramework ? 'entry-rahmen' : 'entry-fix');
-    if (isFramework) {
-      tr.classList.add('clickable');
-    }
-    const typeSymbol = isFramework ? 'R' : 'F';
-    let budgetCellContent = '';
-    if (isFramework) {
-      const { total, used, pct } = getFrameworkUsage(entry);
-      const ratio = total > 0 ? used / total : 0;
-      const barColorClass = ratio > 1 ? 'bad' : ratio > 0.8 ? 'warn' : 'ok';
-      budgetCellContent = `
-        <div class="progress-bar clickable" data-act="edit-volume" data-id="${entry.id}" title="Volumen anpassen">
-          <div class="progress-fill ${barColorClass}" style="width:${Math.min(pct, 100)}%;"></div>
-        </div>
-        <small>${fmtCurr2(used)} / ${fmtCurr2(total)}</small>`;
-    } else {
-      budgetCellContent = fmtCurr2(entry.amount);
-    }
-    let statusContent = '';
-    if (!isFramework) {
-      const complete = autoComplete(entry);
-      statusContent = `<span class="status-indicator ${complete ? 'ok' : 'bad'}">${complete ? '✓' : '!'}</span>`;
-    } else {
-      const { pct } = getFrameworkUsage(entry);
-      statusContent = `${pct || 0} %`;
-    }
-    tr.innerHTML = `
-      <td>${typeSymbol}</td>
-      <td>${escapeHtml(entry.projectNumber) || '–'}</td>
-      <td>${escapeHtml(entry.title) || '–'}</td>
-      <td>${escapeHtml(entry.client) || '–'}</td>
-      <td class="text-right">${budgetCellContent}</td>
-      <td class="text-right">${statusContent}</td>
-      <td class="cell-actions">
-        <button class="iconbtn" data-act="edit" data-id="${entry.id}" title="Bearbeiten">✏️</button>
-        <button class="iconbtn" data-act="del" data-id="${entry.id}" title="Löschen">🗑️</button>
-      </td>`;
-    frag.appendChild(tr);
-  }
-  tbody.appendChild(frag);
-  updatePortfolioSortIcons();
-}
-
-function comparePortfolioEntries(a, b) {
-  const direction = sortState.direction === 'asc' ? 1 : -1;
-  const key = sortState.key;
-  const aVal = getSortValue(a, key);
-  const bVal = getSortValue(b, key);
-
-  if (typeof aVal === 'string' && typeof bVal === 'string') {
-    return aVal.localeCompare(bVal) * direction;
-  }
-  if (aVal === bVal) return 0;
-  return (aVal > bVal ? 1 : -1) * direction;
-}
-
-function getSortValue(entry, key) {
-  switch (key) {
-    case 'type':
-      return entry.projectType === 'rahmen' ? 1 : 0;
-    case 'projectNumber':
-      return (entry.projectNumber || '').toString().toLowerCase();
-    case 'title':
-      return (entry.title || '').toString().toLowerCase();
-    case 'client':
-      return (entry.client || '').toString().toLowerCase();
-    case 'budget':
-      return Number(entry.amount) || 0;
-    case 'status':
-      if (entry.projectType === 'rahmen') {
-        return getFrameworkUsage(entry).pct;
-      }
-      return autoComplete(entry) ? 1 : 0;
-    default:
-      return (entry.title || '').toString().toLowerCase();
-  }
-}
-
-function getFrameworkUsage(entry) {
-  const total = entry.amount || 0;
-  const used = (entry.transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
-  const pct = total > 0 ? Math.round((used / total) * 100) : 0;
-  return { total, used, pct };
-}
-
-function updatePortfolioSortIcons() {
-  document.querySelectorAll('#viewPortfolio th.sortable .sort-icon').forEach((icon) => {
-    icon.textContent = '';
-    icon.style.opacity = 0.5;
+  clearTableBody(body);
+  const fragment = document.createDocumentFragment();
+  filteredEntries.forEach((entry) => {
+    fragment.appendChild(buildRow(entry));
   });
+  body.appendChild(fragment);
 
-  const activeIcon = document.querySelector(`#viewPortfolio th[data-sort="${sortState.key}"] .sort-icon`);
-  if (activeIcon) {
-    activeIcon.textContent = sortState.direction === 'asc' ? '▲' : '▼';
-    activeIcon.style.opacity = 1;
-  }
-}
-
-function escapeHtml(str) {
-  return str
-    ? str.toString().replace(/[&<>"']/g, (s) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s] || s))
-    : '';
-}
-
-function fmtCurr2(value) {
-  const num = Number(value) || 0;
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 2,
-  }).format(num);
-}
-
-function autoComplete(e) {
-  if (!(e && e.client && e.title && e.amount > 0)) return false;
-  const list = Array.isArray(e.list) ? e.list : [];
-  if (!list.length) return false;
-  let sumPct = 0;
-  let hasPositive = false;
-  for (const item of list) {
-    let pct = Number(item.pct);
-    const amt = Number(e.amount) || 0;
-    if (!Number.isFinite(pct) && amt > 0) {
-      const money = Number(item.money);
-      if (Number.isFinite(money)) pct = (money / amt) * 100;
-    }
-    if (!Number.isFinite(pct)) pct = 0;
-    if (pct > 0.0001) hasPositive = true;
-    sumPct += pct;
-  }
-  if (!hasPositive) return false;
-  if (sumPct < 99.5) return false;
-  if (!(e.totals && (e.totals.cs || e.totals.konzept || e.totals.pitch))) return false;
-  return true;
-}
-
-function editEntryById(entryId) {
-  const e = findEntryById(entryId);
-  if (!e) return;
-  openWizard(e);
+  wireRowActions(body);
 }
