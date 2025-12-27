@@ -13875,5 +13875,37 @@
     "dockPhaseHistory": {
       "1": 1766848727561
     }
+  },
+  {
+    "id": "hubspot_cc97b064d67b4fb4fea1d0a97fb31440",
+    "hubspotId": "52616997690",
+    "title": "Timur Erkan - FK Rahmenvertrag 3. FZ Leitlinienprozess – KV-2025-0253",
+    "amount": 1620,
+    "source": "hubspot",
+    "projectType": "fix",
+    "projectNumber": "",
+    "client": "",
+    "submittedBy": "",
+    "list": [],
+    "updatedAt": 1766848728080,
+    "marketTeam": "",
+    "market_team": "",
+    "businessUnit": "",
+    "assessmentOwner": "",
+    "dockBuApproved": false,
+    "dockBuApprovedAt": null,
+    "dockFinalAssignment": "",
+    "dockFinalAssignmentAt": null,
+    "dockPhase": 1,
+    "flagship_projekt": false,
+    "freigabedatum": 1759960800000,
+    "kvNummern": [],
+    "kv_nummer": "",
+    "kv": "",
+    "dockRewardFactor": 1,
+    "dockRewardComment": "",
+    "dockPhaseHistory": {
+      "1": 1766848728080
+    }
   }
 ]
