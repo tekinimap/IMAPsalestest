@@ -13651,35 +13651,5 @@
     },
     "ts": 1766618514123,
     "modified": 1766618514524
-  },
-  {
-    "id": "entry_1766848637009_kv20259999",
-    "source": "erp-import",
-    "projectType": "fix",
-    "client": "Stadt Projekt",
-    "title": "Projekt für Tests",
-    "projectNumber": "Projekt-001",
-    "kv_nummer": "KV-2025-9999",
-    "amount": 6767,
-    "list": [],
-    "rows": [],
-    "weights": [],
-    "ts": 1766848637009,
-    "freigabedatum": 1743458400000,
-    "dockFinalAssignment": "fix",
-    "dockFinalAssignmentAt": 1766848637009,
-    "dockPhase": 4,
-    "complete": true,
-    "kvNummern": [
-      "KV-2025-9999"
-    ],
-    "kv": "KV-2025-9999",
-    "dockRewardFactor": 1,
-    "dockRewardComment": "",
-    "dockPhaseHistory": {
-      "4": 1766848647136
-    },
-    "dockBuApproved": false,
-    "dockBuApprovedAt": null
   }
 ]
