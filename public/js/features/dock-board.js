@@ -1078,3 +1078,80 @@ export function openDockEntryDialog() {
     dockEntryDialog.setAttribute('open', 'open');
   }
 }
+// ------------------------------------------------------------
+// Compatibility-Exports (werden von main.js / frameworks.js erwartet)
+// ------------------------------------------------------------
+
+export function clearInputFields() {
+  // Legacy-Stub: Der Wizard verwaltet Inputs selbst.
+}
+
+export function showManualPanel(entryId = null) {
+  const entryObj = entryId ? findEntryById(entryId) : null;
+  openWizard(entryObj || entryId || null);
+}
+
+export function hideManualPanel() {
+  if (!dockEntryDialog) return;
+  try {
+    if (typeof dockEntryDialog.close === 'function') dockEntryDialog.close();
+    else dockEntryDialog.removeAttribute('open');
+  } catch {}
+}
+
+export function requestDockEntryDialogClose() {
+  try {
+    if (dockEntryDialog?.open && typeof getHasUnsavedChanges === 'function' && getHasUnsavedChanges()) {
+      const ok = confirm('Ungespeicherte Änderungen gehen verloren. Trotzdem schließen?');
+      if (!ok) return false;
+    }
+  } catch {}
+  hideManualPanel();
+  return true;
+}
+
+export function queueDockAutoCheck(id, context = {}) {
+  if (!id) return;
+
+  // Wenn deine Queue ein Map ist:
+  try {
+    if (dockAutoCheckQueue && typeof dockAutoCheckQueue.set === 'function') {
+      const prev = dockAutoCheckQueue.get(id) || {};
+      dockAutoCheckQueue.set(id, { ...prev, ...(context || {}), id, queuedAt: Date.now() });
+      return;
+    }
+  } catch {}
+
+  // Fallback: wenn Queue ein Array ist:
+  try {
+    if (Array.isArray(dockAutoCheckQueue)) {
+      dockAutoCheckQueue.push({ id, ...(context || {}) });
+    }
+  } catch {}
+}
+
+export function findDockKvConflict(kvValue, excludeId) {
+  const normalized = normalizeDockString(kvValue).toLowerCase();
+  if (!normalized) return null;
+
+  const allEntries = getEntries() || [];
+  return (
+    allEntries.find((item) => {
+      if (!item || item.id === excludeId) return false;
+
+      // nur Dock-Deals vergleichen
+      if (typeof shouldDisplayInDock === 'function' && !shouldDisplayInDock(item)) return false;
+
+      const kvs = typeof getEntryKvList === 'function' ? getEntryKvList(item) : [];
+      return (kvs || [])
+        .map((kv) => normalizeDockString(kv).toLowerCase())
+        .some((kv) => kv === normalized);
+    }) || null
+  );
+}
+
+export async function finalizeDockAbruf(entryId) {
+  // Markiert den Dock-Deal als Abruf -> verschwindet aus Dock.
+  // (Du hast finalizeDockAssignment bereits in deiner Datei drin.)
+  await finalizeDockAssignment(entryId, 'abruf');
+}
